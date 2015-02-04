@@ -1,6 +1,35 @@
+find_package(Boost REQUIRED system filesystem)
+
 rock_library(terep
-    SOURCES problems/Scheduling.cpp
-    HEADERS problems/Scheduling.hpp)
+    SOURCES 
+        solvers/temporal/point_algebra/TimePoint.cpp
+        solvers/temporal/point_algebra/QualitativeTimePointConstraint.cpp
+        solvers/temporal/SimpleTemporalNetwork.cpp
+        solvers/ConstraintNetwork.cpp
+        solvers/Constraint.cpp
+        solvers/Variable.cpp
+    HEADERS 
+        solvers/temporal/point_algebra/TimePoint.hpp
+        solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp
+        solvers/temporal/SimpleTemporalNetwork.hpp
+        solvers/ConstraintNetwork.hpp
+        solvers/Variable.hpp
+        solvers/Constraint.hpp
+    DEPS_PKGCONFIG graph_analysis
+)
+
+set(GECODE_LIBRARIES
+    gecodesearch
+    gecodesupport
+    gecodeset
+    gecodekernel
+    gecodeminimodel
+    gecodeint
+    gecodefloat
+    gecodegist
+)
+
+target_link_libraries(terep ${Boost_LIBRARIES} ${GECODE_LIBRARIES})
 
 rock_executable(terep_bin Main.cpp
     DEPS terep)
