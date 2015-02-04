@@ -16,7 +16,9 @@ public:
 
     void addQualitativeConstraint(point_algebra::TimePoint::Ptr t1, point_algebra::TimePoint::Ptr t2, point_algebra::QualitativeConstraintType constraint);
 
-    bool isConsistent() const;
+    static point_algebra::QualitativeConstraintType getSymmetricConstraint(graph_analysis::BaseGraph::Ptr graph, graph_analysis::Vertex::Ptr first, graph_analysis::Vertex::Ptr second);
+
+    bool isConsistent();
 };
 
 } // end namespace temporal

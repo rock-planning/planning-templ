@@ -15,7 +15,7 @@ rock_library(terep
         solvers/ConstraintNetwork.hpp
         solvers/Variable.hpp
         solvers/Constraint.hpp
-    DEPS_PKGCONFIG graph_analysis
+    DEPS_PKGCONFIG graph_analysis numeric
 )
 
 set(GECODE_LIBRARIES

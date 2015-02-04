@@ -10,6 +10,7 @@ namespace solvers {
 
 class ConstraintNetwork
 {
+protected:
     graph_analysis::lemon::DirectedGraph mDigraph;
 
 public:
