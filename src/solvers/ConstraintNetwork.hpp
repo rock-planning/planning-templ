@@ -14,6 +14,8 @@ protected:
     graph_analysis::lemon::DirectedGraph mDigraph;
 
 public:
+    virtual ~ConstraintNetwork() {}
+
     virtual void addVariable(Variable::Ptr variable);
 
     virtual void addConstraint(Constraint::Ptr constraint);

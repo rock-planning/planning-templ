@@ -4,6 +4,7 @@ rock_library(terep
     SOURCES 
         solvers/temporal/point_algebra/TimePoint.cpp
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.cpp
+        solvers/temporal/Bounds.cpp
         solvers/temporal/SimpleTemporalNetwork.cpp
         solvers/ConstraintNetwork.cpp
         solvers/Constraint.cpp
@@ -11,6 +12,7 @@ rock_library(terep
     HEADERS 
         solvers/temporal/point_algebra/TimePoint.hpp
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp
+        solvers/temporal/Bounds.hpp
         solvers/temporal/SimpleTemporalNetwork.hpp
         solvers/ConstraintNetwork.hpp
         solvers/Variable.hpp

@@ -1,6 +1,8 @@
 #include "SimpleTemporalNetwork.hpp"
 #include <numeric/Combinatorics.hpp>
 #include <base/Logging.hpp>
+#include <graph_analysis/WeightedEdge.hpp>
+#include <graph_analysis/algorithms/FloydWarshall.hpp>
 
 using namespace terep::solvers::temporal::point_algebra;
 
@@ -8,9 +10,31 @@ namespace terep {
 namespace solvers {
 namespace temporal {
 
-TimePoint::Ptr SimpleTemporalNetwork::createTimepoint(uint64_t lowerBound, uint64_t upperBound)
+SimpleTemporalNetwork::SimpleTemporalNetwork()
+    : mpDistanceGraph( new graph_analysis::lemon::DirectedGraph() )
 {
-    return TimePoint::Ptr( new TimePoint(lowerBound, upperBound) );
+}
+void SimpleTemporalNetwork::addTimePoint(TimePoint::Ptr t)
+{
+    mpDistanceGraph->addVertex(t);
+}
+
+void SimpleTemporalNetwork::addInterval(TimePoint::Ptr source, TimePoint::Ptr target, const Bounds& bounds)
+{
+    using namespace graph_analysis;
+    {
+        WeightedEdge::Ptr edge(new WeightedEdge(bounds.getUpperBound()));
+        edge->setSourceVertex(source);
+        edge->setTargetVertex(target);
+        mpDistanceGraph->addEdge(edge);
+    }
+
+    {
+        WeightedEdge::Ptr edge(new WeightedEdge(- bounds.getLowerBound()));
+        edge->setSourceVertex(target);
+        edge->setTargetVertex(source);
+        mpDistanceGraph->addEdge(edge);
+    }
 }
 
 void SimpleTemporalNetwork::addQualitativeConstraint(TimePoint::Ptr t1, TimePoint::Ptr t2, QualitativeConstraintType constraintType)
@@ -152,6 +176,44 @@ QualitativeConstraintType SimpleTemporalNetwork::getSymmetricConstraint(graph_an
         LOG_DEBUG_S << "QualitativeConstraintType: " << QualitativeConstraintTypeTxt[constraintType];
         return QualitativeTimePointConstraint::getSymmetric(constraintType);
     }
+}
+
+graph_analysis::BaseGraph::Ptr SimpleTemporalNetwork::propagate()
+{
+    using namespace graph_analysis;
+
+    algorithms::DistanceMatrix distanceMatrix = algorithms::FloydWarshall::allShortestPaths(mpDistanceGraph, [](Edge::Ptr e) -> double
+            {
+                return boost::dynamic_pointer_cast<WeightedEdge>(e)->getWeight();
+            });
+
+    // Now we should update the vertices/ Variable domains according to the minimal network
+    // Do this once only!
+    EdgeIterator::Ptr edgeIt = mpDistanceGraph->getEdgeIterator();
+    while(edgeIt->next())
+    {
+        WeightedEdge::Ptr edge = boost::dynamic_pointer_cast<WeightedEdge>( edgeIt->current() );
+        double weight = edge->getWeight();
+
+        TimePoint::Ptr sourceTp = boost::dynamic_pointer_cast<TimePoint>(edge->getSourceVertex());
+        TimePoint::Ptr targetTp = boost::dynamic_pointer_cast<TimePoint>(edge->getTargetVertex());
+
+        // Update
+        //    |------- 38 ----->
+        // v0[10,80]          v1[30,100]
+        //    <------ -30 -----|
+        // ==>
+        // v0[10,70] --- v1[48,100]
+
+        if(weight > 0)
+        {
+            targetTp->setLowerBound( std::min( static_cast<double>(sourceTp->getLowerBound()) + weight, static_cast<double>(targetTp->getLowerBound())) );
+        } else {
+            sourceTp->setUpperBound( std::min( static_cast<double>(sourceTp->getUpperBound()), static_cast<double>(targetTp->getUpperBound()) + weight ) );
+        }
+    }
+
+    return mpDistanceGraph;
 }
 
 } // end namespace temporal

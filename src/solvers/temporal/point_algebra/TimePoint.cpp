@@ -17,6 +17,11 @@ TimePoint::TimePoint(uint64_t lowerBound, uint64_t upperBound)
     }
 }
 
+TimePoint::Ptr TimePoint::create(uint64_t lowerBound, uint64_t upperBound)
+{
+    return TimePoint::Ptr( new TimePoint(lowerBound, upperBound) );
+}
+
 std::string TimePoint::toString() const
 {
     std::stringstream ss;

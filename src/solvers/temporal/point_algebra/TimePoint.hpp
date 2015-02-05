@@ -19,10 +19,12 @@ public:
 
     TimePoint(uint64_t lowerBound, uint64_t upperBound);
 
+    static TimePoint::Ptr create(uint64_t lowerBound, uint64_t upperBound);
+
     bool operator=(const TimePoint& other) const { return mLowerBound == other.mLowerBound && mUpperBound == other.mUpperBound; }
 
-    void setLowerBound(uint64_t bound);
-    void setUpperBound(uint64_t bound);
+    void setLowerBound(uint64_t bound) { mLowerBound = bound; }
+    void setUpperBound(uint64_t bound) { mUpperBound = bound; }
 
     uint64_t getLowerBound() const { return mLowerBound; }
     uint64_t getUpperBound() const { return mUpperBound; }
