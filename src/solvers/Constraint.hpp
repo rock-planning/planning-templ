@@ -1,10 +1,12 @@
-#ifndef TEREP_SOLVERS_CONSTRAINT_HPP
-#define TEREP_SOLVERS_CONSTRAINT_HPP
+#ifndef TEMPL_SOLVERS_CONSTRAINT_HPP
+#define TEMPL_SOLVERS_CONSTRAINT_HPP
 
-#include <terep/solvers/Variable.hpp>
+#include <templ/solvers/Variable.hpp>
 #include <graph_analysis/Edge.hpp>
 
-namespace terep {
+#define T_CONSTRAINT(x) boost::dynamic_pointer_cast< templ::solvers::Constraint>(x)
+
+namespace templ {
 namespace solvers {
 
 class Constraint : public graph_analysis::Edge
@@ -23,5 +25,5 @@ public:
 };
 
 } // end namespace solvers
-} // end namespace terep
-#endif // TEREP_SOLVERS_CONSTRAINT_HPP
+} // end namespace templ
+#endif // TEMPL_SOLVERS_CONSTRAINT_HPP

@@ -4,9 +4,9 @@
 #include <graph_analysis/WeightedEdge.hpp>
 #include <graph_analysis/algorithms/FloydWarshall.hpp>
 
-using namespace terep::solvers::temporal::point_algebra;
+using namespace templ::solvers::temporal::point_algebra;
 
-namespace terep {
+namespace templ {
 namespace solvers {
 namespace temporal {
 
@@ -182,13 +182,17 @@ graph_analysis::BaseGraph::Ptr SimpleTemporalNetwork::propagate()
 {
     using namespace graph_analysis;
 
+    // Throw when the shortest path computation identifies a negative cycle,
+    // i.e. an inconsistent network whose constraints can never be fulfilled
+    bool throwOnNegativeCycle = true;
     algorithms::DistanceMatrix distanceMatrix = algorithms::FloydWarshall::allShortestPaths(mpDistanceGraph, [](Edge::Ptr e) -> double
             {
                 return boost::dynamic_pointer_cast<WeightedEdge>(e)->getWeight();
-            });
+            }, throwOnNegativeCycle);
 
     // Now we should update the vertices/ Variable domains according to the minimal network
-    // Do this once only!
+    // Since the minimal distance has been already computed, which have to do
+    // this once only
     EdgeIterator::Ptr edgeIt = mpDistanceGraph->getEdgeIterator();
     while(edgeIt->next())
     {
@@ -204,7 +208,9 @@ graph_analysis::BaseGraph::Ptr SimpleTemporalNetwork::propagate()
         //    <------ -30 -----|
         // ==>
         // v0[10,70] --- v1[48,100]
-
+        //
+        // Reading material: Temporal constraints networks, Rina Dechter et. al 1991 p. 70
+        //
         if(weight > 0)
         {
             LOG_DEBUG_S << "[" << sourceTp->getLowerBound() <<"," << sourceTp->getUpperBound() <<"] -- " << weight << " --> " << "[" << targetTp->getLowerBound() << "," << targetTp->getUpperBound() << "]";
@@ -230,4 +236,4 @@ graph_analysis::BaseGraph::Ptr SimpleTemporalNetwork::propagate()
 
 } // end namespace temporal
 } // end namespace solvers
-} // end namespace terep
+} // end namespace templ

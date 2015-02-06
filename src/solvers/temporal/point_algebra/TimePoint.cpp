@@ -1,6 +1,6 @@
 #include "TimePoint.hpp"
 
-namespace terep {
+namespace templ {
 namespace solvers {
 namespace temporal {
 namespace point_algebra {
@@ -35,4 +35,4 @@ std::string TimePoint::toString() const
 } // end namespace point_algebra
 } // end namespace temporal
 } // end namespace solvers
-} // end namespace terep
+} // end namespace templ

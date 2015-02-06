@@ -1,10 +1,10 @@
-#ifndef TEREP_SOLVERS_TEMPORAL_POINT_ALGEBRA_TIME_POINT_HPP
-#define TEREP_SOLVERS_TEMPORAL_POINT_ALGEBRA_TIME_POINT_HPP
+#ifndef TEMPL_SOLVERS_TEMPORAL_POINT_ALGEBRA_TIME_POINT_HPP
+#define TEMPL_SOLVERS_TEMPORAL_POINT_ALGEBRA_TIME_POINT_HPP
 
-#include <terep/solvers/Variable.hpp>
+#include <templ/solvers/Variable.hpp>
 #include <map>
 
-namespace terep {
+namespace templ {
 namespace solvers {
 namespace temporal {
 namespace point_algebra {
@@ -35,5 +35,5 @@ public:
 } // end namespace point_algebra
 } // end namespace temporal
 } // end namespace solvers
-} // end namespace terep
-#endif // TEREP_SOLVERS_TEMPORAL_POINT_ALGEBRA_TIME_POINT_HPP
+} // end namespace templ
+#endif // TEMPL_SOLVERS_TEMPORAL_POINT_ALGEBRA_TIME_POINT_HPP

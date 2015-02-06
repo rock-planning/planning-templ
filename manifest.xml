@@ -1,6 +1,6 @@
 <package>
-  <description brief="Temporal resource planner (terep)">
-  This planner is dedicated to solve temporal planning with resources
+  <description brief="Temporal planner for reconfiguration multi-robot systems (TemPl)">
+  This planner is dedicated to solve temporal planning with reconfigurable multi-robot systems
   </description>
   <author>Thomas Roehr/thomas.roehr@dfki.de</author>
   <license></license>

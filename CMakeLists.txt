@@ -3,5 +3,5 @@
 cmake_minimum_required(VERSION 2.6)
 find_package(Rock)
 add_definitions("-std=c++11")
-rock_init(terep 0.1)
+rock_init(templ 0.1)
 rock_standard_layout()

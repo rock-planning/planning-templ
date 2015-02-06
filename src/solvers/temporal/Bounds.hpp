@@ -1,7 +1,7 @@
-#ifndef TEREP_SOLVERS_TEMPORAL_BOUNDS_HPP
-#define TEREP_SOLVERS_TEMPORAL_BOUNDS_HPP
+#ifndef TEMPL_SOLVERS_TEMPORAL_BOUNDS_HPP
+#define TEMPL_SOLVERS_TEMPORAL_BOUNDS_HPP
 
-namespace terep {
+namespace templ {
 namespace solvers {
 namespace temporal {
 
@@ -19,5 +19,5 @@ public:
 
 } // end namespace temporal
 } // end namespace solvers
-} // end namespace terep
-#endif // TEREP_SOLVERS_TEMPORAL_BOUNDS_HPP
+} // end namespace templ
+#endif // TEMPL_SOLVERS_TEMPORAL_BOUNDS_HPP

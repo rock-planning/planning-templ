@@ -1,11 +1,11 @@
-#ifndef TEREP_SCHEDULING_HPP
-#define TEREP_SCHEDULING_HPP
+#ifndef TEMPL_SCHEDULING_HPP
+#define TEMPL_SCHEDULING_HPP
 
 #include <gecode/set.hh>
 #include <gecode/int.hh>
 #include <gecode/search.hh>
 
-namespace terep {
+namespace templ {
 
 //class Scheduling : public Gecode::Space 
 //{
@@ -26,5 +26,5 @@ namespace terep {
 //};
 
 
-} // end namespace terep
-#endif // TEREP_SCHEDULING_HPP
+} // end namespace templ
+#endif // TEMPL_SCHEDULING_HPP

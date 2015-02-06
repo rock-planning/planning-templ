@@ -1,11 +1,11 @@
-#ifndef TEREP_SOLVERS_CONSTRAINT_NETWORK_HPP
-#define TEREP_SOLVERS_CONSTRAINT_NETWORK_HPP
+#ifndef TEMPL_SOLVERS_CONSTRAINT_NETWORK_HPP
+#define TEMPL_SOLVERS_CONSTRAINT_NETWORK_HPP
 
 #include <graph_analysis/lemon/Graph.hpp>
-#include <terep/solvers/Constraint.hpp>
-#include <terep/solvers/Variable.hpp>
+#include <templ/solvers/Constraint.hpp>
+#include <templ/solvers/Variable.hpp>
 
-namespace terep {
+namespace templ {
 namespace solvers {
 
 class ConstraintNetwork
@@ -26,5 +26,5 @@ public:
 
 
 } // end namespace solvers
-} // end namespace terep
-#endif // TEREP_SOLVERS_CONSTRAINT_NETWORK_HPP
+} // end namespace templ
+#endif // TEMPL_SOLVERS_CONSTRAINT_NETWORK_HPP

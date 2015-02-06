@@ -1,9 +1,10 @@
 #include <boost/test/unit_test.hpp>
-#include <terep/solvers/temporal/SimpleTemporalNetwork.hpp>
+#include <templ/solvers/temporal/SimpleTemporalNetwork.hpp>
 #include <numeric/Combinatorics.hpp>
+#include <graph_analysis/GraphIO.hpp>
 
-using namespace terep::solvers;
-using namespace terep::solvers::temporal;
+using namespace templ::solvers;
+using namespace templ::solvers::temporal;
 
 BOOST_AUTO_TEST_SUITE(simple_temporal_network)
 
@@ -132,7 +133,10 @@ BOOST_AUTO_TEST_CASE(domain_propagation)
             BOOST_REQUIRE_MESSAGE( tp1->getLowerBound() == 48, "Lower bound corrected after propagation: expected 48, actual " << tp1->getLowerBound());
             BOOST_REQUIRE_MESSAGE( tp1->getUpperBound() == 90, "Upper bound corrected after propagation: expected 90, actual " << tp1->getUpperBound());
             BOOST_REQUIRE_MESSAGE( tp2->getLowerBound() == 78, "Lower bound corrected after propagation: expected 78, actual " << tp2->getLowerBound());
+
+            graph_analysis::io::GraphIO::write("test_SimpleTemporalNetwork-domain_propagation", *baseGraph, graph_analysis::representation::GEXF);
         }
+
     }
 }
 

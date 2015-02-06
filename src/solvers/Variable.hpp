@@ -1,9 +1,11 @@
-#ifndef TEREP_SOLVERS_VARIABLE_HPP
-#define TEREP_SOLVERS_VARIABLE_HPP
+#ifndef TEMPL_SOLVERS_VARIABLE_HPP
+#define TEMPL_SOLVERS_VARIABLE_HPP
 
 #include <graph_analysis/Vertex.hpp>
 
-namespace terep {
+#define T_VAR(x) boost::dynamic_pointer_cast< templ::solvers::Variable>(x)
+
+namespace templ {
 namespace solvers {
 
 class Variable : public graph_analysis::Vertex
@@ -17,5 +19,5 @@ public:
 };
 
 } // end namespace solvers
-} // end namespace terep
-#endif // TEREP_SOLVERS_VARIABLE_HPP
+} // end namespace templ
+#endif // TEMPL_SOLVERS_VARIABLE_HPP

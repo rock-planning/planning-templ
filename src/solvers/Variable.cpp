@@ -1,6 +1,6 @@
 #include "Variable.hpp"
 
-namespace terep {
+namespace templ {
 namespace solvers {
 
 std::string Variable::toString() const
@@ -9,4 +9,4 @@ std::string Variable::toString() const
 }
 
 } // end namespace solvers
-} // end namespace terep
+} // end namespace templ

@@ -3,7 +3,7 @@
 
 using namespace Gecode;
 
-namespace terep {
+namespace templ {
 
 //Scheduling::Scheduling()
 //{
@@ -30,4 +30,4 @@ namespace terep {
 //    return new Scheduling(share, *this);
 //}
 
-} // end namespace terep
+} // end namespace templ

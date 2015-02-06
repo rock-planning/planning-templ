@@ -1,10 +1,10 @@
-#ifndef TEREP_SOLVERS_TEMPORAL_QUALITATIVE_TIMEPOINT_CONSTRAINT_HPP
-#define TEREP_SOLVERS_TEMPORAL_QUALITATIVE_TIMEPOINT_CONSTRAINT_HPP
+#ifndef TEMPL_SOLVERS_TEMPORAL_QUALITATIVE_TIMEPOINT_CONSTRAINT_HPP
+#define TEMPL_SOLVERS_TEMPORAL_QUALITATIVE_TIMEPOINT_CONSTRAINT_HPP
 
-#include <terep/solvers/Constraint.hpp>
-#include <terep/solvers/temporal/point_algebra/TimePoint.hpp>
+#include <templ/solvers/Constraint.hpp>
+#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
 
-namespace terep {
+namespace templ {
 namespace solvers {
 namespace temporal {
 namespace point_algebra {
@@ -68,6 +68,6 @@ public:
 } // end namespace point_algebra
 } // end namespace temporal
 } // end namespace solvers
-} // end namespace terep
+} // end namespace templ
 
-#endif // TEREP_SOLVERS_TEMPORAL_TIMEPOINT_CONSTRAINT_HPP
+#endif // TEMPL_SOLVERS_TEMPORAL_TIMEPOINT_CONSTRAINT_HPP

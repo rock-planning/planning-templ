@@ -1,6 +1,6 @@
 find_package(Boost REQUIRED system filesystem)
 
-rock_library(terep
+rock_library(templ
     SOURCES 
         solvers/temporal/point_algebra/TimePoint.cpp
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.cpp
@@ -31,8 +31,8 @@ set(GECODE_LIBRARIES
     gecodegist
 )
 
-target_link_libraries(terep ${Boost_LIBRARIES} ${GECODE_LIBRARIES})
+target_link_libraries(templ ${Boost_LIBRARIES} ${GECODE_LIBRARIES})
 
-rock_executable(terep_bin Main.cpp
-    DEPS terep)
+rock_executable(templ_bin Main.cpp
+    DEPS templ)
 

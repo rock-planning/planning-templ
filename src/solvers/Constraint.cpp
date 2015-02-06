@@ -2,7 +2,7 @@
 
 using namespace graph_analysis;
 
-namespace terep {
+namespace templ {
 namespace solvers {
 
 Constraint::Constraint(Variable::Ptr source, Variable::Ptr target)
@@ -16,4 +16,4 @@ std::string Constraint::toString() const
 }
 
 } // end namespace solvers
-} // end namespace terep
+} // end namespace templ

@@ -1,6 +1,6 @@
 #include "ConstraintNetwork.hpp"
 
-namespace terep {
+namespace templ {
 namespace solvers {
 
 void ConstraintNetwork::addVariable(Variable::Ptr variable)
@@ -14,4 +14,4 @@ void ConstraintNetwork::addConstraint(Constraint::Ptr constraint)
 }
 
 } // end namespace solvers
-} // end namespace terep
+} // end namespace templ

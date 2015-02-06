@@ -1,11 +1,11 @@
-#ifndef TEREP_SOLVERS_TEMPORAL_SIMPLE_TEMPORAL_NETWORK_HPP
-#define TEREP_SOLVERS_TEMPORAL_SIMPLE_TEMPORAL_NETWORK_HPP
+#ifndef TEMPL_SOLVERS_TEMPORAL_SIMPLE_TEMPORAL_NETWORK_HPP
+#define TEMPL_SOLVERS_TEMPORAL_SIMPLE_TEMPORAL_NETWORK_HPP
 
-#include <terep/solvers/ConstraintNetwork.hpp>
-#include <terep/solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp>
-#include <terep/solvers/temporal/Bounds.hpp>
+#include <templ/solvers/ConstraintNetwork.hpp>
+#include <templ/solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp>
+#include <templ/solvers/temporal/Bounds.hpp>
 
-namespace terep {
+namespace templ {
 namespace solvers {
 namespace temporal {
 
@@ -35,5 +35,5 @@ public:
 
 } // end namespace temporal
 } // end namespace solvers
-} // end namespace terep
-#endif // TEREP_SOLVERS_TEMPORAL_SIMPLE_TEMPORAL_NETWORK_HPP
+} // end namespace templ
+#endif // TEMPL_SOLVERS_TEMPORAL_SIMPLE_TEMPORAL_NETWORK_HPP

@@ -1,6 +1,6 @@
 #include "Bounds.hpp"
 
-namespace terep {
+namespace templ {
 namespace solvers {
 namespace temporal {
 
@@ -12,5 +12,5 @@ Bounds::Bounds(double lowerBound, double upperBound)
 
 } // end namespace temporal
 } // end namespace solvers
-} // end namespace terep
+} // end namespace templ
 
