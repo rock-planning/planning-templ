@@ -207,9 +207,21 @@ graph_analysis::BaseGraph::Ptr SimpleTemporalNetwork::propagate()
 
         if(weight > 0)
         {
-            targetTp->setLowerBound( std::min( static_cast<double>(sourceTp->getLowerBound()) + weight, static_cast<double>(targetTp->getLowerBound())) );
+            LOG_DEBUG_S << "[" << sourceTp->getLowerBound() <<"," << sourceTp->getUpperBound() <<"] -- " << weight << " --> " << "[" << targetTp->getLowerBound() << "," << targetTp->getUpperBound() << "]";
+
+            double transitiveLowerBound = static_cast<double>(sourceTp->getLowerBound()) + weight;
+            double actualLowerBound = static_cast<double>(targetTp->getLowerBound());
+            double max = std::max(transitiveLowerBound, actualLowerBound);
+            LOG_DEBUG_S << "Lower bounds: transitive: " << transitiveLowerBound << " vs. actual " << actualLowerBound;
+            targetTp->setLowerBound(max);
         } else {
-            sourceTp->setUpperBound( std::min( static_cast<double>(sourceTp->getUpperBound()), static_cast<double>(targetTp->getUpperBound()) + weight ) );
+            LOG_DEBUG_S << "[" << sourceTp->getLowerBound() <<"," << sourceTp->getUpperBound() <<"] -- " << weight << " --> " << "[" << targetTp->getLowerBound() << "," << targetTp->getUpperBound() << "]";
+
+            double transitiveUpperBound = static_cast<double>(sourceTp->getUpperBound()) + weight;
+            double actualUpperBound = static_cast<double>(targetTp->getUpperBound());
+            double min = std::min(transitiveUpperBound, actualUpperBound);
+            LOG_DEBUG_S << "Upper bounds: transitive: " << transitiveUpperBound << " vs. actual " << actualUpperBound;
+            targetTp->setUpperBound(min);
         }
     }
 
