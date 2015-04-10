@@ -26,10 +26,25 @@ public:
 
     static point_algebra::QualitativeConstraintType getSymmetricConstraint(graph_analysis::BaseGraph::Ptr graph, graph_analysis::Vertex::Ptr first, graph_analysis::Vertex::Ptr second);
 
+    /**
+     * Check if consistency between a set of edges (multiedge) is given
+     * for qualitative time point constraints
+     */
+    bool isConsistent(std::vector<graph_analysis::Edge::Ptr> edges);
+
+    /** Check consistency between two vertices of the constraint graph
+     * \return true if graph is consistent, false otherwise
+     */
+    bool isConsistent(graph_analysis::Vertex::Ptr vertex0, graph_analysis::Vertex::Ptr vertex1, graph_analysis::BaseGraph::Ptr graph);
+
+    /** Check 3-path consistency withing the constraint graph
+     * \return true if graph is consistent, false otherwise
+     */
     bool isConsistent();
 
-    //
-    // \return the resulting distance graph
+    /** Propagate and check for consistency using FloydWarshall algorithm
+     * \return the resulting distance graph
+     */
     graph_analysis::BaseGraph::Ptr propagate();
 };
 

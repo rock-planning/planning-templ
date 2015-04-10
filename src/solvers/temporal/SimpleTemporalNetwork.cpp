@@ -5,6 +5,7 @@
 #include <graph_analysis/algorithms/FloydWarshall.hpp>
 
 using namespace templ::solvers::temporal::point_algebra;
+using namespace graph_analysis;
 
 namespace templ {
 namespace solvers {
@@ -21,6 +22,11 @@ void SimpleTemporalNetwork::addTimePoint(TimePoint::Ptr t)
 
 void SimpleTemporalNetwork::addInterval(TimePoint::Ptr source, TimePoint::Ptr target, const Bounds& bounds)
 {
+    // Upper and lower bound are added as edges in forward and backward
+    // direction between two edges
+    // A --- weight: upper bound   --> B
+    // B --- weight: - lower bound --> A
+    // the lower bound will be added as negative cost
     using namespace graph_analysis;
     {
         WeightedEdge::Ptr edge(new WeightedEdge(bounds.getUpperBound()));
@@ -39,6 +45,8 @@ void SimpleTemporalNetwork::addInterval(TimePoint::Ptr source, TimePoint::Ptr ta
 
 void SimpleTemporalNetwork::addQualitativeConstraint(TimePoint::Ptr t1, TimePoint::Ptr t2, QualitativeConstraintType constraintType)
 {
+    // Add a qualitative constraint -- translate "complexer" type to primitive
+    // relations
     QualitativeTimePointConstraint::Ptr constraint;
     switch(constraintType)
     {
@@ -53,6 +61,62 @@ void SimpleTemporalNetwork::addQualitativeConstraint(TimePoint::Ptr t1, TimePoin
     addConstraint(constraint);
 }
 
+bool SimpleTemporalNetwork::isConsistent(std::vector<Edge::Ptr> edges)
+{
+    if(edges.size() <= 1)
+    {
+        return true;
+    }
+
+    numeric::Combination<Edge::Ptr> combination(edges, 2, numeric::EXACT);
+    do {
+
+        std::vector<Edge::Ptr> edgeCombination = combination.current();
+        QualitativeConstraintType constraintTypeIJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgeCombination[0])->getQualitativeConstraintType();
+        QualitativeConstraintType constraintTypeJI = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgeCombination[1])->getQualitativeConstraintType();
+
+        if(! QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, constraintTypeJI) )
+        {
+            return false;
+        }
+    } while(combination.next());
+
+    return true;
+}
+
+bool SimpleTemporalNetwork::isConsistent(Vertex::Ptr vertex0, Vertex::Ptr vertex1, BaseGraph::Ptr graph)
+{
+    int i = 0;
+    int j = 1;
+    std::vector<Edge::Ptr> edgesIJ = graph->getEdges(vertex0, vertex1);
+    std::vector<Edge::Ptr> edgesJI = graph->getEdges(vertex1, vertex0);
+    // Check self consistency
+    if(!isConsistent(edgesIJ) || !isConsistent(edgesJI))
+    {
+        return false;
+    }
+
+    std::vector<Edge::Ptr>::const_iterator ijIterator = edgesIJ.begin();
+    for(; ijIterator != edgesIJ.end(); ++ijIterator)
+    {
+        std::vector<Edge::Ptr>::const_iterator jiIterator = edgesJI.begin();
+        for(; jiIterator != edgesJI.end(); ++jiIterator)
+        {
+            QualitativeConstraintType constraintTypeIJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(*ijIterator)->getQualitativeConstraintType();
+
+            QualitativeConstraintType constraintTypeJI = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(*jiIterator)->getQualitativeConstraintType();
+            QualitativeConstraintType symmetricConstraintTypeJI = QualitativeTimePointConstraint::getSymmetric(constraintTypeJI);
+
+            if(!QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, symmetricConstraintTypeJI))
+            {
+                LOG_DEBUG_S << "Constraint: " << QualitativeConstraintTypeTxt[constraintTypeIJ] << " is inconsistent with " << QualitativeConstraintTypeTxt[symmetricConstraintTypeJI];
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 bool SimpleTemporalNetwork::isConsistent()
 {
     using namespace graph_analysis;
@@ -64,10 +128,16 @@ bool SimpleTemporalNetwork::isConsistent()
 
     // Iterate over all node triples
     std::vector<Vertex::Ptr> vertices = graph->getAllVertices();
-    LOG_WARN_S << "Vertices count: " << vertices.size();
-    if(vertices.size() < 3)
+    LOG_DEBUG_S << "Vertices in STN: " << vertices.size();
+    switch(vertices.size())
     {
-        return true;
+        case 0:
+        case 1:
+            return true;
+        case 2:
+            return isConsistent(vertices[0], vertices[1], graph);
+        default:
+            break;
     }
 
     numeric::Combination<Vertex::Ptr> combination(vertices, 3, numeric::EXACT);
