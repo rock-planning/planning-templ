@@ -9,9 +9,10 @@ namespace solvers {
 namespace temporal {
 namespace point_algebra {
 
-/// Primitive relations are P = {<,=,>} and timepoint can be related in only
+/// Primitive relations are P = {<,=,>} and timepoints can be related in only
 /// these three ways
-/// Constraining can be done in additional way,s: <=, >=, !=
+/// Constraining can be done in additional ways, i.e. <=, >=, !=
+///
 /// Here we rely on the qualititive constraints
 /// R =2^P = { {}{<},{=},{>},{<,=},{>,=},{<,>},P}
 ///
@@ -24,16 +25,25 @@ extern std::map<QualitativeConstraintType, std::string> QualitativeConstraintTyp
 /// Composition table for the time-point algebra for '<','=','>' and the
 /// additional '<=','>='
 ///
+/// \see "Automated Planning - Theory and Practice" (Chap. 13.3 Qualitative
+///       Temporal Relations)
+///
 ///  o| < | = | >
 ///  <| < | < | P
 ///  =| < | = | >
 ///  >| P | > | >
 ///
-/// The operator is associative and distributive, i.e.
+/// The operator o is associative and distributive, i.e.
 /// {<,=} o {>,=} = {<}o{>} \cup {<}o{=} \cup {=}o{>} \cup {=}o{>} = {P} \cup
 /// {>} \cup {<} \cup {>} = {P}
 extern std::map< std::pair<QualitativeConstraintType,QualitativeConstraintType>, QualitativeConstraintType > QualitativeConstraintTypeAlgebra;
 
+/**
+ * A qualitative timepoint constraint does not take into account bounds of any
+ * timepoint. 
+ * Thus one should use instances of QualitativeTimePoint when working with this
+ * kind of constraint
+ */
 class QualitativeTimePointConstraint : public Constraint
 {
     QualitativeConstraintType mConstraintType;
@@ -60,8 +70,15 @@ public:
 
     static QualitativeConstraintType getComposition(QualitativeConstraintType firstType, QualitativeConstraintType secondType);
 
+    /**
+     * Check if a constraint type is consistent with another
+     */
     static bool isConsistent(QualitativeConstraintType firstType, QualitativeConstraintType secondType);
 
+    /**
+     * Retrieve a list that contains all available constraint types
+     * \return constraint type list
+     */
     static std::vector<QualitativeConstraintType> getAllConstraintTypes();
 };
 
