@@ -29,7 +29,7 @@ public:
     uint64_t getLowerBound() const { return mLowerBound; }
     uint64_t getUpperBound() const { return mUpperBound; }
 
-    std::string toString() const;
+    virtual std::string toString() const;
 };
 
 } // end namespace point_algebra

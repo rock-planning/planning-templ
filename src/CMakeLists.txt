@@ -10,6 +10,8 @@ rock_library(templ
         solvers/Constraint.cpp
         solvers/Variable.cpp
     HEADERS 
+        solvers/temporal/point_algebra/QualitativeTimePoint.hpp
+        solvers/temporal/point_algebra/ExactTimePoint.hpp
         solvers/temporal/point_algebra/TimePoint.hpp
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp
         solvers/temporal/Bounds.hpp

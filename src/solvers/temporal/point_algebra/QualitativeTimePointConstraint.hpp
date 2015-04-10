@@ -2,7 +2,7 @@
 #define TEMPL_SOLVERS_TEMPORAL_QUALITATIVE_TIMEPOINT_CONSTRAINT_HPP
 
 #include <templ/solvers/Constraint.hpp>
-#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
+#include <templ/solvers/temporal/point_algebra/QualitativeTimePoint.hpp>
 
 namespace templ {
 namespace solvers {
