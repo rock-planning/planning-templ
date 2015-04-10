@@ -9,6 +9,9 @@ rock_library(templ
         solvers/ConstraintNetwork.cpp
         solvers/Constraint.cpp
         solvers/Variable.cpp
+        Event.cpp
+        PersistenceCondition.cpp
+        TemporalAssertion.cpp
     HEADERS 
         solvers/temporal/point_algebra/QualitativeTimePoint.hpp
         solvers/temporal/point_algebra/ExactTimePoint.hpp
@@ -19,6 +22,12 @@ rock_library(templ
         solvers/ConstraintNetwork.hpp
         solvers/Variable.hpp
         solvers/Constraint.hpp
+        Chronicle.hpp
+        Event.hpp
+        PersistenceCondition.hpp
+        StateVariable.hpp
+        TemporalAssertion.hpp
+        Timeline.hpp
     DEPS_PKGCONFIG graph_analysis numeric
 )
 
