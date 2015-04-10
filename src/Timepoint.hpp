@@ -5,8 +5,13 @@ namespace templ {
 
 class Timepoint 
 {
+    std::string mLabel;
 public:
-    bool operator==(const Timepoint& other) const { return true; }
+    Timepoint(const std::string& label)
+        : mLabel(label)
+    {}
+
+    bool operator==(const Timepoint& other) const { return mLabel == other.mLabel; }
 };
 
 } // end namespace templ

@@ -26,7 +26,7 @@ protected:
      * Construct temporal assertion type
      * Only possible via subclasses
      */
-    TemporalAssertion(Type type);
+    TemporalAssertion(const StateVariable& stateVariable, Type type);
 
 public:
     typedef boost::shared_ptr<TemporalAssertion> Ptr;

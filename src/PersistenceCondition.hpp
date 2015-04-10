@@ -16,15 +16,15 @@ class Event;
  */
 class PersistenceCondition : public TemporalAssertion
 {
-    Value mValue;
+    Value::Ptr mpValue;
 
-    Timepoint mFrom;
-    Timepoint mTo;
+    Timepoint mFromTimepoint;
+    Timepoint mToTimepoint;
 
 public:
     typedef boost::shared_ptr<PersistenceCondition> Ptr;
 
-    PersistenceCondition();
+    PersistenceCondition(const StateVariable& stateVariable, Value::Ptr value, const Timepoint& fromTimepoint, const Timepoint& toTimepoint);
 
     bool refersToSameValue(boost::shared_ptr<Event> other) const;
     bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other) const;

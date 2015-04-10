@@ -4,8 +4,9 @@
 
 namespace templ {
 
-TemporalAssertion::TemporalAssertion(TemporalAssertion::Type type)
-    : mType(type)
+TemporalAssertion::TemporalAssertion(const StateVariable& stateVariable, TemporalAssertion::Type type)
+    : mStateVariable(stateVariable)
+    , mType(type)
 {}
 
 bool TemporalAssertion::isDisjointFrom(TemporalAssertion::Ptr other) const

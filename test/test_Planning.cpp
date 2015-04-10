@@ -1,6 +1,33 @@
 #include <boost/test/unit_test.hpp>
+#include <templ/Value.hpp>
+#include <templ/values/Int.hpp>
+#include <templ/Event.hpp>
+
+using namespace templ;
 
 BOOST_AUTO_TEST_SUITE(planning)
+
+BOOST_AUTO_TEST_CASE(temporal_assertions)
+{
+    Value::Ptr valueFrom(new values::Int(10));
+    Value::Ptr valueTo(new values::Int(30));
+
+    Timepoint timepoint0("Initial timepoint");
+    StateVariable stateVariable("location", "sherpa");
+
+    Event::Ptr event0(new Event(stateVariable, valueFrom, valueTo, timepoint0));
+    Event::Ptr event1(new Event(stateVariable, valueFrom, valueTo, timepoint0));
+
+    BOOST_REQUIRE_MESSAGE(event0->refersToSameValue(event1), "Same event refers to same value");
+
+    Value::Ptr valueFrom2(new values::Int(20));
+    Value::Ptr valueTo2(new values::Int(40));
+
+    Event::Ptr event2(new Event(stateVariable, valueFrom2, valueTo2, timepoint0));
+    BOOST_REQUIRE_MESSAGE(!event0->refersToSameValue(event2), "Different events refer not to the same value");
+
+
+}
 
 BOOST_AUTO_TEST_CASE(simple_mission)
 {

@@ -3,18 +3,21 @@
 
 namespace templ {
 
-PersistenceCondition::PersistenceCondition()
-        : TemporalAssertion(TemporalAssertion::PERSISTENCE_CONDITION)
+PersistenceCondition::PersistenceCondition(const StateVariable& stateVariable, Value::Ptr value, const Timepoint& fromTimepoint, const Timepoint& toTimepoint)
+        : TemporalAssertion(stateVariable, TemporalAssertion::PERSISTENCE_CONDITION)
+        , mpValue(value)
+        , mFromTimepoint(fromTimepoint)
+        , mToTimepoint(toTimepoint)
 {}
 
 bool PersistenceCondition::refersToSameValue(Event::Ptr other) const
 {
-    if(other->mTimepoint == mFrom)
+    if(other->mTimepoint == mFromTimepoint)
     {
-        return other->mTo == mValue;
-    } else if(other->mTimepoint == mTo)
+        return other->mpToValue->equals(mpValue);
+    } else if(other->mTimepoint == mToTimepoint)
     {
-        return other->mFrom == mValue;
+        return other->mpFromValue->equals(mpValue);
     } else{
         throw std::invalid_argument("templ::PersistenceCondition: Event is disjoint from persistence condition, cannot check for same value");
     }
@@ -22,7 +25,7 @@ bool PersistenceCondition::refersToSameValue(Event::Ptr other) const
 
 bool PersistenceCondition::refersToSameValue(boost::shared_ptr<PersistenceCondition> other) const
 {
-    return mValue == other->mValue;
+    return mpValue == other->mpValue;
 }
 
 } // end namespace templ

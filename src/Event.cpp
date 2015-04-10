@@ -3,13 +3,16 @@
 
 namespace templ {
 
-Event::Event()
-    : TemporalAssertion(TemporalAssertion::EVENT)
+Event::Event(const StateVariable& stateVariable, Value::Ptr from, Value::Ptr to, const Timepoint& timepoint)
+    : TemporalAssertion(stateVariable, TemporalAssertion::EVENT)
+    , mpFromValue(from)
+    , mpToValue(to)
+    , mTimepoint(timepoint)
 {}
 
 bool Event::refersToSameValue(boost::shared_ptr<Event> other) const
 {
-    return mFrom == other->mFrom && mTo == other->mTo;
+    return mpFromValue->equals(other->mpFromValue) && mpToValue->equals(other->mpToValue);
 }
 
 bool Event::refersToSameValue(boost::shared_ptr<PersistenceCondition> other) const
