@@ -5,6 +5,13 @@
 
 namespace templ {
 
+/**
+ * Value represents the basic type for all values that can be used throughout
+ * planning
+ *
+ * Note: these values might have to be cast into domains for other (underlying csp
+ * solvers that will be used)
+ */
 class Value
 {
 public:
@@ -16,9 +23,12 @@ public:
 
     typedef boost::shared_ptr<Value> Ptr;
 
+    /**
+     * Retrieve the type for
+     */
     Type getType() const { return mType; }
 
-    virtual bool equals(Value::Ptr other) const { throw std::runtime_error("templ::Value operator== not implemented"); }
+    virtual bool equals(Value::Ptr other) const { throw std::runtime_error("templ::Value::equals not implemented"); }
 
 private:
     Type mType;

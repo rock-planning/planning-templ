@@ -25,8 +25,6 @@ BOOST_AUTO_TEST_CASE(temporal_assertions)
 
     Event::Ptr event2(new Event(stateVariable, valueFrom2, valueTo2, timepoint0));
     BOOST_REQUIRE_MESSAGE(!event0->refersToSameValue(event2), "Different events refer not to the same value");
-
-
 }
 
 BOOST_AUTO_TEST_CASE(simple_mission)
