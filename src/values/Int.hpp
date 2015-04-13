@@ -9,6 +9,7 @@ namespace values {
 class Int : public Value
 {
     int32_t mValue;
+
 public:
     typedef boost::shared_ptr<Int> Ptr;
 
