@@ -26,8 +26,11 @@ public:
 
     PersistenceCondition(const StateVariable& stateVariable, Value::Ptr value, const Timepoint& fromTimepoint, const Timepoint& toTimepoint);
 
-    bool refersToSameValue(boost::shared_ptr<Event> other) const;
-    bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other) const;
+    bool refersToSameValue(boost::shared_ptr<Event> other, const TimepointComparator& comparator) const;
+    bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other, const TimepointComparator& comparator) const;
+
+    bool disjointFrom(boost::shared_ptr<Event> other, const TimepointComparator& comparator) const;
+    bool disjointFrom(boost::shared_ptr<PersistenceCondition> other, const TimepointComparator& comparator) const;
 
 };
 

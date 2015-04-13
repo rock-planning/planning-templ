@@ -3,6 +3,10 @@
 
 namespace templ {
 
+/**
+ * Each StateVariable is a function of time, e.g.
+ * rloc(res0) describe the resource location of res0 over time
+ */
 class StateVariable
 {
     /// function: e.g. resource location -> mission point 0
@@ -15,6 +19,9 @@ public:
         : mFunction(function)
         , mResource(resource)
     {}
+
+    const std::string& getFunction() const { return mFunction; }
+    const std::string& getResource() const { return mResource; }
 };
 
 } // end namespace templ

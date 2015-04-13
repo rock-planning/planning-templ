@@ -5,17 +5,26 @@
 #include <map>
 #include <boost/shared_ptr.hpp>
 #include <templ/StateVariable.hpp>
+#include <templ/Timepoint.hpp>
+#include <templ/TimepointComparator.hpp>
 
 namespace templ {
 
 class Event;
 class PersistenceCondition;
 
+/**
+ * \class TemporalAssertion
+ * \brief A temporal assertion is part of a Chronicle or a Timeline
+ * It can be either an Event or a PersistenceCondition
+ */
 class TemporalAssertion
 {
 public:
     enum Type { UNKNOWN = 0,
+        /// Type of an Event
         EVENT,
+        /// Type of a PersistenceCondition 
         PERSISTENCE_CONDITION
     };
 
@@ -33,25 +42,37 @@ public:
 
     /**
      * Get the type of the temporal assertion
+     * \return Type
      */
     Type getType() const { return mType; }
 
+    /**
+     * Get the StateVariable
+     */
     const StateVariable& getStateVariable() const { return mStateVariable; }
 
     /**
-     * Check that TemporalAssertion is disjoint from another
+     * Check that TemporalAssertion is disjoint from another TemporalAssertion
+     * \param other Other temporal assertion to compare to
+     * \param comparator Comparator that allows to compare two Timepoints
+     * \return True if both assertions are disjoint, false otherwise
      */
-    bool isDisjointFrom(TemporalAssertion::Ptr other) const;
+    bool isDisjointFrom(TemporalAssertion::Ptr other, const TimepointComparator& comparator) const;
 
     /**
-     * Refers to the same value and/or same timepoint
+     * Check if this TemporalAssertion refers to the same value and/or same timepoint 
+     * as the other TemporalAssertion
      * \throw std::invalid_argument if invalid type is used
      */
-    bool refersToSameValue(TemporalAssertion::Ptr other) const;
+    bool isReferringToSameValue(TemporalAssertion::Ptr other, const TimepointComparator& comparator) const;
 
     virtual bool refersToSameValue(boost::shared_ptr<Event> other) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
 
     virtual bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
+
+    virtual bool disjointFrom(boost::shared_ptr<Event> other, const TimepointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
+    virtual bool disjointFrom(boost::shared_ptr<PersistenceCondition> other, const TimepointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
+
 private:
     Type mType;
     StateVariable mStateVariable;

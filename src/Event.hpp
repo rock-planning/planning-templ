@@ -26,8 +26,11 @@ public:
 
     Event(const StateVariable& stateVariable, Value::Ptr from, Value::Ptr to, const Timepoint& timepoint);
 
-    bool refersToSameValue(boost::shared_ptr<Event> other) const;
-    bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other) const;
+    bool refersToSameValue(boost::shared_ptr<Event> other, const TimepointComparator& comparator) const;
+    bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other, const TimepointComparator& comparator) const;
+
+    bool disjointFrom(boost::shared_ptr<Event> other, const TimepointComparator& comparator) const;
+    bool disjointFrom(boost::shared_ptr<PersistenceCondition> other, const TimepointComparator& comparator) const;
 };
 
 } // end namespace templ

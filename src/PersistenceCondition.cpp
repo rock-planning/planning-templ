@@ -10,12 +10,12 @@ PersistenceCondition::PersistenceCondition(const StateVariable& stateVariable, V
         , mToTimepoint(toTimepoint)
 {}
 
-bool PersistenceCondition::refersToSameValue(Event::Ptr other) const
+bool PersistenceCondition::refersToSameValue(Event::Ptr other, const TimepointComparator& comparator) const
 {
-    if(other->mTimepoint == mFromTimepoint)
+    if(comparator.equals(other->mTimepoint, mFromTimepoint))
     {
         return other->mpToValue->equals(mpValue);
-    } else if(other->mTimepoint == mToTimepoint)
+    } else if(comparator.equals(other->mTimepoint, mToTimepoint))
     {
         return other->mpFromValue->equals(mpValue);
     } else{
@@ -23,9 +23,30 @@ bool PersistenceCondition::refersToSameValue(Event::Ptr other) const
     }
 }
 
-bool PersistenceCondition::refersToSameValue(boost::shared_ptr<PersistenceCondition> other) const
+bool PersistenceCondition::refersToSameValue(boost::shared_ptr<PersistenceCondition> other, const TimepointComparator& comparator) const
 {
     return mpValue == other->mpValue;
+}
+
+
+bool PersistenceCondition::disjointFrom(boost::shared_ptr<Event> other, const TimepointComparator& comparator) const
+{
+    if(other.mTimepoint == mFromTimepoint || other.mTimepoint == mToTimepoint)
+    {
+        return false;
+    } else if(other.mTimepoint > mFromTimepoint && other.mTimepoint < mToTimepoint)
+    {
+        // lies in the interval
+        return false;
+    } else {
+        // there 
+        return true;
+    }
+}
+
+bool PersistenceCondition::disjointFrom(boost::shared_ptr<PersistenceCondition> other, const TimepointComparator& comparator) const
+{
+    return !comparator.hasIntervalOverlap(mFromTimepoint, mToTimepoint, other.mFromTimepoint, other.mToTimepoint);
 }
 
 } // end namespace templ

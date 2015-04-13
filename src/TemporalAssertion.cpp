@@ -11,10 +11,24 @@ TemporalAssertion::TemporalAssertion(const StateVariable& stateVariable, Tempora
 
 bool TemporalAssertion::isDisjointFrom(TemporalAssertion::Ptr other) const
 {
-    throw std::runtime_error("templ::TemporalAssertion::isDisjointFrom: not implemented");
+    switch(other->getType())
+    {
+        case EVENT:
+        {
+            Event::Ptr event = boost::dynamic_pointer_cast<Event>(other);
+            return disjointFrom(event);
+        }
+        case PERSISTENCE_CONDITION:
+        {
+            PersistenceCondition::Ptr pc = boost::dynamic_pointer_cast<PersistenceCondition>(other);
+            return disjointFrom(pc);
+        }
+        default:
+            throw std::invalid_argument("templ::TemporalAssertion::refersToSameValue: cannot handle unknown type");
+    }
 }
 
-bool TemporalAssertion::refersToSameValue(TemporalAssertion::Ptr other) const
+bool TemporalAssertion::isReferringToSameValue(TemporalAssertion::Ptr other) const
 {
     switch(other->getType())
     {

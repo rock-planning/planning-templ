@@ -11,7 +11,7 @@ public:
         : mLabel(label)
     {}
 
-    bool operator==(const Timepoint& other) const { return mLabel == other.mLabel; }
+    //bool operator==(const Timepoint& other) const { return mLabel == other.mLabel; }
 };
 
 } // end namespace templ
