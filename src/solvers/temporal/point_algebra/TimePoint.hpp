@@ -15,15 +15,29 @@ namespace point_algebra {
  */
 class TimePoint : public Variable
 {
-    uint64_t mLowerBound;
-    uint64_t mUpperBound;
-
 public:
+    enum Type { UNKNOWN, QUANTITATIVE, QUALITATIVE };
+
     typedef boost::shared_ptr<TimePoint> Ptr;
     typedef std::string Label;
+    typedef std::vector<Label> LabelList;
 
+protected:
+    TimePoint(uint64_t lowerBound, uint64_t upperBound, Type type);
+
+public:
     TimePoint(uint64_t lowerBound, uint64_t upperBound);
 
+    Type getType() const { return mType; }
+
+    /**
+     * Creates a new (qualitative) TimePoint
+     */
+    static TimePoint::Ptr create(const Label& label);
+
+    /**
+     * Create a new (quantitative) TimePoint
+     */
     static TimePoint::Ptr create(uint64_t lowerBound, uint64_t upperBound);
 
     bool operator=(const TimePoint& other) const { return mLowerBound == other.mLowerBound && mUpperBound == other.mUpperBound; }
@@ -35,6 +49,18 @@ public:
     uint64_t getUpperBound() const { return mUpperBound; }
 
     virtual std::string toString() const;
+
+    /**
+     * Check that lower bound is less or equal to upper bound
+     * \throw std::invalid_argument if condition does not how
+     */
+    static void validateBounds(uint64_t lowerBound, uint64_t upperBound);
+
+
+private:
+    uint64_t mLowerBound;
+    uint64_t mUpperBound;
+    Type mType;
 };
 
 } // end namespace point_algebra

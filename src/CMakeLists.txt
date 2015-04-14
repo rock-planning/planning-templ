@@ -2,36 +2,35 @@ find_package(Boost REQUIRED system filesystem)
 
 rock_library(templ
     SOURCES 
+        solvers/temporal/Bounds.cpp
+        solvers/temporal/Event.cpp
+        solvers/temporal/PersistenceCondition.cpp
         solvers/temporal/point_algebra/TimePoint.cpp
+        solvers/temporal/point_algebra/TimePointComparator.cpp
         solvers/temporal/point_algebra/QualitativeTimePoint.cpp
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.cpp
-        solvers/temporal/Bounds.cpp
+        solvers/temporal/TemporalAssertion.cpp
         solvers/temporal/SimpleTemporalNetwork.cpp
         solvers/ConstraintNetwork.cpp
         solvers/Constraint.cpp
         solvers/Variable.cpp
-        Event.cpp
-        PersistenceCondition.cpp
-        TemporalAssertion.cpp
-        TimepointComparator.cpp
     HEADERS 
+        solvers/temporal/Bounds.hpp
+        solvers/temporal/Chronicle.hpp
+        solvers/temporal/Event.hpp
         solvers/temporal/point_algebra/QualitativeTimePoint.hpp
         solvers/temporal/point_algebra/ExactTimePoint.hpp
         solvers/temporal/point_algebra/TimePoint.hpp
+        solvers/temporal/point_algebra/TimePointComparator.hpp
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp
-        solvers/temporal/Bounds.hpp
+        solvers/temporal/PersistenceCondition.hpp
         solvers/temporal/SimpleTemporalNetwork.hpp
+        solvers/temporal/TemporalAssertion.hpp
+        solvers/temporal/Timeline.hpp
         solvers/ConstraintNetwork.hpp
         solvers/Variable.hpp
         solvers/Constraint.hpp
-        Chronicle.hpp
-        Event.hpp
-        PersistenceCondition.hpp
         StateVariable.hpp
-        TemporalAssertion.hpp
-        Timeline.hpp
-        Timepoint.hpp
-        TimepointComparator.hpp
     DEPS_PKGCONFIG graph_analysis numeric
 )
 

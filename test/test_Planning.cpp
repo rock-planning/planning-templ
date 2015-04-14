@@ -1,9 +1,12 @@
 #include <boost/test/unit_test.hpp>
 #include <templ/Value.hpp>
 #include <templ/values/Int.hpp>
-#include <templ/Event.hpp>
+#include <templ/solvers/temporal/Event.hpp>
 
 using namespace templ;
+using namespace templ::solvers::temporal;
+
+namespace pa = templ::solvers::temporal::point_algebra;
 
 BOOST_AUTO_TEST_SUITE(planning)
 
@@ -12,10 +15,11 @@ BOOST_AUTO_TEST_CASE(temporal_assertions)
     Value::Ptr valueFrom(new values::Int(10));
     Value::Ptr valueTo(new values::Int(30));
 
-    Timepoint timepoint0("Initial timepoint");
+    pa::TimePoint::Ptr timepoint0 = pa::TimePoint::create("Initial timepoint");
+
     StateVariable stateVariable("location", "sherpa");
 
-    TimepointComparator comparator;
+    pa::TimePointComparator comparator;
 
     Event::Ptr event0(new Event(stateVariable, valueFrom, valueTo, timepoint0));
     Event::Ptr event1(new Event(stateVariable, valueFrom, valueTo, timepoint0));

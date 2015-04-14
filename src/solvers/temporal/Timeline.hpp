@@ -5,6 +5,8 @@
 #include <templ/TemporalAssertion.hpp>
 
 namespace templ {
+namespace solvers {
+namespace temporal {
 
 /**
  * A timeline is a chronicle for a single state variable x
@@ -34,5 +36,7 @@ public:
     bool isConsistent() const;
 };
 
+} // end namespace temporal
+} // end namespace solvers
 } // end namespace templ
 #endif // TEMPL_TIMELINE_HPP

@@ -3,13 +3,15 @@
 #include "PersistenceCondition.hpp"
 
 namespace templ {
+namespace solvers {
+namespace temporal {
 
 TemporalAssertion::TemporalAssertion(const StateVariable& stateVariable, TemporalAssertion::Type type)
     : mStateVariable(stateVariable)
     , mType(type)
 {}
 
-bool TemporalAssertion::isDisjointFrom(TemporalAssertion::Ptr other, const TimepointComparator& comparator) const
+bool TemporalAssertion::isDisjointFrom(TemporalAssertion::Ptr other, const point_algebra::TimePointComparator& comparator) const
 {
     switch(other->getType())
     {
@@ -28,7 +30,7 @@ bool TemporalAssertion::isDisjointFrom(TemporalAssertion::Ptr other, const Timep
     }
 }
 
-bool TemporalAssertion::isReferringToSameValue(TemporalAssertion::Ptr other, const TimepointComparator& comparator) const
+bool TemporalAssertion::isReferringToSameValue(TemporalAssertion::Ptr other, const point_algebra::TimePointComparator& comparator) const
 {
     switch(other->getType())
     {
@@ -47,4 +49,6 @@ bool TemporalAssertion::isReferringToSameValue(TemporalAssertion::Ptr other, con
     }
 }
 
+} // end namespace temporal
+} // end namespace solvers
 } // end namespace templ

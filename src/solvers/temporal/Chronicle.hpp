@@ -6,6 +6,8 @@
 #include <templ/Timeline.hpp>
 
 namespace templ {
+namespace solvers {
+namespace temporal {
 
 /**
  * "A chronicle for a set of state variables {x_i,...x_j} is a pair
@@ -33,5 +35,7 @@ public:
     bool isSupporting(const Chronicle& other) const;
 };
 
+} // end namespace temporal
+} // end namespace solvers
 } // end namespace templ
 #endif // TEMPL_CHRONICLE_HPP

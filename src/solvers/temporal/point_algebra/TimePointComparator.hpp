@@ -1,0 +1,45 @@
+#ifndef TEMPL_TIMEPOINT_COMPARATOR_HPP
+#define TEMPL_TIMEPOINT_COMPARATOR_HPP
+
+#include <map>
+#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
+
+namespace templ {
+namespace solvers {
+namespace temporal {
+namespace point_algebra {
+
+/**
+ * \class TimePointComparator
+ * \brief This class allows to implement a custrom TimePointComparator, e.g.,
+ * to account for an existing set of qualitative / quantiative constraints
+ */
+class TimePointComparator
+{
+    std::map<TimePoint::Label, TimePoint::LabelList> mAliases;
+
+public:
+    /**
+     * Check equality of two timepoints
+     */
+    virtual bool equals(TimePoint::Ptr t0, TimePoint::Ptr t1) const;
+
+    /**
+     * Check if one timepoint is greater (more progressed in time) than another
+     */
+    virtual bool greaterThan(TimePoint::Ptr t0, TimePoint::Ptr t1) const;
+
+    bool greaterThanOrEqual(TimePoint::Ptr t0, TimePoint::Ptr t1) const { return equals(t0,t1) || greaterThan(t0, t1); }
+
+    bool lessThanOrEqual(TimePoint::Ptr t0, TimePoint::Ptr t1) const { return greaterThanOrEqual(t1, t0); }
+
+    bool lessThan(TimePoint::Ptr t0, TimePoint::Ptr t1) const { return greaterThan(t1,t0); }
+
+    virtual bool hasIntervalOverlap(TimePoint::Ptr a_start, TimePoint::Ptr a_end, TimePoint::Ptr b_start, TimePoint::Ptr b_end) const;
+};
+
+} // end namespace point_algebra
+} // end namespace temporal
+} // end namespace solvers
+} // end namespace templ
+#endif // TEMPL_TIMEPOINT_COMPARATOR_HPP
