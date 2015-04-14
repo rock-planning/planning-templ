@@ -54,13 +54,33 @@ BOOST_AUTO_TEST_CASE(point_algebra_test)
     } while(combination.next());
 }
 
+BOOST_AUTO_TEST_CASE(qualitative_timepoints)
+{
+        point_algebra::QualitativeTimePoint tp0("tp0");
+        point_algebra::QualitativeTimePoint tp1("tp1");
+        point_algebra::QualitativeTimePoint tp2("tp2");
+
+        BOOST_REQUIRE_MESSAGE(tp0 != tp1, "Timepoints tp0 and tp1 are different");
+        BOOST_REQUIRE_MESSAGE(tp0 != tp2, "Timepoints tp0 and tp2 are different");
+        BOOST_REQUIRE_MESSAGE(tp1 != tp2, "Timepoints tp1 and tp2 are different");
+
+        tp1.addAlias("tp3");
+        tp2.addAlias("tp3");
+
+        BOOST_REQUIRE_MESSAGE(tp0 != tp1, "Timepoints tp0 and tp1 are different");
+        BOOST_REQUIRE_MESSAGE(tp0 != tp2, "Timepoints tp0 and tp2 are different");
+        BOOST_REQUIRE_MESSAGE(tp1 == tp2, "Timepoints tp1 and tp2 are same due to same alias 'tp3'");
+}
+
+
 BOOST_AUTO_TEST_CASE(consistency_checking)
 {
     {
         SimpleTemporalNetwork stn;
-        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint());
-        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint());
-        point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint());
+        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
+        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
+        point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint("tp2"));
+
 
         stn.addQualitativeConstraint(tp0, tp1, point_algebra::GreaterOrEqual);
         stn.addQualitativeConstraint(tp1, tp2, point_algebra::GreaterOrEqual);
@@ -69,9 +89,9 @@ BOOST_AUTO_TEST_CASE(consistency_checking)
     }
     {
         SimpleTemporalNetwork stn;
-        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint());
-        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint());
-        point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint());
+        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
+        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
+        point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint("tp2"));
 
         stn.addQualitativeConstraint(tp0, tp1, point_algebra::GreaterOrEqual);
         stn.addQualitativeConstraint(tp1, tp2, point_algebra::GreaterOrEqual);
@@ -81,9 +101,9 @@ BOOST_AUTO_TEST_CASE(consistency_checking)
     }
     {
         SimpleTemporalNetwork stn;
-        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint());
-        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint());
-        point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint());
+        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
+        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
+        point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint("tp2"));
 
         stn.addQualitativeConstraint(tp0, tp1, point_algebra::Greater);
         stn.addQualitativeConstraint(tp1, tp2, point_algebra::Less);
@@ -94,8 +114,8 @@ BOOST_AUTO_TEST_CASE(consistency_checking)
 
     {
         SimpleTemporalNetwork stn;
-        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint());
-        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint());
+        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
+        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
 
         stn.addQualitativeConstraint(tp0,tp1, point_algebra::Less);
         stn.addQualitativeConstraint(tp1,tp0, point_algebra::Greater);
@@ -104,8 +124,8 @@ BOOST_AUTO_TEST_CASE(consistency_checking)
     }
     {
         SimpleTemporalNetwork stn;
-        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint());
-        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint());
+        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
+        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
 
         stn.addQualitativeConstraint(tp0,tp1, point_algebra::Greater);
         stn.addQualitativeConstraint(tp1,tp0, point_algebra::Greater);
@@ -114,8 +134,8 @@ BOOST_AUTO_TEST_CASE(consistency_checking)
     }
     {
         SimpleTemporalNetwork stn;
-        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint());
-        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint());
+        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
+        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
 
         stn.addQualitativeConstraint(tp0,tp1, point_algebra::GreaterOrEqual);
         stn.addQualitativeConstraint(tp0,tp1, point_algebra::Less);

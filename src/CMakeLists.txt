@@ -3,6 +3,7 @@ find_package(Boost REQUIRED system filesystem)
 rock_library(templ
     SOURCES 
         solvers/temporal/point_algebra/TimePoint.cpp
+        solvers/temporal/point_algebra/QualitativeTimePoint.cpp
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.cpp
         solvers/temporal/Bounds.cpp
         solvers/temporal/SimpleTemporalNetwork.cpp

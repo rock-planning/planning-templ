@@ -20,6 +20,7 @@ class TimePoint : public Variable
 
 public:
     typedef boost::shared_ptr<TimePoint> Ptr;
+    typedef std::string Label;
 
     TimePoint(uint64_t lowerBound, uint64_t upperBound);
 
