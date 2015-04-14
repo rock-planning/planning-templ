@@ -1,14 +1,18 @@
 #ifndef TEMPL_SOLVERS_TEMPORAL_POINT_ALGEBRA_TIME_POINT_HPP
 #define TEMPL_SOLVERS_TEMPORAL_POINT_ALGEBRA_TIME_POINT_HPP
 
-#include <templ/solvers/Variable.hpp>
 #include <map>
+#include <templ/solvers/Variable.hpp>
 
 namespace templ {
 namespace solvers {
 namespace temporal {
 namespace point_algebra {
 
+/**
+ * \class TimePoint as variable part of the point_algebra
+ * \see templ::TimePoint
+ */
 class TimePoint : public Variable
 {
     uint64_t mLowerBound;

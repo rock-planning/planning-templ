@@ -9,6 +9,11 @@ namespace templ {
 namespace solvers {
 namespace temporal {
 
+/**
+ * \class SimpleTemporalNetwork (STN) that represents either a set of
+ * qualitative constraints, or quantitative constraints
+ * TODO: separate qualitative and quantitative constraints?
+ */
 class SimpleTemporalNetwork : public ConstraintNetwork
 {
     graph_analysis::BaseGraph::Ptr mpDistanceGraph;
@@ -24,11 +29,17 @@ public:
 
     void addQualitativeConstraint(point_algebra::TimePoint::Ptr t1, point_algebra::TimePoint::Ptr t2, point_algebra::QualitativeConstraintType constraint);
 
+    /**
+     * Get the symmetric constraint for an edge (defined by a pair of vertices)
+     * This allows to check for path consistency 
+     * \return The corresponding symmetric constraint
+     */
     static point_algebra::QualitativeConstraintType getSymmetricConstraint(graph_analysis::BaseGraph::Ptr graph, graph_analysis::Vertex::Ptr first, graph_analysis::Vertex::Ptr second);
 
     /**
      * Check if consistency between a set of edges (multiedge) is given
      * for qualitative time point constraints
+     * \return True if multiedge is consistent, false if not
      */
     bool isConsistent(std::vector<graph_analysis::Edge::Ptr> edges);
 

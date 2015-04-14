@@ -5,6 +5,10 @@ namespace templ {
 namespace solvers {
 namespace temporal {
 
+/**
+ * \class Bounds
+ * \brief General structure to defining a lower and an upperBound
+ */
 class Bounds
 {
     double mLowerBound;
