@@ -12,6 +12,7 @@ rock_library(templ
         Event.cpp
         PersistenceCondition.cpp
         TemporalAssertion.cpp
+        TimepointComparator.cpp
     HEADERS 
         solvers/temporal/point_algebra/QualitativeTimePoint.hpp
         solvers/temporal/point_algebra/ExactTimePoint.hpp
@@ -28,6 +29,8 @@ rock_library(templ
         StateVariable.hpp
         TemporalAssertion.hpp
         Timeline.hpp
+        Timepoint.hpp
+        TimepointComparator.hpp
     DEPS_PKGCONFIG graph_analysis numeric
 )
 

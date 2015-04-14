@@ -66,9 +66,9 @@ public:
      */
     bool isReferringToSameValue(TemporalAssertion::Ptr other, const TimepointComparator& comparator) const;
 
-    virtual bool refersToSameValue(boost::shared_ptr<Event> other) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
+    virtual bool refersToSameValue(boost::shared_ptr<Event> other, const TimepointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
 
-    virtual bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
+    virtual bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other, const TimepointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
 
     virtual bool disjointFrom(boost::shared_ptr<Event> other, const TimepointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
     virtual bool disjointFrom(boost::shared_ptr<PersistenceCondition> other, const TimepointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }

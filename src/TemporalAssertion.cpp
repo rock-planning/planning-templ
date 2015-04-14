@@ -9,38 +9,38 @@ TemporalAssertion::TemporalAssertion(const StateVariable& stateVariable, Tempora
     , mType(type)
 {}
 
-bool TemporalAssertion::isDisjointFrom(TemporalAssertion::Ptr other) const
+bool TemporalAssertion::isDisjointFrom(TemporalAssertion::Ptr other, const TimepointComparator& comparator) const
 {
     switch(other->getType())
     {
         case EVENT:
         {
             Event::Ptr event = boost::dynamic_pointer_cast<Event>(other);
-            return disjointFrom(event);
+            return disjointFrom(event, comparator);
         }
         case PERSISTENCE_CONDITION:
         {
             PersistenceCondition::Ptr pc = boost::dynamic_pointer_cast<PersistenceCondition>(other);
-            return disjointFrom(pc);
+            return disjointFrom(pc, comparator);
         }
         default:
             throw std::invalid_argument("templ::TemporalAssertion::refersToSameValue: cannot handle unknown type");
     }
 }
 
-bool TemporalAssertion::isReferringToSameValue(TemporalAssertion::Ptr other) const
+bool TemporalAssertion::isReferringToSameValue(TemporalAssertion::Ptr other, const TimepointComparator& comparator) const
 {
     switch(other->getType())
     {
         case EVENT:
         {
             Event::Ptr event = boost::dynamic_pointer_cast<Event>(other);
-            return refersToSameValue(event);
+            return refersToSameValue(event, comparator);
         }
         case PERSISTENCE_CONDITION:
         {
             PersistenceCondition::Ptr pc = boost::dynamic_pointer_cast<PersistenceCondition>(other);
-            return refersToSameValue(pc);
+            return refersToSameValue(pc, comparator);
         }
         default:
             throw std::invalid_argument("templ::TemporalAssertion::refersToSameValue: cannot handle unknown type");

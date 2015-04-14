@@ -15,16 +15,18 @@ BOOST_AUTO_TEST_CASE(temporal_assertions)
     Timepoint timepoint0("Initial timepoint");
     StateVariable stateVariable("location", "sherpa");
 
+    TimepointComparator comparator;
+
     Event::Ptr event0(new Event(stateVariable, valueFrom, valueTo, timepoint0));
     Event::Ptr event1(new Event(stateVariable, valueFrom, valueTo, timepoint0));
 
-    BOOST_REQUIRE_MESSAGE(event0->refersToSameValue(event1), "Same event refers to same value");
+    BOOST_REQUIRE_MESSAGE(event0->refersToSameValue(event1, comparator), "Same event refers to same value");
 
     Value::Ptr valueFrom2(new values::Int(20));
     Value::Ptr valueTo2(new values::Int(40));
 
     Event::Ptr event2(new Event(stateVariable, valueFrom2, valueTo2, timepoint0));
-    BOOST_REQUIRE_MESSAGE(!event0->refersToSameValue(event2), "Different events refer not to the same value");
+    BOOST_REQUIRE_MESSAGE(!event0->refersToSameValue(event2, comparator), "Different events refer not to the same value");
 }
 
 BOOST_AUTO_TEST_CASE(simple_mission)

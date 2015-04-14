@@ -31,10 +31,7 @@ bool PersistenceCondition::refersToSameValue(boost::shared_ptr<PersistenceCondit
 
 bool PersistenceCondition::disjointFrom(boost::shared_ptr<Event> other, const TimepointComparator& comparator) const
 {
-    if(other.mTimepoint == mFromTimepoint || other.mTimepoint == mToTimepoint)
-    {
-        return false;
-    } else if(other.mTimepoint > mFromTimepoint && other.mTimepoint < mToTimepoint)
+    if( comparator.greaterThanOrEqual(other->mTimepoint, mFromTimepoint) && comparator.lessThanOrEqual(other->mTimepoint, mToTimepoint) )
     {
         // lies in the interval
         return false;
@@ -46,7 +43,7 @@ bool PersistenceCondition::disjointFrom(boost::shared_ptr<Event> other, const Ti
 
 bool PersistenceCondition::disjointFrom(boost::shared_ptr<PersistenceCondition> other, const TimepointComparator& comparator) const
 {
-    return !comparator.hasIntervalOverlap(mFromTimepoint, mToTimepoint, other.mFromTimepoint, other.mToTimepoint);
+    return !comparator.hasIntervalOverlap(mFromTimepoint, mToTimepoint, other->mFromTimepoint, other->mToTimepoint);
 }
 
 } // end namespace templ
