@@ -11,8 +11,8 @@ namespace point_algebra {
 
 /**
  * \class TimePointComparator
- * \brief This class allows to implement a custrom TimePointComparator, e.g.,
- * to account for an existing set of qualitative / quantiative constraints
+ * \brief This class allows to implement a custom TimePointComparator, e.g.,
+ * to account for an existing set of qualitative / quantitative constraints
  */
 class TimePointComparator
 {
@@ -29,13 +29,15 @@ public:
      */
     virtual bool greaterThan(TimePoint::Ptr t0, TimePoint::Ptr t1) const;
 
-    bool greaterThanOrEqual(TimePoint::Ptr t0, TimePoint::Ptr t1) const { return equals(t0,t1) || greaterThan(t0, t1); }
+    bool greaterOrEqual(TimePoint::Ptr t0, TimePoint::Ptr t1) const { return equals(t0,t1) || greaterThan(t0, t1); }
 
-    bool lessThanOrEqual(TimePoint::Ptr t0, TimePoint::Ptr t1) const { return greaterThanOrEqual(t1, t0); }
+    bool lessOrEqual(TimePoint::Ptr t0, TimePoint::Ptr t1) const { return greaterOrEqual(t1, t0); }
 
     bool lessThan(TimePoint::Ptr t0, TimePoint::Ptr t1) const { return greaterThan(t1,t0); }
 
-    virtual bool hasIntervalOverlap(TimePoint::Ptr a_start, TimePoint::Ptr a_end, TimePoint::Ptr b_start, TimePoint::Ptr b_end) const;
+    bool hasIntervalOverlap(TimePoint::Ptr a_start, TimePoint::Ptr a_end, TimePoint::Ptr b_start, TimePoint::Ptr b_end) const;
+
+    bool inInterval(TimePoint::Ptr t0, TimePoint::Ptr i_start, TimePoint::Ptr i_end) const;
 };
 
 } // end namespace point_algebra

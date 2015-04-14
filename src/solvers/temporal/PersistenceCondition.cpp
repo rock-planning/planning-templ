@@ -33,7 +33,7 @@ bool PersistenceCondition::refersToSameValue(boost::shared_ptr<PersistenceCondit
 
 bool PersistenceCondition::disjointFrom(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const
 {
-    if( comparator.greaterThanOrEqual(other->mpTimepoint, mpFromTimepoint) && comparator.lessThanOrEqual(other->mpTimepoint, mpToTimepoint) )
+    if( comparator.greaterOrEqual(other->mpTimepoint, mpFromTimepoint) && comparator.lessOrEqual(other->mpTimepoint, mpToTimepoint) )
     {
         // lies in the interval
         return false;

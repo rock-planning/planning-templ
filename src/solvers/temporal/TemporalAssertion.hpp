@@ -77,7 +77,6 @@ public:
 private:
     Type mType;
     StateVariable mStateVariable;
-
 };
 
 typedef std::vector<TemporalAssertion::Ptr> TemporalAssertionList;

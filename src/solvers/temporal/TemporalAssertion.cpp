@@ -7,8 +7,8 @@ namespace solvers {
 namespace temporal {
 
 TemporalAssertion::TemporalAssertion(const StateVariable& stateVariable, TemporalAssertion::Type type)
-    : mStateVariable(stateVariable)
-    , mType(type)
+    : mType(type)
+    , mStateVariable(stateVariable)
 {}
 
 bool TemporalAssertion::isDisjointFrom(TemporalAssertion::Ptr other, const point_algebra::TimePointComparator& comparator) const

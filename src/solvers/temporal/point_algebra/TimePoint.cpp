@@ -33,6 +33,16 @@ void TimePoint::validateBounds(uint64_t lowerBound, uint64_t upperBound)
     }
 }
 
+bool TimePoint::equals(TimePoint::Ptr other) const
+{
+    if(mType != other->getType())
+    {
+        throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePoint::equals: cannot compare timepoints of different types");
+    }
+
+    return *this == *other.get();
+}
+
 TimePoint::Ptr TimePoint::create(const Label& label)
 {
     return TimePoint::Ptr( new QualitativeTimePoint(label) );
@@ -49,9 +59,6 @@ std::string TimePoint::toString() const
     ss << "Timepoint: [" << mLowerBound << "," << mUpperBound << "]";
     return ss.str();
 }
-
-
-
 
 } // end namespace point_algebra
 } // end namespace temporal

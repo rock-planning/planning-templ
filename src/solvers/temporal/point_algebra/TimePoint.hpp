@@ -40,7 +40,9 @@ public:
      */
     static TimePoint::Ptr create(uint64_t lowerBound, uint64_t upperBound);
 
-    bool operator=(const TimePoint& other) const { return mLowerBound == other.mLowerBound && mUpperBound == other.mUpperBound; }
+    virtual bool equals(TimePoint::Ptr other) const;
+
+    bool operator==(const TimePoint& other) const { return mLowerBound == other.mLowerBound && mUpperBound == other.mUpperBound; }
 
     void setLowerBound(uint64_t bound) { mLowerBound = bound; }
     void setUpperBound(uint64_t bound) { mUpperBound = bound; }
