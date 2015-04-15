@@ -5,6 +5,15 @@ namespace solvers {
 namespace temporal {
 namespace point_algebra {
 
+TimePointComparator::TimePointComparator(QualitativeTemporalConstraintNetwork::Ptr tcn)
+    : mpTemporalConstraintNetwork(tcn)
+{
+    if(mpTemporalConstraintNetwork && !mpTemporalConstraintNetwork->isConsistent())
+    {
+        throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator: given constraint network is not consistent -- cannot construct comparator");
+    }
+}
+
 bool TimePointComparator::equals(TimePoint::Ptr t0, TimePoint::Ptr t1) const
 {
     return t0->equals(t1);
@@ -22,9 +31,26 @@ bool TimePointComparator::greaterThan(TimePoint::Ptr t0, TimePoint::Ptr t1) cons
         throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: cannot compare different types of TimePoints");
     } else if(t1->getType() == TimePoint::QUALITATIVE)
     {
-        // Check in DB if we have some formulated constraints between two
-        // timepoints
-        // --> use QualitativeTimePointConstraintNetwork
+        if(!mpTemporalConstraintNetwork)
+        {
+            throw std::runtime_error("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: comparing qualitive timepoints, but not QualitativeTimePointConstraintNetwork given to comparator");
+        }
+
+        std::vector<point_algebra::QualitativeTimePointConstraint::Ptr> constraints = mpTemporalConstraintNetwork->getConstraints(t0,t1);
+        if(constraints.size() == 1 && constraints[0]->getType() == point_algebra::QualitativeTimePointConstraint::Empty)
+        {
+            throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: no constraints defined between given timepoints");
+        }
+
+        std::vector<point_algebra::QualitativeTimePointConstraint::Ptr>::const_iterator cit = constraints.begin();
+        for(; cit != constraints.end(); ++cit)
+        {
+            if( (*cit)->getType() == point_algebra::QualitativeTimePointConstraint::Greater)
+            {
+                return true;
+            }
+        }
+
         return false;
     } else {
         throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: cannot compare this type of TimePoints");

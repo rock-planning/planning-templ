@@ -12,22 +12,27 @@ QualitativeTemporalConstraintNetwork::QualitativeTemporalConstraintNetwork()
     : TemporalConstraintNetwork()
 {}
 
-void QualitativeTemporalConstraintNetwork::addQualitativeConstraint(TimePoint::Ptr t1, TimePoint::Ptr t2, QualitativeConstraintType constraintType)
+std::vector<QualitativeTimePointConstraint::Ptr> QualitativeTemporalConstraintNetwork::getConstraints(TimePoint::Ptr t1, TimePoint::Ptr t2)
+{
+    return getGraph()->getEdges<QualitativeTimePointConstraint>(t1, t2);
+}
+
+void QualitativeTemporalConstraintNetwork::addConstraint(TimePoint::Ptr t1, TimePoint::Ptr t2, QualitativeTimePointConstraint::Type constraintType)
 {
     // Add a qualitative constraint -- translate "complexer" type to primitive
     // relations
     QualitativeTimePointConstraint::Ptr constraint;
     switch(constraintType)
     {
-        case GreaterOrEqual:
-            constraint = QualitativeTimePointConstraint::create(t2, t1, Less);
-        case LessOrEqual:
-            constraint = QualitativeTimePointConstraint::create(t2, t1, Greater);
+        case QualitativeTimePointConstraint::GreaterOrEqual:
+            constraint = QualitativeTimePointConstraint::create(t2, t1, QualitativeTimePointConstraint::Less);
+        case QualitativeTimePointConstraint::LessOrEqual:
+            constraint = QualitativeTimePointConstraint::create(t2, t1, QualitativeTimePointConstraint::Greater);
         default:
             constraint = QualitativeTimePointConstraint::create(t1, t2, constraintType);
     }
 
-    addConstraint(constraint);
+    TemporalConstraintNetwork::addConstraint(constraint);
 }
 
 bool QualitativeTemporalConstraintNetwork::isConsistent(std::vector<Edge::Ptr> edges)
@@ -41,8 +46,8 @@ bool QualitativeTemporalConstraintNetwork::isConsistent(std::vector<Edge::Ptr> e
     do {
 
         std::vector<Edge::Ptr> edgeCombination = combination.current();
-        QualitativeConstraintType constraintTypeIJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgeCombination[0])->getQualitativeConstraintType();
-        QualitativeConstraintType constraintTypeJI = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgeCombination[1])->getQualitativeConstraintType();
+        QualitativeTimePointConstraint::Type constraintTypeIJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgeCombination[0])->getType();
+        QualitativeTimePointConstraint::Type constraintTypeJI = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgeCombination[1])->getType();
 
         if(! QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, constraintTypeJI) )
         {
@@ -69,14 +74,14 @@ bool QualitativeTemporalConstraintNetwork::isConsistent(Vertex::Ptr vertex0, Ver
         std::vector<Edge::Ptr>::const_iterator jiIterator = edgesJI.begin();
         for(; jiIterator != edgesJI.end(); ++jiIterator)
         {
-            QualitativeConstraintType constraintTypeIJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(*ijIterator)->getQualitativeConstraintType();
+            QualitativeTimePointConstraint::Type constraintTypeIJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(*ijIterator)->getType();
 
-            QualitativeConstraintType constraintTypeJI = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(*jiIterator)->getQualitativeConstraintType();
-            QualitativeConstraintType symmetricConstraintTypeJI = QualitativeTimePointConstraint::getSymmetric(constraintTypeJI);
+            QualitativeTimePointConstraint::Type constraintTypeJI = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(*jiIterator)->getType();
+            QualitativeTimePointConstraint::Type symmetricConstraintTypeJI = QualitativeTimePointConstraint::getSymmetric(constraintTypeJI);
 
             if(!QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, symmetricConstraintTypeJI))
             {
-                LOG_DEBUG_S << "Constraint: " << QualitativeConstraintTypeTxt[constraintTypeIJ] << " is inconsistent with " << QualitativeConstraintTypeTxt[symmetricConstraintTypeJI];
+                LOG_DEBUG_S << "Constraint: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << " is inconsistent with " << QualitativeTimePointConstraint::TypeTxt[symmetricConstraintTypeJI];
                 return false;
             }
         }
@@ -87,7 +92,7 @@ bool QualitativeTemporalConstraintNetwork::isConsistent(Vertex::Ptr vertex0, Ver
 bool QualitativeTemporalConstraintNetwork::isConsistent()
 {
     using namespace graph_analysis;
-    BaseGraph::Ptr graph = mDigraph.copy();
+    BaseGraph::Ptr graph = getGraph()->copy();
 
     // Path consistency
     // if there is no constraint between two variables, we assume the
@@ -126,79 +131,79 @@ bool QualitativeTemporalConstraintNetwork::isConsistent()
 
         // Universal constraint -- if there is no edge defined
         // IJ -- Constraint between nod I and J
-        QualitativeConstraintType constraintTypeIJ = Empty;
-        QualitativeConstraintType constraintTypeJI = getSymmetricConstraint(graph, triangle[j], triangle[i]);
+        QualitativeTimePointConstraint::Type constraintTypeIJ = QualitativeTimePointConstraint::Empty;
+        QualitativeTimePointConstraint::Type constraintTypeJI = getSymmetricConstraint(graph, triangle[j], triangle[i]);
         if(edgesIJ.empty())
         {
             constraintTypeIJ = constraintTypeJI;
         } else {
-            constraintTypeIJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesIJ[0])->getQualitativeConstraintType();
+            constraintTypeIJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesIJ[0])->getType();
             if(!QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, constraintTypeJI))
             {
                 LOG_DEBUG_S << "QualitativeTemporalConstraintNetwork::isConsistent: IJ symmetry assumption does not hold";
                 return false;
             }
         }
-        LOG_DEBUG_S << "IJ " << QualitativeConstraintTypeTxt[constraintTypeIJ];
-        LOG_DEBUG_S << "JI' " << QualitativeConstraintTypeTxt[constraintTypeJI];
+        LOG_DEBUG_S << "IJ "                 << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ];
+        LOG_DEBUG_S << "JI' (symmetric IJ) " << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI];
 
         // IK
-        QualitativeConstraintType constraintTypeIK = Empty;
-        QualitativeConstraintType constraintTypeKI = getSymmetricConstraint(graph, triangle[k], triangle[i]);
+        QualitativeTimePointConstraint::Type constraintTypeIK = QualitativeTimePointConstraint::Empty;
+        QualitativeTimePointConstraint::Type constraintTypeKI = getSymmetricConstraint(graph, triangle[k], triangle[i]);
         if(edgesIK.empty())
         {
             constraintTypeIK = constraintTypeKI;
         } else {
-            constraintTypeIK = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesIK[0])->getQualitativeConstraintType();
+            constraintTypeIK = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesIK[0])->getType();
             if(!QualitativeTimePointConstraint::isConsistent(constraintTypeIK, constraintTypeKI))
             {
                 LOG_DEBUG_S << "QualitativeTemporalConstraintNetwork::isConsistent: IK symmetry assumption does not hold";
                 return false;
             }
         }
-        LOG_DEBUG_S << "IK " << QualitativeConstraintTypeTxt[constraintTypeIK];
-        LOG_DEBUG_S << "KI' " << QualitativeConstraintTypeTxt[constraintTypeKI];
+        LOG_DEBUG_S << "IK "                << QualitativeTimePointConstraint::TypeTxt[constraintTypeIK];
+        LOG_DEBUG_S << "KI' (symmetric IK)" << QualitativeTimePointConstraint::TypeTxt[constraintTypeKI];
 
         // KJ
-        QualitativeConstraintType constraintTypeKJ = Empty;
-        QualitativeConstraintType constraintTypeJK = getSymmetricConstraint(graph, triangle[j], triangle[k]);
+        QualitativeTimePointConstraint::Type constraintTypeKJ = QualitativeTimePointConstraint::Empty;
+        QualitativeTimePointConstraint::Type constraintTypeJK = getSymmetricConstraint(graph, triangle[j], triangle[k]);
         if(edgesKJ.empty())
         {
             constraintTypeKJ = constraintTypeJK;
         } else {
-            constraintTypeKJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesKJ[0])->getQualitativeConstraintType();
+            constraintTypeKJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesKJ[0])->getType();
             if(!QualitativeTimePointConstraint::isConsistent(constraintTypeKJ, constraintTypeKJ) )
             {
                 LOG_DEBUG_S << "QualitativeTemporalConstraintNetwork::isConsistent: JK symmetry assumption does not hold";
                 return false;
             }
         }
-        LOG_DEBUG_S << "KJ " << QualitativeConstraintTypeTxt[constraintTypeKJ];
-        LOG_DEBUG_S << "JK' " << QualitativeConstraintTypeTxt[constraintTypeJK];
+        LOG_DEBUG_S << "KJ "                << QualitativeTimePointConstraint::TypeTxt[constraintTypeKJ];
+        LOG_DEBUG_S << "JK' (symmetric JK)" << QualitativeTimePointConstraint::TypeTxt[constraintTypeJK];
 
-        QualitativeConstraintType compositionIJ = QualitativeTimePointConstraint::getComposition(constraintTypeIK, constraintTypeKJ);
+        QualitativeTimePointConstraint::Type compositionIJ = QualitativeTimePointConstraint::getComposition(constraintTypeIK, constraintTypeKJ);
 
         bool isConsistent = QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, compositionIJ);
 
         if(!isConsistent)
         {
-            LOG_DEBUG_S << "IK: " << QualitativeConstraintTypeTxt[constraintTypeIJ] << ", KJ: " << QualitativeConstraintTypeTxt[constraintTypeKJ] << " and IJ " << QualitativeConstraintTypeTxt[constraintTypeIJ] << " [inconsistent]";
+            LOG_DEBUG_S << "IK: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << ", KJ: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeKJ] << " and IJ " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << " [inconsistent]";
             return false;
         } else {
-            LOG_DEBUG_S << "IK: " << QualitativeConstraintTypeTxt[constraintTypeIJ] << ", KJ: " << QualitativeConstraintTypeTxt[constraintTypeKJ] << " and IJ " << QualitativeConstraintTypeTxt[constraintTypeIJ] << " [consistent]";
+            LOG_DEBUG_S << "IK: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << ", KJ: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeKJ] << " and IJ " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << " [consistent]";
         }
     } while(combination.next());
 
     return true;
 }
 
-QualitativeConstraintType QualitativeTemporalConstraintNetwork::getSymmetricConstraint(graph_analysis::BaseGraph::Ptr graph, graph_analysis::Vertex::Ptr first, graph_analysis::Vertex::Ptr second)
+QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getSymmetricConstraint(graph_analysis::BaseGraph::Ptr graph, graph_analysis::Vertex::Ptr first, graph_analysis::Vertex::Ptr second)
 {
     std::vector<graph_analysis::Edge::Ptr> edges = graph->getEdges(first, second);
     if(edges.empty())
     {
         LOG_DEBUG_S << "QualitativeTemporalConstraintNetwork::getSymmetricConstraint: no edge return Universal";
-        return Universal;
+        return QualitativeTimePointConstraint::Universal;
     } else if(edges.size() > 1)
     {
         throw std::runtime_error("QualitativeTemporalConstraintNetwork::isConsistent: more than one directional constraint");
@@ -209,8 +214,8 @@ QualitativeConstraintType QualitativeTemporalConstraintNetwork::getSymmetricCons
             throw std::invalid_argument("QualitativeTemporalConstraintNetwork::getSymmetricConstraint: edge is not a constraint");
         }
 
-        QualitativeConstraintType constraintType = ptr->getQualitativeConstraintType();
-        LOG_DEBUG_S << "QualitativeConstraintType: " << QualitativeConstraintTypeTxt[constraintType];
+        QualitativeTimePointConstraint::Type constraintType = ptr->getType();
+        LOG_DEBUG_S << "QualitativeTimePointConstraint::Type: " << QualitativeTimePointConstraint::TypeTxt[constraintType];
         return QualitativeTimePointConstraint::getSymmetric(constraintType);
     }
 }

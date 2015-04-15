@@ -3,6 +3,7 @@
 
 #include <map>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
+#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
 
 namespace templ {
 namespace solvers {
@@ -16,9 +17,11 @@ namespace point_algebra {
  */
 class TimePointComparator
 {
-    std::map<TimePoint::Label, TimePoint::LabelList> mAliases;
+    QualitativeTemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
 
 public:
+    TimePointComparator(QualitativeTemporalConstraintNetwork::Ptr tcn = QualitativeTemporalConstraintNetwork::Ptr());
+
     /**
      * Check equality of two timepoints
      */

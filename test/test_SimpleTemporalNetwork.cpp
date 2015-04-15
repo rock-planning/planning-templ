@@ -51,7 +51,6 @@ BOOST_AUTO_TEST_CASE(value_propagation)
 
             graph_analysis::io::GraphIO::write("test_SimpleTemporalNetwork-domain_propagation", *baseGraph, graph_analysis::representation::GEXF);
         }
-
     }
 }
 

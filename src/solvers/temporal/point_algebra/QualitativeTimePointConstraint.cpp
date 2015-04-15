@@ -6,124 +6,124 @@ namespace solvers {
 namespace temporal {
 namespace point_algebra {
 
-std::map<QualitativeConstraintType, std::string> QualitativeConstraintTypeTxt = boost::assign::map_list_of
-    (Empty, "{}")
-    (Greater, ">")
-    (Less, "<")
-    (Equal, "=")
-    (Distinct, "!=")
-    (GreaterOrEqual, ">=")
-    (LessOrEqual, "<=")
-    (Universal, "P")
+std::map<QualitativeTimePointConstraint::Type, std::string> QualitativeTimePointConstraint::TypeTxt = boost::assign::map_list_of
+    (QualitativeTimePointConstraint::Empty, "{}")
+    (QualitativeTimePointConstraint::Greater, ">")
+    (QualitativeTimePointConstraint::Less, "<")
+    (QualitativeTimePointConstraint::Equal, "=")
+    (QualitativeTimePointConstraint::Distinct, "!=")
+    (QualitativeTimePointConstraint::GreaterOrEqual, ">=")
+    (QualitativeTimePointConstraint::LessOrEqual, "<=")
+    (QualitativeTimePointConstraint::Universal, "P")
     ;
 
-std::map<QualitativeConstraintType, QualitativeConstraintType> QualitativeConstraintSymmetricType = boost::assign::map_list_of
-    (Empty, Empty)
-    (Greater, Less)
-    (Less, Greater)
-    (Equal, Equal)
-    (Distinct, Distinct)
-    (GreaterOrEqual, LessOrEqual)
-    (LessOrEqual, GreaterOrEqual)
-    (Universal, Universal)
+std::map<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type> QualitativeTimePointConstraint::SymmetricType = boost::assign::map_list_of
+    (QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Empty)
+    (QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Less)
+    (QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Greater)
+    (QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Equal)
+    (QualitativeTimePointConstraint::Distinct, QualitativeTimePointConstraint::Distinct)
+    (QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::LessOrEqual)
+    (QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::GreaterOrEqual)
+    (QualitativeTimePointConstraint::Universal, QualitativeTimePointConstraint::Universal)
     ;
 
-std::map< std::pair<QualitativeConstraintType, QualitativeConstraintType>, QualitativeConstraintType> QualitativeConstraintTypeAlgebra = boost::assign::map_list_of
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Less, Less), Less)
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Less, Equal), Less)
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Less, Greater), Universal)
+std::map< std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>, QualitativeTimePointConstraint::Type> QualitativeTimePointConstraint::TypeAlgebra = boost::assign::map_list_of
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Less)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::Less)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Universal)
     // {<}o{<,=} --> {<}o{<} \cup {<}o{=} = {<} \cup {<}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Less, LessOrEqual), Less)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::Less)
     // {<}o{>,=} --> {<}o{>} \cup {<}o{=} = {P} \cup {<}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Less, GreaterOrEqual), Universal)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::Universal)
 
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Equal, Less), Less)
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Equal, Equal), Equal)
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Equal, Greater), Greater)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Less)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::Equal)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Greater)
     // {=}o{<,=} --> {=}o{<} \cup {=}o{=} = {<} \cup {=}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Equal, LessOrEqual), LessOrEqual)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::LessOrEqual)
     // {=}o{>,=} --> {=}o{>} \cup {=}o{=} = {>} \cup {=}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Equal, GreaterOrEqual), GreaterOrEqual)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::GreaterOrEqual)
 
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Greater, Less), Universal)
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Greater, Equal), Greater)
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Greater, Greater), Greater)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Universal)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::Greater)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Greater)
     // {>}o{<,=} --> {>}o{<} \cup {>}o{=} = {P} \cup {>}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Greater, LessOrEqual), Universal)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::Universal)
     // {>}o{>,=} --> {>}o{>} \cup {>}o{=} = {>} \cup {>}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(Greater, GreaterOrEqual), Greater )
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::Greater )
 
     // {>,=}o{<} --> {>}o{<} \cup {=}o{<} = {P} \cup {<}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(GreaterOrEqual, Less), Universal )
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Universal )
     // {>,=}o{=} --> {>}o{=} \cup {=}o{=} = {>} \cup {=}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(GreaterOrEqual, Equal), GreaterOrEqual )
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::GreaterOrEqual )
     // {>,=}o{>} --> {>}o{=} \cup {=}o{>} = {>} \cup {>}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(GreaterOrEqual, Greater), Greater )
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Greater )
     // {>,=}o{<,=} --> {>}o{<} \cup {>}o{=} \cup {=}o{<} \cup {=}o{=} = {P} \cup {>} \cup {<} \cup {=}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(GreaterOrEqual, LessOrEqual), Universal)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::Universal)
     // {>,=}o{>,=} --> {>}o{>} \cup {>}o{=} \cup {=}o{>} \cup {=}o{=} = {>} \cup {>} \cup {>} \cup {=}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(GreaterOrEqual, GreaterOrEqual), GreaterOrEqual )
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::GreaterOrEqual )
 
     // {<,=}o{<} --> {<}o{<} \cup {=}o{<} = {<} \cup {<}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(LessOrEqual, Less), Less )
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Less )
     // {<,=}o{=} --> {<}o{=} \cup {=}o{=} = {<} \cup {=}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(LessOrEqual, Equal), LessOrEqual)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::LessOrEqual)
     // {<,=}o{>} --> {<}o{>} \cup {=}o{>} = {P} \cup {>}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(LessOrEqual, Greater), Universal)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Universal)
     // {<,=}o{<,=} --> {<}o{<} \cup {=}o{=} \cup {=}o{<} \cup {=}o{=}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(LessOrEqual, LessOrEqual), LessOrEqual)
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::LessOrEqual)
     // {<,=}o{>,=} --> {<}o{>} \cup {<}o{=} \cup {=}o{>} \cup {=}o{=} = {P} \cup
     // {<} \cup {>} \cup{=}
-    ( std::pair<QualitativeConstraintType, QualitativeConstraintType>(LessOrEqual, GreaterOrEqual), Universal )
+    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::Universal )
     ;
 
-QualitativeTimePointConstraint::QualitativeTimePointConstraint(Variable::Ptr source, Variable::Ptr target, point_algebra::QualitativeConstraintType constraintType)
+QualitativeTimePointConstraint::QualitativeTimePointConstraint(Variable::Ptr source, Variable::Ptr target, point_algebra::QualitativeTimePointConstraint::Type constraintType)
     : Constraint(source, target)
     , mConstraintType(constraintType)
 {}
 
 
-QualitativeTimePointConstraint::Ptr QualitativeTimePointConstraint::create(Variable::Ptr source, Variable::Ptr target, point_algebra::QualitativeConstraintType constraintType)
+QualitativeTimePointConstraint::Ptr QualitativeTimePointConstraint::create(Variable::Ptr source, Variable::Ptr target, point_algebra::QualitativeTimePointConstraint::Type constraintType)
 {
     return QualitativeTimePointConstraint::Ptr( new QualitativeTimePointConstraint(source, target, constraintType) );
 }
 
 QualitativeTimePointConstraint::Ptr QualitativeTimePointConstraint::getSymmetric(QualitativeTimePointConstraint::Ptr constraint)
 {
-    return QualitativeTimePointConstraint::Ptr( new QualitativeTimePointConstraint(constraint->getTargetVariable(), constraint->getSourceVariable(), getSymmetric(constraint->getQualitativeConstraintType())) );
+    return QualitativeTimePointConstraint::Ptr( new QualitativeTimePointConstraint(constraint->getTargetVariable(), constraint->getSourceVariable(), getSymmetric(constraint->getType())) );
 }
 
-QualitativeConstraintType QualitativeTimePointConstraint::getSymmetric(QualitativeConstraintType type)
+QualitativeTimePointConstraint::Type QualitativeTimePointConstraint::getSymmetric(QualitativeTimePointConstraint::Type type)
 {
-    std::map<QualitativeConstraintType, QualitativeConstraintType>::const_iterator cit = QualitativeConstraintSymmetricType.find(type); 
-    if(cit == QualitativeConstraintSymmetricType.end())
+    std::map<Type, Type>::const_iterator cit = SymmetricType.find(type); 
+    if(cit == SymmetricType.end())
     {
         throw std::runtime_error("QualitativeTimePointConstraint::getSymmetric: no symmetric type defined");
     }
     return cit->second;
 }
 
-QualitativeConstraintType QualitativeTimePointConstraint::getComposition(QualitativeConstraintType firstType, QualitativeConstraintType secondType)
+QualitativeTimePointConstraint::Type QualitativeTimePointConstraint::getComposition(QualitativeTimePointConstraint::Type firstType, QualitativeTimePointConstraint::Type secondType)
 {
     if(firstType == Universal || secondType == Universal)
         return Universal;
 
-    std::pair<QualitativeConstraintType, QualitativeConstraintType> key(firstType, secondType);
-    std::map< std::pair<QualitativeConstraintType,QualitativeConstraintType>, QualitativeConstraintType >::const_iterator cit = QualitativeConstraintTypeAlgebra.find(key);
-    if(cit == QualitativeConstraintTypeAlgebra.end())
+    std::pair<Type, Type> key(firstType, secondType);
+    std::map< std::pair<Type, Type>, Type >::const_iterator cit = TypeAlgebra.find(key);
+    if(cit == TypeAlgebra.end())
     {
-        throw std::runtime_error("QualitativeTimePointConstraint::getComposition found no match for composition of: " + QualitativeConstraintTypeTxt[firstType] + " and " + QualitativeConstraintTypeTxt[secondType]);
+        throw std::runtime_error("QualitativeTimePointConstraint::getComposition found no match for composition of: " + TypeTxt[firstType] + " and " + TypeTxt[secondType]);
     }
 
     return cit->second;
 }
 
-bool QualitativeTimePointConstraint::isConsistent(QualitativeConstraintType firstType, QualitativeConstraintType secondType)
+bool QualitativeTimePointConstraint::isConsistent(QualitativeTimePointConstraint::Type firstType, QualitativeTimePointConstraint::Type secondType)
 {
     return hasIntersection(firstType, secondType);
 }
 
-bool QualitativeTimePointConstraint::hasIntersection(QualitativeConstraintType firstType, QualitativeConstraintType secondType)
+bool QualitativeTimePointConstraint::hasIntersection(QualitativeTimePointConstraint::Type firstType, QualitativeTimePointConstraint::Type secondType)
 {
     // This implementation is actually the verbose way of intersecting the set of primitive
     // operators
@@ -206,12 +206,12 @@ bool QualitativeTimePointConstraint::hasIntersection(QualitativeConstraintType f
     }
 }
 
-std::vector<QualitativeConstraintType> QualitativeTimePointConstraint::getAllConstraintTypes()
+std::vector<QualitativeTimePointConstraint::Type> QualitativeTimePointConstraint::getAllConstraintTypes()
 {
-    std::vector<QualitativeConstraintType> types;
-    for(int i = (int) Empty; i < QualitativeConstraintTypeEndMarker; ++i)
+    std::vector<QualitativeTimePointConstraint::Type> types;
+    for(int i = (int) Empty; i < QualitativeTimePointConstraint::TypeEndMarker; ++i)
     {
-        types.push_back((QualitativeConstraintType) i);
+        types.push_back((QualitativeTimePointConstraint::Type) i);
     }
     return types;
 }

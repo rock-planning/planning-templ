@@ -15,8 +15,8 @@ BOOST_AUTO_TEST_CASE(consistency_checking)
         point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint("tp2"));
 
 
-        qtcn.addQualitativeConstraint(tp0, tp1, point_algebra::GreaterOrEqual);
-        qtcn.addQualitativeConstraint(tp1, tp2, point_algebra::GreaterOrEqual);
+        qtcn.addConstraint(tp0, tp1, point_algebra::QualitativeTimePointConstraint::GreaterOrEqual);
+        qtcn.addConstraint(tp1, tp2, point_algebra::QualitativeTimePointConstraint::GreaterOrEqual);
 
         BOOST_REQUIRE_MESSAGE(qtcn.isConsistent(), "qtcn is consistent");
     }
@@ -26,9 +26,9 @@ BOOST_AUTO_TEST_CASE(consistency_checking)
         point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
         point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint("tp2"));
 
-        qtcn.addQualitativeConstraint(tp0, tp1, point_algebra::GreaterOrEqual);
-        qtcn.addQualitativeConstraint(tp1, tp2, point_algebra::GreaterOrEqual);
-        qtcn.addQualitativeConstraint(tp0, tp2, point_algebra::Less);
+        qtcn.addConstraint(tp0, tp1, point_algebra::QualitativeTimePointConstraint::GreaterOrEqual);
+        qtcn.addConstraint(tp1, tp2, point_algebra::QualitativeTimePointConstraint::GreaterOrEqual);
+        qtcn.addConstraint(tp0, tp2, point_algebra::QualitativeTimePointConstraint::Less);
 
         BOOST_REQUIRE_MESSAGE(!qtcn.isConsistent(), "qtcn is inconsistent");
     }
@@ -38,9 +38,9 @@ BOOST_AUTO_TEST_CASE(consistency_checking)
         point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
         point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint("tp2"));
 
-        qtcn.addQualitativeConstraint(tp0, tp1, point_algebra::Greater);
-        qtcn.addQualitativeConstraint(tp1, tp2, point_algebra::Less);
-        qtcn.addQualitativeConstraint(tp0,tp2, point_algebra::Less);
+        qtcn.addConstraint(tp0, tp1, point_algebra::QualitativeTimePointConstraint::Greater);
+        qtcn.addConstraint(tp1, tp2, point_algebra::QualitativeTimePointConstraint::Less);
+        qtcn.addConstraint(tp0,tp2,  point_algebra::QualitativeTimePointConstraint::Less);
 
         BOOST_REQUIRE_MESSAGE(qtcn.isConsistent(), "qtcn is consistent");
     }
@@ -50,8 +50,8 @@ BOOST_AUTO_TEST_CASE(consistency_checking)
         point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
         point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
 
-        qtcn.addQualitativeConstraint(tp0,tp1, point_algebra::Less);
-        qtcn.addQualitativeConstraint(tp1,tp0, point_algebra::Greater);
+        qtcn.addConstraint(tp0,tp1, point_algebra::QualitativeTimePointConstraint::Less);
+        qtcn.addConstraint(tp1,tp0, point_algebra::QualitativeTimePointConstraint::Greater);
 
         BOOST_REQUIRE_MESSAGE(qtcn.isConsistent(), "qtcn is consistent for exact timepoint");
     }
@@ -60,8 +60,8 @@ BOOST_AUTO_TEST_CASE(consistency_checking)
         point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
         point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
 
-        qtcn.addQualitativeConstraint(tp0,tp1, point_algebra::Greater);
-        qtcn.addQualitativeConstraint(tp1,tp0, point_algebra::Greater);
+        qtcn.addConstraint(tp0,tp1, point_algebra::QualitativeTimePointConstraint::Greater);
+        qtcn.addConstraint(tp1,tp0, point_algebra::QualitativeTimePointConstraint::Greater);
 
         BOOST_REQUIRE_MESSAGE(!qtcn.isConsistent(), "qtcn is not consistent for contradicting timepoint relationships");
     }
@@ -70,8 +70,8 @@ BOOST_AUTO_TEST_CASE(consistency_checking)
         point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
         point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
 
-        qtcn.addQualitativeConstraint(tp0,tp1, point_algebra::GreaterOrEqual);
-        qtcn.addQualitativeConstraint(tp0,tp1, point_algebra::Less);
+        qtcn.addConstraint(tp0,tp1, point_algebra::QualitativeTimePointConstraint::GreaterOrEqual);
+        qtcn.addConstraint(tp0,tp1, point_algebra::QualitativeTimePointConstraint::Less);
 
         BOOST_REQUIRE_MESSAGE(!qtcn.isConsistent(), "qtcn is not consistent for contradicting timepoint relationships");
     }
