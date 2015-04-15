@@ -8,78 +8,7 @@ using namespace templ::solvers::temporal;
 
 BOOST_AUTO_TEST_SUITE(simple_temporal_network)
 
-BOOST_AUTO_TEST_CASE(consistency_checking)
-{
-    {
-        SimpleTemporalNetwork stn;
-        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
-        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
-        point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint("tp2"));
-
-
-        stn.addQualitativeConstraint(tp0, tp1, point_algebra::GreaterOrEqual);
-        stn.addQualitativeConstraint(tp1, tp2, point_algebra::GreaterOrEqual);
-
-        BOOST_REQUIRE_MESSAGE(stn.isConsistent(), "STN is consistent");
-    }
-    {
-        SimpleTemporalNetwork stn;
-        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
-        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
-        point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint("tp2"));
-
-        stn.addQualitativeConstraint(tp0, tp1, point_algebra::GreaterOrEqual);
-        stn.addQualitativeConstraint(tp1, tp2, point_algebra::GreaterOrEqual);
-        stn.addQualitativeConstraint(tp0, tp2, point_algebra::Less);
-
-        BOOST_REQUIRE_MESSAGE(!stn.isConsistent(), "STN is inconsistent");
-    }
-    {
-        SimpleTemporalNetwork stn;
-        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
-        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
-        point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint("tp2"));
-
-        stn.addQualitativeConstraint(tp0, tp1, point_algebra::Greater);
-        stn.addQualitativeConstraint(tp1, tp2, point_algebra::Less);
-        stn.addQualitativeConstraint(tp0,tp2, point_algebra::Less);
-
-        BOOST_REQUIRE_MESSAGE(stn.isConsistent(), "STN is consistent");
-    }
-
-    {
-        SimpleTemporalNetwork stn;
-        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
-        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
-
-        stn.addQualitativeConstraint(tp0,tp1, point_algebra::Less);
-        stn.addQualitativeConstraint(tp1,tp0, point_algebra::Greater);
-
-        BOOST_REQUIRE_MESSAGE(stn.isConsistent(), "STN is consistent for exact timepoint");
-    }
-    {
-        SimpleTemporalNetwork stn;
-        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
-        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
-
-        stn.addQualitativeConstraint(tp0,tp1, point_algebra::Greater);
-        stn.addQualitativeConstraint(tp1,tp0, point_algebra::Greater);
-
-        BOOST_REQUIRE_MESSAGE(!stn.isConsistent(), "STN is not consistent for contradicting timepoint relationships");
-    }
-    {
-        SimpleTemporalNetwork stn;
-        point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
-        point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
-
-        stn.addQualitativeConstraint(tp0,tp1, point_algebra::GreaterOrEqual);
-        stn.addQualitativeConstraint(tp0,tp1, point_algebra::Less);
-
-        BOOST_REQUIRE_MESSAGE(!stn.isConsistent(), "STN is not consistent for contradicting timepoint relationships");
-    }
-}
-
-BOOST_AUTO_TEST_CASE(domain_propagation)
+BOOST_AUTO_TEST_CASE(value_propagation)
 {
     {
         // [10,80] -- 38 --> [30,100]

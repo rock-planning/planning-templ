@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gexf xmlns="http://www.gexf.net/1.1draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.1draft http://gexf.net/1.1draft/gexf.xsd" version="1.1">
+  <graph mode="static" defaultedgetype="directed">
+    <attributes class="node" mode="static">
+      <attribute id="0" title="class" type="string"/>
+    </attributes>
+    <attributes class="edge" mode="static">
+      <attribute id="0" title="class" type="string"/>
+    </attributes>
+    <nodes>
+      <node id="0" label="Timepoint: [10,60]">
+        <attvalues>
+          <attvalue for="0" value="Timepoint: [10,60]"/>
+        </attvalues>
+      </node>
+      <node id="1" label="Timepoint: [48,90]">
+        <attvalues>
+          <attvalue for="0" value="Timepoint: [48,90]"/>
+        </attvalues>
+      </node>
+      <node id="2" label="Timepoint: [78,100]">
+        <attvalues>
+          <attvalue for="0" value="Timepoint: [78,100]"/>
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge id="0" source="0" target="1" label="graph_analysis::WeightedEdge:Timepoint: [10,60]-&gt;Timepoint: [48,90]: 38">
+        <attvalues>
+          <attvalue for="0" value="graph_analysis::WeightedEdge:Timepoint: [10,60]-&gt;Timepoint: [48,90]: 38"/>
+        </attvalues>
+      </edge>
+      <edge id="1" source="1" target="0" label="graph_analysis::WeightedEdge:Timepoint: [48,90]-&gt;Timepoint: [10,60]: -30">
+        <attvalues>
+          <attvalue for="0" value="graph_analysis::WeightedEdge:Timepoint: [48,90]-&gt;Timepoint: [10,60]: -30"/>
+        </attvalues>
+      </edge>
+      <edge id="2" source="1" target="2" label="graph_analysis::WeightedEdge:Timepoint: [48,90]-&gt;Timepoint: [78,100]: 30">
+        <attvalues>
+          <attvalue for="0" value="graph_analysis::WeightedEdge:Timepoint: [48,90]-&gt;Timepoint: [78,100]: 30"/>
+        </attvalues>
+      </edge>
+      <edge id="3" source="2" target="1" label="graph_analysis::WeightedEdge:Timepoint: [78,100]-&gt;Timepoint: [48,90]: -10">
+        <attvalues>
+          <attvalue for="0" value="graph_analysis::WeightedEdge:Timepoint: [78,100]-&gt;Timepoint: [48,90]: -10"/>
+        </attvalues>
+      </edge>
+    </edges>
+  </graph>
+</gexf>

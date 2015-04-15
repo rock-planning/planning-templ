@@ -12,12 +12,8 @@ namespace solvers {
 namespace temporal {
 
 SimpleTemporalNetwork::SimpleTemporalNetwork()
-    : mpDistanceGraph( new graph_analysis::lemon::DirectedGraph() )
+    : TemporalConstraintNetwork()
 {
-}
-void SimpleTemporalNetwork::addTimePoint(TimePoint::Ptr t)
-{
-    mpDistanceGraph->addVertex(t);
 }
 
 void SimpleTemporalNetwork::addInterval(TimePoint::Ptr source, TimePoint::Ptr target, const Bounds& bounds)
@@ -43,222 +39,38 @@ void SimpleTemporalNetwork::addInterval(TimePoint::Ptr source, TimePoint::Ptr ta
     }
 }
 
-void SimpleTemporalNetwork::addQualitativeConstraint(TimePoint::Ptr t1, TimePoint::Ptr t2, QualitativeConstraintType constraintType)
+bool SimpleTemporalNetwork::isConsistent()
 {
-    // Add a qualitative constraint -- translate "complexer" type to primitive
-    // relations
-    QualitativeTimePointConstraint::Ptr constraint;
-    switch(constraintType)
-    {
-        case GreaterOrEqual:
-            constraint = QualitativeTimePointConstraint::create(t2, t1, Less);
-        case LessOrEqual:
-            constraint = QualitativeTimePointConstraint::create(t2, t1, Greater);
-        default:
-            constraint = QualitativeTimePointConstraint::create(t1, t2, constraintType);
-    }
-
-    addConstraint(constraint);
+    return !hasNegativeCycle();
 }
 
-bool SimpleTemporalNetwork::isConsistent(std::vector<Edge::Ptr> edges)
+bool SimpleTemporalNetwork::hasNegativeCycle()
 {
-    if(edges.size() <= 1)
+    try {
+        // Throw when the shortest path computation identifies a negative cycle,
+        // i.e. an inconsistent network whose constraints can never be fulfilled
+        bool throwOnNegativeCycle = true;
+        algorithms::DistanceMatrix distanceMatrix = algorithms::FloydWarshall::allShortestPaths(mpDistanceGraph, [](Edge::Ptr e) -> double
+                {
+                    return boost::dynamic_pointer_cast<WeightedEdge>(e)->getWeight();
+                }, throwOnNegativeCycle);
+
+        return false;
+    } catch(...)
     {
         return true;
     }
 
-    numeric::Combination<Edge::Ptr> combination(edges, 2, numeric::EXACT);
-    do {
-
-        std::vector<Edge::Ptr> edgeCombination = combination.current();
-        QualitativeConstraintType constraintTypeIJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgeCombination[0])->getQualitativeConstraintType();
-        QualitativeConstraintType constraintTypeJI = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgeCombination[1])->getQualitativeConstraintType();
-
-        if(! QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, constraintTypeJI) )
-        {
-            return false;
-        }
-    } while(combination.next());
-
-    return true;
-}
-
-bool SimpleTemporalNetwork::isConsistent(Vertex::Ptr vertex0, Vertex::Ptr vertex1, BaseGraph::Ptr graph)
-{
-    int i = 0;
-    int j = 1;
-    std::vector<Edge::Ptr> edgesIJ = graph->getEdges(vertex0, vertex1);
-    std::vector<Edge::Ptr> edgesJI = graph->getEdges(vertex1, vertex0);
-    // Check self consistency
-    if(!isConsistent(edgesIJ) || !isConsistent(edgesJI))
-    {
-        return false;
-    }
-
-    std::vector<Edge::Ptr>::const_iterator ijIterator = edgesIJ.begin();
-    for(; ijIterator != edgesIJ.end(); ++ijIterator)
-    {
-        std::vector<Edge::Ptr>::const_iterator jiIterator = edgesJI.begin();
-        for(; jiIterator != edgesJI.end(); ++jiIterator)
-        {
-            QualitativeConstraintType constraintTypeIJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(*ijIterator)->getQualitativeConstraintType();
-
-            QualitativeConstraintType constraintTypeJI = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(*jiIterator)->getQualitativeConstraintType();
-            QualitativeConstraintType symmetricConstraintTypeJI = QualitativeTimePointConstraint::getSymmetric(constraintTypeJI);
-
-            if(!QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, symmetricConstraintTypeJI))
-            {
-                LOG_DEBUG_S << "Constraint: " << QualitativeConstraintTypeTxt[constraintTypeIJ] << " is inconsistent with " << QualitativeConstraintTypeTxt[symmetricConstraintTypeJI];
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-bool SimpleTemporalNetwork::isConsistent()
-{
-    using namespace graph_analysis;
-    BaseGraph::Ptr graph = mDigraph.copy();
-
-    // Path consistency
-    // if there is no constraint between two variables, we assume the
-    // universal constraint
-
-    // Iterate over all node triples
-    std::vector<Vertex::Ptr> vertices = graph->getAllVertices();
-    LOG_DEBUG_S << "Vertices in STN: " << vertices.size();
-    switch(vertices.size())
-    {
-        case 0:
-        case 1:
-            return true;
-        case 2:
-            return isConsistent(vertices[0], vertices[1], graph);
-        default:
-            break;
-    }
-
-    numeric::Combination<Vertex::Ptr> combination(vertices, 3, numeric::EXACT);
-    do {
-        std::vector<Vertex::Ptr> triangle = combination.current();
-
-        int i = 0;
-        int j = 2;
-        int k = 1;
-
-        std::vector<Edge::Ptr> edgesIJ = graph->getEdges(triangle[i], triangle[j]);
-        std::vector<Edge::Ptr> edgesIK = graph->getEdges(triangle[i], triangle[k]);
-        std::vector<Edge::Ptr> edgesKJ = graph->getEdges(triangle[k], triangle[j]);
-
-        if (edgesIK.size() > 1 || edgesKJ.size() > 1 || edgesIK.size() > 1)
-        {
-            throw std::runtime_error("SimpleTemporalNetwork::isConsistent: assuming one directional constraint");
-        }
-
-        // Universal constraint -- if there is no edge defined
-        // IJ -- Constraint between nod I and J
-        QualitativeConstraintType constraintTypeIJ = Empty;
-        QualitativeConstraintType constraintTypeJI = getSymmetricConstraint(graph, triangle[j], triangle[i]);
-        if(edgesIJ.empty())
-        {
-            constraintTypeIJ = constraintTypeJI;
-        } else {
-            constraintTypeIJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesIJ[0])->getQualitativeConstraintType();
-            if(!QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, constraintTypeJI))
-            {
-                LOG_DEBUG_S << "SimpleTemporalNetwork::isConsistent: IJ symmetry assumption does not hold";
-                return false;
-            }
-        }
-        LOG_DEBUG_S << "IJ " << QualitativeConstraintTypeTxt[constraintTypeIJ];
-        LOG_DEBUG_S << "JI' " << QualitativeConstraintTypeTxt[constraintTypeJI];
-
-        // IK
-        QualitativeConstraintType constraintTypeIK = Empty;
-        QualitativeConstraintType constraintTypeKI = getSymmetricConstraint(graph, triangle[k], triangle[i]);
-        if(edgesIK.empty())
-        {
-            constraintTypeIK = constraintTypeKI;
-        } else {
-            constraintTypeIK = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesIK[0])->getQualitativeConstraintType();
-            if(!QualitativeTimePointConstraint::isConsistent(constraintTypeIK, constraintTypeKI))
-            {
-                LOG_DEBUG_S << "SimpleTemporalNetwork::isConsistent: IK symmetry assumption does not hold";
-                return false;
-            }
-        }
-        LOG_DEBUG_S << "IK " << QualitativeConstraintTypeTxt[constraintTypeIK];
-        LOG_DEBUG_S << "KI' " << QualitativeConstraintTypeTxt[constraintTypeKI];
-
-        // KJ
-        QualitativeConstraintType constraintTypeKJ = Empty;
-        QualitativeConstraintType constraintTypeJK = getSymmetricConstraint(graph, triangle[j], triangle[k]);
-        if(edgesKJ.empty())
-        {
-            constraintTypeKJ = constraintTypeJK;
-        } else {
-            constraintTypeKJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesKJ[0])->getQualitativeConstraintType();
-            if(!QualitativeTimePointConstraint::isConsistent(constraintTypeKJ, constraintTypeKJ) )
-            {
-                LOG_DEBUG_S << "SimpleTemporalNetwork::isConsistent: JK symmetry assumption does not hold";
-                return false;
-            }
-        }
-        LOG_DEBUG_S << "KJ " << QualitativeConstraintTypeTxt[constraintTypeKJ];
-        LOG_DEBUG_S << "JK' " << QualitativeConstraintTypeTxt[constraintTypeJK];
-
-        QualitativeConstraintType compositionIJ = QualitativeTimePointConstraint::getComposition(constraintTypeIK, constraintTypeKJ);
-
-        bool isConsistent = QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, compositionIJ);
-
-        if(!isConsistent)
-        {
-            LOG_DEBUG_S << "IK: " << QualitativeConstraintTypeTxt[constraintTypeIJ] << ", KJ: " << QualitativeConstraintTypeTxt[constraintTypeKJ] << " and IJ " << QualitativeConstraintTypeTxt[constraintTypeIJ] << " [inconsistent]";
-            return false;
-        } else {
-            LOG_DEBUG_S << "IK: " << QualitativeConstraintTypeTxt[constraintTypeIJ] << ", KJ: " << QualitativeConstraintTypeTxt[constraintTypeKJ] << " and IJ " << QualitativeConstraintTypeTxt[constraintTypeIJ] << " [consistent]";
-        }
-    } while(combination.next());
-
-    return true;
-}
-
-QualitativeConstraintType SimpleTemporalNetwork::getSymmetricConstraint(graph_analysis::BaseGraph::Ptr graph, graph_analysis::Vertex::Ptr first, graph_analysis::Vertex::Ptr second)
-{
-    std::vector<graph_analysis::Edge::Ptr> edges = graph->getEdges(first, second);
-    if(edges.empty())
-    {
-        LOG_DEBUG_S << "SimpleTemporalNetwork::getSymmetricConstraint: no edge return Universal";
-        return Universal;
-    } else if(edges.size() > 1)
-    {
-        throw std::runtime_error("SimpleTemporalNetwork::isConsistent: more than one directional constraint");
-    } else {
-        QualitativeTimePointConstraint::Ptr ptr = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edges[0]);
-        if(!ptr)
-        {
-            throw std::invalid_argument("SimpleTemporalNetwork::getSymmetricConstraint: edge is not a constraint");
-        }
-
-        QualitativeConstraintType constraintType = ptr->getQualitativeConstraintType();
-        LOG_DEBUG_S << "QualitativeConstraintType: " << QualitativeConstraintTypeTxt[constraintType];
-        return QualitativeTimePointConstraint::getSymmetric(constraintType);
-    }
 }
 
 graph_analysis::BaseGraph::Ptr SimpleTemporalNetwork::propagate()
 {
     using namespace graph_analysis;
 
-    // Throw when the shortest path computation identifies a negative cycle,
-    // i.e. an inconsistent network whose constraints can never be fulfilled
-    bool throwOnNegativeCycle = true;
-    algorithms::DistanceMatrix distanceMatrix = algorithms::FloydWarshall::allShortestPaths(mpDistanceGraph, [](Edge::Ptr e) -> double
-            {
-                return boost::dynamic_pointer_cast<WeightedEdge>(e)->getWeight();
-            }, throwOnNegativeCycle);
+    if(hasNegativeCycle())
+    {
+        throw std::runtime_error("templ::solvers::temporal::SimpleTemporalNetwork::propagate: cannot progate on a network with negative cycle");
+    }
 
     // Now we should update the vertices/ Variable domains according to the minimal network
     // Since the minimal distance has been already computed, which have to do

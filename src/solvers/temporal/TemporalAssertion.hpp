@@ -41,6 +41,8 @@ protected:
 public:
     typedef boost::shared_ptr<TemporalAssertion> Ptr;
 
+    virtual ~TemporalAssertion() {}
+
     /**
      * Get the type of the temporal assertion
      * \return Type

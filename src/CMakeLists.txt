@@ -5,12 +5,14 @@ rock_library(templ
         solvers/temporal/Bounds.cpp
         solvers/temporal/Event.cpp
         solvers/temporal/PersistenceCondition.cpp
-        solvers/temporal/point_algebra/TimePoint.cpp
-        solvers/temporal/point_algebra/TimePointComparator.cpp
         solvers/temporal/point_algebra/QualitativeTimePoint.cpp
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.cpp
-        solvers/temporal/TemporalAssertion.cpp
+        solvers/temporal/point_algebra/TimePoint.cpp
+        solvers/temporal/point_algebra/TimePointComparator.cpp
+        solvers/temporal/QualitativeTemporalConstraintNetwork.cpp
         solvers/temporal/SimpleTemporalNetwork.cpp
+        solvers/temporal/TemporalAssertion.cpp
+        solvers/temporal/TemporalConstraintNetwork.cpp
         solvers/ConstraintNetwork.cpp
         solvers/Constraint.cpp
         solvers/Variable.cpp
@@ -18,14 +20,16 @@ rock_library(templ
         solvers/temporal/Bounds.hpp
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
-        solvers/temporal/point_algebra/QualitativeTimePoint.hpp
         solvers/temporal/point_algebra/ExactTimePoint.hpp
+        solvers/temporal/point_algebra/QualitativeTimePoint.hpp
+        solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp
         solvers/temporal/point_algebra/TimePoint.hpp
         solvers/temporal/point_algebra/TimePointComparator.hpp
-        solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp
         solvers/temporal/PersistenceCondition.hpp
+        solvers/temporal/QualitativeTemporalConstraintNetwork.hpp
         solvers/temporal/SimpleTemporalNetwork.hpp
         solvers/temporal/TemporalAssertion.hpp
+        solvers/temporal/TemporalConstraintNetwork.hpp
         solvers/temporal/Timeline.hpp
         solvers/ConstraintNetwork.hpp
         solvers/Variable.hpp

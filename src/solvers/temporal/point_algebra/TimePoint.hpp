@@ -28,6 +28,8 @@ protected:
 public:
     TimePoint(uint64_t lowerBound, uint64_t upperBound);
 
+    virtual ~TimePoint() {}
+
     Type getType() const { return mType; }
 
     /**

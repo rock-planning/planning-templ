@@ -17,16 +17,15 @@ bool TimePointComparator::greaterThan(TimePoint::Ptr t0, TimePoint::Ptr t1) cons
         throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: cannot compare different types of TimePoints");
     }
 
-    if(t0->getType() == QUANTITATIVE)
+    if(t0->getType() == TimePoint::QUANTITATIVE)
     {
         throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: cannot compare different types of TimePoints");
-    } else if(t1->getType() == QUALITATIVE)
+    } else if(t1->getType() == TimePoint::QUALITATIVE)
     {
         // Check in DB if we have some formulated constraints between two
         // timepoints
         // --> use QualitativeTimePointConstraintNetwork
-
-
+        return false;
     } else {
         throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: cannot compare this type of TimePoints");
     }
