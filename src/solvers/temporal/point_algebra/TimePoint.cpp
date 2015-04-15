@@ -40,7 +40,16 @@ bool TimePoint::equals(TimePoint::Ptr other) const
         throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePoint::equals: cannot compare timepoints of different types");
     }
 
-    return *this == *other.get();
+    // TODO: improve comparision integration
+    if(mType == QUANTITATIVE)
+    {
+        return *this == *other.get();
+    } else if(mType== QUALITATIVE)
+    {
+        return *dynamic_cast<QualitativeTimePoint*>(const_cast<TimePoint*>(this)) == *dynamic_cast<QualitativeTimePoint*>(other.get());
+    } else {
+        throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePoint::equals: cannot compare timepoints of unknown types");
+    }
 }
 
 TimePoint::Ptr TimePoint::create(const Label& label)

@@ -40,14 +40,14 @@ public:
      * Check if the given label is an alias (or the actual label) of this
      * QualitativeTimePoint
      * \return True if label is an alias, false otherwise
-     */
+     o*/
     bool isAlias(const TimePoint::Label& label) const;
 
     /**
      * Check equality of two QualitativeTimePoint instances
      * \return True if they are equal, false otherwise
      */
-    bool operator==(const QualitativeTimePoint& other) const;
+    virtual bool operator==(const QualitativeTimePoint& other) const;
 
     /**
      * Check if two QualitativeTimePoint instances are distinct

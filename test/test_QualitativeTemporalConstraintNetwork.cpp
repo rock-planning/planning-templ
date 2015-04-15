@@ -1,10 +1,30 @@
 #include <boost/test/unit_test.hpp>
 #include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
+#include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 
 using namespace templ::solvers;
 using namespace templ::solvers::temporal;
 
 BOOST_AUTO_TEST_SUITE(qualitative_temporal_constraint_network)
+
+BOOST_AUTO_TEST_CASE(timepoint_comparision)
+{
+    QualitativeTemporalConstraintNetwork::Ptr qtcn(new QualitativeTemporalConstraintNetwork());
+
+    point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
+    point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
+    point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint("tp2"));
+
+    qtcn->addConstraint(tp0, tp1, point_algebra::QualitativeTimePointConstraint::Greater);
+    qtcn->addConstraint(tp1, tp2, point_algebra::QualitativeTimePointConstraint::Greater);
+
+    point_algebra::TimePointComparator comparator(qtcn);
+    BOOST_REQUIRE_MESSAGE(comparator.greaterThan(tp0, tp1), "tp0 greaterThan tp1");
+    BOOST_REQUIRE_MESSAGE(!comparator.equals(tp0, tp1), "tp0 not equals tp1");
+
+    BOOST_REQUIRE_MESSAGE(comparator.greaterThan(tp1, tp2), "tp1 greaterThan tp2");
+
+}
 
 BOOST_AUTO_TEST_CASE(consistency_checking)
 {
