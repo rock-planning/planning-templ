@@ -55,8 +55,6 @@ bool QualitativeTemporalConstraintNetwork::isConsistent(std::vector<Edge::Ptr> e
 
 bool QualitativeTemporalConstraintNetwork::isConsistent(Vertex::Ptr vertex0, Vertex::Ptr vertex1, BaseGraph::Ptr graph)
 {
-    int i = 0;
-    int j = 1;
     std::vector<Edge::Ptr> edgesIJ = graph->getEdges(vertex0, vertex1);
     std::vector<Edge::Ptr> edgesJI = graph->getEdges(vertex1, vertex0);
     // Check self consistency
