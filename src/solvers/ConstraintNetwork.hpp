@@ -11,16 +11,20 @@ namespace solvers {
 class ConstraintNetwork
 {
 protected:
-    graph_analysis::lemon::DirectedGraph mDigraph;
+    graph_analysis::BaseGraph::Ptr mGraph;
+
+    graph_analysis::BaseGraph::Ptr getGraph() const { return mGraph; }
 
 public:
+    ConstraintNetwork();
+
     virtual ~ConstraintNetwork() {}
 
     virtual void addVariable(Variable::Ptr variable);
 
     virtual void addConstraint(Constraint::Ptr constraint);
 
-    virtual graph_analysis::EdgeIterator::Ptr getConstraintIterator() { return mDigraph.getEdgeIterator(); }
+    virtual graph_analysis::EdgeIterator::Ptr getConstraintIterator() const;
 
 };
 
