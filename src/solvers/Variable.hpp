@@ -11,6 +11,8 @@ namespace solvers {
 class Variable : public graph_analysis::Vertex
 {
 public:
+    virtual ~Variable() {}
+
     typedef boost::shared_ptr<Variable> Ptr;
 
     virtual std::string getClassName() const { return "Variable"; }

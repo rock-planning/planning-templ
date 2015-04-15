@@ -16,6 +16,8 @@ public:
 
     Constraint(Variable::Ptr source, Variable::Ptr target);
 
+    virtual ~Constraint() {}
+
     virtual std::string getClassName() const { return "Constraint"; }
 
     virtual std::string toString() const;
