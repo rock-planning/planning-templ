@@ -5,10 +5,10 @@ namespace templ {
 namespace solvers {
 namespace temporal {
 
-PersistenceCondition::PersistenceCondition(const StateVariable& stateVariable, Value::Ptr value, point_algebra::TimePoint::Ptr frompTimepoint, point_algebra::TimePoint::Ptr toTimepoint)
+PersistenceCondition::PersistenceCondition(const StateVariable& stateVariable, Value::Ptr value, point_algebra::TimePoint::Ptr fromTimepoint, point_algebra::TimePoint::Ptr toTimepoint)
         : TemporalAssertion(stateVariable, TemporalAssertion::PERSISTENCE_CONDITION)
         , mpValue(value)
-        , mpFromTimepoint(frompTimepoint)
+        , mpFromTimepoint(fromTimepoint)
         , mpToTimepoint(toTimepoint)
 {}
 
@@ -16,9 +16,13 @@ bool PersistenceCondition::refersToSameValue(Event::Ptr other, const point_algeb
 {
     if(comparator.equals(other->mpTimepoint, mpFromTimepoint))
     {
+        // checks if event has established the value that holds in the persistence
+        // condition
         return other->mpToValue->equals(mpValue);
     } else if(comparator.equals(other->mpTimepoint, mpToTimepoint))
     {
+        // check if event starts with the value that holds in the persistence
+        // condition
         return other->mpFromValue->equals(mpValue);
     } else{
         throw std::invalid_argument("templ::PersistenceCondition: Event is disjoint from persistence condition, cannot check for same value");
@@ -33,14 +37,9 @@ bool PersistenceCondition::refersToSameValue(boost::shared_ptr<PersistenceCondit
 
 bool PersistenceCondition::disjointFrom(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const
 {
-    if( comparator.greaterOrEqual(other->mpTimepoint, mpFromTimepoint) && comparator.lessOrEqual(other->mpTimepoint, mpToTimepoint) )
-    {
-        // lies in the interval
-        return false;
-    } else {
-        // there 
-        return true;
-    }
+    // Checks if timepoint of event is outside of the define interval of the
+    // persistence condition
+    return comparator.lessThan(other->mpTimepoint, mpFromTimepoint) || comparator.greaterThan(other->mpTimepoint, mpToTimepoint);
 }
 
 bool PersistenceCondition::disjointFrom(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const
