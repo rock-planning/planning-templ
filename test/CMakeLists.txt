@@ -4,4 +4,5 @@ rock_testsuite(test_suite suite.cpp
     test_QualitativeTemporalConstraintNetwork.cpp
     test_Planning.cpp
     test_PointAlgebra.cpp
+    test_TemporalAssertion.cpp
     DEPS templ)
