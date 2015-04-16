@@ -35,7 +35,7 @@ void QualitativeTemporalConstraintNetwork::addConstraint(TimePoint::Ptr t1, Time
     TemporalConstraintNetwork::addConstraint(constraint);
 }
 
-bool QualitativeTemporalConstraintNetwork::isConsistent(std::vector<Edge::Ptr> edges)
+bool QualitativeTemporalConstraintNetwork::isConsistent(const std::vector<Edge::Ptr>& edges)
 {
     if(edges.size() <= 1)
     {
@@ -115,86 +115,51 @@ bool QualitativeTemporalConstraintNetwork::isConsistent()
     numeric::Combination<Vertex::Ptr> combination(vertices, 3, numeric::EXACT);
     do {
         std::vector<Vertex::Ptr> triangle = combination.current();
-
-        int i = 0;
-        int j = 2;
-        int k = 1;
-
-        std::vector<Edge::Ptr> edgesIJ = graph->getEdges(triangle[i], triangle[j]);
-        std::vector<Edge::Ptr> edgesIK = graph->getEdges(triangle[i], triangle[k]);
-        std::vector<Edge::Ptr> edgesKJ = graph->getEdges(triangle[k], triangle[j]);
-
-        if (edgesIK.size() > 1 || edgesKJ.size() > 1 || edgesIK.size() > 1)
+        if(!isConsistent(triangle))
         {
-            throw std::runtime_error("QualitativeTemporalConstraintNetwork::isConsistent: assuming one directional constraint");
-        }
-
-        // Universal constraint -- if there is no edge defined
-        // IJ -- Constraint between nod I and J
-        QualitativeTimePointConstraint::Type constraintTypeIJ = QualitativeTimePointConstraint::Empty;
-        QualitativeTimePointConstraint::Type constraintTypeJI = getSymmetricConstraint(graph, triangle[j], triangle[i]);
-        if(edgesIJ.empty())
-        {
-            constraintTypeIJ = constraintTypeJI;
-        } else {
-            constraintTypeIJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesIJ[0])->getType();
-            if(!QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, constraintTypeJI))
-            {
-                LOG_DEBUG_S << "QualitativeTemporalConstraintNetwork::isConsistent: IJ symmetry assumption does not hold";
-                return false;
-            }
-        }
-        LOG_DEBUG_S << "IJ "                 << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ];
-        LOG_DEBUG_S << "JI' (symmetric IJ) " << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI];
-
-        // IK
-        QualitativeTimePointConstraint::Type constraintTypeIK = QualitativeTimePointConstraint::Empty;
-        QualitativeTimePointConstraint::Type constraintTypeKI = getSymmetricConstraint(graph, triangle[k], triangle[i]);
-        if(edgesIK.empty())
-        {
-            constraintTypeIK = constraintTypeKI;
-        } else {
-            constraintTypeIK = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesIK[0])->getType();
-            if(!QualitativeTimePointConstraint::isConsistent(constraintTypeIK, constraintTypeKI))
-            {
-                LOG_DEBUG_S << "QualitativeTemporalConstraintNetwork::isConsistent: IK symmetry assumption does not hold";
-                return false;
-            }
-        }
-        LOG_DEBUG_S << "IK "                << QualitativeTimePointConstraint::TypeTxt[constraintTypeIK];
-        LOG_DEBUG_S << "KI' (symmetric IK)" << QualitativeTimePointConstraint::TypeTxt[constraintTypeKI];
-
-        // KJ
-        QualitativeTimePointConstraint::Type constraintTypeKJ = QualitativeTimePointConstraint::Empty;
-        QualitativeTimePointConstraint::Type constraintTypeJK = getSymmetricConstraint(graph, triangle[j], triangle[k]);
-        if(edgesKJ.empty())
-        {
-            constraintTypeKJ = constraintTypeJK;
-        } else {
-            constraintTypeKJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesKJ[0])->getType();
-            if(!QualitativeTimePointConstraint::isConsistent(constraintTypeKJ, constraintTypeKJ) )
-            {
-                LOG_DEBUG_S << "QualitativeTemporalConstraintNetwork::isConsistent: JK symmetry assumption does not hold";
-                return false;
-            }
-        }
-        LOG_DEBUG_S << "KJ "                << QualitativeTimePointConstraint::TypeTxt[constraintTypeKJ];
-        LOG_DEBUG_S << "JK' (symmetric JK)" << QualitativeTimePointConstraint::TypeTxt[constraintTypeJK];
-
-        QualitativeTimePointConstraint::Type compositionIJ = QualitativeTimePointConstraint::getComposition(constraintTypeIK, constraintTypeKJ);
-
-        bool isConsistent = QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, compositionIJ);
-
-        if(!isConsistent)
-        {
-            LOG_DEBUG_S << "IK: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << ", KJ: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeKJ] << " and IJ " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << " [inconsistent]";
             return false;
-        } else {
-            LOG_DEBUG_S << "IK: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << ", KJ: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeKJ] << " and IJ " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << " [consistent]";
         }
+
     } while(combination.next());
 
     return true;
+}
+
+bool QualitativeTemporalConstraintNetwork::isConsistent(graph_analysis::Vertex::Ptr i, graph_analysis::Vertex::Ptr j)
+{
+    std::vector<Edge::Ptr> edgesIJ = getGraph()->getEdges(i, j);
+    if (edgesIJ.size() > 1)
+    {
+        throw std::runtime_error("QualitativeTemporalConstraintNetwork::isConsistent: cannot proceed since assumption of only 1 directional constraint between two vertices does not hold");
+    }
+
+    // Universal constraint -- if there is no edge defined
+    // IJ -- Constraint between node I and J
+    QualitativeTimePointConstraint::Type constraintTypeIJ = QualitativeTimePointConstraint::Empty;
+    QualitativeTimePointConstraint::Type constraintTypeJI = getSymmetricConstraint(getGraph(), j, i);
+    if(edgesIJ.empty())
+    {
+        constraintTypeIJ = constraintTypeJI;
+    } else {
+        constraintTypeIJ = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesIJ[0])->getType();
+        if(!QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, constraintTypeJI))
+        {
+            LOG_DEBUG_S << "QualitativeTemporalConstraintNetwork::isConsistent: IJ symmetry assumption does not hold";
+            return false;
+        }
+    }
+    LOG_DEBUG_S << "IJ "                 << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ];
+    LOG_DEBUG_S << "JI' (symmetric IJ) " << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI];
+    return true;
+}
+
+bool QualitativeTemporalConstraintNetwork::isConsistent(const std::vector<Vertex::Ptr>& triangle)
+{
+    int i = 0;
+    int j = 2;
+    int k = 1;
+
+    return isConsistent(triangle[i], triangle[j]) && isConsistent(triangle[i], triangle[k]) && isConsistent(triangle[k], triangle[j]);
 }
 
 QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getSymmetricConstraint(graph_analysis::BaseGraph::Ptr graph, graph_analysis::Vertex::Ptr first, graph_analysis::Vertex::Ptr second)

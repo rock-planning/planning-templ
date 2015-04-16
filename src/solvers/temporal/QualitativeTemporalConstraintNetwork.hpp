@@ -19,7 +19,7 @@ class QualitativeTemporalConstraintNetwork : public TemporalConstraintNetwork
      * for qualitative time point constraints
      * \return True if multiedge is consistent, false if not
      */
-    bool isConsistent(std::vector<graph_analysis::Edge::Ptr> edges);
+    bool isConsistent(const std::vector<graph_analysis::Edge::Ptr>& edges);
 
     /** Check consistency between two vertices of the constraint graph
      * \return true if graph is consistent, false otherwise
@@ -46,6 +46,10 @@ public:
      * \return true if graph is consistent, false otherwise
      */
     bool isConsistent();
+
+    bool isConsistent(const std::vector<graph_analysis::Vertex::Ptr>& triangle);
+
+    bool isConsistent(graph_analysis::Vertex::Ptr v0, graph_analysis::Vertex::Ptr v1);
 };
 
 } // end namespace temporal
