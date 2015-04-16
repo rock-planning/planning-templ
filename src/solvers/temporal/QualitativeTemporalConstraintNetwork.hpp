@@ -31,7 +31,7 @@ public:
 
     QualitativeTemporalConstraintNetwork();
 
-    std::vector<point_algebra::QualitativeTimePointConstraint::Ptr> getConstraints(point_algebra::TimePoint::Ptr t1, point_algebra::TimePoint::Ptr t2);
+    point_algebra::QualitativeTimePointConstraint::Type getConstraint(point_algebra::TimePoint::Ptr t1, point_algebra::TimePoint::Ptr t2, uint8_t maximumPathDepth = 3);
 
     void addConstraint(point_algebra::TimePoint::Ptr t1, point_algebra::TimePoint::Ptr t2, point_algebra::QualitativeTimePointConstraint::Type constraint);
 

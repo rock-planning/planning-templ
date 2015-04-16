@@ -18,8 +18,8 @@ BOOST_AUTO_TEST_CASE(timepoint_comparision)
 
         qtcn->addConstraint(tp0, tp1, point_algebra::QualitativeTimePointConstraint::Greater);
 
-        std::vector<point_algebra::QualitativeTimePointConstraint::Ptr> constraints = qtcn->getConstraints(tp0, tp1);
-        BOOST_REQUIRE_MESSAGE(constraints.size() == 1, "Query constraint between two vertices");
+        point_algebra::QualitativeTimePointConstraint::Type constraint = qtcn->getConstraint(tp0, tp1);
+        BOOST_REQUIRE_MESSAGE(constraint == point_algebra::QualitativeTimePointConstraint::Greater, "Query result of constraint between two vertices");
 
         qtcn->addConstraint(tp1, tp2, point_algebra::QualitativeTimePointConstraint::Greater);
 

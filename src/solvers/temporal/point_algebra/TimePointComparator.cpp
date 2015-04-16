@@ -36,19 +36,13 @@ bool TimePointComparator::greaterThan(TimePoint::Ptr t0, TimePoint::Ptr t1) cons
             throw std::runtime_error("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: comparing qualitive timepoints, but not QualitativeTimePointConstraintNetwork given to comparator");
         }
 
-        std::vector<point_algebra::QualitativeTimePointConstraint::Ptr> constraints = mpTemporalConstraintNetwork->getConstraints(t0,t1);
-        if(constraints.size() == 1 && constraints[0]->getType() == point_algebra::QualitativeTimePointConstraint::Empty)
+        point_algebra::QualitativeTimePointConstraint::Type constraint = mpTemporalConstraintNetwork->getConstraint(t0,t1);
+        if(constraint == point_algebra::QualitativeTimePointConstraint::Empty)
         {
             throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: no constraints defined between given timepoints");
-        }
-
-        std::vector<point_algebra::QualitativeTimePointConstraint::Ptr>::const_iterator cit = constraints.begin();
-        for(; cit != constraints.end(); ++cit)
+        } else if( constraint == point_algebra::QualitativeTimePointConstraint::Greater)
         {
-            if( (*cit)->getType() == point_algebra::QualitativeTimePointConstraint::Greater)
-            {
-                return true;
-            }
+            return true;
         }
 
         return false;
@@ -72,8 +66,13 @@ bool TimePointComparator::hasIntervalOverlap(TimePoint::Ptr a_start, TimePoint::
     {
         return true;
     }
-
     return false;
+    // assuming that a_start <= a_end and b_start <= b_end
+    // a consistent db entails a_end <= b_start or b_end <= a_start
+    // (Automated Planning p.331 Def 14.8)
+    // a - b
+//    return (TimePointComparator::lessThan(b_start, a_end) && TimePointComparator::lessThan(a_start, b_end)) || (TimePointComparator::lessThan(a_start, b_end) && TimePointComparator::lessThan(b_start, a_end));
+    //return TimePointComparator::lessOrEqual(a_end, b_start) || TimePointComparator::lessOrEqual(b_end, a_start);
 }
 
 bool TimePointComparator::inInterval(TimePoint::Ptr t0, TimePoint::Ptr i_start, TimePoint::Ptr i_end) const

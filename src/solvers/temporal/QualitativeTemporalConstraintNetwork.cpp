@@ -1,6 +1,12 @@
 #include "QualitativeTemporalConstraintNetwork.hpp"
 #include <numeric/Combinatorics.hpp>
 
+#include <lemon/bfs.h>
+#include <lemon/dijkstra.h>
+#include <lemon/path.h>
+
+#include <base/Logging.hpp>
+
 using namespace templ::solvers::temporal::point_algebra;
 using namespace graph_analysis;
 
@@ -12,9 +18,159 @@ QualitativeTemporalConstraintNetwork::QualitativeTemporalConstraintNetwork()
     : TemporalConstraintNetwork()
 {}
 
-std::vector<QualitativeTimePointConstraint::Ptr> QualitativeTemporalConstraintNetwork::getConstraints(TimePoint::Ptr t1, TimePoint::Ptr t2)
+QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getConstraint(TimePoint::Ptr t1, TimePoint::Ptr t2, uint8_t maximumPathDepth)
 {
-    return getGraph()->getEdges<QualitativeTimePointConstraint>(t1, t2);
+    typedef std::vector<Edge::Ptr> Path;
+    typedef std::vector<Vertex::Ptr> Neighbours;
+    std::vector< std::vector<Neighbours> > neighbours;
+    std::vector< std::vector<Path> > paths;
+
+    LOG_WARN_S << "Search: 0";
+    SubGraph::Ptr subgraph = graph_analysis::BaseGraph::getSubGraph(getGraph());
+    LOG_WARN_S << "Search: 1";
+
+    Path path;
+    std::vector<Vertex::Ptr> vertices;
+    // No path with length 0
+    paths.push_back( std::vector<Path>() );
+    vertices.push_back( t1 );
+    LOG_WARN_S << "Search: 2";
+    for(uint8_t i = 1; i <= maximumPathDepth; ++i)
+    {
+        std::vector<Path> pathsWithDepthI;
+        std::vector<Vertex::Ptr> nextVertexList;
+        std::vector<Vertex::Ptr>::const_iterator nit = vertices.begin();
+        LOG_WARN_S << "Search: 3";
+        for(; nit != vertices.end(); ++nit)
+        {
+            Vertex::Ptr vertex = *nit;
+            graph_analysis::EdgeIterator::Ptr edgeIt = subgraph->getEdgeIterator(vertex);
+            while(edgeIt->next())
+            {
+                Path currentPath = path;
+
+                Edge::Ptr edge = edgeIt->current();
+                // path will be constructed inverse, so last element at position 0
+                currentPath.insert(currentPath.begin(), edge);
+                pathsWithDepthI.push_back(currentPath);
+
+                subgraph->disable(edge);
+                nextVertexList.push_back(edge->getTargetVertex());
+            }
+            vertices = nextVertexList;
+        }
+        LOG_WARN_S << "Pushback " << (int) i << " --> path size: " << pathsWithDepthI.size();
+        paths.push_back(pathsWithDepthI);
+    }
+
+    LOG_WARN_S << "Search complete: number of paths: " << paths.size();
+    std::vector<Path> validPaths;
+    // Keep only paths that lead to t2
+    for(uint8_t d = 1; d <= maximumPathDepth; ++d)
+    {
+        LOG_WARN_S << "Get path at: " << (int) d;
+        uint16_t numberOfPaths = paths[d].size();
+        LOG_WARN_S << "Availabe: " << numberOfPaths;
+        for(uint8_t n = 0; n < numberOfPaths; ++n)
+        {
+            Path path = paths[d][n];
+            Edge::Ptr edge = path[0];
+            if( boost::dynamic_pointer_cast<TimePoint>(edge)->equals(t2))
+            {
+                validPaths.push_back(path);
+            }
+        }
+    }
+    LOG_WARN_S << "Valid path completed: size " << validPaths.size();
+
+    std::vector<QualitativeTimePointConstraint::Type> constraints;
+    // All paths should now represent a consistent constraint
+    // i.e. translate path into composition
+    std::vector<Path>::const_iterator cit = validPaths.begin();
+    for(; cit != validPaths.end(); ++cit)
+    {
+        LOG_WARN_S << "Path ----";
+        Path::const_iterator pit = cit->begin();
+        std::vector<QualitativeTimePointConstraint::Type> typeList;
+        for(; pit != cit->end(); ++pit)
+        {
+            Edge::Ptr edge = *pit;
+            QualitativeTimePointConstraint::Ptr constraint = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edge);
+            typeList.push_back(constraint->getType());
+            LOG_WARN_S << "    " << QualitativeTimePointConstraint::TypeTxt[constraint->getType()];
+        }
+        QualitativeTimePointConstraint::Type type = QualitativeTimePointConstraint::getComposition(typeList);
+
+        LOG_WARN_S << " composition -->" << QualitativeTimePointConstraint::TypeTxt[type];
+        constraints.push_back(type);
+    }
+
+    return QualitativeTimePointConstraint::getComposition(constraints);
+    
+
+    //graph_analysis::lemon::DirectedGraph* digraph = dynamic_cast<graph_analysis::lemon::DirectedGraph*>(getGraph().get());
+    //assert(digraph);
+    //::lemon::ListDigraph::Node startNode = digraph->getNode(t1);
+    //::lemon::ListDigraph::Node endNode = digraph->getNode(t2);
+
+    //::lemon::Bfs< ::lemon::ListDigraph> bfs(digraph->raw());
+    //for(uint8_t i = 0; i < maximumPathDepth; ++i)
+    //{
+    //    bfs.init();
+    //    bfs.addSource(startNode);
+    //    typedef std::vector<::lemon::ListDigraph::Arc> Path;
+    //    std::vector< std::vector<Path> > paths;
+    //    while(!bfs.emptyQueue())
+    //    {
+    //        ::lemon::ListDigraph::Node node = bfs.processNextNode();
+    //        if(node == endNode)
+    //        {
+    //        }
+    //    }
+    //}
+    ////::lemon::Bfs<::lemon::ListDigraph> bfs(digraph->raw());
+    ////bfs.run(digraph->getNode(t1), digraph->getNode(t2));
+    ////std::map<::lemon::ListDigraph::Arc, double> lengthmap;
+    //typedef ::lemon::concepts::ReadMap< ::lemon::ListDigraph::Arc, int> LengthMap;
+    ////typedef ::lemon::concepts::ReadWriteMap<::lemon::ListDigraph::Node,int> DistMap;
+    //typedef int DistMap;
+    ////typedef ::lemon::Dijkstra< ::lemon::ListDigraph, LengthMap>::DistMap DistMap;
+
+    //LengthMap lengthmap;
+    ////DistMap distmap;
+    //::lemon::Path< ::lemon::ListDigraph> path;
+    ////bool reached = ::lemon::dijkstra(digraph->raw(), lengthmap).path(path).dist(distmap).run(digraph->getNode(t1), digraph->getNode(t2));
+    //::lemon::Dijkstra< ::lemon::ListDigraph> dijkstra(digraph->raw(), lengthmap);
+    //dijkstra.init();
+    //dijkstra.addSource(startNode);
+    //dijkstra.start(endNode);
+
+    ////bool reached = ::lemon::dijkstra(digraph->raw(), lengthmap).path(path).run(digraph->getNode(t1), digraph->getNode(t2));
+
+    //std::vector<QualitativeTimePointConstraint::Ptr> constraintList;
+    //if(!reached)
+    //{
+    //    return constraintList;
+    //} else {
+    //    int pathLength = path.length();
+    //    for(int i = 0; i < pathLength; ++i)
+    //    {
+    //        ::lemon::ListDigraph::Arc arc = path.nth(i);
+    //        QualitativeTimePointConstraint::Ptr qtpc = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>( digraph->getEdge(arc) );
+    //        if(qtpc)
+    //        {
+    //            constraintList.push_back(qtpc);
+    //        }
+    //    }
+    //}
+
+    //return constraintList;
+    //bool reached = dijkstra(g, length).path(p).dist(d).run( digraph->getNode(t1), digraph->getNode(t2));
+
+  //  if(edges.empty())
+  //  {
+
+  //  }
 }
 
 void QualitativeTemporalConstraintNetwork::addConstraint(TimePoint::Ptr t1, TimePoint::Ptr t2, QualitativeTimePointConstraint::Type constraintType)
