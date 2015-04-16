@@ -40,7 +40,7 @@ bool QualitativeTimePoint::operator==(const QualitativeTimePoint& other) const
     // result
     std::vector<TimePoint::Label> intersection(other.mAliases.size() + mAliases.size());
     std::vector<TimePoint::Label>::iterator it;
-    it = std::set_intersection(mAliases.begin(), mAliases.end(), other.mAliases.begin(), mAliases.end(), intersection.begin());
+    it = std::set_intersection(mAliases.begin(), mAliases.end(), other.mAliases.begin(), other.mAliases.end(), intersection.begin());
     intersection.resize(it-intersection.begin());
 
     return !intersection.empty();
