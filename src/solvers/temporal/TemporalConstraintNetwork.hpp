@@ -8,6 +8,11 @@ namespace templ {
 namespace solvers {
 namespace temporal {
 
+/**
+ * \class TemporalConstraintNetwork
+ * \brief Abstraction of qualitative and quantitative temporal constraint
+ * networks
+ */
 class TemporalConstraintNetwork : public ConstraintNetwork
 {
 protected:

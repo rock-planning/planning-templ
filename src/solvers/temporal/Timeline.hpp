@@ -9,8 +9,8 @@ namespace solvers {
 namespace temporal {
 
 /**
- * A timeline is a chronicle for a single state variable x
- *
+ * \class Timeline
+ * \brief A timeline is a chronicle for a single state variable x
  * It serves as partial specification of a function that gives
  * the value of the state variable over time
  *
@@ -25,7 +25,8 @@ class Timeline
 
 public:
     /**
-     * Check if timeline is consistent, i.e.
+     * Check if timeline is consistent, i.e. (Automated Planning p 331 Def.
+     * 14.8)
      * - no pair of assertions in the timeline conflicts
      *   i.e. no specification leaves two possibly distinct values of the same
      *   state variable at the same time

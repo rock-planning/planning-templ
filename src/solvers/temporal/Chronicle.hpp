@@ -10,7 +10,8 @@ namespace solvers {
 namespace temporal {
 
 /**
- * "A chronicle for a set of state variables {x_i,...x_j} is a pair
+ * \class Chronicle
+ * \brief "A chronicle for a set of state variables {x_i,...x_j} is a pair
  * phi = (F,C), where F is a set of temporal assertions, i.e., events and
  * persistence conditions about the state variables x_i,...,x_j, and C
  * is a set of object constraints and temporal constraints."

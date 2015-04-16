@@ -10,8 +10,9 @@ namespace solvers {
 namespace temporal {
 
 /**
- * "An event, denoted as x@t:(v_1,v_2) specifies the instantaneous change of the value of
- * x from v_1 to _v2 at time t, with v_1 != v_2
+ * \class Event
+ * \brief "An event, denoted as x@t:(v_1,v_2) specifies the instantaneous change of the value of
+ * x from v_1 to _v2 at time t, with v_1 != v_2"
  */
 class Event : public TemporalAssertion
 {

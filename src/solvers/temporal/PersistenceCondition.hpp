@@ -12,7 +12,8 @@ namespace temporal {
 class Event;
 
 /**
- * Specifies that a value persists and being equal to a given 
+ * \class PersistenceCondition
+ * \brief Specifies that a value persists and being equal to a given 
  * value over an time interval
  * \see "Automated Planning - Theory and Practice" p. 329
  */

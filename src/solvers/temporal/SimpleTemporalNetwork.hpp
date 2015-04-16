@@ -9,8 +9,9 @@ namespace solvers {
 namespace temporal {
 
 /**
- * \class SimpleTemporalNetwork (STN) that represents a set of
- * qualitative timepoint constraints given by a set of intervals
+ * \class SimpleTemporalNetwork
+ * \brief A SimpleTemporalNetwork (STN) represents a set of
+ * quantitative timepoint constraints given by a set of intervals
  */
 class SimpleTemporalNetwork : public TemporalConstraintNetwork
 {
