@@ -41,10 +41,24 @@ public:
 
     /**
      * Get the symmetric constraint
+     * \return symmetric constraint
      */
     static Type getSymmetric(Type type);
 
+    /**
+     * Get the composition of two types
+     * \return composition type
+     * \throws std::runtime_error if no composition type could be found
+     */
     static Type getComposition(Type firstType, Type secondType);
+
+    /**
+     * Get the composition of a list of types
+     * \param typeList List of composition types
+     * \return composition type when all types in the list are consistent
+     * \throws std::runtime_error if no composition type could be found
+     */
+    static Type getComposition(const std::vector<Type>& typeList);
 
     /**
      * Check if a constraint type is consistent with another

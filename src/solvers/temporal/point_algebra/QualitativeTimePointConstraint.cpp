@@ -118,6 +118,17 @@ QualitativeTimePointConstraint::Type QualitativeTimePointConstraint::getComposit
     return cit->second;
 }
 
+QualitativeTimePointConstraint::Type QualitativeTimePointConstraint::getComposition(const std::vector<QualitativeTimePointConstraint::Type>& typeList)
+{
+    std::vector<Type>::const_iterator cit = typeList.begin();
+    Type compositionType = Empty;
+    for(; cit != typeList.end(); ++cit)
+    {
+        compositionType = getComposition(compositionType, *cit);
+    }
+    return compositionType;
+}
+
 bool QualitativeTimePointConstraint::isConsistent(QualitativeTimePointConstraint::Type firstType, QualitativeTimePointConstraint::Type secondType)
 {
     return hasIntersection(firstType, secondType);
