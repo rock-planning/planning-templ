@@ -95,7 +95,7 @@ QualitativeTimePointConstraint::Ptr QualitativeTimePointConstraint::getSymmetric
 
 QualitativeTimePointConstraint::Type QualitativeTimePointConstraint::getSymmetric(QualitativeTimePointConstraint::Type type)
 {
-    std::map<Type, Type>::const_iterator cit = SymmetricType.find(type); 
+    std::map<Type, Type>::const_iterator cit = SymmetricType.find(type);
     if(cit == SymmetricType.end())
     {
         throw std::runtime_error("QualitativeTimePointConstraint::getSymmetric: no symmetric type defined");
@@ -136,18 +136,22 @@ bool QualitativeTimePointConstraint::isConsistent(QualitativeTimePointConstraint
 
 bool QualitativeTimePointConstraint::hasIntersection(QualitativeTimePointConstraint::Type firstType, QualitativeTimePointConstraint::Type secondType)
 {
+    return getIntersection(firstType, secondType) != Empty;
+}
+
+QualitativeTimePointConstraint::Type QualitativeTimePointConstraint::getIntersection(QualitativeTimePointConstraint::Type firstType, QualitativeTimePointConstraint::Type secondType)
+{
     // This implementation is actually the verbose way of intersecting the set of primitive
     // operators
-    
-    if(firstType != Empty && secondType == Universal)
+    if(firstType == Empty || secondType == Empty)
     {
-        return true;
-    } else if (firstType == Universal && secondType != Empty)
+        return Empty;
+    } else if(firstType == Universal)
     {
-        return true;
-    } else if(firstType == Empty || secondType == Empty)
+        return secondType;
+    } else if(secondType == Universal)
     {
-        return false;
+        return firstType;
     }
 
     switch(firstType)
@@ -158,9 +162,9 @@ bool QualitativeTimePointConstraint::hasIntersection(QualitativeTimePointConstra
                 {
                     case Less:
                     case LessOrEqual:
-                        return true;
+                        return Less;
                     default:
-                        return false;
+                        return Empty;
                 }
             }
         case Greater:
@@ -169,9 +173,9 @@ bool QualitativeTimePointConstraint::hasIntersection(QualitativeTimePointConstra
                 {
                     case Greater:
                     case GreaterOrEqual:
-                        return true;
+                        return Greater;
                     default:
-                        return false;
+                        return Empty;
                 }
             }
         case Equal:
@@ -181,9 +185,9 @@ bool QualitativeTimePointConstraint::hasIntersection(QualitativeTimePointConstra
                     case GreaterOrEqual:
                     case LessOrEqual:
                     case Equal:
-                        return true;
+                        return Equal;
                     default:
-                        return false;
+                        return Empty;
                 }
             }
         case LessOrEqual:
@@ -191,12 +195,14 @@ bool QualitativeTimePointConstraint::hasIntersection(QualitativeTimePointConstra
                 switch(secondType)
                 {
                     case Less:
+                        return Less;
                     case LessOrEqual:
+                        return LessOrEqual;
                     case GreaterOrEqual:
                     case Equal:
-                        return true;
+                        return Equal;
                     default:
-                        return false;
+                        return Empty;
                 }
             }
         case GreaterOrEqual:
@@ -204,16 +210,18 @@ bool QualitativeTimePointConstraint::hasIntersection(QualitativeTimePointConstra
                 switch(secondType)
                 {
                     case Greater:
+                        return Greater;
                     case GreaterOrEqual:
+                        return GreaterOrEqual;
                     case LessOrEqual:
                     case Equal:
-                        return true;
+                        return Equal;
                     default:
-                        return false;
+                        return Empty;
                 }
             }
         default:
-            return false;
+            return Empty;
     }
 }
 

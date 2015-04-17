@@ -14,6 +14,8 @@ namespace point_algebra {
  * timepoint. 
  * Thus one should use instances of QualitativeTimePoint when working with this
  * kind of constraint
+ *
+ * Automated Planning p 290 Chap 13.3.1 Point Algebra
  */
 class QualitativeTimePointConstraint : public Constraint
 {
@@ -46,7 +48,7 @@ public:
     static Type getSymmetric(Type type);
 
     /**
-     * Get the composition of two types
+     * Get the composition of two types in order to handle transitivity
      * \return composition type
      * \throws std::runtime_error if no composition type could be found
      */
@@ -59,6 +61,12 @@ public:
      * \throws std::runtime_error if no composition type could be found
      */
     static Type getComposition(const std::vector<Type>& typeList);
+
+    /**
+     * Get the intersection of two types
+     * \return intersection
+     */
+    static Type getIntersection(Type firstType, Type secondType);
 
     /**
      * Check if a constraint type is consistent with another
