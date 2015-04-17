@@ -17,9 +17,10 @@ BOOST_AUTO_TEST_CASE(timepoint_comparision)
         point_algebra::TimePoint::Ptr tp2(new point_algebra::QualitativeTimePoint("tp2"));
 
         qtcn->addConstraint(tp0, tp1, point_algebra::QualitativeTimePointConstraint::Greater);
+        BOOST_REQUIRE_MESSAGE( qtcn->isConsistent(), "QualitativeTemporalConstraintNetwork is consistent" );
 
         point_algebra::QualitativeTimePointConstraint::Type constraint = qtcn->getConstraint(tp0, tp1);
-        BOOST_REQUIRE_MESSAGE(constraint == point_algebra::QualitativeTimePointConstraint::Greater, "Query result of constraint between two vertices");
+        BOOST_REQUIRE_MESSAGE(constraint == point_algebra::QualitativeTimePointConstraint::Greater, "Query result of constraint between two vertices" << point_algebra::QualitativeTimePointConstraint::TypeTxt[constraint]);
 
         qtcn->addConstraint(tp1, tp2, point_algebra::QualitativeTimePointConstraint::Greater);
 
@@ -47,6 +48,24 @@ BOOST_AUTO_TEST_CASE(timepoint_comparision)
         qtcn->addConstraint(t0_start, t1_end, point_algebra::QualitativeTimePointConstraint::Less);
         qtcn->addConstraint(t0_end, t1_start, point_algebra::QualitativeTimePointConstraint::Greater);
 
+        qtcn->isConsistent();
+
+        {
+            point_algebra::QualitativeTimePointConstraint::Type constraint = qtcn->getConstraint(t0_start, t1_end);
+            BOOST_REQUIRE_MESSAGE(constraint == point_algebra::QualitativeTimePointConstraint::Less, "Query result of constraint between two vertices " << point_algebra::QualitativeTimePointConstraint::TypeTxt[constraint]);
+            BOOST_REQUIRE_MESSAGE(comparator.lessThan(t0_start, t1_end), "t0_start < t1_end");
+        }
+        {
+            point_algebra::QualitativeTimePointConstraint::Type constraint = qtcn->getConstraint(t0_end, t1_start);
+            BOOST_REQUIRE_MESSAGE(constraint == point_algebra::QualitativeTimePointConstraint::Greater, "Query result of constraint between two vertices " << point_algebra::QualitativeTimePointConstraint::TypeTxt[constraint]);
+            BOOST_REQUIRE_MESSAGE(comparator.greaterThan(t0_end, t1_start), "t0_end > t1_start");
+        }
+
+        // check t0_end and t1_start: hasOverlap if !(t0_end <= t1_start || t1_end <= t0_start )
+        //
+        // t0_start < t1_end
+        // t0_end > t1_start
+        BOOST_REQUIRE_MESSAGE(!comparator.lessOrEqual(t0_end, t1_start), "NOT(!) t0_end <= t1_start");
         BOOST_REQUIRE_MESSAGE(comparator.hasIntervalOverlap(t0_start, t0_end, t1_start, t1_end), "Interval overlap");
     }
 
