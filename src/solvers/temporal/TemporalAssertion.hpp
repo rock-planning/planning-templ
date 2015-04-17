@@ -38,6 +38,14 @@ protected:
      */
     TemporalAssertion(const StateVariable& stateVariable, Type type);
 
+    virtual bool refersToSameValue(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
+
+    virtual bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
+
+    virtual bool disjointFrom(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
+    virtual bool disjointFrom(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
+
+
 public:
     typedef boost::shared_ptr<TemporalAssertion> Ptr;
 
@@ -68,13 +76,6 @@ public:
      * \throw std::invalid_argument if invalid type is used
      */
     bool isReferringToSameValue(TemporalAssertion::Ptr other, const point_algebra::TimePointComparator& comparator) const;
-
-    virtual bool refersToSameValue(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
-
-    virtual bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
-
-    virtual bool disjointFrom(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
-    virtual bool disjointFrom(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
 
 private:
     Type mType;

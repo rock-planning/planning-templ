@@ -24,16 +24,17 @@ protected:
     
     // Time constant or time variable
     point_algebra::TimePoint::Ptr mpTimepoint;
-public:
-    typedef boost::shared_ptr<Event> Ptr;
-
-    Event(const StateVariable& stateVariable, Value::Ptr from, Value::Ptr to, point_algebra::TimePoint::Ptr timepoint);
 
     bool refersToSameValue(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const;
     bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const;
 
     bool disjointFrom(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const;
     bool disjointFrom(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const;
+
+public:
+    typedef boost::shared_ptr<Event> Ptr;
+
+    Event(const StateVariable& stateVariable, Value::Ptr from, Value::Ptr to, point_algebra::TimePoint::Ptr timepoint);
 };
 
 } // end namespace temporal
