@@ -69,6 +69,11 @@ public:
     static Type getIntersection(Type firstType, Type secondType);
 
     /**
+     * Check if the two types have an intersection
+     */
+    static bool hasIntersection(Type firstType, Type secondType);
+
+    /**
      * Check if a constraint type is consistent with another
      */
     static bool isConsistent(Type firstType, Type secondType);
@@ -101,8 +106,6 @@ public:
 
 private:
     Type mConstraintType;
-
-    static bool hasIntersection(Type firstType, Type secondType);
 };
 
 } // end namespace point_algebra
