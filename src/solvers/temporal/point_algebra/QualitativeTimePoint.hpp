@@ -54,6 +54,11 @@ public:
      * \return True if they are distinct, false otherwise
      */
     bool operator!=(const QualitativeTimePoint& other) const { return ! (*this == other); }
+
+    /**
+     * Stringify object
+     */
+    virtual std::string toString() const { return "QualitativeTimePoint: " + mLabel; }
 };
 
 } // end namespace point_algebra
