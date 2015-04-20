@@ -39,18 +39,21 @@ void Timeline::addTemporalAssertion(TemporalAssertion::Ptr assertion)
         case TemporalAssertion::PERSISTENCE_CONDITION:
         {
             PersistenceCondition::Ptr persistenceCondition = boost::dynamic_pointer_cast<PersistenceCondition>(assertion);
+            point_algebra::TimePoint::Ptr fromTime = persistenceCondition->getFromTimePoint();
+            point_algebra::TimePoint::Ptr toTime = persistenceCondition->getToTimePoint();
             try {
-                mConstraintNetwork->addVariable(persistenceCondition->getFromTimePoint());
+                mConstraintNetwork->addVariable(fromTime);
             } catch(const std::runtime_error& e)
             {
                 // duplicate
             }
             try {
-                mConstraintNetwork->addVariable(persistenceCondition->getToTimePoint());
+                mConstraintNetwork->addVariable(toTime);
             } catch(const std::runtime_error& e)
             {
                 // duplicate
             }
+            mConstraintNetwork->addConstraint(fromTime, toTime, point_algebra::QualitativeTimePointConstraint::LessOrEqual);
             break;
         }
         case TemporalAssertion::UNKNOWN:

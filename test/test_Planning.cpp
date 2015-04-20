@@ -30,7 +30,6 @@ BOOST_AUTO_TEST_CASE(timeline)
     timeline.addTemporalAssertion(assertion1);
     BOOST_REQUIRE_MESSAGE(timeline.isConsistent(), "Timeline with same assertions consistent");
 
-//    timeline.addConstraint(constraint0);
 //
 //    timeline.isConsistent();
 }
