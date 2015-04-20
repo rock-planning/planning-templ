@@ -2,6 +2,7 @@
 #include <templ/Value.hpp>
 #include <templ/values/Int.hpp>
 #include <templ/solvers/temporal/Event.hpp>
+#include <templ/solvers/temporal/Timeline.hpp>
 
 using namespace templ;
 using namespace templ::solvers::temporal;
@@ -10,8 +11,29 @@ namespace pa = templ::solvers::temporal::point_algebra;
 
 BOOST_AUTO_TEST_SUITE(planning)
 
-BOOST_AUTO_TEST_CASE(simple_mission)
+BOOST_AUTO_TEST_CASE(timeline)
 {
+//    StateVariable stateVariable("robot_location","robot0");
+//    Timeline timeline(stateVariable);
+//
+//    timeline.addTemporalAssertion(assertion0);
+//    timeline.addConstraint(constraint0);
+//
+//    timeline.isConsistent();
+}
+
+BOOST_AUTO_TEST_CASE(chronicle)
+{
+//    Chronicle chronicle;
+//    chronicle.addTimeline(timeline);
+//    chroncile.isConsistent();
+//
+//    Chronicle otherChronicle;
+//    chroncile.isSupporting(otherChronicle);
+}
+
+BOOST_AUTO_TEST_CASE(simple_mission)
+{}
 // actions
 //  -- transition, i.e. moving from location A->B
 //  -- reconfigure: merge/split
@@ -78,5 +100,4 @@ BOOST_AUTO_TEST_CASE(simple_mission)
 // 4. check transitions between timepoints, i.e. mobility/speed of
 //         systems/cost of traversal
 
-}
 BOOST_AUTO_TEST_SUITE_END()

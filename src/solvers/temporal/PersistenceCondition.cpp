@@ -5,7 +5,7 @@ namespace templ {
 namespace solvers {
 namespace temporal {
 
-PersistenceCondition::PersistenceCondition(const StateVariable& stateVariable, Value::Ptr value, point_algebra::TimePoint::Ptr fromTimepoint, point_algebra::TimePoint::Ptr toTimepoint)
+PersistenceCondition::PersistenceCondition(const StateVariable& stateVariable, PlannerElement::Ptr value, point_algebra::TimePoint::Ptr fromTimepoint, point_algebra::TimePoint::Ptr toTimepoint)
         : TemporalAssertion(stateVariable, TemporalAssertion::PERSISTENCE_CONDITION)
         , mpValue(value)
         , mpFromTimepoint(fromTimepoint)
@@ -31,7 +31,7 @@ bool PersistenceCondition::refersToSameValue(Event::Ptr other, const point_algeb
 
 bool PersistenceCondition::refersToSameValue(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const
 {
-    return mpValue == other->mpValue;
+    return mpValue->equals(other->mpValue);
 }
 
 

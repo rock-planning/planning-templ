@@ -1,8 +1,10 @@
 #ifndef TEMPL_VALUE_HPP
 #define TEMPL_VALUE_HPP
 
+#include <map>
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
+#include <templ/PlannerElement.hpp>
 
 namespace templ {
 
@@ -13,36 +15,29 @@ namespace templ {
  * Note: these values might have to be cast into domains for other (underlying csp
  * solvers that will be used)
  */
-class Value
+class Value : public PlannerElement
 {
 public:
     enum Type { UNKNOWN, INT };
 
+    typedef std::string ValueTypeName;
+    static std::map<Type, ValueTypeName> TypeTxt;
 
     typedef boost::shared_ptr<Value> Ptr;
 
-    /**
-     * Retrieve the type for the given value
-     */
-    Type getType() const { return mType; }
+    virtual bool equals(PlannerElement::Ptr other) const { throw std::runtime_error("templ::Value::equals not implemented"); }
 
-    virtual bool equals(Value::Ptr other) const { throw std::runtime_error("templ::Value::equals not implemented"); }
+    const std::string& getValueTypeName() const { return getTypeName(); }
 
     /**
      * Default constructor
      */
-    Value()
-        : mType(UNKNOWN)
-    {}
+    Value();
+
+    virtual ~Value() {};
 
 protected:
-    Value(Type type)
-        : mType(type)
-    {}
-
-private:
-    /// Datatype of this value
-    Type mType;
+    Value(const ValueTypeName& typeName);
 };
 
 } // end namespace templ

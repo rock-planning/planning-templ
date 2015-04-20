@@ -5,7 +5,7 @@ namespace templ {
 namespace solvers {
 namespace temporal {
 
-Event::Event(const StateVariable& stateVariable, Value::Ptr from, Value::Ptr to, const point_algebra::TimePoint::Ptr timepoint)
+Event::Event(const StateVariable& stateVariable, PlannerElement::Ptr from, PlannerElement::Ptr to, const point_algebra::TimePoint::Ptr timepoint)
     : TemporalAssertion(stateVariable, TemporalAssertion::EVENT)
     , mpFromValue(from)
     , mpToValue(to)

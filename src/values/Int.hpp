@@ -14,19 +14,22 @@ public:
     typedef boost::shared_ptr<Int> Ptr;
 
     Int(int32_t value)
-        : Value(INT)
+        : Value(TypeTxt[INT])
         , mValue(value)
     {}
 
-    bool equals(Value::Ptr other) const 
+    virtual ~Int() {}
+
+    bool equals(PlannerElement::Ptr other) const
     { 
-        if(other->getType() != getType())
+        Int::Ptr value = boost::dynamic_pointer_cast<Int>(other);
+        if(!value)
         {
-            throw std::invalid_argument("Incompatible value types: cannot compare");
-        } else {
-            Int::Ptr otherInt = boost::dynamic_pointer_cast<Int>(other);
-            return mValue == otherInt->mValue;
+            throw std::invalid_argument("templ::values::Int: other is not an instance of Int: cannot compare");
+
         }
+
+        return mValue == value->mValue;
     }
 };
 

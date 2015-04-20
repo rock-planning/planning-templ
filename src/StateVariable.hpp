@@ -1,27 +1,28 @@
 #ifndef TEMPL_STATE_VARIABLE_HPP
 #define TEMPL_STATE_VARIABLE_HPP
 
+#include <templ/PlannerElement.hpp>
+
 namespace templ {
 
 /**
  * Each StateVariable is a function of time, e.g.
  * rloc(res0) describe the resource location of res0 over time
  */
-class StateVariable
+class StateVariable : public PlannerElement
 {
     /// function: e.g. resource location -> mission point 0
     /// resource: e.g. robot -> Sherpa
-    std::string mFunction;
-    std::string mResource;
 
 public:
     StateVariable(const std::string function, const std::string resource)
-        : mFunction(function)
-        , mResource(resource)
+        : PlannerElement(resource, function, PlannerElement::STATE_VARIABLE)
     {}
 
-    const std::string& getFunction() const { return mFunction; }
-    const std::string& getResource() const { return mResource; }
+    virtual ~StateVariable() {}
+
+    const std::string& getResource() const { return getInstanceName(); }
+    const std::string& getFunction() const { return getTypeName(); }
 };
 
 } // end namespace templ

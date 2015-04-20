@@ -1,8 +1,10 @@
 #ifndef TEMPL_TIMELINE_HPP
 #define TEMPL_TIMELINE_HPP
 
-#include <templ/ConstraintList.hpp>
-#include <templ/TemporalAssertion.hpp>
+#include <templ/Constant.hpp>
+#include <templ/ObjectVariable.hpp>
+#include <templ/solvers/Constraint.hpp>
+#include <templ/solvers/temporal/TemporalAssertion.hpp>
 
 namespace templ {
 namespace solvers {
@@ -24,6 +26,18 @@ class Timeline
     ConstraintList mConstraints;
 
 public:
+    Timeline(const StateVariable& stateVariable);
+
+    /**
+     * Add temporal assertion
+     */
+    void addTemporalAssertion(TemporalAssertion::Ptr assertion);
+
+    /**
+     * Add constraint to this timeline
+     */
+    void addConstraint(Constraint::Ptr constraint);
+
     /**
      * Check if timeline is consistent, i.e. (Automated Planning p 331 Def.
      * 14.8)
@@ -35,6 +49,23 @@ public:
      *
      */
     bool isConsistent() const;
+
+    /**
+     * Get all constants that are used within this timeline
+     * \return list of constants
+     */
+    ConstantList getConstants() const;
+
+    /**
+     * Get all object variable that are used within this timeline
+     * \return list of object variables
+     */
+    ObjectVariableList getObjectVariables() const;
+
+    /**
+     * Get the list of (qualitative) timepoints
+     */
+    point_algebra::TimePointList getTimePoints() const;
 };
 
 } // end namespace temporal

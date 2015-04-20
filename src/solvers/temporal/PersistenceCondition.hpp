@@ -21,7 +21,7 @@ class PersistenceCondition : public TemporalAssertion
 {
     friend class Event;
 
-    Value::Ptr mpValue;
+    PlannerElement::Ptr mpValue;
 
     point_algebra::TimePoint::Ptr mpFromTimepoint;
     point_algebra::TimePoint::Ptr mpToTimepoint;
@@ -35,7 +35,7 @@ class PersistenceCondition : public TemporalAssertion
 public:
     typedef boost::shared_ptr<PersistenceCondition> Ptr;
 
-    PersistenceCondition(const StateVariable& stateVariable, Value::Ptr value, point_algebra::TimePoint::Ptr fromTimepoint, point_algebra::TimePoint::Ptr toTimepoint);
+    PersistenceCondition(const StateVariable& stateVariable, PlannerElement::Ptr value, point_algebra::TimePoint::Ptr fromTimepoint, point_algebra::TimePoint::Ptr toTimepoint);
 
 };
 

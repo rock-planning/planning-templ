@@ -16,7 +16,12 @@ rock_library(templ
         solvers/ConstraintNetwork.cpp
         solvers/Constraint.cpp
         solvers/Variable.cpp
+        PlannerElement.cpp
+        Value.cpp
     HEADERS 
+        Constant.hpp
+        ObjectVariable.hpp
+        PlannerElement.hpp
         solvers/temporal/Bounds.hpp
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
@@ -35,6 +40,7 @@ rock_library(templ
         solvers/Variable.hpp
         solvers/Constraint.hpp
         StateVariable.hpp
+        Value.hpp
     DEPS_PKGCONFIG graph_analysis numeric
 )
 

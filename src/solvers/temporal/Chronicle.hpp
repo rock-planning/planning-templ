@@ -21,9 +21,14 @@ namespace temporal {
  */
 class Chronicle
 {
-    std::map<StateVariable, Timeline> mTimeline;
+    std::map<StateVariable, Timeline> mTimelines;
 
 public:
+    /**
+     * Add a timeline
+     */
+    void addTimeline(const Timeline& timeline);
+
     /**
      * Check if chronicle is consistent
      * Iterates over all timelines to check if they are consistent

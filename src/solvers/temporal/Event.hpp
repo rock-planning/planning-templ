@@ -1,7 +1,7 @@
 #ifndef TEMPL_EVENT_HPP
 #define TEMPL_EVENT_HPP
 
-#include <templ/Value.hpp>
+#include <templ/PlannerElement.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
 #include <templ/solvers/temporal/TemporalAssertion.hpp>
 
@@ -19,8 +19,8 @@ class Event : public TemporalAssertion
     friend class PersistenceCondition;
 
 protected:
-    Value::Ptr mpFromValue;
-    Value::Ptr mpToValue;
+    PlannerElement::Ptr mpFromValue;
+    PlannerElement::Ptr mpToValue;
     
     // Time constant or time variable
     point_algebra::TimePoint::Ptr mpTimepoint;
@@ -34,7 +34,7 @@ protected:
 public:
     typedef boost::shared_ptr<Event> Ptr;
 
-    Event(const StateVariable& stateVariable, Value::Ptr from, Value::Ptr to, point_algebra::TimePoint::Ptr timepoint);
+    Event(const StateVariable& stateVariable, PlannerElement::Ptr from, PlannerElement::Ptr to, point_algebra::TimePoint::Ptr timepoint);
 };
 
 } // end namespace temporal

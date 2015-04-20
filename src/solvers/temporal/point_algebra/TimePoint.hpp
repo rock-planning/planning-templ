@@ -67,6 +67,8 @@ private:
     Type mType;
 };
 
+typedef std::vector<TimePoint::Ptr> TimePointList;
+
 } // end namespace point_algebra
 } // end namespace temporal
 } // end namespace solvers

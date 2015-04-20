@@ -26,6 +26,8 @@ public:
     Variable::Ptr getTargetVariable() { return boost::dynamic_pointer_cast<Variable>( getTargetVertex()); }
 };
 
+typedef std::vector<Constraint::Ptr> ConstraintList;
+
 } // end namespace solvers
 } // end namespace templ
 #endif // TEMPL_SOLVERS_CONSTRAINT_HPP
