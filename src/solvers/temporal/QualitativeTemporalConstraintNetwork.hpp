@@ -40,7 +40,12 @@ public:
     point_algebra::QualitativeTimePointConstraint::Type getConstraint(point_algebra::TimePoint::Ptr t1, point_algebra::TimePoint::Ptr t2);
 
     /**
-     * Add timepoint constraint to the contraint network
+     * Add a timepoint constraint to the constraint network
+     */
+    void addConstraint(point_algebra::QualitativeTimePointConstraint::Ptr constraint);
+
+    /**
+     * Add timepoint constraint to the constraint network
      */
     void addConstraint(point_algebra::TimePoint::Ptr t1, point_algebra::TimePoint::Ptr t2, point_algebra::QualitativeTimePointConstraint::Type constraint);
 

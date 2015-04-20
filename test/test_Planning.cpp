@@ -24,6 +24,12 @@ BOOST_AUTO_TEST_CASE(timeline)
 
     PersistenceCondition::Ptr assertion0(new PersistenceCondition(stateVariable, objectVariable, fromT, toT));
     timeline.addTemporalAssertion(assertion0);
+    BOOST_REQUIRE_MESSAGE(timeline.isConsistent(), "Timeline with 1 assertion is consistent");
+
+    PersistenceCondition::Ptr assertion1(new PersistenceCondition(stateVariable, objectVariable, fromT, toT));
+    timeline.addTemporalAssertion(assertion1);
+    BOOST_REQUIRE_MESSAGE(timeline.isConsistent(), "Timeline with same assertions consistent");
+
 //    timeline.addConstraint(constraint0);
 //
 //    timeline.isConsistent();

@@ -9,10 +9,12 @@ namespace temporal {
 
 Timeline::Timeline()
     : mStateVariable(StateVariable("",""))
+    , mConstraintNetwork(new QualitativeTemporalConstraintNetwork())
 {}
 
 Timeline::Timeline(const StateVariable& stateVariable)
     : mStateVariable(stateVariable)
+    , mConstraintNetwork(new QualitativeTemporalConstraintNetwork())
 {}
 
 void Timeline::addTemporalAssertion(TemporalAssertion::Ptr assertion)
@@ -21,18 +23,62 @@ void Timeline::addTemporalAssertion(TemporalAssertion::Ptr assertion)
     {
         throw std::invalid_argument("templ::solvers::temporal::Timeline::addTemporalAssertion: cannot add TemporalAssertion since it refers to a different StateVariable");
     }
+    switch(assertion->getType())
+    {
+        case TemporalAssertion::EVENT:
+        {
+            Event::Ptr event = boost::dynamic_pointer_cast<Event>(assertion);
+            try {
+                mConstraintNetwork->addVariable(event->getTimePoint());
+            } catch(const std::runtime_error& e)
+            {
+                // duplicate
+            }
+            break;
+        }
+        case TemporalAssertion::PERSISTENCE_CONDITION:
+        {
+            PersistenceCondition::Ptr persistenceCondition = boost::dynamic_pointer_cast<PersistenceCondition>(assertion);
+            try {
+                mConstraintNetwork->addVariable(persistenceCondition->getFromTimePoint());
+            } catch(const std::runtime_error& e)
+            {
+                // duplicate
+            }
+            try {
+                mConstraintNetwork->addVariable(persistenceCondition->getToTimePoint());
+            } catch(const std::runtime_error& e)
+            {
+                // duplicate
+            }
+            break;
+        }
+        case TemporalAssertion::UNKNOWN:
+            throw std::runtime_error("templ::solvers::temporal::Timelin::addTemporalAssertion: trying to add TemporalAssertion of type UNKNOWN -- internal error, this should never happen");
+    }
     mTemporalAssertions.push_back(assertion);
 }
 
 void Timeline::addConstraint(Constraint::Ptr constraint)
 {
-    mConstraints.push_back(constraint);
+    point_algebra::QualitativeTimePointConstraint::Ptr timepointConstraint = boost::dynamic_pointer_cast<point_algebra::QualitativeTimePointConstraint>(constraint);
+    if(timepointConstraint)
+    {
+        mConstraintNetwork->addConstraint(timepointConstraint);
+    } else {
+        mConstraints.push_back(constraint);
+    }
 }
 
 bool Timeline::isConsistent() const
 {
-    QualitativeTemporalConstraintNetwork::Ptr qtcn(new QualitativeTemporalConstraintNetwork());
-    point_algebra::TimePointComparator comparator(qtcn);
+    point_algebra::TimePointComparator comparator(mConstraintNetwork);
+
+    if(mTemporalAssertions.size() < 2)
+    {
+        LOG_DEBUG_S << "Only one assertion, thus timeline is consistent";
+        return true;
+    }
 
     numeric::Combination<TemporalAssertion::Ptr> combination(mTemporalAssertions, 2, numeric::EXACT);
     do {
