@@ -18,7 +18,7 @@ public:
     virtual ~Constant() {}
 };
 
-typedef std::vector<Constant> ConstantList;
+typedef std::vector<Constant::Ptr> ConstantList;
 
 } // end namespace templ
 #endif // TEMPL_CONSTANT_HPP

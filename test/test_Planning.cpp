@@ -2,6 +2,7 @@
 #include <templ/Value.hpp>
 #include <templ/values/Int.hpp>
 #include <templ/solvers/temporal/Event.hpp>
+#include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/Timeline.hpp>
 
 using namespace templ;
@@ -13,10 +14,16 @@ BOOST_AUTO_TEST_SUITE(planning)
 
 BOOST_AUTO_TEST_CASE(timeline)
 {
-//    StateVariable stateVariable("robot_location","robot0");
-//    Timeline timeline(stateVariable);
-//
-//    timeline.addTemporalAssertion(assertion0);
+    StateVariable stateVariable("robot_location","robot0");
+    Timeline timeline(stateVariable);
+
+    ObjectVariable::Ptr objectVariable(new ObjectVariable("l0","Location"));
+    point_algebra::TimePoint::Ptr fromT(new point_algebra::QualitativeTimePoint("t0"));
+    point_algebra::TimePoint::Ptr toT(new point_algebra::QualitativeTimePoint("t1"));
+
+
+    PersistenceCondition::Ptr assertion0(new PersistenceCondition(stateVariable, objectVariable, fromT, toT));
+    timeline.addTemporalAssertion(assertion0);
 //    timeline.addConstraint(constraint0);
 //
 //    timeline.isConsistent();

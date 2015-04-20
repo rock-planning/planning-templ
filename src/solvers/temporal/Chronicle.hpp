@@ -3,7 +3,7 @@
 
 #include <map>
 #include <templ/StateVariable.hpp>
-#include <templ/Timeline.hpp>
+#include <templ/solvers/temporal/Timeline.hpp>
 
 namespace templ {
 namespace solvers {

@@ -37,6 +37,11 @@ public:
 
     PersistenceCondition(const StateVariable& stateVariable, PlannerElement::Ptr value, point_algebra::TimePoint::Ptr fromTimepoint, point_algebra::TimePoint::Ptr toTimepoint);
 
+    PlannerElement::Ptr getValue() const { return mpValue; }
+
+    point_algebra::TimePoint::Ptr getFromTimePoint() const { return mpFromTimepoint; }
+    point_algebra::TimePoint::Ptr getToTimePoint() const { return mpToTimepoint; }
+
 };
 
 } // end namespace temporal

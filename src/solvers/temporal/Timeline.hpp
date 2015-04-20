@@ -4,6 +4,8 @@
 #include <templ/Constant.hpp>
 #include <templ/ObjectVariable.hpp>
 #include <templ/solvers/Constraint.hpp>
+#include <templ/solvers/temporal/Event.hpp>
+#include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/TemporalAssertion.hpp>
 
 namespace templ {
@@ -26,6 +28,8 @@ class Timeline
     ConstraintList mConstraints;
 
 public:
+    Timeline();
+
     Timeline(const StateVariable& stateVariable);
 
     /**
@@ -49,6 +53,51 @@ public:
      *
      */
     bool isConsistent() const;
+
+    const StateVariable& getStateVariable() const { return mStateVariable; }
+
+    template<typename T>
+    std::vector< boost::shared_ptr<T> > getTypeInstances(PlannerElement::Type type) const
+    {
+        std::vector< boost::shared_ptr<T> > list;
+
+        TemporalAssertionList::const_iterator cit = mTemporalAssertions.begin();
+        for(; cit != mTemporalAssertions.end(); ++cit)
+        {
+            TemporalAssertion::Ptr assertion = *cit;
+            switch(assertion->getType())
+            {
+                case TemporalAssertion::EVENT:
+                {
+                    Event::Ptr event = boost::dynamic_pointer_cast<Event>(assertion);
+                    PlannerElement::Ptr from = event->getFromValue();
+                    PlannerElement::Ptr to = event->getToValue();
+                    if(from->getType() == type)
+                    {
+                        list.push_back(boost::dynamic_pointer_cast<T>(from));
+                    }
+                    if(to->getType() == type)
+                    {
+                        list.push_back(boost::dynamic_pointer_cast<T>(to));
+                    }
+                    break;
+                }
+                case TemporalAssertion::PERSISTENCE_CONDITION:
+                {
+                    PersistenceCondition::Ptr persistenceCondition = boost::dynamic_pointer_cast<PersistenceCondition>(assertion);
+                    PlannerElement::Ptr value = persistenceCondition->getValue();
+                    if(value->getType() == type)
+                    {
+                        list.push_back(boost::dynamic_pointer_cast<T>(value));
+                    }
+                    break;
+                }
+                default:
+                    throw std::runtime_error("templ::solvers::temporal::Timeline::getConstants: hit TemporalAssertion of type UNKNOWN -- this is an internal error and should never happend");
+            }
+        }
+        return list;
+    }
 
     /**
      * Get all constants that are used within this timeline

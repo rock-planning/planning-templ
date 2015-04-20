@@ -35,6 +35,11 @@ public:
     typedef boost::shared_ptr<Event> Ptr;
 
     Event(const StateVariable& stateVariable, PlannerElement::Ptr from, PlannerElement::Ptr to, point_algebra::TimePoint::Ptr timepoint);
+
+    PlannerElement::Ptr getFromValue() const { return mpFromValue; }
+    PlannerElement::Ptr getToValue() const { return mpToValue; }
+
+    point_algebra::TimePoint::Ptr getTimePoint() const { return mpTimepoint; }
 };
 
 } // end namespace temporal
