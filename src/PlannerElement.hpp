@@ -25,7 +25,7 @@ public:
 
     Type getType() const { return mType; }
 
-    virtual bool equals(PlannerElement::Ptr other) const { return first == first && second == second; }
+    virtual bool equals(PlannerElement::Ptr other) const { return first == other->first && second == other->second; }
 private:
     Type mType;
 };
