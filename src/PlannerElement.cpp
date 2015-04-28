@@ -17,4 +17,9 @@ PlannerElement::PlannerElement(const std::string& name, const std::string& type_
     , mType(type)
 {}
 
+std::string PlannerElement::toString() const
+{
+    return TypeTxt[mType] + ": (" + first + ", " + second + ")";
+}
+
 } // end namespace templ

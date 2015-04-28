@@ -77,6 +77,8 @@ public:
      */
     bool isReferringToSameValue(TemporalAssertion::Ptr other, const point_algebra::TimePointComparator& comparator) const;
 
+    virtual std::string toString() const;
+
 private:
     Type mType;
     StateVariable mStateVariable;

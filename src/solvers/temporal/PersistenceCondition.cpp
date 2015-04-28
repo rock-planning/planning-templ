@@ -47,6 +47,16 @@ bool PersistenceCondition::disjointFrom(boost::shared_ptr<PersistenceCondition> 
     return !comparator.hasIntervalOverlap(mpFromTimepoint, mpToTimepoint, other->mpFromTimepoint, other->mpToTimepoint);
 }
 
+std::string PersistenceCondition::toString() const
+{
+    std::string ss = TemporalAssertion::toString() + "::";
+    ss += mpValue->toString();
+    ss += "@";
+    ss += "[" + mpFromTimepoint->toString() + ",";
+    ss += mpToTimepoint->toString() + ")";
+    return ss;
+}
+
 } // end namespace temporal
 } // end namespace solvers
 } // end namespace templ

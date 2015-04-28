@@ -26,6 +26,9 @@ public:
     Type getType() const { return mType; }
 
     virtual bool equals(PlannerElement::Ptr other) const { return first == other->first && second == other->second; }
+
+    virtual std::string toString() const;
+
 private:
     Type mType;
 };

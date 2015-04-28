@@ -42,6 +42,7 @@ public:
     point_algebra::TimePoint::Ptr getFromTimePoint() const { return mpFromTimepoint; }
     point_algebra::TimePoint::Ptr getToTimePoint() const { return mpToTimepoint; }
 
+    virtual std::string toString() const;
 };
 
 } // end namespace temporal
