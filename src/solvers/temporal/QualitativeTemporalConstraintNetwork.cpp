@@ -192,7 +192,7 @@ void QualitativeTemporalConstraintNetwork::addConstraint(QualitativeTimePointCon
     TemporalConstraintNetwork::addConstraint(constraint);
 }
 
-void QualitativeTemporalConstraintNetwork::addConstraint(TimePoint::Ptr t1, TimePoint::Ptr t2, QualitativeTimePointConstraint::Type constraintType)
+Constraint::Ptr QualitativeTemporalConstraintNetwork::addConstraint(TimePoint::Ptr t1, TimePoint::Ptr t2, QualitativeTimePointConstraint::Type constraintType)
 {
     // Add a qualitative constraint -- translate "complexer" type to primitive
     // relations
@@ -208,6 +208,7 @@ void QualitativeTemporalConstraintNetwork::addConstraint(TimePoint::Ptr t1, Time
     }
 
     TemporalConstraintNetwork::addConstraint(constraint);
+    return constraint;
 }
 
 bool QualitativeTemporalConstraintNetwork::isConsistent()
