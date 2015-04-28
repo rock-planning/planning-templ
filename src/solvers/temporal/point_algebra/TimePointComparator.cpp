@@ -43,9 +43,13 @@ bool TimePointComparator::greaterThan(TimePoint::Ptr t0, TimePoint::Ptr t1) cons
         }
         QualitativeTimePointConstraint::Type constraint = mpTemporalConstraintNetwork->getConstraint(t0,t1);
         LOG_DEBUG_S << "Constraint: " << QualitativeTimePointConstraint::TypeTxt[constraint];
-        if(constraint == QualitativeTimePointConstraint::Empty)
+        if(constraint == QualitativeTimePointConstraint::Empty || constraint == QualitativeTimePointConstraint::Universal)
         {
-            throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: no constraints defined between given timepoints");
+            LOG_DEBUG_S << "templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: no direct constraints defined between given timepoints -- check consistenty when adding greaterThan constraint";
+            Constraint::Ptr constraint = mpTemporalConstraintNetwork->addConstraint(t0, t1, point_algebra::QualitativeTimePointConstraint::Greater);
+            bool consistent = mpTemporalConstraintNetwork->isConsistent();
+            mpTemporalConstraintNetwork->removeConstraint(constraint);
+            return consistent;
         } else if( QualitativeTimePointConstraint::hasIntersection(constraint, point_algebra::QualitativeTimePointConstraint::Greater) )
         {
             return true;
