@@ -80,6 +80,10 @@ bool TimePointComparator::hasIntervalOverlap(TimePoint::Ptr a_start, TimePoint::
     // (Automated Planning p.331 Def 14.8)
     // a - b
     //return (TimePointComparator::lessThan(b_start, a_end) && TimePointComparator::lessThan(a_start, b_end)) || (TimePointComparator::lessThan(a_start, b_end) && TimePointComparator::lessThan(b_start, a_end));
+    if(TimePointComparator::equals(a_start, b_start) || TimePointComparator::equals(a_end, b_end))
+    {
+        return true;
+    }
     return !(TimePointComparator::lessOrEqual(a_end, b_start) || TimePointComparator::lessOrEqual(b_end, a_start));
 }
 
