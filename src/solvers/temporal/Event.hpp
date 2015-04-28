@@ -34,6 +34,8 @@ protected:
 public:
     typedef boost::shared_ptr<Event> Ptr;
 
+    static Event::Ptr getInstance(const StateVariable& stateVariable, PlannerElement::Ptr from, PlannerElement::Ptr to, point_algebra::TimePoint::Ptr timepoint);
+
     Event(const StateVariable& stateVariable, PlannerElement::Ptr from, PlannerElement::Ptr to, point_algebra::TimePoint::Ptr timepoint);
 
     PlannerElement::Ptr getFromValue() const { return mpFromValue; }

@@ -2,6 +2,7 @@ find_package(Boost REQUIRED system filesystem)
 
 rock_library(templ
     SOURCES 
+        ObjectVariable.cpp
         solvers/temporal/Bounds.cpp
         solvers/temporal/Chronicle.cpp
         solvers/temporal/Event.cpp

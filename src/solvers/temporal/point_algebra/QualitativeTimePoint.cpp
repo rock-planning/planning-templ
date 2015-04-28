@@ -16,6 +16,11 @@ QualitativeTimePoint::QualitativeTimePoint(const TimePoint::Label& label)
     addAlias(label);
 }
 
+QualitativeTimePoint::Ptr QualitativeTimePoint::getInstance(const TimePoint::Label& label)
+{
+    return QualitativeTimePoint::Ptr(new QualitativeTimePoint(label));
+}
+
 void QualitativeTimePoint::addAlias(const TimePoint::Label& label)
 {
     if(!isAlias(label))

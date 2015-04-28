@@ -12,6 +12,11 @@ PersistenceCondition::PersistenceCondition(const StateVariable& stateVariable, P
         , mpToTimepoint(toTimepoint)
 {}
 
+PersistenceCondition::Ptr PersistenceCondition::getInstance(const StateVariable& stateVariable, PlannerElement::Ptr value, point_algebra::TimePoint::Ptr fromTimepoint, point_algebra::TimePoint::Ptr toTimepoint)
+{
+    return PersistenceCondition::Ptr( new PersistenceCondition(stateVariable, value, fromTimepoint, toTimepoint));
+}
+
 bool PersistenceCondition::refersToSameValue(Event::Ptr other, const point_algebra::TimePointComparator& comparator) const
 {
     if(comparator.equals(other->mpTimepoint, mpFromTimepoint))

@@ -16,6 +16,8 @@ public:
         : PlannerElement(name, typeName, PlannerElement::OBJECT_VARIABLE)
     {}
 
+    static ObjectVariable::Ptr getInstance(const std::string& name, const std::string& typeName);
+
     virtual ~ObjectVariable() {}
 };
 

@@ -24,11 +24,18 @@ class QualitativeTimePoint : public TimePoint
     TimePoint::Label mLabel;
 
 public:
+    typedef boost::shared_ptr<QualitativeTimePoint> Ptr;
+
     /**
      * Default constructor
      * \param label (main) label for this Timepoint
      */
     QualitativeTimePoint(const TimePoint::Label& label);
+
+    /**
+     * Create instance of QualitativeTimePoint
+     */
+    static QualitativeTimePoint::Ptr getInstance(const TimePoint::Label& label);
 
     /**
      * Add an alias for this timepoint

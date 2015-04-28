@@ -12,6 +12,12 @@ Event::Event(const StateVariable& stateVariable, PlannerElement::Ptr from, Plann
     , mpTimepoint(timepoint)
 {}
 
+Event::Ptr Event::getInstance(const StateVariable& stateVariable, PlannerElement::Ptr from, PlannerElement::Ptr to, const point_algebra::TimePoint::Ptr timepoint)
+{
+    return Event::Ptr( new Event(stateVariable, from, to, timepoint));
+}
+
+
 bool Event::refersToSameValue(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const
 {
     return mpFromValue->equals(other->mpFromValue) && mpToValue->equals(other->mpToValue);
