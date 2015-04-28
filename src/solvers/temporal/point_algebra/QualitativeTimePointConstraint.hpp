@@ -104,6 +104,9 @@ public:
     /// {>} \cup {<} \cup {>} = {P}
     static std::map< std::pair<Type,Type>, Type > TypeAlgebra;
 
+protected:
+    graph_analysis::Edge* doClone() { return new QualitativeTimePointConstraint(*this); }
+
 private:
     Type mConstraintType;
 };

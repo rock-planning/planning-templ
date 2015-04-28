@@ -24,6 +24,9 @@ public:
 
     Variable::Ptr getSourceVariable() { return boost::dynamic_pointer_cast<Variable>( getSourceVertex()); }
     Variable::Ptr getTargetVariable() { return boost::dynamic_pointer_cast<Variable>( getTargetVertex()); }
+
+protected:
+    virtual graph_analysis::Edge* doClone() { return new Constraint(*this); }
 };
 
 typedef std::vector<Constraint::Ptr> ConstraintList;
