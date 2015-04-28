@@ -17,6 +17,11 @@ void ConstraintNetwork::addConstraint(Constraint::Ptr constraint)
     mGraph->addEdge(constraint);
 }
 
+void ConstraintNetwork::removeConstraint(Constraint::Ptr constraint)
+{
+    mGraph->removeEdge(constraint);
+}
+
 graph_analysis::EdgeIterator::Ptr ConstraintNetwork::getConstraintIterator() const
 {
     return mGraph->getEdgeIterator();

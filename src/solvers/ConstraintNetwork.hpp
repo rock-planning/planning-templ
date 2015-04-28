@@ -24,6 +24,8 @@ public:
 
     virtual void addConstraint(Constraint::Ptr constraint);
 
+    virtual void removeConstraint(Constraint::Ptr constraint);
+
     virtual graph_analysis::EdgeIterator::Ptr getConstraintIterator() const;
 
 };
