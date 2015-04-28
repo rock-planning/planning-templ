@@ -17,21 +17,42 @@ BOOST_AUTO_TEST_CASE(timeline)
     StateVariable stateVariable("robot_location","robot0");
     Timeline timeline(stateVariable);
 
-    ObjectVariable::Ptr objectVariable(new ObjectVariable("l0","Location"));
-    point_algebra::TimePoint::Ptr fromT(new point_algebra::QualitativeTimePoint("t0"));
-    point_algebra::TimePoint::Ptr toT(new point_algebra::QualitativeTimePoint("t1"));
+    // rloc(robot0)@[t0,t1) : l0
+    ObjectVariable::Ptr l0(new ObjectVariable("l0","Location"));
+    ObjectVariable::Ptr l1(new ObjectVariable("l1","Location"));
+    ObjectVariable::Ptr l2(new ObjectVariable("l2","Location"));
+
+    point_algebra::TimePoint::Ptr t0(new point_algebra::QualitativeTimePoint("t0"));
+    point_algebra::TimePoint::Ptr t1(new point_algebra::QualitativeTimePoint("t1"));
+    point_algebra::TimePoint::Ptr t2(new point_algebra::QualitativeTimePoint("t2"));
+    point_algebra::TimePoint::Ptr t3(new point_algebra::QualitativeTimePoint("t3"));
 
 
-    PersistenceCondition::Ptr assertion0(new PersistenceCondition(stateVariable, objectVariable, fromT, toT));
+    PersistenceCondition::Ptr assertion0(new PersistenceCondition(stateVariable, l0, t0, t1));
     timeline.addTemporalAssertion(assertion0);
-    BOOST_REQUIRE_MESSAGE(timeline.isConsistent(), "Timeline with 1 assertion is consistent");
+    //BOOST_REQUIRE_MESSAGE(timeline.isConsistent(), "Timeline with 1 assertion is consistent");
 
-    PersistenceCondition::Ptr assertion1(new PersistenceCondition(stateVariable, objectVariable, fromT, toT));
+    PersistenceCondition::Ptr assertion1(new PersistenceCondition(stateVariable, l0, t0, t1));
     timeline.addTemporalAssertion(assertion1);
-    BOOST_REQUIRE_MESSAGE(timeline.isConsistent(), "Timeline with same assertions consistent");
+    //BOOST_REQUIRE_MESSAGE(timeline.isConsistent(), "Timeline with same assertions consistent");
 
-//
-//    timeline.isConsistent();
+    {
+        // rloc(robot0)@[t2,t3) : l1
+        PersistenceCondition::Ptr assertion1(new PersistenceCondition(stateVariable, l1, t2, t3));
+        timeline.addTemporalAssertion(assertion1);
+//        BOOST_REQUIRE_MESSAGE(timeline.isConsistent(), "Timeline with 1 assertion is consistent");
+    }
+
+    {
+        // rloc(robot0)@[t2,t3) : l3
+        PersistenceCondition::Ptr assertion1(new PersistenceCondition(stateVariable, l2, t2, t3));
+        timeline.addTemporalAssertion(assertion1);
+        BOOST_REQUIRE_MESSAGE(!timeline.isConsistent(), "Timeline with 1 assertion is inconsistent");
+    }
+
+
+
+
 }
 
 BOOST_AUTO_TEST_CASE(chronicle)
