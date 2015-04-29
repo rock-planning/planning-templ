@@ -42,6 +42,8 @@ public:
     PlannerElement::Ptr getToValue() const { return mpToValue; }
 
     point_algebra::TimePoint::Ptr getTimePoint() const { return mpTimepoint; }
+
+    std::string toString() const;
 };
 
 } // end namespace temporal

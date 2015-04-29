@@ -39,6 +39,11 @@ public:
      * Check if chronicle supports another chronicle
      */
     bool isSupporting(const Chronicle& other) const;
+
+    /**
+     * Stringify Chronicle
+     */
+    std::string toString() const;
 };
 
 } // end namespace temporal

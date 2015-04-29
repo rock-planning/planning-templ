@@ -117,6 +117,11 @@ public:
      * Get the list of (qualitative) timepoints
      */
     point_algebra::TimePointList getTimePoints() const;
+
+    /**
+     * Create stringified representation of Timeline
+     */
+    std::string toString() const;
 };
 
 } // end namespace temporal

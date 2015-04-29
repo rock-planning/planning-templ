@@ -38,6 +38,17 @@ bool Event::disjointFrom(boost::shared_ptr<PersistenceCondition> other, const po
     return other->disjointFrom( Event::Ptr( new Event(*this)), comparator);
 }
 
+std::string Event::toString() const
+{
+    std::string ss = TemporalAssertion::toString() + "::";
+    ss += "@";
+    ss += mpTimepoint->toString() + ":";
+    ss += "(";
+    ss += mpFromValue->toString() + ",";
+    ss += mpToValue->toString() + ")";
+    return ss;
+}
+
 } // end namespace temporal
 } // end namespace solvers
 } // end namespace templ

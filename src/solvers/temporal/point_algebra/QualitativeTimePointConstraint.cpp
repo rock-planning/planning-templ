@@ -235,6 +235,11 @@ std::vector<QualitativeTimePointConstraint::Type> QualitativeTimePointConstraint
     return types;
 }
 
+std::string QualitativeTimePointConstraint::toString() const
+{
+    return Constraint::toString() + ": " + TypeTxt[getType()];
+}
+
 } // end namespace point_algebra
 } // end namespace temporal
 } // end namespace solvers

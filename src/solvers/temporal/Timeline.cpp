@@ -144,6 +144,40 @@ point_algebra::TimePointList Timeline::getTimePoints() const
     return timepoints;
 }
 
+std::string Timeline::toString() const
+{
+    std::stringstream ss;
+    ss << "BEGIN Timeline ----" << std::endl;;
+    ss << "    StateVariable: " << mStateVariable.toString() << std::endl;
+    {
+        ss << "    TemporalAssertions: " << std::endl;
+        TemporalAssertionList::const_iterator cit = mTemporalAssertions.begin();
+        for(; cit != mTemporalAssertions.end(); ++cit)
+        {
+            ss << "        " << (*cit)->toString() << std::endl;
+        }
+    }
+
+    {
+        ss << "    Constraints: " << std::endl;
+        ConstraintList::const_iterator cit = mConstraints.begin();
+        for(; cit != mConstraints.end(); ++cit)
+        {
+            ss << "        " << (*cit)->toString() << std::endl;
+        }
+
+        using namespace graph_analysis;
+        EdgeIterator::Ptr edgeIterator = mConstraintNetwork->getConstraintIterator();
+        while(edgeIterator->next())
+        {
+            Edge::Ptr edge = edgeIterator->current();
+            ss << "        " << edge->toString() << std::endl;
+        }
+    }
+    ss << "END Timeline ----" << std::endl;
+    return ss.str();
+}
+
 } // end namespace temporal
 } // end namespace solvers
 } // end namespace templ
