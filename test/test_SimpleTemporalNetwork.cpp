@@ -39,17 +39,25 @@ BOOST_AUTO_TEST_CASE(value_propagation)
         //    <------ -30 ----|    <--- -10 ------|
         point_algebra::TimePoint::Ptr tp2(new point_algebra::TimePoint(70,100));
         stn.addInterval(tp1,tp2, Bounds(10,30));
+
+        {
+            graph_analysis::BaseGraph::Ptr baseGraph = stn.getDistanceGraph();
+            graph_analysis::io::GraphIO::write("test_SimpleTemporalNetwork-before-domain_propagation", baseGraph, graph_analysis::representation::GEXF);
+            graph_analysis::io::GraphIO::write("test_SimpleTemporalNetwork-before-domain_propagation", baseGraph, graph_analysis::representation::GRAPHVIZ);
+        }
         // Using for loop to check stability of result
         for(int i = 0; i < 2; ++i)
         {
-            graph_analysis::BaseGraph::Ptr baseGraph = stn.propagate();
+            stn.propagate();
+            graph_analysis::BaseGraph::Ptr baseGraph = stn.getDistanceGraph();
 
             BOOST_REQUIRE_MESSAGE( tp0->getUpperBound() == 60, "Upper bound corrected after propagation: expected 70, actual " << tp0->getUpperBound());
             BOOST_REQUIRE_MESSAGE( tp1->getLowerBound() == 48, "Lower bound corrected after propagation: expected 48, actual " << tp1->getLowerBound());
             BOOST_REQUIRE_MESSAGE( tp1->getUpperBound() == 90, "Upper bound corrected after propagation: expected 90, actual " << tp1->getUpperBound());
             BOOST_REQUIRE_MESSAGE( tp2->getLowerBound() == 78, "Lower bound corrected after propagation: expected 78, actual " << tp2->getLowerBound());
 
-            graph_analysis::io::GraphIO::write("test_SimpleTemporalNetwork-domain_propagation", *baseGraph, graph_analysis::representation::GEXF);
+            graph_analysis::io::GraphIO::write("test_SimpleTemporalNetwork-after-domain_propagation", baseGraph, graph_analysis::representation::GEXF);
+            graph_analysis::io::GraphIO::write("test_SimpleTemporalNetwork-after-domain_propagation", baseGraph, graph_analysis::representation::GRAPHVIZ);
         }
     }
 }

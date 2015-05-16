@@ -13,8 +13,6 @@ class ConstraintNetwork
 protected:
     graph_analysis::BaseGraph::Ptr mGraph;
 
-    graph_analysis::BaseGraph::Ptr getGraph() const { return mGraph; }
-
 public:
     ConstraintNetwork();
 
@@ -28,6 +26,7 @@ public:
 
     virtual graph_analysis::EdgeIterator::Ptr getConstraintIterator() const;
 
+    graph_analysis::BaseGraph::Ptr getGraph() const { return mGraph; }
 };
 
 

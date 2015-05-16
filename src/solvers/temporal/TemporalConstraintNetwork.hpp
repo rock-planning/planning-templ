@@ -28,6 +28,8 @@ public:
     void addTimePoint(point_algebra::TimePoint::Ptr t);
 
     virtual bool isConsistent() { throw std::runtime_error("templ::solvers::temporal::TemporalConstraintNetwork::isConsistent is not implemented"); }
+
+    graph_analysis::BaseGraph::Ptr getDistanceGraph() const { return mpDistanceGraph; }
 };
 
 } // end namespace temporal
