@@ -8,6 +8,9 @@
 namespace templ {
 namespace solvers {
 
+/**
+ *
+ */
 class Variable : public graph_analysis::Vertex
 {
 public:
@@ -15,9 +18,18 @@ public:
 
     typedef boost::shared_ptr<Variable> Ptr;
 
+    /**
+     * Get classname
+     */
     virtual std::string getClassName() const { return "Variable"; }
 
+    /**
+     * Get stringified object
+     */
     virtual std::string toString() const;
+
+protected:
+    virtual graph_analysis::Vertex* doClone() { return new Variable(*this); }
 };
 
 } // end namespace solvers

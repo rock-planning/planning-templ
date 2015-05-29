@@ -2,6 +2,8 @@ find_package(Boost REQUIRED system filesystem)
 
 rock_library(templ
     SOURCES 
+        Mission.cpp
+        MissionPlanner.cpp
         ObjectVariable.cpp
         solvers/temporal/Bounds.cpp
         solvers/temporal/Chronicle.cpp
@@ -23,6 +25,8 @@ rock_library(templ
         Value.cpp
     HEADERS 
         Constant.hpp
+        Mission.hpp
+        MissionPlanner.hpp
         ObjectVariable.hpp
         PlannerElement.hpp
         solvers/temporal/Bounds.hpp
@@ -44,21 +48,17 @@ rock_library(templ
         solvers/Constraint.hpp
         StateVariable.hpp
         Value.hpp
-    DEPS_PKGCONFIG graph_analysis numeric
+    LIBS gecodesearch
+        gecodesupport
+        gecodeset
+        gecodekernel
+        gecodeminimodel
+        gecodeint
+        gecodefloat
+        gecodegist
+        ${Boost_LIBRARIES}
+    DEPS_PKGCONFIG graph_analysis numeric organization_model
 )
-
-set(GECODE_LIBRARIES
-    gecodesearch
-    gecodesupport
-    gecodeset
-    gecodekernel
-    gecodeminimodel
-    gecodeint
-    gecodefloat
-    gecodegist
-)
-
-target_link_libraries(templ ${Boost_LIBRARIES} ${GECODE_LIBRARIES})
 
 rock_executable(templ_bin Main.cpp
     DEPS templ)

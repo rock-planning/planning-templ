@@ -5,6 +5,10 @@
 #include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/Timeline.hpp>
 #include <templ/solvers/temporal/Chronicle.hpp>
+#include <templ/MissionPlanner.hpp>
+#include "test_utils.hpp"
+
+#include <owlapi/Vocabulary.hpp>
 
 using namespace templ;
 using namespace templ::solvers::temporal;
@@ -50,15 +54,55 @@ BOOST_AUTO_TEST_CASE(chronicle)
     Chronicle chronicle;
     chronicle.addTimeline(timeline);
     BOOST_TEST_MESSAGE(chronicle.toString());
-    BOOST_REQUIRE_MESSAGE(chronicle.isConsistent(), "Chroncile is conistent");
+    BOOST_REQUIRE_MESSAGE(chronicle.isConsistent(), "Chronicle is conistent");
 
 
 //    Chronicle otherChronicle;
 //    chroncile.isSupporting(otherChronicle);
 }
 
-BOOST_AUTO_TEST_CASE(simple_mission)
-{}
+BOOST_AUTO_TEST_CASE(mission_1)
+{
+    // mission outline -- qualitative planning
+    // [location_image_provider, mission_point1]@[t0,t1]
+    // [location_image_provider, mission_point2]@[t2,t3]
+    //
+    // temporalConstraint t1 < t2
+    //
+    // --> translate into systems and update timings accordingly
+    // --> mission should contain sychronization points
+
+    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
+                getRootDir() + "test/om-schema-v0.8.owl");
+    organization_model::Service location_image_provider( owlapi::vocabulary::OM::resolve("LocationImageProvider"));
+
+    using namespace solvers::temporal;
+    point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
+    point_algebra::TimePoint::Ptr t1 = point_algebra::QualitativeTimePoint::getInstance("t1");
+    point_algebra::TimePoint::Ptr t2 = point_algebra::QualitativeTimePoint::getInstance("t2");
+    point_algebra::TimePoint::Ptr t3 = point_algebra::QualitativeTimePoint::getInstance("t3");
+
+    ObjectVariable::Ptr mp0 = ObjectVariable::getInstance("mp0","Location");
+    ObjectVariable::Ptr mp1 = ObjectVariable::getInstance("mp1","Location");
+
+    Mission mission(om);
+    mission.addConstraint(location_image_provider,
+            mp0, t0, t1);
+    mission.addConstraint(location_image_provider,
+            mp1, t2, t3);
+
+    using namespace solvers;
+    Constraint::Ptr t1_t2_constraint =  point_algebra::QualitativeTimePointConstraint::create(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
+    mission.addConstraint(t1_t2_constraint);
+
+    organization_model::ModelPool modelPool;
+    modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
+    mission.setResources(modelPool);
+
+    MissionPlanner missionPlanner;
+    CandidateMissions missions = missionPlanner.solve(mission);
+}
+
 // actions
 //  -- transition, i.e. moving from location A->B
 //  -- reconfigure: merge/split

@@ -22,6 +22,8 @@ class TimePointComparator
 public:
     TimePointComparator(QualitativeTemporalConstraintNetwork::Ptr tcn = QualitativeTemporalConstraintNetwork::Ptr());
 
+    virtual ~TimePointComparator() {};
+
     /**
      * Check equality of two timepoints
      */
