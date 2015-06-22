@@ -52,6 +52,16 @@ bool TimePoint::equals(TimePoint::Ptr other) const
     }
 }
 
+bool TimePoint::operator<(const TimePoint& other) const
+{
+    if(mLowerBound != other.mLowerBound)
+    {
+        return mLowerBound < other.mLowerBound;
+    } else {
+        return mUpperBound < other.mUpperBound;
+    }
+}
+
 TimePoint::Ptr TimePoint::create(const Label& label)
 {
     return TimePoint::Ptr( new QualitativeTimePoint(label) );

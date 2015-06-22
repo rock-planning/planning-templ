@@ -1,6 +1,8 @@
 #ifndef TEMPL_PLANNING_SOLVERS_TEMPORAL_INTERVAL_HPP
 #define TEMPL_PLANNING_SOLVERS_TEMPORAL_INTERVAL_HPP
 
+#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
+
 namespace templ {
 namespace solvers {
 namespace temporal {
@@ -10,17 +12,27 @@ namespace temporal {
  */
 class Interval
 {
-    point_algebra::TimePoint mFrom
-    point_algebra::TimePoint mTo;
+    point_algebra::TimePoint::Ptr mpFrom;
+    point_algebra::TimePoint::Ptr mpTo;
 
 public:
-    Interval(const point_algebra::TimePoint& from, const point_algebra::TimePoint& to)
-        : mFrom(from)
-        , mTo(to)
+    Interval(const point_algebra::TimePoint::Ptr& from,const point_algebra::TimePoint::Ptr& to)
+        : mpFrom(from)
+        , mpTo(to)
     {}
 
-    point_algebra::TimePoint getFrom() const { return mFrom; }
-    point_algebra::TimePoint getTo() const { return mTo; }
+    point_algebra::TimePoint::Ptr getFrom() const { return mpFrom; }
+    point_algebra::TimePoint::Ptr getTo() const { return mpTo; }
+
+    bool operator<(const Interval& other) const
+    {
+        if(*mpFrom.get() < *other.mpFrom.get())
+        {
+            return true;
+        } else {
+            return *mpTo.get() < *other.mpTo.get();
+        }
+    }
 
 };
 

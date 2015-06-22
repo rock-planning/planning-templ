@@ -45,6 +45,7 @@ public:
     virtual bool equals(TimePoint::Ptr other) const;
 
     bool operator==(const TimePoint& other) const { return mLowerBound == other.mLowerBound && mUpperBound == other.mUpperBound; }
+    bool operator<(const TimePoint& other) const;
 
     void setLowerBound(uint64_t bound) { mLowerBound = bound; }
     void setUpperBound(uint64_t bound) { mUpperBound = bound; }
@@ -59,7 +60,6 @@ public:
      * \throw std::invalid_argument if condition does not how
      */
     static void validateBounds(uint64_t lowerBound, uint64_t upperBound);
-
 
 private:
     uint64_t mLowerBound;

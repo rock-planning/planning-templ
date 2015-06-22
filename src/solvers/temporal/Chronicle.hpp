@@ -24,6 +24,8 @@ class Chronicle
     std::map<StateVariable, Timeline> mTimelines;
 
 public:
+    typedef boost::shared_ptr<Chronicle> Ptr;
+
     /**
      * Add a timeline
      */
