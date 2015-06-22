@@ -10,10 +10,10 @@ CandidateMissions MissionPlanner::solve(const Mission& mission)
 
     mCurrentMission = mission;
 
-    //std::vector<PersistenceCondition::Ptr> persistenceConditions = mission.getPersistenceConditions();
+    std::vector<PersistenceCondition::Ptr> persistenceConditions = mission.getPersistenceConditions();
     //std::vector<Constraint::Ptr> constraints = mission.getConstraints();
 
-    mOrganizationModelAsk = OrganizationModelAsk(mCurrentMission.getOrganizationModel(),
+    mOrganizationModelAsk = organization_model::OrganizationModelAsk(mCurrentMission.getOrganizationModel(),
             mission.getResources());
 
 
@@ -61,7 +61,7 @@ CandidateMissions MissionPlanner::solve(const Mission& mission)
     while(true)
     {
         Chronicle::Ptr chronicle = getCandidateChronicle();
-        if(!chroncile)
+        if(!chronicle)
         {
             break;
         } else if(chronicle->isConsistent())
@@ -88,10 +88,9 @@ void MissionPlanner::computeExpansion(const StateVariable& stateVariable)
     }
 }
 
-Chronicle::Ptr MissionPlanner::getCandidateChronicle()
+solvers::temporal::Chronicle::Ptr MissionPlanner::getCandidateChronicle()
 {
-
-
+    throw std::runtime_error("MissionPlanner::getCandidateChronicle: not implemented");
 }
 
 } // end namespace templ

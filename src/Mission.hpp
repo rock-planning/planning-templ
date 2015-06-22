@@ -5,6 +5,7 @@
 #include <organization_model/ModelPool.hpp>
 #include <templ/solvers/Constraint.hpp>
 #include <templ/ObjectVariable.hpp>
+#include <templ/solvers/temporal/Interval.hpp>
 #include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
 

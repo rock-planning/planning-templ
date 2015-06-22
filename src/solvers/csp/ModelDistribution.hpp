@@ -1,8 +1,13 @@
 #ifndef TEMPL_SOLVERS_CSP_MODEL_DISTRIBUTION_HPP
 #define TEMPL_SOLVERS_CSP_MODEL_DISTRIBUTION_HPP
 
+#include <string.h>
+#include <map>
+#include <vector>
 #include <gecode/set.hh>
 #include <gecode/search.hh>
+
+#include <templ/Mission.hpp>
 
 namespace templ {
 namespace solvers {
@@ -15,7 +20,7 @@ struct LocationTimeService
     uint32_t service;
 };
 
-std::map<LocationTimeService, std::vector<uint32_t> > Solution;
+typedef std::map<LocationTimeService, std::vector<uint32_t> > Solution;
 
 class ModelDistribution : public Gecode::Space
 {

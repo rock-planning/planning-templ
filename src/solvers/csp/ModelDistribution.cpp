@@ -20,31 +20,37 @@ ModelDistribution* ModelDistribution::solve()
 
     if(best == NULL)
     {
-        throw std::runtime_error(__FUNCTION__ + ": no solution found");
+        throw std::runtime_error("templ::solvers::csp::ModelDistribution::solve: no solution found");
     }
 
     return best;
 }
 
-ModelDistribution::ModelDistribution(const temp::Mission& mission)
+ModelDistribution::ModelDistribution(const templ::Mission& mission)
+    : Gecode::Space()
 {
 }
 
-ModelDistribution::ModelDistribution(bool share, ModelDistribution& s)
+ModelDistribution::ModelDistribution(bool share, ModelDistribution& other)
+    : Gecode::Space(share, other)
 {
 }
 
-virtual Gecode::Space* ModelDistribution::copy(bool share)
+Gecode::Space* ModelDistribution::copy(bool share)
 {
+    return new ModelDistribution(share, *this);
 }
 
-std::vector<Solution> ModelDistribution::solve(const templ::Mision& mission)
+std::vector<Solution> ModelDistribution::solve(const templ::Mission& mission)
 {
+    std::vector<Solution> solutions;
+
+    return solutions;
 }
 
 std::string ModelDistribution::toString() const
 {
-    throw std::runtime_error(__FUNCTION__ + ": not implemented");
+    throw std::runtime_error("ModelDistribution::toString: not implemented");
 }
 
 } // end namespace csp

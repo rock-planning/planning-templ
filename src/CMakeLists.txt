@@ -5,6 +5,7 @@ rock_library(templ
         Mission.cpp
         MissionPlanner.cpp
         ObjectVariable.cpp
+        solvers/csp/ModelDistribution.cpp
         solvers/temporal/Bounds.cpp
         solvers/temporal/Chronicle.cpp
         solvers/temporal/Event.cpp
@@ -29,9 +30,11 @@ rock_library(templ
         MissionPlanner.hpp
         ObjectVariable.hpp
         PlannerElement.hpp
+        solvers/csp/ModelDistribution.hpp
         solvers/temporal/Bounds.hpp
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
+        solvers/temporal/Interval.hpp
         solvers/temporal/point_algebra/ExactTimePoint.hpp
         solvers/temporal/point_algebra/QualitativeTimePoint.hpp
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp
