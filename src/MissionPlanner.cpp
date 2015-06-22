@@ -25,6 +25,7 @@ CandidateMissions MissionPlanner::solve(const Mission& mission)
         StateVariable stateVariable = pc->getStateVariable();
         PlannerElement::Ptr plannerElement = pc->getValue();
 
+        // Expand e.g. the service requirement into resource requirements
         computeExpansion(stateVariable);
     }
 

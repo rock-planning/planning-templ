@@ -34,6 +34,10 @@ public:
 
     organization_model::OrganizationModel::Ptr getOrganizationModel() const { return mpOrganizationModel; }
 
+    owlapi::model::IRIList getInvolvedServices() const { return mInvolvedServices; }
+    std::set<solvers::temporal::Interval> getTimeIntervals() const { return mTimeIntervals; }
+    std::set< std::pair<owlapi::model::IRI, ObjectVariable::Ptr> > getObjectVariables() { return mObjectVariables; }
+
 protected:
     std::vector<solvers::temporal::PersistenceCondition::Ptr> getPersistenceConditions() const { return mPersistenceConditions; }
     std::vector<solvers::Constraint::Ptr> getConstraints() const { return mConstraints; }
@@ -44,6 +48,11 @@ private:
 
     std::vector<solvers::temporal::PersistenceCondition::Ptr> mPersistenceConditions;
     std::vector<solvers::Constraint::Ptr> mConstraints;
+
+    // Structures to facilitate CSP definition
+    owlapi::model::IRIList mInvolvedServices;
+    std::set<solvers::temporal::Interval> mTimeIntervals;
+    std::set< std::pair<owlapi::model::IRI, ObjectVariable::Ptr> > mObjectVariables;
 };
 
 } // end namespace templ
