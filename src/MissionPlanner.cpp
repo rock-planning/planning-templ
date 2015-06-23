@@ -3,19 +3,20 @@
 
 namespace templ {
 
-CandidateMissions MissionPlanner::solve(const Mission& mission)
+MissionPlanner::MissionPlanner(const Mission& mission)
+    : mCurrentMission(mission)
+    , mOrganizationModelAsk(mission.getOrganizationModel(),
+            mission.getResources())
+{
+}
+
+CandidateMissions MissionPlanner::solve()
 {
     using namespace solvers;
     using namespace solvers::temporal;
 
-    mCurrentMission = mission;
-
-    std::vector<PersistenceCondition::Ptr> persistenceConditions = mission.getPersistenceConditions();
+    std::vector<PersistenceCondition::Ptr> persistenceConditions = mCurrentMission.getPersistenceConditions();
     //std::vector<Constraint::Ptr> constraints = mission.getConstraints();
-
-    mOrganizationModelAsk = organization_model::OrganizationModelAsk(mCurrentMission.getOrganizationModel(),
-            mission.getResources());
-
 
     std::vector<PersistenceCondition::Ptr>::const_iterator pit =
         persistenceConditions.begin();

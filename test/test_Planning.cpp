@@ -99,8 +99,8 @@ BOOST_AUTO_TEST_CASE(mission_1)
     modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
     mission.setResources(modelPool);
 
-    MissionPlanner missionPlanner;
-    CandidateMissions missions = missionPlanner.solve(mission);
+    MissionPlanner missionPlanner(mission);
+    CandidateMissions missions = missionPlanner.solve();
 }
 
 // actions

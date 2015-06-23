@@ -20,7 +20,7 @@ void Mission::addConstraint(organization_model::Service service,
 
     mInvolvedServices.push_back(service.getModel());
     mTimeIntervals.insert(solvers::temporal::Interval(from, to));
-    mObjectVariables.insert(std::make_pair(service.getModel(), location));
+    mObjectVariables.insert(location);
 
 
     using namespace solvers::temporal;

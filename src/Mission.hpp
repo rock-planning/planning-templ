@@ -19,6 +19,10 @@ class MissionPlanner;
 class Mission
 {
     friend class MissionPlanner;
+
+protected:
+    Mission() {}
+
 public:
     Mission(organization_model::OrganizationModel::Ptr om);
 
@@ -37,7 +41,7 @@ public:
 
     owlapi::model::IRIList getInvolvedServices() const { return mInvolvedServices; }
     std::set<solvers::temporal::Interval> getTimeIntervals() const { return mTimeIntervals; }
-    std::set< std::pair<owlapi::model::IRI, ObjectVariable::Ptr> > getObjectVariables() { return mObjectVariables; }
+    std::set<ObjectVariable::Ptr> getObjectVariables() const { return mObjectVariables; }
 
 protected:
     std::vector<solvers::temporal::PersistenceCondition::Ptr> getPersistenceConditions() const { return mPersistenceConditions; }
@@ -53,7 +57,7 @@ private:
     // Structures to facilitate CSP definition
     owlapi::model::IRIList mInvolvedServices;
     std::set<solvers::temporal::Interval> mTimeIntervals;
-    std::set< std::pair<owlapi::model::IRI, ObjectVariable::Ptr> > mObjectVariables;
+    std::set<ObjectVariable::Ptr> mObjectVariables;
 };
 
 } // end namespace templ

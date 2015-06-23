@@ -18,7 +18,9 @@ class MissionPlanner
     StateVariableExpansionMap mStateVariableExpansionMap;
 
 public:
-    CandidateMissions solve(const Mission& mission);
+    MissionPlanner(const Mission& mission);
+
+    CandidateMissions solve();
 
 protected:
     solvers::temporal::Chronicle::Ptr getCandidateChronicle();

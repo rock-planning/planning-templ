@@ -8,23 +8,39 @@
 #include <gecode/search.hh>
 
 #include <templ/Mission.hpp>
+#include <organization_model/OrganizationModelAsk.hpp>
 
 namespace templ {
 namespace solvers {
 namespace csp {
 
-struct LocationTimeService
+struct FluentTimeService
 {
-    uint32_t location;
-    uint32_t time;
     uint32_t service;
+    uint32_t time;
+    uint32_t fluent;
+
+    FluentTimeService(uint32_t service, uint32_t time, uint32_t fluent)
+        : service(service)
+        , time(time)
+        , fluent(fluent)
+    {}
 };
 
-typedef std::map<LocationTimeService, std::vector<uint32_t> > Solution;
+typedef std::map<FluentTimeService, std::vector<uint32_t> > Solution;
 
 class ModelDistribution : public Gecode::Space
 {
+    owlapi::model::IRIList mServices;
+    std::vector<solvers::temporal::Interval> mIntervals;
+    std::vector<ObjectVariable::Ptr> mVariables;
 
+    /// need to be translated into a set var
+    std::vector<FluentTimeService> mRequirements;
+
+    owlapi::model::IRIList mAvailableModels;
+
+    organization_model::OrganizationModelAsk mAsk;
 private:
     /**
      * Find a solution for the model distribution
@@ -39,6 +55,11 @@ private:
     //
     // optional:
     //  - parameterize on resource usage/distribution
+    organization_model::ModelCombinationSet getDomain(const FluentTimeService& requirement) const;
+
+    std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelCombinationSet& set) const;
+    std::vector<uint32_t> toCSP(const organization_model::ModelCombination& combination) const;
+    uint32_t systemModelToCSP(const owlapi::model::IRI& model) const;
 
 protected:
 
