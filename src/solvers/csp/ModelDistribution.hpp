@@ -25,21 +25,48 @@ struct FluentTimeService
         , time(time)
         , fluent(fluent)
     {}
+
+    bool operator==(const FluentTimeService& other) const
+    {
+        return service == other.service && time == other.time && fluent == other.fluent;
+    }
+
+    bool operator<(const FluentTimeService& other) const
+    {
+        if(service == other.service)
+        {
+            if(time == other.time)
+            {
+                return fluent < other.fluent;
+            }
+            return time < other.time;
+        }
+        return service < other.service;
+    }
 };
 
 typedef std::map<FluentTimeService, std::vector<uint32_t> > Solution;
 
 class ModelDistribution : public Gecode::Space
 {
+    Mission mMission;
     owlapi::model::IRIList mServices;
     std::vector<solvers::temporal::Interval> mIntervals;
     std::vector<ObjectVariable::Ptr> mVariables;
 
-    /// need to be translated into a set var
+    /// Requirement that arise from the mission scenario
     std::vector<FluentTimeService> mRequirements;
 
-    owlapi::model::IRIList mAvailableModels;
+    // map timeslot to fluenttime service
+    std::map<uint32_t, std::vector<FluentTimeService> > mConcurrentRequirements;
 
+    /// Total domain for assignment of reconfigurable systems
+    organization_model::ModelCombinationList mDomain;
+    /// Domain for each requirement
+    std::map<FluentTimeService, organization_model::ModelCombinationSet> mRequirementsDomain;
+
+    Gecode::SetVarArray mSetAssignments;
+    owlapi::model::IRIList mAvailableModels;
     organization_model::OrganizationModelAsk mAsk;
 private:
     /**

@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     // --> mission should contain sychronization points
 
     organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
-                getRootDir() + "test/om-schema-v0.8.owl");
+                getRootDir() + "test/data/om-schema-v0.8.owl");
     organization_model::Service location_image_provider( owlapi::vocabulary::OM::resolve("LocationImageProvider"));
 
     using namespace solvers::temporal;

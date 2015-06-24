@@ -1,5 +1,6 @@
 rock_testsuite(test_suite suite.cpp
     #test_Scheduling.cpp
+    solvers/test_CSP.cpp
     test_Elements.cpp
     test_Planning.cpp
     test_PointAlgebra.cpp
