@@ -16,24 +16,39 @@ ModelDistribution* ModelDistribution::solve()
     ModelDistribution* best = NULL;
     while(ModelDistribution* current = searchEngine.next())
     {
+        LOG_WARN_S << "Found solution";
         delete best;
         best = current;
 
         using namespace organization_model;
-        ModelPoolDelta allConsumedResources;
+        ModelPoolDelta allGblConsumedResources;
+        ModelPoolDelta allLubConsumedResources;
+        LOG_WARN_S << "Assignment size: " << mSetAssignments.size();
         // Check if resource requirements holds
         for(int i = 0; i < mSetAssignments.size(); ++i)
         {
+            LOG_WARN_S << "GET Assign";
             for(Gecode::SetVarGlbValues v(mSetAssignments[i]); v(); ++v)
             {
                 // v.val() --> the assigned value
                 ModelCombination mc = mDomain[v.val()];
+                LOG_WARN_S << "ModelCombination: " << owlapi::model::IRI::toString(mc, true);
                 ModelPool consumedResources = OrganizationModel::combination2ModelPool(mc);
 
-                allConsumedResources = Algebra::sum(allConsumedResources, consumedResources);
+                allGblConsumedResources = Algebra::sum(allGblConsumedResources, consumedResources);
+            }
+
+            for(Gecode::SetVarLubValues v(mSetAssignments[i]); v(); ++v)
+            {
+                // v.val() --> the assigned value
+                ModelCombination mc = mDomain[v.val()];
+                LOG_WARN_S << "ModelCombination: " << owlapi::model::IRI::toString(mc, true);
+                ModelPool consumedResources = OrganizationModel::combination2ModelPool(mc);
+
+                allLubConsumedResources = Algebra::sum(allLubConsumedResources, consumedResources);
             }
         }
-        ModelPoolDelta diff = Algebra::delta(mMission.getResources(), allConsumedResources);
+        ModelPoolDelta diff = Algebra::delta(mMission.getResources(), allLubConsumedResources);
         if(diff.isNegative())
         {
             LOG_DEBUG_S << "Invalid solution found: exceeding available resources";
@@ -59,6 +74,7 @@ organization_model::ModelCombinationSet ModelDistribution::getDomain(const Fluen
 {
     std::set<organization_model::Service> services;
     services.insert( organization_model::Service( mServices[requirement.service] ) );
+    LOG_WARN_S << "Services size: " << services.size() << " " << services.begin()->getModel().toString();
 
     return mAsk.getResourceSupport(services);
 }
@@ -107,42 +123,101 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
     , mSetAssignments()
     , mAsk(mission.getOrganizationModel(), mission.getResources())
 {
-    mServices = mission.getInvolvedServices();
+    mMission.prepare();
 
-    // TODO: Check for interval overlaps
-    std::set<solvers::temporal::Interval> intervals = mission.getTimeIntervals();
-    mIntervals.insert(mIntervals.begin(), intervals.begin(), intervals.end());
-
-    std::set<ObjectVariable::Ptr> variables = mission.getObjectVariables();
-    mVariables.insert(mVariables.begin(), variables.begin(), variables.end());
-
-    // Create list of distinct service requirements (based on different time and
-    // location)
-    for(uint32_t s = 0; s < mServices.size(); ++s)
     {
-        for(uint32_t i = 0; i < mIntervals.size(); ++i)
+        using namespace solvers::temporal;
+        LOG_WARN_S << mAsk.toString();
+        owlapi::model::IRISet services = mMission.getInvolvedServices();
+        mServices.insert(mServices.begin(), services.begin(), services.end());
+
+        LOG_DEBUG_S << "Involved services: " << owlapi::model::IRI::toString(mServices, true);
+
+        // TODO: Check for interval overlaps
+        std::set<Interval> intervals = mMission.getTimeIntervals();
+        mIntervals.insert(mIntervals.begin(), intervals.begin(), intervals.end());
+
+        std::set<ObjectVariable::Ptr> variables = mMission.getObjectVariables();
+        mVariables.insert(mVariables.begin(), variables.begin(), variables.end());
+
+        std::vector<PersistenceCondition::Ptr> conditions = mMission.getPersistenceConditions();
+        std::vector<PersistenceCondition::Ptr>::const_iterator cit = conditions.begin();
+        for(; cit != conditions.end(); ++cit)
         {
-            for(uint32_t v = 0; v < mVariables.size(); ++v)
+            PersistenceCondition::Ptr p = *cit;
+
+            Interval interval(p->getFromTimePoint(), p->getToTimePoint(), 
+                    point_algebra::TimePointComparator(mMission.getTemporalConstraintNetwork()) );
+
+            owlapi::model::IRI serviceModel(p->getStateVariable().getResource());
+
+            ObjectVariable::Ptr objectVariable = boost::dynamic_pointer_cast<ObjectVariable>(p->getValue());
+
             {
-                FluentTimeService lts(s,i,v);
+                std::vector<Interval>::const_iterator iit = std::find(mIntervals.begin(), mIntervals.end(), interval);
+                if(iit == mIntervals.end())
+                {
+                    throw std::runtime_error("Could not find interval");
+                }
+
+                owlapi::model::IRIList::const_iterator sit = std::find(mServices.begin(), mServices.end(), serviceModel);
+                if(sit == mServices.end())
+                {
+                    throw std::runtime_error("Could not find service");
+                }
+
+                std::vector<ObjectVariable::Ptr>::const_iterator oit = std::find(mVariables.begin(), mVariables.end(), objectVariable);
+                if(oit == mVariables.end())
+                {
+                    throw std::runtime_error("Could not find variable");
+                }
+
+                uint32_t timeIndex = iit - mIntervals.begin();
+                FluentTimeService lts((int) (sit - mServices.begin()),
+                        timeIndex,
+                        (int) (oit - mVariables.begin()));
+
                 mRequirements.push_back(lts);
+                LOG_DEBUG_S << lts.toString();
 
                 // Todo: register requirement for each timeinterval
-                mConcurrentRequirements[i].push_back(lts);
+                mConcurrentRequirements[timeIndex].push_back(lts);
             }
         }
     }
 
+    // Create list of distinct service requirements (based on different time and
+    // location)
+    //for(uint32_t s = 0; s < mServices.size(); ++s)
+    //{
+    //    for(uint32_t i = 0; i < mIntervals.size(); ++i)
+    //    {
+    //        for(uint32_t v = 0; v < mVariables.size(); ++v)
+    //        {
+    //            FluentTimeService lts(s,i,v);
+    //            mRequirements.push_back(lts);
+
+    //            LOG_DEBUG_S << "FluentTimeService: "
+    //                << " service #" << s
+    //                << " interval #" << i
+    //                << " variable #" << v;
+
+    //            // Todo: register requirement for each timeinterval
+    //            mConcurrentRequirements[i].push_back(lts);
+    //        }
+    //    }
+    //}
+
     // Compute set of available models
     organization_model::ModelPool modelPool = mission.getResources();
-    organization_model::ModelPool::const_iterator cit = modelPool.begin();
+    organization_model::ModelPool::const_iterator mit = modelPool.begin();
 
     Gecode::IntArgs maximumAvailableResourcesArgs;
     uint32_t index = 0;
-    for(; cit != modelPool.end(); ++cit)
+    for(; mit != modelPool.end(); ++mit)
     {
-        mAvailableModels.push_back(cit->first);
-        for(uint32_t count = 0; count < cit->second; ++count)
+        mAvailableModels.push_back(mit->first);
+        for(uint32_t count = 0; count < mit->second; ++count)
         {
             maximumAvailableResourcesArgs << index;
         }
@@ -156,19 +231,24 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
     for(; rit != mRequirements.end(); ++rit)
     {
         organization_model::ModelCombinationSet combinations = getDomain(*rit);
+        LOG_WARN_S << "Domain size: " << combinations.size();
         mRequirementsDomain[*rit] = combinations;
 
         std::set_union(domainModels.begin(), domainModels.end(), 
                 combinations.begin(), combinations.end(),
                 std::inserter(domainModels, domainModels.begin()));
     }
-    LOG_DEBUG_S << "Number of model combinations to be considered: " << domainModels.size();
+    LOG_WARN_S << "Number of model combinations to be considered: " << domainModels.size();
     mDomain.insert(mDomain.begin(), domainModels.begin(), domainModels.end());
 
     // Start actual formulation into Gecode 
 
     // The requirements can be fulfilled by model that are part of the domain
     Gecode::IntSet allDomainValues(0, mDomain.size() - 1);
+    LOG_WARN_S << "Domain size: " << mDomain.size();
+
+    Gecode::SetVarArray setAssignements(*this, mRequirements.size());
+    mSetAssignments.update(*this, false, setAssignements);
 
     // SRT_SUB --> subset
     dom(*this, mSetAssignments, Gecode::SRT_SUB, allDomainValues);
@@ -184,12 +264,15 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
         std::vector<FluentTimeService>::const_iterator fit = fluents.begin();
 
         std::vector<int> indexes;
+        LOG_DEBUG_S << "Concurrent requirements: ";
         for(; fit != fluents.end(); ++fit)
         {
             std::vector<FluentTimeService>::const_iterator ftsIt = std::find(mRequirements.begin(), mRequirements.end(), *fit);
             if(ftsIt != mRequirements.end())
             {
-                indexes.push_back( ftsIt - mRequirements.begin());
+                int index = ftsIt - mRequirements.begin();
+                LOG_DEBUG_S << "    index: " << index;
+                indexes.push_back(index);
             }
         }
 
@@ -204,6 +287,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
             } while(combination.next());
         }
     }
+
     // Restrict domains
     for(uint32_t a = 0; a < mRequirements.size(); ++a)
     {

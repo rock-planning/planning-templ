@@ -21,7 +21,7 @@ BOOST_AUTO_TEST_CASE(gecode)
 
     organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
                 getRootDir() + "test/data/om-schema-v0.8.owl");
-    organization_model::Service location_image_provider( owlapi::vocabulary::OM::resolve("LocationImageProvider"));
+    organization_model::Service location_image_provider( owlapi::vocabulary::OM::resolve("ImageProvider"));
 
     using namespace solvers::temporal;
     point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
@@ -38,12 +38,39 @@ BOOST_AUTO_TEST_CASE(gecode)
     mission.addConstraint(location_image_provider,
             mp1, t2, t3);
 
-    using namespace solvers;
-    organization_model::ModelPool modelPool;
-    modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
-    mission.setResources(modelPool);
+    mission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
 
-    solvers::csp::ModelDistribution::solve(mission);
+    {
+        solvers::temporal::point_algebra::TimePointComparator comparator(mission.getTemporalConstraintNetwork());
+        Interval i0(t0,t1, comparator);
+        Interval i1(t2,t3, comparator);
+
+        BOOST_REQUIRE_MESSAGE(i0 < i1, "Interval smaller (in time) than other");
+        //BOOST_REQUIRE_MESSAGE(i1 < i0, "Interval smaller (in time) than other");
+    }
+
+    using namespace solvers;
+    {
+        organization_model::ModelPool modelPool;
+        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
+        mission.setResources(modelPool);
+        solvers::csp::ModelDistribution::solve(mission);
+    }
+
+//    {
+//        organization_model::ModelPool modelPool;
+//        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
+//        mission.setResources(modelPool);
+//        solvers::csp::ModelDistribution::solve(mission);
+//    }
+//
+//    {
+//        organization_model::ModelPool modelPool;
+//        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
+//        modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 2;
+//        mission.setResources(modelPool);
+//        solvers::csp::ModelDistribution::solve(mission);
+//    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

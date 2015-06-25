@@ -19,6 +19,7 @@ class MissionPlanner;
 class Mission
 {
     friend class MissionPlanner;
+    solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
 
 protected:
     Mission() {}
@@ -26,10 +27,16 @@ protected:
 public:
     Mission(organization_model::OrganizationModel::Ptr om);
 
+    void prepare();
+
     void addConstraint(organization_model::Service service,
             ObjectVariable::Ptr location,
             solvers::temporal::point_algebra::TimePoint::Ptr fromTp,
             solvers::temporal::point_algebra::TimePoint::Ptr toTp);
+
+    void addTemporalConstraint(solvers::temporal::point_algebra::TimePoint::Ptr t1,
+            solvers::temporal::point_algebra::TimePoint::Ptr t2,
+            solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type constraint);
 
     void addConstraint(solvers::Constraint::Ptr contraint);
 
@@ -39,12 +46,16 @@ public:
 
     organization_model::OrganizationModel::Ptr getOrganizationModel() const { return mpOrganizationModel; }
 
-    owlapi::model::IRIList getInvolvedServices() const { return mInvolvedServices; }
+    owlapi::model::IRISet getInvolvedServices() const { return mInvolvedServices; }
     std::set<solvers::temporal::Interval> getTimeIntervals() const { return mTimeIntervals; }
     std::set<ObjectVariable::Ptr> getObjectVariables() const { return mObjectVariables; }
 
-protected:
+    solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr getTemporalConstraintNetwork() const {
+        return mpTemporalConstraintNetwork; }
+
     std::vector<solvers::temporal::PersistenceCondition::Ptr> getPersistenceConditions() const { return mPersistenceConditions; }
+
+protected:
     std::vector<solvers::Constraint::Ptr> getConstraints() const { return mConstraints; }
 
 private:
@@ -55,7 +66,7 @@ private:
     std::vector<solvers::Constraint::Ptr> mConstraints;
 
     // Structures to facilitate CSP definition
-    owlapi::model::IRIList mInvolvedServices;
+    owlapi::model::IRISet mInvolvedServices;
     std::set<solvers::temporal::Interval> mTimeIntervals;
     std::set<ObjectVariable::Ptr> mObjectVariables;
 };
