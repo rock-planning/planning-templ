@@ -9,6 +9,7 @@ rock_library(templ
         solvers/temporal/Bounds.cpp
         solvers/temporal/Chronicle.cpp
         solvers/temporal/Event.cpp
+        solvers/temporal/Interval.cpp
         solvers/temporal/PersistenceCondition.cpp
         solvers/temporal/point_algebra/QualitativeTimePoint.cpp
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.cpp
