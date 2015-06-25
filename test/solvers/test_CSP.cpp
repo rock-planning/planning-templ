@@ -57,20 +57,20 @@ BOOST_AUTO_TEST_CASE(gecode)
         solvers::csp::ModelDistribution::solve(mission);
     }
 
-//    {
-//        organization_model::ModelPool modelPool;
-//        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
-//        mission.setResources(modelPool);
-//        solvers::csp::ModelDistribution::solve(mission);
-//    }
-//
-//    {
-//        organization_model::ModelPool modelPool;
-//        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
-//        modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 2;
-//        mission.setResources(modelPool);
-//        solvers::csp::ModelDistribution::solve(mission);
-//    }
+    {
+        organization_model::ModelPool modelPool;
+        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
+        mission.setResources(modelPool);
+        solvers::csp::ModelDistribution::solve(mission);
+    }
+
+    {
+        organization_model::ModelPool modelPool;
+        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
+        modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 2;
+        mission.setResources(modelPool);
+        solvers::csp::ModelDistribution::solve(mission);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -76,7 +76,10 @@ organization_model::ModelCombinationSet ModelDistribution::getDomain(const Fluen
     services.insert( organization_model::Service( mServices[requirement.service] ) );
     LOG_WARN_S << "Services size: " << services.size() << " " << services.begin()->getModel().toString();
 
-    return mAsk.getResourceSupport(services);
+    organization_model::ModelCombinationSet combinations = mAsk.getBoundedResourceSupport(services);
+
+    LOG_WARN_S << "Bounded resources: " << organization_model::OrganizationModel::toString(combinations);
+    return combinations;
 }
 
 
