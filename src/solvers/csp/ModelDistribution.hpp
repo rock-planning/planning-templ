@@ -43,6 +43,16 @@ struct FluentTimeService
         }
         return service < other.service;
     }
+
+    std::string toString() const
+    {
+        std::stringstream ss;
+        ss << "FluentTimeService: " << std::endl;
+        ss << "    service: #" << service;
+        ss << "    time: #" << time << std::endl;
+        ss << "    fluent: #" << fluent << std::endl;
+        return ss.str();
+    }
 };
 
 typedef std::map<FluentTimeService, std::vector<uint32_t> > Solution;
