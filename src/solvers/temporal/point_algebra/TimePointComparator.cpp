@@ -29,7 +29,7 @@ bool TimePointComparator::greaterThan(TimePoint::Ptr t0, TimePoint::Ptr t1) cons
 
     if(t0->getType() == TimePoint::QUANTITATIVE)
     {
-        throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: cannot compare different types of TimePoints");
+        return t0->getLowerBound() > t1->getUpperBound();
     } else if(t1->getType() == TimePoint::QUALITATIVE)
     {
         if(!mpTemporalConstraintNetwork)

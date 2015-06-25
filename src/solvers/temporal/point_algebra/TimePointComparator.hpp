@@ -30,7 +30,7 @@ public:
     virtual bool equals(TimePoint::Ptr t0, TimePoint::Ptr t1) const;
 
     /**
-     * Check if one timepoint is greater (more progressed in time) than another
+     * Check if one timepoint (t0) is greater (more progressed in time) than another (t1)
      */
     virtual bool greaterThan(TimePoint::Ptr t0, TimePoint::Ptr t1) const;
 
