@@ -13,30 +13,49 @@ Interval::Interval(const point_algebra::TimePoint::Ptr& from,
     , mTimePointComparator(comparator)
 {}
 
-bool Interval::distinctFrom(const Interval& other) const
+bool Interval::before(const Interval& other) const
 {
-    return !mTimePointComparator.hasIntervalOverlap(mpFrom, mpTo, other.mpFrom, other.mpTo);
-}
-
-bool Interval::lessThan(const Interval& other) const
-{
-    LOG_DEBUG_S << "Comparing interval " << std::endl
-        << toString() << " with " << std::endl
-        << other.toString();
-    if(!distinctFrom(other))
-    {
-        LOG_DEBUG_S << "Interval " << toString() << " is not distinct from other: "
-            << other.toString();
-        return false;
-    } else {
-        return mTimePointComparator.lessThan(mpTo, other.mpFrom);
-    }
+    // assuming consistency of the interval, i.e.
+    // mpTo before mpFrom
+    return mTimePointComparator.lessThan(mpTo, other.mpFrom);
 }
 
 bool Interval::equals(const Interval& other) const
 {
     return mTimePointComparator.equals(mpTo, other.mpTo) &&
         mTimePointComparator.equals(mpFrom, other.mpFrom);
+}
+
+bool Interval::meets(const Interval& other) const
+{
+    return mTimePointComparator.equals(mpTo, other.mpFrom);
+}
+
+bool Interval::overlaps(const Interval& other) const
+{
+    return mTimePointComparator.hasIntervalOverlap(mpFrom, mpTo,
+            other.mpFrom, other.mpTo);
+}
+
+bool Interval::during(const Interval& other) const
+{
+    return mTimePointComparator.greaterThan(mpFrom, other.mpFrom)
+        && mTimePointComparator.lessThan(mpTo, other.mpTo);
+}
+
+bool Interval::starts(const Interval& other) const
+{
+    return mTimePointComparator.equals(mpFrom, other.mpFrom);
+}
+
+bool Interval::finishes(const Interval& other) const
+{
+    return mTimePointComparator.equals(mpTo, other.mpTo);
+}
+
+bool Interval::distinctFrom(const Interval& other) const
+{
+    return !equals(other);
 }
 
 std::string Interval::toString() const

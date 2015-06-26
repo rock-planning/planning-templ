@@ -8,7 +8,7 @@ using namespace templ;
 
 BOOST_AUTO_TEST_SUITE(csp)
 
-BOOST_AUTO_TEST_CASE(gecode)
+BOOST_AUTO_TEST_CASE(mission_0)
 {
     // mission outline -- qualitative planning
     // [location_image_provider, mission_point1]@[t0,t1]
@@ -45,8 +45,7 @@ BOOST_AUTO_TEST_CASE(gecode)
         Interval i0(t0,t1, comparator);
         Interval i1(t2,t3, comparator);
 
-        BOOST_REQUIRE_MESSAGE(i0 < i1, "Interval smaller (in time) than other");
-        //BOOST_REQUIRE_MESSAGE(i1 < i0, "Interval smaller (in time) than other");
+        BOOST_REQUIRE_MESSAGE(i0.before(i1), "Interval before (in time) than other");
     }
 
     using namespace solvers;

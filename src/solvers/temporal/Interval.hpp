@@ -26,14 +26,86 @@ public:
     point_algebra::TimePoint::Ptr getFrom() const { return mpFrom; }
     point_algebra::TimePoint::Ptr getTo() const { return mpTo; }
 
-    bool operator<(const Interval& other) const { return lessThan(other); }
     bool operator==(const Interval& other) const { return equals(other); }
 
+    /**
+     * Check before:
+     * Symbol: b , inverse: bi
+     \verbatim
+     [ ---- this ---- ]
+                             [ ---- other ---- ]
+     \endverbatim
+     */
+    bool before(const Interval& other) const;
 
-    bool distinctFrom(const Interval& other) const;
-    bool lessThan(const Interval& other) const;
+    /**
+     * Check equals
+     * Symbol: =, inverse: =
+     \verbatim
+     [ ---- this ---- ]
+     [ --- other ---- ]
+     \endverbatim
+     */
     bool equals(const Interval& other) const;
 
+    /**
+     * Check meets
+     * Symbol: m, inverse: m
+     \verbatim
+     [ ---- this ---- ]
+                      [ --- other ---- ]
+     \endverbatim
+     */
+    bool meets(const Interval& other) const;
+
+    /**
+     * Check overlaps
+     * Symbol: o, inverse: oi
+     \verbatim
+     [ ---- this ---- ]
+                  [ --- other ---- ]
+     \endverbatim
+     */
+    bool overlaps(const Interval& other) const;
+
+    /**
+     * Check during
+     * Symbol: d, inverse: di
+     \verbatim
+     [ ----           this          ---- ]
+                  [ --- other ---- ]
+     \endverbatim
+     */
+    bool during(const Interval& other) const;
+
+    /**
+     * Check starts
+     * Symbol: s, inverse: si
+     \verbatim
+     [ ----           this          ---- ]
+     [ --- other ---- ]
+     \endverbatim
+     */
+    bool starts(const Interval& other) const;
+
+    /**
+     * Check finishes
+     * Symbol: f, inverse: fi
+     \verbatim
+     [ ----           this          ---- ]
+                        [ --- other ---- ]
+     \endverbatim
+     */
+    bool finishes(const Interval& other) const;
+
+    /**
+     * Negation of equals
+     */
+    bool distinctFrom(const Interval& other) const;
+
+    /**
+     * Stringify interval object
+     */
     std::string toString() const;
 };
 
