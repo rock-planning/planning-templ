@@ -48,7 +48,7 @@ struct FluentTimeService
     {
         std::stringstream ss;
         ss << "FluentTimeService: " << std::endl;
-        ss << "    service: #" << service;
+        ss << "    service: #" << service << std::endl;
         ss << "    time: #" << time << std::endl;
         ss << "    fluent: #" << fluent << std::endl;
         return ss.str();
