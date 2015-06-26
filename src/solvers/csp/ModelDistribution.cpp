@@ -32,7 +32,7 @@ ModelDistribution* ModelDistribution::solve()
             {
                 // v.val() --> the assigned value
                 ModelCombination mc = mDomain[v.val()];
-                LOG_WARN_S << "ModelCombination: " << owlapi::model::IRI::toString(mc, true);
+                LOG_WARN_S << "ModelCombination (glb): " << owlapi::model::IRI::toString(mc, true);
                 ModelPool consumedResources = OrganizationModel::combination2ModelPool(mc);
 
                 allGblConsumedResources = Algebra::sum(allGblConsumedResources, consumedResources);
@@ -42,7 +42,7 @@ ModelDistribution* ModelDistribution::solve()
             {
                 // v.val() --> the assigned value
                 ModelCombination mc = mDomain[v.val()];
-                LOG_WARN_S << "ModelCombination: " << owlapi::model::IRI::toString(mc, true);
+                LOG_WARN_S << "ModelCombination (lub): " << owlapi::model::IRI::toString(mc, true);
                 ModelPool consumedResources = OrganizationModel::combination2ModelPool(mc);
 
                 allLubConsumedResources = Algebra::sum(allLubConsumedResources, consumedResources);
@@ -126,6 +126,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
     , mSetAssignments()
     , mAsk(mission.getOrganizationModel(), mission.getResources())
 {
+    LOG_INFO_S << "ModelDistribution CSP Problem Construction";
     mMission.prepare();
 
     {
@@ -184,7 +185,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
                 LOG_DEBUG_S << lts.toString();
 
                 // Todo: register requirement for each timeinterval
-                mConcurrentRequirements[timeIndex].push_back(lts);
+                mTimeIndexedRequirements[timeIndex].push_back(lts);
             }
         }
     }
@@ -260,36 +261,128 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
     // domain set assignement: SRT_NQ --> disequality
     dom(*this, mSetAssignments, Gecode::SRT_NQ, Gecode::IntSet(1,0));
 
-    // Make sure the assignments are unique for concurrent requirements
-    for(uint32_t ci = 0; ci < mConcurrentRequirements.size(); ++ci)
+    std::vector<size_t> timeIndexes;
+    for(size_t ti = 0; ti < mIntervals.size(); ++ti)
     {
-        const std::vector<FluentTimeService>& fluents = mConcurrentRequirements[ci];
-        std::vector<FluentTimeService>::const_iterator fit = fluents.begin();
+        timeIndexes.push_back(ti);
+    }
 
-        std::vector<int> indexes;
-        LOG_DEBUG_S << "Concurrent requirements: ";
-        for(; fit != fluents.end(); ++fit)
+    LOG_WARN_S << "TimeIndices available: " << timeIndexes.size();
+    if(timeIndexes.size() == 1)
+    {
+        std::vector<size_t> concurrentFluentIndexes;
+        LOG_DEBUG_S << "Concurrent fluent indexes";
+        for(size_t fi = 0; fi < mRequirements.size(); ++fi)
         {
-            std::vector<FluentTimeService>::const_iterator ftsIt = std::find(mRequirements.begin(), mRequirements.end(), *fit);
-            if(ftsIt != mRequirements.end())
-            {
-                int index = ftsIt - mRequirements.begin();
-                LOG_DEBUG_S << "    index: " << index;
-                indexes.push_back(index);
-            }
+            concurrentFluentIndexes.push_back(fi);
+            LOG_DEBUG_S << "    #" << fi;
         }
 
         // If there is just one entry -- no need for computing disjoint relationship
-        if(indexes.size() > 1)
+        if(concurrentFluentIndexes.size() > 1)
         {
-            numeric::Combination<int> combination(indexes, 2, numeric::EXACT);
+            numeric::Combination<size_t> combination(concurrentFluentIndexes, 2, numeric::EXACT);
             do {
-                std::vector<int> indexes = combination.current();
+                std::vector<size_t> fluentIndexes = combination.current();
                 // SRT_DISJ --> disjoint
-                rel(*this, mSetAssignments[ indexes[0] ], Gecode::SRT_DISJ, mSetAssignments[ indexes[1] ]);
+                rel(*this, mSetAssignments[ fluentIndexes[0] ], Gecode::SRT_DISJ, mSetAssignments[ fluentIndexes[1] ]);
             } while(combination.next());
         }
+
+    } else {
+        numeric::Combination<size_t> intervalCombination(timeIndexes, 2, numeric::EXACT);
+        do {
+            using namespace templ::solvers::temporal;
+
+            std::vector<size_t> timeIndex = intervalCombination.current();
+
+            const Interval& i0 = mIntervals[ timeIndex[0] ];
+            const Interval& i1 = mIntervals[ timeIndex[1] ];
+
+            if(!i0.overlaps(i1))
+            {
+                // no timeoverlap, so we do not care
+                continue;
+            } else {
+                LOG_DEBUG_S << "Intervals overlap: " << std::endl
+                    << i0.toString() << std::endl
+                    << i1.toString();
+            }
+
+            // Get indexes of requirements
+            const std::vector<FluentTimeService>& fluents0 = mTimeIndexedRequirements[ timeIndex[0] ];
+            const std::vector<FluentTimeService>& fluents1 = mTimeIndexedRequirements[ timeIndex[1] ];
+
+            std::set<size_t> concurrentFluentIndexesSet;
+            {
+                std::vector<FluentTimeService>::const_iterator fit = fluents0.begin();
+                for(; fit != fluents0.end(); ++fit)
+                {
+                    concurrentFluentIndexesSet.insert( getFluentIndex(*fit) );
+                }
+            }
+            {
+                std::vector<FluentTimeService>::const_iterator fit = fluents1.begin();
+                for(; fit != fluents1.end(); ++fit)
+                {
+                    concurrentFluentIndexesSet.insert( getFluentIndex(*fit) );
+                }
+            }
+
+            std::vector<size_t> concurrentFluentIndexes(concurrentFluentIndexesSet.begin(),
+                    concurrentFluentIndexesSet.end());
+
+            // If there is just one entry -- no need for computing disjoint relationship
+            if(concurrentFluentIndexes.size() > 1)
+            {
+                numeric::Combination<size_t> combination(concurrentFluentIndexes, 2, numeric::EXACT);
+                do {
+                    std::vector<size_t> fluentIndexes = combination.current();
+                    LOG_DEBUG_S << "Concurrent fluents: " << std::endl
+                        << mRequirements[ fluentIndexes[0] ].toString() << std::endl
+                        << mRequirements[ fluentIndexes[1] ].toString() << std::endl;
+
+                    // SRT_DISJ --> disjoint
+                    rel(*this, mSetAssignments[ fluentIndexes[0] ], Gecode::SRT_DISJ, mSetAssignments[ fluentIndexes[1] ]);
+                    // that will not work here, e.g. when
+                    //  2 Sherpa exist, and one is assigned to each one, then
+                    //  this condition still fails
+                    //  probably better:
+                    //      get ALL overlapping requirements, i.e. not just the
+                    //      mutual ones and make sure their subset is < then the
+                    //      set of available resource --> which actually should
+                    //      have been done in the first place -- try again,
+                    //      fail again, fail harder ;)
+
+                } while(combination.next());
+            }
+        } while(intervalCombination.next());
     }
+
+    //// Make sure the assignments are unique for concurrent requirements
+    //for(uint32_t ci = 0; ci < mTimeIndexedRequirements.size(); ++ci)
+    //{
+    //    const std::vector<FluentTimeService>& fluents = mConcurrentRequirements[ci];
+    //    std::vector<FluentTimeService>::const_iterator fit = fluents.begin();
+
+    //    std::vector<int> indexes;
+    //    LOG_DEBUG_S << "Concurrent requirements: ";
+    //    for(; fit != fluents.end(); ++fit)
+    //    {
+    //        indexes.push_back( getFluentIndex(*fit) );
+    //    }
+
+    //    // If there is just one entry -- no need for computing disjoint relationship
+    //    if(indexes.size() > 1)
+    //    {
+    //        numeric::Combination<int> combination(indexes, 2, numeric::EXACT);
+    //        do {
+    //            std::vector<int> indexes = combination.current();
+    //            // SRT_DISJ --> disjoint
+    //            rel(*this, mSetAssignments[ indexes[0] ], Gecode::SRT_DISJ, mSetAssignments[ indexes[1] ]);
+    //        } while(combination.next());
+    //    }
+    //}
 
     // Restrict domains
     for(uint32_t a = 0; a < mRequirements.size(); ++a)
@@ -356,6 +449,19 @@ std::vector<Solution> ModelDistribution::solve(const templ::Mission& mission)
 std::string ModelDistribution::toString() const
 {
     throw std::runtime_error("ModelDistribution::toString: not implemented");
+}
+
+size_t ModelDistribution::getFluentIndex(const FluentTimeService& fluent) const
+{
+    std::vector<FluentTimeService>::const_iterator ftsIt = std::find(mRequirements.begin(), mRequirements.end(), fluent);
+    if(ftsIt != mRequirements.end())
+    {
+        int index = ftsIt - mRequirements.begin();
+        assert(index >= 0);
+        return (size_t) index;
+    }
+
+    throw std::runtime_error("templ::solvers::csp::ModelDistribution::getFluentIndex: could not find fluent index for '" + fluent.toString() + "'");
 }
 
 } // end namespace csp

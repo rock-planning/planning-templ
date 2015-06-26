@@ -68,7 +68,7 @@ class ModelDistribution : public Gecode::Space
     std::vector<FluentTimeService> mRequirements;
 
     // map timeslot to fluenttime service
-    std::map<uint32_t, std::vector<FluentTimeService> > mConcurrentRequirements;
+    std::map<uint32_t, std::vector<FluentTimeService> > mTimeIndexedRequirements;
 
     /// Total domain for assignment of reconfigurable systems
     organization_model::ModelCombinationList mDomain;
@@ -97,6 +97,9 @@ private:
     std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelCombinationSet& set) const;
     std::vector<uint32_t> toCSP(const organization_model::ModelCombination& combination) const;
     uint32_t systemModelToCSP(const owlapi::model::IRI& model) const;
+
+
+    size_t getFluentIndex(const FluentTimeService& fluent) const;
 
 protected:
 
