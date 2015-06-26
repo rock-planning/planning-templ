@@ -112,4 +112,25 @@ public:
 } // end namespace temporal
 } // end namespace solvers
 } // end namespace templ
+
+namespace std
+{
+/// Define hash function so that class can be used in std::ordered_set
+/// \see http://en.cppreference.com/w/cpp/utility/hash
+template<>
+struct hash<templ::solvers::temporal::Interval>
+{
+    size_t operator()(const templ::solvers::temporal::Interval &i) const
+    {
+        using namespace templ::solvers::temporal::point_algebra;
+
+        // std::hash<T*> is defined as well as for std::shared_ptr
+        size_t h1 = std::hash<TimePoint*>()(i.getFrom().get());
+        size_t h2 = std::hash<TimePoint*>()(i.getTo().get());
+        return h1 ^ ( h2 << 1 );
+    }
+
+};
+
+}
 #endif // TEMPL_SOLVERS_TEMPORAL_INTERVAL_HPP
