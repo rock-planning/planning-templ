@@ -9,6 +9,8 @@
 #include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
 
+#include <unordered_set>
+
 namespace templ {
 
 typedef uint32_t Duration;
@@ -47,7 +49,7 @@ public:
     organization_model::OrganizationModel::Ptr getOrganizationModel() const { return mpOrganizationModel; }
 
     owlapi::model::IRISet getInvolvedServices() const { return mInvolvedServices; }
-    std::set<solvers::temporal::Interval> getTimeIntervals() const { return mTimeIntervals; }
+    std::unordered_set<solvers::temporal::Interval> getTimeIntervals() const { return mTimeIntervals; }
     std::set<ObjectVariable::Ptr> getObjectVariables() const { return mObjectVariables; }
 
     solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr getTemporalConstraintNetwork() const {
@@ -67,7 +69,9 @@ private:
 
     // Structures to facilitate CSP definition
     owlapi::model::IRISet mInvolvedServices;
-    std::set<solvers::temporal::Interval> mTimeIntervals;
+    /// Since a sorted set required the less operator for sorting in is not a suitable 
+    /// suitable container for Interval, since overlapping intervals have to be considered
+    std::unordered_set<solvers::temporal::Interval> mTimeIntervals;
     std::set<ObjectVariable::Ptr> mObjectVariables;
 };
 

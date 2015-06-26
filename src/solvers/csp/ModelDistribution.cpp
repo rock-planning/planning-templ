@@ -137,7 +137,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
         LOG_DEBUG_S << "Involved services: " << owlapi::model::IRI::toString(mServices, true);
 
         // TODO: Check for interval overlaps
-        std::set<Interval> intervals = mMission.getTimeIntervals();
+        std::unordered_set<Interval> intervals = mMission.getTimeIntervals();
         mIntervals.insert(mIntervals.begin(), intervals.begin(), intervals.end());
 
         std::set<ObjectVariable::Ptr> variables = mMission.getObjectVariables();
