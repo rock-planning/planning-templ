@@ -71,6 +71,15 @@ BOOST_AUTO_TEST_CASE(gecode)
         mission.setResources(modelPool);
         solvers::csp::ModelDistribution::solve(mission);
     }
+
+    {
+        organization_model::ModelPool modelPool;
+        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
+        modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 2;
+        modelPool[ owlapi::vocabulary::OM::resolve("Payload") ] = 10;
+        mission.setResources(modelPool);
+        solvers::csp::ModelDistribution::solve(mission);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
