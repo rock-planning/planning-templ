@@ -60,6 +60,7 @@ typedef std::map<FluentTimeService, std::vector<uint32_t> > Solution;
 class ModelDistribution : public Gecode::Space
 {
     Mission mMission;
+    organization_model::ModelPool mModelPool;
     owlapi::model::IRIList mServices;
     std::vector<solvers::temporal::Interval> mIntervals;
     std::vector<ObjectVariable::Ptr> mVariables;
@@ -100,6 +101,9 @@ private:
 
 
     size_t getFluentIndex(const FluentTimeService& fluent) const;
+    size_t getResourceModelIndex(const owlapi::model::IRI& model) const;
+    owlapi::model::IRI getResourceModelFromIndex(size_t index) const;
+    size_t getResourceModelMaxCardinality(size_t model) const;
 
 protected:
 

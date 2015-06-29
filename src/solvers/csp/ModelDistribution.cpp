@@ -123,6 +123,7 @@ uint32_t ModelDistribution::systemModelToCSP(const owlapi::model::IRI& model) co
 ModelDistribution::ModelDistribution(const templ::Mission& mission)
     : Gecode::Space()
     , mMission(mission)
+    , mModelPool(mission.getResources())
     , mSetAssignments()
     , mAsk(mission.getOrganizationModel(), mission.getResources())
 {
@@ -418,6 +419,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
 ModelDistribution::ModelDistribution(bool share, ModelDistribution& other)
     : Gecode::Space(share, other)
     , mMission(other.mMission)
+    , mModelPool(other.mMission.getResources())
     , mAsk(other.mAsk)
     , mServices(other.mServices)
     , mIntervals(other.mIntervals)
@@ -464,6 +466,32 @@ size_t ModelDistribution::getFluentIndex(const FluentTimeService& fluent) const
     throw std::runtime_error("templ::solvers::csp::ModelDistribution::getFluentIndex: could not find fluent index for '" + fluent.toString() + "'");
 }
 
+size_t ModelDistribution::getResourceModelIndex(const owlapi::model::IRI& model) const
+{
+    owlapi::model::IRIList::const_iterator cit = std::find(mAvailableModels.begin(), mAvailableModels.end(), model);
+    if(cit != mAvailableModels.end())
+    {
+        int index = cit - mAvailableModels.begin();
+        assert(index >= 0);
+        return (size_t) index;
+    }
+
+    throw std::runtime_error("templ::solvers::csp::ModelDistribution::getResourceModelIndex: could not find model index for '" + model.toString() + "'");
+}
+
+const owlapi::model::IRI& ModelDistribution::getResourceModelFromIndex(size_t index) const
+{
+    if(index < mAvailableModels.size())
+    {
+        return mAvailableModels[index];
+    }
+    throw std::invalid_argument("templ::solvers::csp::ModelDistribution::getResourceModelIndex: index is out of bounds");
+}
+
+size_t ModelDistribution::getResourceModelMaxCardinality(size_t index) const
+{
+    return mModelPool[ getResourceModelFromIndex(index) ];
+}
 } // end namespace csp
 } // end namespace solvers
 } // end namespace templ
