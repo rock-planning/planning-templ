@@ -59,8 +59,11 @@ typedef std::map<FluentTimeService, std::vector<uint32_t> > Solution;
 
 class ModelDistribution : public Gecode::Space
 {
+
     Mission mMission;
     organization_model::ModelPool mModelPool;
+    organization_model::OrganizationModelAsk mAsk;
+
     owlapi::model::IRIList mServices;
     std::vector<solvers::temporal::Interval> mIntervals;
     std::vector<ObjectVariable::Ptr> mVariables;
@@ -76,9 +79,8 @@ class ModelDistribution : public Gecode::Space
     /// Domain for each requirement
     std::map<FluentTimeService, organization_model::ModelCombinationSet> mRequirementsDomain;
 
-    Gecode::SetVarArray mSetAssignments;
+    Gecode::IntVarArray mModelUsage;
     owlapi::model::IRIList mAvailableModels;
-    organization_model::OrganizationModelAsk mAsk;
 private:
     /**
      * Find a solution for the model distribution
@@ -99,11 +101,17 @@ private:
     std::vector<uint32_t> toCSP(const organization_model::ModelCombination& combination) const;
     uint32_t systemModelToCSP(const owlapi::model::IRI& model) const;
 
+    Gecode::TupleSet toTupleSet(const organization_model::ModelCombinationSet& combinations) const;
 
     size_t getFluentIndex(const FluentTimeService& fluent) const;
     size_t getResourceModelIndex(const owlapi::model::IRI& model) const;
-    owlapi::model::IRI getResourceModelFromIndex(size_t index) const;
+    const owlapi::model::IRI& getResourceModelFromIndex(size_t index) const;
     size_t getResourceModelMaxCardinality(size_t model) const;
+
+    std::vector<FluentTimeService> getRequirements() const;
+    std::vector< std::vector<FluentTimeService> > getConcurrentRequirements() const;
+
+    size_t getMaxResourceCount(const organization_model::ModelPool& model) const;
 
 protected:
 

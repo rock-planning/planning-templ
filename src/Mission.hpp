@@ -48,9 +48,9 @@ public:
 
     organization_model::OrganizationModel::Ptr getOrganizationModel() const { return mpOrganizationModel; }
 
-    owlapi::model::IRISet getInvolvedServices() const { return mInvolvedServices; }
-    std::unordered_set<solvers::temporal::Interval> getTimeIntervals() const { return mTimeIntervals; }
-    std::set<ObjectVariable::Ptr> getObjectVariables() const { return mObjectVariables; }
+    const owlapi::model::IRISet& getInvolvedServices() const { return mInvolvedServices; }
+    const std::unordered_set<solvers::temporal::Interval>& getTimeIntervals() const { return mTimeIntervals; }
+    const std::set<ObjectVariable::Ptr>& getObjectVariables() const { return mObjectVariables; }
 
     solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr getTemporalConstraintNetwork() const {
         return mpTemporalConstraintNetwork; }
