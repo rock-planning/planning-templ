@@ -3,6 +3,7 @@
 #include <numeric/Combinatorics.hpp>
 #include <gecode/minimodel.hh>
 
+#include <gecode/gist.hh>
 #include <organization_model/Algebra.hpp>
 
 namespace templ {
@@ -11,45 +12,45 @@ namespace csp {
 
 ModelDistribution* ModelDistribution::solve()
 {
-    Gecode::BAB<ModelDistribution> searchEngine(this);
-    //Gecode::DFS<ResourceMatch> searchEngine(this);
-
-    ModelDistribution* best = NULL;
-    while(ModelDistribution* current = searchEngine.next())
-    {
-        delete best;
-        best = current;
-
-        using namespace organization_model;
-        ModelPoolDelta allGblConsumedResources;
-        ModelPoolDelta allLubConsumedResources;
-        Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mMission.getResources().size(), mRequirements.size());
-
-        LOG_INFO_S << "Solution found:";
-        // Check if resource requirements holds
-        for(size_t i = 0; i < mRequirements.size(); ++i)
-        {
-            LOG_DEBUG_S << "assignment for:"
-                << mRequirements[i].toString();
-
-            for(size_t mi = 0; mi < mMission.getResources().size(); ++mi)
-            {
-                Gecode::IntVar var = resourceDistribution(mi, i);
-                Gecode::IntVarValues v( var );
-                LOG_DEBUG_S << "    "
-                    << mAvailableModels[mi].toString()
-                    << ": #" << v.val();
-            }
-        }
-        break;
-    }
-
-    if(best == NULL)
-    {
-        throw std::runtime_error("templ::solvers::csp::ModelDistribution::solve: no solution found");
-    }
-
-    return best;
+    throw std::runtime_error("Should not call solve");
+//    Gecode::BAB<ModelDistribution> searchEngine(this);
+//    //Gecode::DFS<ModelDistribution> searchEngine(this);
+//
+//    ModelDistribution* best = NULL;
+//    while(ModelDistribution* current = searchEngine.next())
+//    {
+//        delete best;
+//        best = current;
+//
+//        using namespace organization_model;
+//        Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mMission.getResources().size(), mRequirements.size());
+//
+//        LOG_INFO_S << "Solution found:" << toString();
+////        // Check if resource requirements holds
+////        for(size_t i = 0; i < mRequirements.size(); ++i)
+////        {
+////            LOG_DEBUG_S << "assignment for:"
+////                << mRequirements[i].toString()
+////                << " available resources: " << mMission.getResources().size();
+////
+////            for(size_t mi = 0; mi < mMission.getResources().size(); ++mi)
+////            {
+////                Gecode::IntVar var = resourceDistribution(mi, i);
+////                Gecode::IntVarValues v( var );
+////                LOG_DEBUG_S << "    "
+////                    << mAvailableModels[mi].toString()
+////                    << ": #" << v.val();
+////            }
+////        }
+//        //break;
+//    }
+//
+//    if(best == NULL)
+//    {
+//        throw std::runtime_error("templ::solvers::csp::ModelDistribution::solve: no solution found");
+//    }
+//
+//    return best;
 }
 
 Solution ModelDistribution::getSolution() const
@@ -125,7 +126,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
     , mVariables(mission.getObjectVariables().begin(), mission.getObjectVariables().end())
     , mRequirements(getRequirements())
     , mModelUsage(*this, /*# of models*/ mission.getResources().size()*
-            /*# of fluent time services*/mRequirements.size(), 0, getMaxResourceCount(mModelPool) - 1 )
+            /*# of fluent time services*/mRequirements.size(), 0, getMaxResourceCount(mModelPool))
 {
     LOG_INFO_S << "ModelDistribution CSP Problem Construction" << std::endl
     << "    services: " << mServices << std::endl
@@ -144,7 +145,6 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
     //LOG_DEBUG_S << "Intargs: " << Gecode::IntSet( x );
 
     ////rel(*this, x + y, Gecode::SRT_SUB, z)
-
 
     Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mission.getResources().size(), /*height --> row*/ mRequirements.size());
     // Example usage
@@ -186,19 +186,24 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
             for(; fit != mRequirements.end(); ++fit)
             {
                 const FluentTimeService& fts = *fit;
+                LOG_DEBUG_S << "(A) Requirement: " << fts.toString();
 
                 // row: index of requirement
                 // col: index of model type
                 size_t requirementIndex = fit - mRequirements.begin();
+                Gecode::IntArgs c(mAvailableModels.size());
                 for(size_t mi = 0; mi < mAvailableModels.size(); ++mi)
                 {
                     Gecode::IntVar v = resourceDistribution(mi, requirementIndex);
                     // default min requirement is 0
                     rel(*this, v, Gecode::IRT_GQ, 0);
                     // setting the upper bound for this model and this service
-                    LOG_WARN_S << mi << "/" << requirementIndex << " IRT_GQ 0"
-                     " IRT_LQ: " << mModelPool[ mAvailableModels[mi] ];
+                    LOG_WARN_S << "requirement: " << requirementIndex 
+                        << ", model: " << mi 
+                        << " IRT_GQ 0 IRT_LQ: " << mModelPool[ mAvailableModels[mi] ];
                     rel(*this, v, Gecode::IRT_LQ, mModelPool[ mAvailableModels[mi] ]);
+
+                    c[mi] = 1;
                 }
 
                 // Extensional constraints, i.e. specifying the allowed
@@ -210,7 +215,11 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
                 extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
 
                 // there can be no empty assignment
-                rel(*this, sum( resourceDistribution.row(requirementIndex) ) > 0);
+                LOG_DEBUG_S << "Row: " << requirementIndex << " should not be empty";
+                LOG_DEBUG_S << "    " << resourceDistribution.row(requirementIndex);
+                // This is not working
+                //rel(*this, sum( resourceDistribution.row(requirementIndex) ) > 0);
+                linear(*this, c, resourceDistribution.row(requirementIndex), Gecode::IRT_GR, 0);
             }
         }
     }
@@ -225,27 +234,48 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
         std::vector< std::vector<FluentTimeService> >::const_iterator cit = concurrentRequirements.begin();
         for(; cit != concurrentRequirements.end(); ++cit)
         {
+            LOG_DEBUG_S << "Concurrent requirements";
             const std::vector<FluentTimeService>& concurrentFluents = *cit;
-            std::vector<FluentTimeService>::const_iterator fit = concurrentFluents.begin();
             for(size_t mi = 0; mi < mAvailableModels.size(); ++mi)
             {
+                LOG_DEBUG_S << "    model: " << mAvailableModels[ mi ].toString();
                 Gecode::IntVarArgs args;
+
+                std::vector<FluentTimeService>::const_iterator fit = concurrentFluents.begin();
                 for(; fit != concurrentFluents.end(); ++fit)
                 {
                     Gecode::IntVar v = resourceDistribution(mi, getFluentIndex(*fit));
                     args << v;
-                }
 
-                rel(*this, sum(args) < mModelPool[ mAvailableModels[mi] ] );
+                    LOG_DEBUG_S << "    index: " << mi << "/" << getFluentIndex(*fit);
+                }
+                
+                uint32_t maxCardinality = mModelPool[ mAvailableModels[mi] ];
+                LOG_DEBUG_S << "General resource usage constraint: " << std::endl
+                    << "     " << mAvailableModels[mi].toString() << "# <= " << maxCardinality;
+                rel(*this, sum(args) <= maxCardinality);
             }
         }
     }
+
+    this->status();
+    LOG_DEBUG_S << "STATUS: " << toString();
+
+    branch(*this, mModelUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());
+    //branch(*this, mModelUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_SPLIT_MIN());
+    //branch(*this, mModelUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_SPLIT_MIN());
+    
+    //Gecode::Gist::Print<ModelDistribution> p("Print solution");
+    //Gecode::Gist::Options o;
+    //o.inspect.click(&p);
+    //Gecode::Gist::bab(this, o);
+    
 }
 
 ModelDistribution::ModelDistribution(bool share, ModelDistribution& other)
     : Gecode::Space(share, other)
     , mMission(other.mMission)
-    , mModelPool(other.mMission.getResources())
+    , mModelPool(other.mModelPool)
     , mAsk(other.mAsk)
     , mServices(other.mServices)
     , mIntervals(other.mIntervals)
@@ -254,6 +284,7 @@ ModelDistribution::ModelDistribution(bool share, ModelDistribution& other)
     , mDomain(other.mDomain)
     , mAvailableModels(other.mAvailableModels)
 {
+    LOG_DEBUG_S << "Copy construct";
     mModelUsage.update(*this, share, other.mModelUsage);
 }
 
@@ -269,17 +300,51 @@ std::vector<Solution> ModelDistribution::solve(const templ::Mission& _mission)
     Mission mission = _mission;
     mission.prepare();
     ModelDistribution* distribution = new ModelDistribution(mission);
-    ModelDistribution* solvedDistribution = distribution->solve();
+    ModelDistribution* solvedDistribution = NULL;
+    {
+        Gecode::BAB<ModelDistribution> searchEngine(distribution);
+        //Gecode::DFS<ModelDistribution> searchEngine(this);
+
+        ModelDistribution* best = NULL;
+        while(ModelDistribution* current = searchEngine.next())
+        {
+            delete best;
+            best = current;
+
+            using namespace organization_model;
+            LOG_INFO_S << "Solution found:" << current->toString();
+    //        // Check if resource requirements holds
+    //        for(size_t i = 0; i < mRequirements.size(); ++i)
+    //        {
+    //            LOG_DEBUG_S << "assignment for:"
+    //                << mRequirements[i].toString()
+    //                << " available resources: " << mMission.getResources().size();
+    //
+    //            for(size_t mi = 0; mi < mMission.getResources().size(); ++mi)
+    //            {
+    //                Gecode::IntVar var = resourceDistribution(mi, i);
+    //                Gecode::IntVarValues v( var );
+    //                LOG_DEBUG_S << "    "
+    //                    << mAvailableModels[mi].toString()
+    //                    << ": #" << v.val();
+    //            }
+    //        }
+            //break;
+        }
+
+        if(best == NULL)
+        {
+            throw std::runtime_error("templ::solvers::csp::ModelDistribution::solve: no solution found");
+        }
+
+        solvedDistribution = best;
+    }
+
     solutions.push_back(solvedDistribution->getSolution());
     delete solvedDistribution;
     solvedDistribution = NULL;
 
     return solutions;
-}
-
-std::string ModelDistribution::toString() const
-{
-    throw std::runtime_error("ModelDistribution::toString: not implemented");
 }
 
 Gecode::TupleSet ModelDistribution::toTupleSet(const organization_model::ModelCombinationSet& combinations) const
@@ -299,7 +364,7 @@ Gecode::TupleSet ModelDistribution::toTupleSet(const organization_model::ModelCo
         {
             args << *tit;
         }
-        LOG_DEBUG_S << "Intargs: " << args;
+        LOG_DEBUG_S << "TupleSet: intargs: " << args;
 
         tupleSet.add( args );
     }
@@ -416,19 +481,29 @@ std::vector< std::vector<FluentTimeService> > ModelDistribution::getConcurrentRe
 
         for(size_t a = 0; a < requirementsCount; ++a)
         {
+            if(a == i)
+            {
+                continue;
+            }
+
             const FluentTimeService& aFts = mRequirements.at(a);
 
             using namespace templ::solvers::temporal;
             Interval iInterval = mIntervals[iFts.time];
             Interval aInterval = mIntervals[aFts.time];
 
+
             if(iInterval.overlaps(aInterval))
             {
+                LOG_DEBUG_S << "    " << iFts.toString();
                 concurrentFts.push_back(aFts);
             }
         }
 
-        concurrentRequirements.push_back(concurrentFts);
+        if(concurrentFts.size() > 1)
+        {
+            concurrentRequirements.push_back(concurrentFts);
+        }
     }
 
     return concurrentRequirements;
@@ -443,6 +518,43 @@ size_t ModelDistribution::getMaxResourceCount(const organization_model::ModelPoo
         maxValue = std::max( maxValue, cit->second);
     }
     return maxValue;
+}
+
+std::string ModelDistribution::toString() const
+{
+    std::stringstream ss;
+    ss << "ModelDistribution: #" << std::endl;
+//    ss << "ModelDistribution: #" << mModelUsage;
+//    ss << "ModelDistribution: #" << mMission.getResources().size();
+//    ss << "ModelDistribution: #" << mRequirements.size();
+
+    //Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mModelPool.size(), mRequirements.size());
+
+    //// Check if resource requirements holds
+    //for(size_t i = 0; i < mRequirements.size(); ++i)
+    //{
+    //    ss << "assignment for:"
+    //        << mRequirements[i].toString()
+    //        << " available resources: " << mMission.getResources().size()
+    //        << std::endl;
+
+    //    for(size_t mi = 0; mi < mMission.getResources().size(); ++mi)
+    //    {
+    //        Gecode::IntVar var = resourceDistribution(mi, i);
+    //        var.assigned();
+    //        Gecode::IntVarValues v( var );
+    //        ss << "    "
+    //            << mAvailableModels[mi].toString()
+    //            << " : "
+    //            << "assigned #" << v.val()
+    //            << std::endl;
+    //        ss << "Index: " << mi << "/" << i << " --> " << v.val() << std::endl;
+    //    }
+    //}
+    // ss << "Array: " << resourceDistribution;
+    ss << "Current model usage: " << mModelUsage;
+
+    return ss.str();
 }
 
 } // end namespace csp

@@ -114,7 +114,6 @@ private:
     size_t getMaxResourceCount(const organization_model::ModelPool& model) const;
 
 protected:
-
 public:
     ModelDistribution(const templ::Mission& mission);
 
@@ -134,6 +133,8 @@ public:
     static std::vector<Solution> solve(const templ::Mission& mission);
 
     std::string toString() const;
+    void print(std::ostream& os) const { os << toString() << std::endl; }
+
 };
 
 } // end namespace csp
