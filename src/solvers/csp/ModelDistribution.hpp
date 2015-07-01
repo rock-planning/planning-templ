@@ -55,7 +55,8 @@ struct FluentTimeService
     }
 };
 
-typedef std::map<FluentTimeService, std::vector<uint32_t> > Solution;
+typedef std::map<FluentTimeService, organization_model::ModelPool > Solution;
+typedef std::vector<Solution> SolutionList;
 
 class ModelDistribution : public Gecode::Space
 {
@@ -130,12 +131,14 @@ public:
      */
     virtual Gecode::Space* copy(bool share);
 
-    static std::vector<Solution> solve(const templ::Mission& mission);
+    static SolutionList solve(const templ::Mission& mission);
 
     std::string toString() const;
     void print(std::ostream& os) const { os << toString() << std::endl; }
-
 };
+
+std::ostream& operator<<(std::ostream& os, const Solution& solution);
+std::ostream& operator<<(std::ostream& os, const SolutionList& solutions);
 
 } // end namespace csp
 } // end namespace solvers

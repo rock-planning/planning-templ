@@ -137,7 +137,18 @@ BOOST_AUTO_TEST_CASE(mission_1)
         organization_model::ModelPool modelPool;
         modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 10;
         mission.setResources(modelPool);
-        solvers::csp::ModelDistribution::solve(mission);
+        std::vector<solvers::csp::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
+        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+    }
+
+    using namespace solvers;
+    {
+        organization_model::ModelPool modelPool;
+        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
+        modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 1;
+        mission.setResources(modelPool);
+        std::vector<solvers::csp::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
+        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
     }
 }
 
