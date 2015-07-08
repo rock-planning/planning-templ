@@ -7,7 +7,6 @@
   <url>http://</url>
   <logo>http://</logo>
   <depend package="base/cmake" />
-  <depend package="gecode" />
   <depend package="tools/graph_analysis" />
-  <depend packake="multiagent/organization_model" />
+  <depend package="multiagent/organization_model" />
 </package>
