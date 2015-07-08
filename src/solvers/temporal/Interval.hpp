@@ -3,6 +3,7 @@
 
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
+#include <set>
 
 namespace templ {
 namespace solvers {
@@ -107,6 +108,21 @@ public:
      * Stringify interval object
      */
     std::string toString() const;
+
+    /**
+     * Check if all given intervals overlap with each other
+     * \return true if all intervals in the given list overlap with each other
+     *      false otherwise
+     */
+    static bool areOverlapping(const std::vector<uint32_t>& indices, const std::vector<Interval>& intervals);
+
+    /**
+     * Get all combinations of intervals that overlap with each other
+     * \return set of overlapping interval combinations using the index of given
+     * set of intervals
+     */
+    static std::set< std::vector<uint32_t> > overlappingIntervals(const std::vector<Interval>& intervals);
+
 };
 
 } // end namespace temporal
@@ -129,7 +145,6 @@ struct hash<templ::solvers::temporal::Interval>
         size_t h2 = std::hash<TimePoint*>()(i.getTo().get());
         return h1 ^ ( h2 << 1 );
     }
-
 };
 
 }
