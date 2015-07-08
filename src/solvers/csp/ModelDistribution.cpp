@@ -467,6 +467,7 @@ std::vector<FluentTimeService> ModelDistribution::getRequirements() const
 
             requirements.push_back(lts);
             LOG_DEBUG_S << lts.toString();
+
         }
     }
     return requirements;
@@ -474,44 +475,42 @@ std::vector<FluentTimeService> ModelDistribution::getRequirements() const
 
 std::vector< std::vector<FluentTimeService> > ModelDistribution::getConcurrentRequirements() const
 {
-    size_t requirementsCount = mRequirements.size();
-    std::vector< std::vector<FluentTimeService> > concurrentRequirements;
-
-    for(size_t i = 0; i < requirementsCount; ++i)
+    // map timeslot to fluenttime service
+    std::map<uint32_t, std::vector<FluentTimeService> > timeIndexedRequirements;
     {
-        std::vector<FluentTimeService> concurrentFts;
-        const FluentTimeService& iFts = mRequirements.at(i);
-
-        concurrentFts.push_back(iFts);
-
-        for(size_t a = 0; a < requirementsCount; ++a)
+        std::vector<FluentTimeService>::const_iterator rit = mRequirements.begin();
+        for(; rit != mRequirements.end(); ++rit)
         {
-            if(a == i)
-            {
-                continue;
-            }
-
-            const FluentTimeService& aFts = mRequirements.at(a);
-
-            using namespace templ::solvers::temporal;
-            Interval iInterval = mIntervals[iFts.time];
-            Interval aInterval = mIntervals[aFts.time];
-
-
-            if(iInterval.overlaps(aInterval))
-            {
-                LOG_DEBUG_S << "    " << iFts.toString();
-                concurrentFts.push_back(aFts);
-            }
-        }
-
-        if(concurrentFts.size() > 1)
-        {
-            concurrentRequirements.push_back(concurrentFts);
+            const FluentTimeService& fts = *rit;
+            // map the time index
+            timeIndexedRequirements[ rit->time ].push_back(fts);
         }
     }
 
-    return concurrentRequirements;
+    typedef std::vector<uint32_t> IndexCombination;
+    typedef std::set< IndexCombination > IndexCombinationSet;
+    IndexCombinationSet overlappingIntervals = solvers::temporal::Interval::overlappingIntervals(mIntervals);
+
+    std::vector< std::vector<FluentTimeService> > concurrentFts;
+
+    IndexCombinationSet::const_iterator cit = overlappingIntervals.begin();
+    for(; cit != overlappingIntervals.end(); ++cit)
+    {
+        std::vector<FluentTimeService> concurrent;
+
+        const IndexCombination& indexCombination = *cit;
+        IndexCombination::const_iterator iit = indexCombination.begin();
+        for(; iit != indexCombination.end(); ++iit)
+        {
+            uint32_t timeIndex = *iit;
+            const std::vector<FluentTimeService>& fts = timeIndexedRequirements[ timeIndex ];
+
+            concurrent.insert(concurrent.end(), fts.begin(), fts.end());
+        }
+        concurrentFts.push_back(concurrent);
+    }
+
+    return concurrentFts;
 }
 
 size_t ModelDistribution::getMaxResourceCount(const organization_model::ModelPool& pool) const
