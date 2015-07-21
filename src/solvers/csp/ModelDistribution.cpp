@@ -569,7 +569,9 @@ std::ostream& operator<<(std::ostream& os, const Solution& solution)
         const FluentTimeService& fts = cit->first;
         os << "--- requirement #" << count++ << std::endl;
         os << fts.toString() << std::endl;
-        os << organization_model::ModelPoolDelta(cit->second).toString() << std::endl;
+
+        const organization_model::ModelPool& modelPool = cit->second;
+        os << modelPool.toString() << std::endl;
     }
     return os;
 }
