@@ -53,6 +53,14 @@ struct FluentTimeService
         ss << "    fluent: #" << fluent << std::endl;
         return ss.str();
     }
+
+    /**
+     * Get the overlapping/concurrent FluentTimeServices
+     * from indexed list of intervals
+     * \param requirements Referencing intervals using index
+     * \param intervals Intervallist that is reference by requirements
+     */
+    static std::vector< std::vector<FluentTimeService> > getConcurrent(const std::vector<FluentTimeService>& requirements, const std::vector<solvers::temporal::Interval>& intervals);
 };
 
 class ModelDistribution : public Gecode::Space
@@ -81,10 +89,21 @@ private:
     /// Domain for each requirement
     std::map<FluentTimeService, organization_model::ModelCombinationSet> mRequirementsDomain;
 
+    // Array which will be access using Gecode::Matrix
+    // -- contains information about the robot types required to
+    // fullfill r-0
+    // Additional resource constraints apply due to the upper resource
+    // bound and time
+    //  requirement | robot-type-0 | robot-type-1 | robot-type-2 | ...
+    //  r-0         |      1       |      0       |      1       | ...
+    //  r-1         |      0       |      2       |      2       | ...
     Gecode::IntVarArray mModelUsage;
     owlapi::model::IRIList mAvailableModels;
 
 private:
+    /**
+     * Get the solution of this Gecode::Space instance
+     */
     Solution getSolution() const;
 
     // TimeInterval -- Location (StateVariable) : associated robot models
@@ -93,6 +112,9 @@ private:
     //
     // optional:
     //  - parameterize on resource usage/distribution
+
+    // Get the minimum requirements as set of ModelCombinations
+    // \return ModelCombinations that fulfill the requirement
     organization_model::ModelCombinationSet getDomain(const FluentTimeService& requirement) const;
 
     std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelCombinationSet& set) const;
@@ -112,7 +134,6 @@ private:
     size_t getResourceModelMaxCardinality(size_t model) const;
 
     std::vector<FluentTimeService> getRequirements() const;
-    std::vector< std::vector<FluentTimeService> > getConcurrentRequirements() const;
 
     size_t getMaxResourceCount(const organization_model::ModelPool& model) const;
 

@@ -10,7 +10,6 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
-
 ModelDistribution::Solution ModelDistribution::getSolution() const
 {
     Solution solution;
@@ -165,7 +164,6 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
         LOG_INFO_S << mAsk.toString();
         LOG_DEBUG_S << "Involved services: " << owlapi::model::IRI::toString(mServices, true);
 
-        // TODO Check for time interval overlaps
         {
             std::vector<FluentTimeService>::const_iterator fit = mRequirements.begin();
             for(; fit != mRequirements.end(); ++fit)
@@ -182,11 +180,11 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
                     // default min requirement is 0
                     rel(*this, v, Gecode::IRT_GQ, 0);
                     // setting the upper bound for this model and this service
+                    // based on what the model pool can provide
                     LOG_DEBUG_S << "requirement: " << requirementIndex
                         << ", model: " << mi
                         << " IRT_GQ 0 IRT_LQ: " << mModelPool[ mAvailableModels[mi] ];
                     rel(*this, v, Gecode::IRT_LQ, mModelPool[ mAvailableModels[mi] ]);
-
                 }
 
                 // Extensional constraints, i.e. specifying the allowed
@@ -209,12 +207,11 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
         }
     }
     // Part (B) General resource constraints
-    //     - identify overlapping fts, limit resources for these (TODO: better
-    //     indentification of overlapping requirements)
+    // - identify overlapping fts, limit resources for these 
     {
         // Set of available models: mModelPool
         // Make sure the assignments are within resource bounds for concurrent requirements
-        std::vector< std::vector<FluentTimeService> > concurrentRequirements = getConcurrentRequirements();
+        std::vector< std::vector<FluentTimeService> > concurrentRequirements = FluentTimeService::getConcurrent(mRequirements, mIntervals);
 
         std::vector< std::vector<FluentTimeService> >::const_iterator cit = concurrentRequirements.begin();
         for(; cit != concurrentRequirements.end(); ++cit)
@@ -431,13 +428,13 @@ std::vector<FluentTimeService> ModelDistribution::getRequirements() const
     return requirements;
 }
 
-std::vector< std::vector<FluentTimeService> > ModelDistribution::getConcurrentRequirements() const
+std::vector< std::vector<FluentTimeService> > FluentTimeService::getConcurrent(const std::vector<FluentTimeService>& requirements, const std::vector<solvers::temporal::Interval>& intervals)
 {
     // map timeslot to fluenttime service
     std::map<uint32_t, std::vector<FluentTimeService> > timeIndexedRequirements;
     {
-        std::vector<FluentTimeService>::const_iterator rit = mRequirements.begin();
-        for(; rit != mRequirements.end(); ++rit)
+        std::vector<FluentTimeService>::const_iterator rit = requirements.begin();
+        for(; rit != requirements.end(); ++rit)
         {
             const FluentTimeService& fts = *rit;
             // map the time index
@@ -447,7 +444,7 @@ std::vector< std::vector<FluentTimeService> > ModelDistribution::getConcurrentRe
 
     typedef std::vector<uint32_t> IndexCombination;
     typedef std::set< IndexCombination > IndexCombinationSet;
-    IndexCombinationSet overlappingIntervals = solvers::temporal::Interval::overlappingIntervals(mIntervals);
+    IndexCombinationSet overlappingIntervals = solvers::temporal::Interval::overlappingIntervals(intervals);
 
     std::vector< std::vector<FluentTimeService> > concurrentFts;
 
