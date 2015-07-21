@@ -55,12 +55,13 @@ struct FluentTimeService
     }
 };
 
-typedef std::map<FluentTimeService, organization_model::ModelPool > Solution;
-typedef std::vector<Solution> SolutionList;
-
 class ModelDistribution : public Gecode::Space
 {
+public:
+    typedef std::map<FluentTimeService, organization_model::ModelPool > Solution;
+    typedef std::vector<Solution> SolutionList;
 
+private:
     Mission mMission;
     organization_model::ModelPool mModelPool;
     organization_model::OrganizationModelAsk mAsk;
@@ -82,12 +83,8 @@ class ModelDistribution : public Gecode::Space
 
     Gecode::IntVarArray mModelUsage;
     owlapi::model::IRIList mAvailableModels;
-private:
-    /**
-     * Find a solution for the model distribution
-     */
-    ModelDistribution* solve();
 
+private:
     Solution getSolution() const;
 
     // TimeInterval -- Location (StateVariable) : associated robot models
@@ -102,6 +99,11 @@ private:
     std::vector<uint32_t> toCSP(const organization_model::ModelCombination& combination) const;
     uint32_t systemModelToCSP(const owlapi::model::IRI& model) const;
 
+    /**
+     * Convert the given list of combinations to a Gecode::TupleSet, i.e. create
+     * extensional constraints out of the combination set
+     * \return TupleSet
+     */
     Gecode::TupleSet toTupleSet(const organization_model::ModelCombinationSet& combinations) const;
 
     size_t getFluentIndex(const FluentTimeService& fluent) const;
@@ -137,8 +139,8 @@ public:
     void print(std::ostream& os) const { os << toString() << std::endl; }
 };
 
-std::ostream& operator<<(std::ostream& os, const Solution& solution);
-std::ostream& operator<<(std::ostream& os, const SolutionList& solutions);
+std::ostream& operator<<(std::ostream& os, const ModelDistribution::Solution& solution);
+std::ostream& operator<<(std::ostream& os, const ModelDistribution::SolutionList& solutions);
 
 } // end namespace csp
 } // end namespace solvers

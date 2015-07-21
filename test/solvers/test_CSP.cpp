@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
         organization_model::ModelPool modelPool;
         modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 10;
         mission.setResources(modelPool);
-        std::vector<solvers::csp::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
+        std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
     }
 
@@ -147,7 +147,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
         modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
         modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 1;
         mission.setResources(modelPool);
-        std::vector<solvers::csp::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
+        std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
     }
 
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
         modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 3;
         modelPool[ owlapi::vocabulary::OM::resolve("Payload") ] = 10;
         mission.setResources(modelPool);
-        std::vector<solvers::csp::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
+        std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
     }
 
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
         organization_model::Service emi_power_provider( owlapi::vocabulary::OM::resolve("EmiPowerProvider"));
         mission.addConstraint(emi_power_provider,
             mp1, t2, t3);
-        std::vector<solvers::csp::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
+        std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
     }
 }

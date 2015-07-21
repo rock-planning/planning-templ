@@ -10,50 +10,8 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
-ModelDistribution* ModelDistribution::solve()
-{
-    throw std::runtime_error("Should not call solve");
-//    Gecode::BAB<ModelDistribution> searchEngine(this);
-//    //Gecode::DFS<ModelDistribution> searchEngine(this);
-//
-//    ModelDistribution* best = NULL;
-//    while(ModelDistribution* current = searchEngine.next())
-//    {
-//        delete best;
-//        best = current;
-//
-//        using namespace organization_model;
-//        Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mMission.getResources().size(), mRequirements.size());
-//
-//        LOG_INFO_S << "Solution found:" << toString();
-////        // Check if resource requirements holds
-////        for(size_t i = 0; i < mRequirements.size(); ++i)
-////        {
-////            LOG_DEBUG_S << "assignment for:"
-////                << mRequirements[i].toString()
-////                << " available resources: " << mMission.getResources().size();
-////
-////            for(size_t mi = 0; mi < mMission.getResources().size(); ++mi)
-////            {
-////                Gecode::IntVar var = resourceDistribution(mi, i);
-////                Gecode::IntVarValues v( var );
-////                LOG_DEBUG_S << "    "
-////                    << mAvailableModels[mi].toString()
-////                    << ": #" << v.val();
-////            }
-////        }
-//        //break;
-//    }
-//
-//    if(best == NULL)
-//    {
-//        throw std::runtime_error("templ::solvers::csp::ModelDistribution::solve: no solution found");
-//    }
-//
-//    return best;
-}
 
-Solution ModelDistribution::getSolution() const
+ModelDistribution::Solution ModelDistribution::getSolution() const
 {
     Solution solution;
     Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mModelPool.size(), mRequirements.size());
@@ -317,7 +275,7 @@ Gecode::Space* ModelDistribution::copy(bool share)
     return new ModelDistribution(share, *this);
 }
 
-std::vector<Solution> ModelDistribution::solve(const templ::Mission& _mission)
+std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::Mission& _mission)
 {
     SolutionList solutions;
 
@@ -528,7 +486,6 @@ std::string ModelDistribution::toString() const
 {
     std::stringstream ss;
     ss << "ModelDistribution: #" << std::endl;
-
     //Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mModelPool.size(), mRequirements.size());
 
     //// Check if resource requirements holds
@@ -559,9 +516,9 @@ std::string ModelDistribution::toString() const
 }
 
 
-std::ostream& operator<<(std::ostream& os, const Solution& solution)
+std::ostream& operator<<(std::ostream& os, const ModelDistribution::Solution& solution)
 {
-    Solution::const_iterator cit = solution.begin();
+    ModelDistribution::Solution::const_iterator cit = solution.begin();
     size_t count = 0;
     os << "Solution" << std::endl;
     for(; cit != solution.end(); ++cit)
@@ -576,9 +533,9 @@ std::ostream& operator<<(std::ostream& os, const Solution& solution)
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const SolutionList& solutions)
+std::ostream& operator<<(std::ostream& os, const ModelDistribution::SolutionList& solutions)
 {
-    SolutionList::const_iterator cit = solutions.begin();
+    ModelDistribution::SolutionList::const_iterator cit = solutions.begin();
     os << std::endl << "BEGIN SolutionList (#" << solutions.size() << " solutions)" << std::endl;
     size_t count = 0;
     for(; cit != solutions.end(); ++cit)
