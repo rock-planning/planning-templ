@@ -107,16 +107,11 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
     , mRequirements(getRequirements())
     , mModelUsage(*this, /*# of models*/ mission.getResources().size()*
             /*# of fluent time services*/mRequirements.size(), 0, getMaxResourceCount(mModelPool))
+    , mAvailableModels(mission.getModels())
 {
     LOG_INFO_S << "ModelDistribution CSP Problem Construction" << std::endl
     << "    services: " << mServices << std::endl
     << "    intervals: " << mIntervals.size() << std::endl;
-
-    organization_model::ModelPool::const_iterator mit = mModelPool.begin();
-    for(; mit != mModelPool.end(); ++mit)
-    {
-        mAvailableModels.push_back(mit->first);
-    }
 
     //Gecode::IntArgs x = Gecode::IntArgs::create(3,2,0);
     //Gecode::IntArgs y = Gecode::IntArgs::create(2,2,0);
@@ -446,6 +441,9 @@ std::vector< std::vector<FluentTimeService> > FluentTimeService::getConcurrent(c
     typedef std::set< IndexCombination > IndexCombinationSet;
     IndexCombinationSet overlappingIntervals = solvers::temporal::Interval::overlappingIntervals(intervals);
 
+    LOG_INFO_S << "Number of overlapping interval combinations: " << overlappingIntervals.size()
+        << " from " << intervals.size() << " intervals overall";
+
     std::vector< std::vector<FluentTimeService> > concurrentFts;
 
     IndexCombinationSet::const_iterator cit = overlappingIntervals.begin();
@@ -511,7 +509,6 @@ std::string ModelDistribution::toString() const
 
     return ss.str();
 }
-
 
 std::ostream& operator<<(std::ostream& os, const ModelDistribution::Solution& solution)
 {

@@ -20,6 +20,8 @@ struct FluentTimeService
     uint32_t time;
     uint32_t fluent;
 
+    typedef std::vector<FluentTimeService> List;
+
     FluentTimeService(uint32_t service, uint32_t time, uint32_t fluent)
         : service(service)
         , time(time)
@@ -60,7 +62,9 @@ struct FluentTimeService
      * \param requirements Referencing intervals using index
      * \param intervals Intervallist that is reference by requirements
      */
-    static std::vector< std::vector<FluentTimeService> > getConcurrent(const std::vector<FluentTimeService>& requirements, const std::vector<solvers::temporal::Interval>& intervals);
+    static std::vector< std::vector<FluentTimeService> > getConcurrent(const std::vector<FluentTimeService>& requirements,
+            const std::vector<solvers::temporal::Interval>& intervals);
+
 };
 
 class ModelDistribution : public Gecode::Space
@@ -138,6 +142,7 @@ private:
     size_t getMaxResourceCount(const organization_model::ModelPool& model) const;
 
 protected:
+
 public:
     ModelDistribution(const templ::Mission& mission);
 

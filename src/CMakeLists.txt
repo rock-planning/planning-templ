@@ -6,6 +6,7 @@ rock_library(templ
         MissionPlanner.cpp
         ObjectVariable.cpp
         solvers/csp/ModelDistribution.cpp
+        solvers/csp/RoleDistribution.cpp
         solvers/temporal/Bounds.cpp
         solvers/temporal/Chronicle.cpp
         solvers/temporal/Event.cpp
@@ -32,6 +33,7 @@ rock_library(templ
         ObjectVariable.hpp
         PlannerElement.hpp
         solvers/csp/ModelDistribution.hpp
+        solvers/csp/RoleDistribution.hpp
         solvers/temporal/Bounds.hpp
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp

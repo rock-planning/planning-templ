@@ -8,7 +8,6 @@
 #include <templ/solvers/temporal/Interval.hpp>
 #include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
-
 #include <unordered_set>
 
 namespace templ {
@@ -17,6 +16,24 @@ typedef uint32_t Duration;
 typedef std::string ServiceLocation;
 
 class MissionPlanner;
+
+/**
+ * Role within the mission, representing an individual
+ * system and the corresponding model
+ */
+class Role
+{
+    std::string mName;
+    owlapi::model::IRI mModel;
+public:
+    typedef std::vector<Role> List;
+
+    Role();
+    Role(const std::string& name, const owlapi::model::IRI& model);
+
+    std::string toString() const;
+    static std::string toString(const std::vector<Role>& roles);
+};
 
 class Mission
 {
@@ -42,9 +59,21 @@ public:
 
     void addConstraint(solvers::Constraint::Ptr contraint);
 
-    void setResources(const organization_model::ModelPool& modelPool) { mModelPool = modelPool; }
+    void setResources(const organization_model::ModelPool& modelPool);
 
     const organization_model::ModelPool& getResources() const { return mModelPool; }
+
+    /**
+     * Refresh information, e.g. after updating the resources
+     */
+    void refresh();
+
+    const Role::List& getRoles() const { return mRoles; }
+
+    /**
+     * Get the list of involved models
+     */
+    const owlapi::model::IRIList& getModels() const { return mModels; }
 
     organization_model::OrganizationModel::Ptr getOrganizationModel() const { return mpOrganizationModel; }
 
@@ -63,13 +92,16 @@ protected:
 private:
     organization_model::OrganizationModel::Ptr mpOrganizationModel;
     organization_model::ModelPool mModelPool;
+    // Set of roles that exists within this mission
+    Role::List mRoles;
+    owlapi::model::IRIList mModels;
 
     std::vector<solvers::temporal::PersistenceCondition::Ptr> mPersistenceConditions;
     std::vector<solvers::Constraint::Ptr> mConstraints;
 
     // Structures to facilitate CSP definition
     owlapi::model::IRISet mInvolvedServices;
-    /// Since a sorted set required the less operator for sorting in is not a suitable 
+    /// Since a sorted set required the less operator for sorting in is not a suitable
     /// suitable container for Interval, since overlapping intervals have to be considered
     std::unordered_set<solvers::temporal::Interval> mTimeIntervals;
     std::set<ObjectVariable::Ptr> mObjectVariables;

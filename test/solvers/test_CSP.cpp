@@ -1,6 +1,7 @@
 #include <boost/test/unit_test.hpp>
 #include <templ/Mission.hpp>
 #include <templ/solvers/csp/ModelDistribution.hpp>
+#include <templ/solvers/csp/RoleDistribution.hpp>
 
 #include "../test_utils.hpp"
 
@@ -139,6 +140,10 @@ BOOST_AUTO_TEST_CASE(mission_1)
         mission.setResources(modelPool);
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+
+        // Check role distribution after model distribution
+        std::vector<solvers::csp::RoleDistribution::Solution> roleSolutions = solvers::csp::RoleDistribution::solve(mission, solutions[0]);
+        BOOST_REQUIRE_MESSAGE(!roleSolutions.empty(), "Solutions found for role distribution: " << roleSolutions);
     }
 
     using namespace solvers;
@@ -149,6 +154,10 @@ BOOST_AUTO_TEST_CASE(mission_1)
         mission.setResources(modelPool);
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+
+        // Check role distribution after model distribution
+        std::vector<solvers::csp::RoleDistribution::Solution> roleSolutions = solvers::csp::RoleDistribution::solve(mission, solutions[0]);
+        BOOST_REQUIRE_MESSAGE(!roleSolutions.empty(), "Solutions found for role distribution: " << roleSolutions);
     }
 
     using namespace solvers;
@@ -160,6 +169,10 @@ BOOST_AUTO_TEST_CASE(mission_1)
         mission.setResources(modelPool);
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+
+        // Check role distribution after model distribution
+        std::vector<solvers::csp::RoleDistribution::Solution> roleSolutions = solvers::csp::RoleDistribution::solve(mission, solutions[0]);
+        BOOST_REQUIRE_MESSAGE(!roleSolutions.empty(), "Solutions found for role distribution: " << roleSolutions);
     }
 
     using namespace solvers;
@@ -175,6 +188,10 @@ BOOST_AUTO_TEST_CASE(mission_1)
             mp1, t2, t3);
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+
+        // Check role distribution after model distribution
+        std::vector<solvers::csp::RoleDistribution::Solution> roleSolutions = solvers::csp::RoleDistribution::solve(mission, solutions[0]);
+        BOOST_REQUIRE_MESSAGE(!roleSolutions.empty(), "Solutions found for role distribution: " << roleSolutions);
     }
 }
 

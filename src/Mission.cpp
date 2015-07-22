@@ -5,10 +5,70 @@ namespace templ {
 
 namespace pa = solvers::temporal::point_algebra;
 
+Role::Role()
+    : mName("unknown")
+    , mModel()
+{}
+
+Role::Role(const std::string& name, const owlapi::model::IRI& model)
+    : mName(name)
+    , mModel(model)
+{}
+
+std::string Role::toString() const
+{
+    std::stringstream ss;
+    ss << "Role: " << mName << " (" << mModel.toString() << ")";
+    return ss.str();
+}
+
+std::string Role::toString(const Role::List& roles)
+{
+    std::stringstream ss;
+    Role::List::const_iterator cit = roles.begin();
+    ss << "Roles: " << std::endl;
+    for(; cit != roles.end(); ++cit)
+    {
+        ss << "    - " << cit->toString() << std::endl;
+    }
+    return ss.str();
+}
+
 Mission::Mission(organization_model::OrganizationModel::Ptr om)
     : mpOrganizationModel(om)
     , mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
 {}
+
+void Mission::setResources(const organization_model::ModelPool& modelPool)
+{
+    mModelPool = modelPool;
+    refresh();
+}
+
+void Mission::refresh()
+{
+    mRoles.clear();
+    mModels.clear();
+
+    organization_model::ModelPool::const_iterator cit = mModelPool.begin();
+    for(;cit != mModelPool.end(); ++cit)
+    {
+        const owlapi::model::IRI& model = cit->first;
+        size_t count = cit->second;
+
+        // Update models
+        mModels.push_back(model);
+
+        // Update roles
+        for(size_t i = 0; i < count; ++i)
+        {
+            std::stringstream ss;
+            ss << model.getFragment() << "_" << i;
+            Role role(ss.str(), model);
+            mRoles.push_back(role);
+        }
+    }
+}
 
 void Mission::prepare()
 {
@@ -38,14 +98,14 @@ void Mission::addConstraint(organization_model::Service service,
 
     using namespace solvers::temporal;
     PersistenceCondition::Ptr persistenceCondition = PersistenceCondition::getInstance(sloc,
-            location, 
+            location,
             from,
             to);
 
     mpTemporalConstraintNetwork->addConstraint(from, to, pa::QualitativeTimePointConstraint::LessOrEqual);
 
 
-    mPersistenceConditions.push_back(persistenceCondition); 
+    mPersistenceConditions.push_back(persistenceCondition);
 }
 
 void Mission::addTemporalConstraint(pa::TimePoint::Ptr t1, pa::TimePoint::Ptr t2, pa::QualitativeTimePointConstraint::Type constraint)
