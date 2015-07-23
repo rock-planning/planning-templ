@@ -5,6 +5,7 @@ rock_library(templ
         Mission.cpp
         MissionPlanner.cpp
         ObjectVariable.cpp
+        io/MissionReader.cpp
         solvers/csp/ModelDistribution.cpp
         solvers/csp/RoleDistribution.cpp
         solvers/temporal/Bounds.cpp
@@ -32,6 +33,7 @@ rock_library(templ
         MissionPlanner.hpp
         ObjectVariable.hpp
         PlannerElement.hpp
+        io/MissionReader.hpp
         solvers/csp/ModelDistribution.hpp
         solvers/csp/RoleDistribution.hpp
         solvers/temporal/Bounds.hpp
@@ -64,8 +66,14 @@ rock_library(templ
         gecodegist
         ${Boost_LIBRARIES}
     DEPS_PKGCONFIG graph_analysis numeric organization_model
+        libxml-2.0
 )
 
 rock_executable(templ_bin Main.cpp
     DEPS templ)
+
+rock_executable(templ-mission_reader
+    MissionReaderMain.cpp
+    DEPS templ
+)
 

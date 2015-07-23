@@ -17,6 +17,10 @@ typedef std::string ServiceLocation;
 
 class MissionPlanner;
 
+namespace io {
+    class MissionReader;
+}
+
 /**
  * Role within the mission, representing an individual
  * system and the corresponding model
@@ -38,6 +42,7 @@ public:
 class Mission
 {
     friend class MissionPlanner;
+    friend class io::MissionReader;
     solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
 
 protected:

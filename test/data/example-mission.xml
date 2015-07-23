@@ -1,0 +1,77 @@
+<mission>
+<name>Transterra</name>
+<resources>
+    <resource>
+        <model>http://rock-robotics.org/...#Sherpa</model>
+        <exactCardinality>2</exactCardinality>
+    </resource>
+    <resource>
+        <model>http://rock-robotics.org/...#CREX</model>
+        <exactCardinality>2</exactCardinality>
+    </resource>
+</resources>
+
+<!-- information from ontology or model-based
+<characteristics>
+   <velocity>
+       <min>0</avg>
+       <max>10</avg>
+       <avg>3</avg>
+   </velocity>
+   <energyEfficiency>...</energyEfficiency>
+</characteristics>
+
+<domain>
+    <distance from="l0" to="l1">100</distance>
+</domain>
+-->
+
+<requirements>
+    <requirement>
+        <spatial-requirement>
+            <!-- where it is required -->
+            <location>
+                <id>l0</id>
+            </location>
+        </spatial-requirement>
+
+        <!-- when it is required / mixing qualitative and quantitative
+        information -->
+        <temporal-requirement type="persistence-condition | event" >
+            <quantitative>
+                <from>0</from>
+                <to>inf</to>
+            </quantitative>
+            <qualitative>
+                <id>t0</id>
+            </qualitative>
+        </temporal-requirement>
+
+        <!-- what is required at this very position -->
+        <service-requirement>
+            <service>http:// .... #LocationImageProvider</service>
+            <service>http:// .... #EmiPowerProvider</service>
+        </service-requirement>
+        <resource-requirement>
+            <resource>
+                <model>....#CREX</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <!-- other requirement -->
+</requirements>
+<constraints>
+    <temporal-constraint>
+        <point-algebra>
+            <lessThan lval="t0" rval="t1" />
+            <equals lval="t1" rval="t2" />
+            <lessOrEqual lval="t1" rval="t3" />
+            <lessOrGreater lval="t4" rval="t5" />
+        </point-algebra>
+    </temporal-constraint>
+</constraints>
+
+</mission>
+
+

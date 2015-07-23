@@ -1,0 +1,92 @@
+#ifndef TEMPL_IO_MISSION_READER_HPP
+#define TEMPL_IO_MISSION_READER_HPP
+
+#include <stdio.h>
+#include <string>
+#include <stdexcept>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#include <templ/Mission.hpp>
+
+namespace templ {
+namespace io {
+
+struct Location
+{
+    std::string id;
+
+    std::string toString() const;
+};
+
+struct SpatialRequirement
+{
+    Location location;
+
+    std::string toString() const;
+};
+
+struct TemporalRequirement
+{
+    uint32_t from;
+    uint32_t to;
+
+    std::string id;
+
+    std::string toString() const;
+};
+
+struct ServiceRequirement
+{
+    owlapi::model::IRIList services;
+
+    std::string toString() const;
+};
+
+struct Requirement
+{
+    SpatialRequirement spatial;
+    TemporalRequirement temporal;
+    ServiceRequirement services;
+    organization_model::ModelPool resources;
+
+    std::string toString() const;
+};
+
+class MissionReader
+{
+public:
+    static Mission fromFile(const std::string& url);
+
+private:
+    static bool nameMatches(xmlNodePtr node, const std::string& name);
+
+    static std::string getContent(xmlDocPtr doc, xmlNodePtr node, size_t count = 1);
+
+    static std::string getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, const std::string& name);
+
+
+    static void parseResource(xmlDocPtr doc, xmlNodePtr current);
+
+    static void parseResources(xmlDocPtr doc, xmlNodePtr current);
+
+    static SpatialRequirement parseSpatialRequirement(xmlDocPtr doc, xmlNodePtr current);
+
+    static TemporalRequirement parseTemporalRequirement(xmlDocPtr doc, xmlNodePtr current);
+
+    static ServiceRequirement parseServiceRequirement(xmlDocPtr doc, xmlNodePtr current);
+
+    static organization_model::ModelPool parseResourceRequirement(xmlDocPtr doc, xmlNodePtr current);
+
+    static Requirement parseRequirement(xmlDocPtr doc, xmlNodePtr current);
+
+    static void parseRequirements(xmlDocPtr doc, xmlNodePtr current);
+
+    static void parseConstraint(xmlDocPtr doc, xmlNodePtr current);
+
+    static void parseConstraints(xmlDocPtr doc, xmlNodePtr current);
+};
+
+} // end namespace io
+} // end namespace templ
+
+#endif // TEMPL_IO_MISSION_READER_HPP
