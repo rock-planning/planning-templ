@@ -62,14 +62,13 @@
     <!-- other requirement -->
 </requirements>
 <constraints>
-    <temporal-constraint>
-        <point-algebra>
-            <lessThan lval="t0" rval="t1" />
-            <equals lval="t1" rval="t2" />
-            <lessOrEqual lval="t1" rval="t3" />
-            <lessOrGreater lval="t4" rval="t5" />
-        </point-algebra>
-    </temporal-constraint>
+    <temporal-constraints>
+        <lessThan lval="t0" rval="t1" />
+        <equals lval="t1" rval="t2" />
+        <lessOrEqual lval="t1" rval="t3" />
+        <greaterOrEqual lval="t4" rval="t5" />
+        <distinct lval="t4" rval="t5" />
+    </temporal-constraints>
 </constraints>
 
 </mission>

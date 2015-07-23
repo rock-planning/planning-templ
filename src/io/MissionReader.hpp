@@ -52,6 +52,25 @@ struct Requirement
     std::string toString() const;
 };
 
+struct TemporalConstraint
+{
+    templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type type;
+
+    std::string rval;
+    std::string lval;
+
+    static templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type getTemporalConstraintType(const std::string& name);
+
+    std::string toString() const;
+};
+
+struct Constraints
+{
+    std::vector<TemporalConstraint> temporal;
+
+    std::string toString() const;
+};
+
 class MissionReader
 {
 public:
@@ -62,8 +81,9 @@ private:
 
     static std::string getContent(xmlDocPtr doc, xmlNodePtr node, size_t count = 1);
 
-    static std::string getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, const std::string& name);
+    static std::string getProperty(xmlNodePtr node, const std::string& name);
 
+    static std::string getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, const std::string& name);
 
     static void parseResource(xmlDocPtr doc, xmlNodePtr current);
 
@@ -81,9 +101,9 @@ private:
 
     static void parseRequirements(xmlDocPtr doc, xmlNodePtr current);
 
-    static void parseConstraint(xmlDocPtr doc, xmlNodePtr current);
+    static std::vector<TemporalConstraint> parseTemporalConstraints(xmlDocPtr doc, xmlNodePtr current);
 
-    static void parseConstraints(xmlDocPtr doc, xmlNodePtr current);
+    static Constraints parseConstraints(xmlDocPtr doc, xmlNodePtr current);
 };
 
 } // end namespace io

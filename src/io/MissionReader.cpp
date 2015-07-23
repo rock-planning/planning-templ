@@ -54,6 +54,43 @@ std::string Requirement::toString() const
     return ss.str();
 }
 
+templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type TemporalConstraint::getTemporalConstraintType(const std::string& name)
+{
+    using namespace templ::solvers::temporal::point_algebra;
+    //return Empty, Greater, Less, Equal, Distinct, GreaterOrEqual, LessOrEqual, Universal,
+    if(name == "greaterThan")
+    {
+        return QualitativeTimePointConstraint::Greater;
+    } else if(name == "lessThan")
+    {
+        return QualitativeTimePointConstraint::Less;
+    } else if(name == "equals")
+    {
+        return QualitativeTimePointConstraint::Equal;
+    } else if(name == "distinct")
+    {
+        return QualitativeTimePointConstraint::Distinct;
+    } else if(name == "greaterOrEqual")
+    {
+        return QualitativeTimePointConstraint::GreaterOrEqual;
+    } else if(name == "lessOrEqual")
+    {
+        return QualitativeTimePointConstraint::LessOrEqual;
+    }
+
+    throw std::invalid_argument("templ::MissionReader: unknown temporal constraint type: '" + name + "'");
+}
+
+std::string TemporalConstraint::toString() const
+{
+    std::stringstream ss;
+    ss << "TemporalConstraint:" << std::endl;
+    ss << "    type:" << templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::TypeTxt[type];
+    ss << "    lval:" << lval;
+    ss << "    rval:" << rval;
+    return ss.str();
+}
+
 bool MissionReader::nameMatches(xmlNodePtr node, const std::string& name)
 {
     return xmlStrcmp(node->name, (const xmlChar*) name.c_str()) == 0;
@@ -71,6 +108,21 @@ std::string MissionReader::getContent(xmlDocPtr doc, xmlNodePtr node, size_t cou
     } else {
         return std::string();
     }
+}
+
+std::string MissionReader::getProperty(xmlNodePtr node, const std::string& name)
+{
+    std::string property;
+    xmlChar* xmlName = xmlCharStrdup(name.c_str());
+    xmlChar* value = xmlGetProp(node, xmlName);
+    xmlFree(xmlName);
+    if(value)
+    {
+        property = std::string((const char*) value);
+        xmlFree(value);
+        return property;
+    }
+    throw std::invalid_argument("templ::io::MissionReader::getProperty: could not find property '" + name + "'");
 }
 
 std::string MissionReader::getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, const std::string& name)
@@ -318,26 +370,43 @@ void MissionReader::parseRequirements(xmlDocPtr doc, xmlNodePtr current)
     }
 }
 
-void MissionReader::parseConstraint(xmlDocPtr doc, xmlNodePtr current)
+std::vector<TemporalConstraint> MissionReader::parseTemporalConstraints(xmlDocPtr doc, xmlNodePtr current)
 {
-    if(nameMatches(current, "constraint"))
+    std::vector<TemporalConstraint> constraints;
+    current = current->xmlChildrenNode;
+    while(current != NULL)
     {
-        LOG_INFO_S << "Parsing: " << current->name;
-    } else if(nameMatches(current, "temporal-constraint"))
-    {
-        LOG_INFO_S << "Parsing: " << current->name;
+        if(!nameMatches(current,"text"))
+        {
+            TemporalConstraint constraint;
+            constraint.type = TemporalConstraint::getTemporalConstraintType( std::string((const char*) current->name) );
+            constraint.lval = getProperty(current, "lval");
+            constraint.rval = getProperty(current, "rval");
+
+            LOG_DEBUG_S << "Parsed temporal constraint: " << constraint.toString();
+            constraints.push_back(constraint);
+        }
+
+        current = current->next;
     }
+    return constraints;
 }
 
-void MissionReader::parseConstraints(xmlDocPtr doc, xmlNodePtr current)
+Constraints MissionReader::parseConstraints(xmlDocPtr doc, xmlNodePtr current)
 {
     LOG_INFO_S << "Parsing: " << current->name;
-    xmlNodePtr constraint = current->xmlChildrenNode;
-    while(constraint != NULL)
+    Constraints constraints;
+    current = current->xmlChildrenNode;
+    while(current != NULL)
     {
-        parseConstraint(doc, constraint);
-        constraint = constraint->next;
+        if(nameMatches(current, "temporal-constraints"))
+        {
+            LOG_INFO_S << "Parsing: " << current->name;
+            constraints.temporal = parseTemporalConstraints(doc, current);
+        }
+        current = current->next;
     }
+    return constraints;
 }
 
 } // end namespace io
