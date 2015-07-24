@@ -444,8 +444,16 @@ std::vector< std::vector<FluentTimeService> > FluentTimeService::getConcurrent(c
     LOG_INFO_S << "Number of overlapping interval combinations: " << overlappingIntervals.size()
         << " from " << intervals.size() << " intervals overall";
 
-    std::vector< std::vector<FluentTimeService> > concurrentFts;
 
+    // All fluents that are on the same time overlap by default
+    std::vector< std::vector<FluentTimeService> > concurrentFts;
+    std::map<uint32_t, std::vector<FluentTimeService> >::const_iterator fit = timeIndexedRequirements.begin();
+    for(; fit != timeIndexedRequirements.end(); ++fit)
+    {
+        concurrentFts.push_back(fit->second);
+    }
+
+    // All fluents that are in overlappping intervals overlap
     IndexCombinationSet::const_iterator cit = overlappingIntervals.begin();
     for(; cit != overlappingIntervals.end(); ++cit)
     {
