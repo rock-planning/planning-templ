@@ -42,6 +42,12 @@ public:
     virtual void removeConstraint(Constraint::Ptr constraint);
 
     /**
+     * Get the variable iterator for this constraint network
+     * \return iterator
+     */
+    virtual graph_analysis::VertexIterator::Ptr getVariableIterator() const;
+
+    /**
      * Get the constraint iterator for this constraint network
      * \return Iterator
      */

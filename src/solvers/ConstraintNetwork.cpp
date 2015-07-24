@@ -22,6 +22,11 @@ void ConstraintNetwork::removeConstraint(Constraint::Ptr constraint)
     mGraph->removeEdge(constraint);
 }
 
+graph_analysis::VertexIterator::Ptr ConstraintNetwork::getVariableIterator() const
+{
+    return mGraph->getVertexIterator();
+}
+
 graph_analysis::EdgeIterator::Ptr ConstraintNetwork::getConstraintIterator() const
 {
     return mGraph->getEdgeIterator();
