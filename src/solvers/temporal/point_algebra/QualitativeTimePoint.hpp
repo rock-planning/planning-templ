@@ -33,6 +33,11 @@ public:
     QualitativeTimePoint(const TimePoint::Label& label);
 
     /**
+     * Get label of this QualitativeTimePoint
+     */
+    const std::string& getLabel() const { return mLabel; }
+
+    /**
      * Create instance of QualitativeTimePoint
      */
     static QualitativeTimePoint::Ptr getInstance(const TimePoint::Label& label);
