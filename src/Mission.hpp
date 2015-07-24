@@ -46,10 +46,18 @@ class Mission
     solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
 
 protected:
-    Mission() {}
+    Mission(const std::string& name = "");
 
 public:
-    Mission(organization_model::OrganizationModel::Ptr om);
+    Mission(organization_model::OrganizationModel::Ptr om, const std::string& name = "");
+
+    void setOrganizationModel(organization_model::OrganizationModel::Ptr organizationModel) { mpOrganizationModel = organizationModel; }
+
+    /**
+     * Set name for this mission
+     */
+    void setName(const std::string& name) { mName = name; }
+    const std::string& getName() const { return mName; }
 
     void prepare();
 
@@ -73,6 +81,12 @@ public:
      */
     void refresh();
 
+    ObjectVariable::Ptr getObjectVariable(const std::string& name, const std::string& type) const;
+    ObjectVariable::Ptr getOrCreateObjectVariable(const std::string& name, const std::string& type) const;
+
+    solvers::temporal::point_algebra::TimePoint::Ptr getTimePoint(const std::string& name) const;
+    solvers::temporal::point_algebra::TimePoint::Ptr getOrCreateTimePoint(const std::string& name) const;
+
     const Role::List& getRoles() const { return mRoles; }
 
     /**
@@ -91,11 +105,14 @@ public:
 
     std::vector<solvers::temporal::PersistenceCondition::Ptr> getPersistenceConditions() const { return mPersistenceConditions; }
 
+    std::string toString() const;
+
 protected:
     std::vector<solvers::Constraint::Ptr> getConstraints() const { return mConstraints; }
 
 private:
     organization_model::OrganizationModel::Ptr mpOrganizationModel;
+    std::string mName;
     organization_model::ModelPool mModelPool;
     // Set of roles that exists within this mission
     Role::List mRoles;

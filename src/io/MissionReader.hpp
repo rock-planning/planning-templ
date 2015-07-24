@@ -27,10 +27,8 @@ struct SpatialRequirement
 
 struct TemporalRequirement
 {
-    uint32_t from;
-    uint32_t to;
-
-    std::string id;
+    std::string from;
+    std::string to;
 
     std::string toString() const;
 };
@@ -46,7 +44,7 @@ struct Requirement
 {
     SpatialRequirement spatial;
     TemporalRequirement temporal;
-    ServiceRequirement services;
+    ServiceRequirement functional;
     organization_model::ModelPool resources;
 
     std::string toString() const;
@@ -85,9 +83,9 @@ private:
 
     static std::string getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, const std::string& name);
 
-    static void parseResource(xmlDocPtr doc, xmlNodePtr current);
+    static std::pair<owlapi::model::IRI, size_t> parseResource(xmlDocPtr doc, xmlNodePtr current);
 
-    static void parseResources(xmlDocPtr doc, xmlNodePtr current);
+    static organization_model::ModelPool parseResources(xmlDocPtr doc, xmlNodePtr current);
 
     static SpatialRequirement parseSpatialRequirement(xmlDocPtr doc, xmlNodePtr current);
 
@@ -99,7 +97,7 @@ private:
 
     static Requirement parseRequirement(xmlDocPtr doc, xmlNodePtr current);
 
-    static void parseRequirements(xmlDocPtr doc, xmlNodePtr current);
+    static std::vector<Requirement> parseRequirements(xmlDocPtr doc, xmlNodePtr current);
 
     static std::vector<TemporalConstraint> parseTemporalConstraints(xmlDocPtr doc, xmlNodePtr current);
 

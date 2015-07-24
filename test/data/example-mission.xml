@@ -2,12 +2,12 @@
 <name>Transterra</name>
 <resources>
     <resource>
-        <model>http://rock-robotics.org/...#Sherpa</model>
-        <exactCardinality>2</exactCardinality>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+        <maxCardinality>2</maxCardinality>
     </resource>
     <resource>
-        <model>http://rock-robotics.org/...#CREX</model>
-        <exactCardinality>2</exactCardinality>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#CREX</model>
+        <maxCardinality>2</maxCardinality>
     </resource>
 </resources>
 
@@ -38,23 +38,18 @@
         <!-- when it is required / mixing qualitative and quantitative
         information -->
         <temporal-requirement type="persistence-condition | event" >
-            <quantitative>
-                <from>0</from>
-                <to>inf</to>
-            </quantitative>
-            <qualitative>
-                <id>t0</id>
-            </qualitative>
+            <from>t0</from>
+            <to>t1</to>
         </temporal-requirement>
 
         <!-- what is required at this very position -->
         <service-requirement>
-            <service>http:// .... #LocationImageProvider</service>
-            <service>http:// .... #EmiPowerProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
         </service-requirement>
         <resource-requirement>
             <resource>
-                <model>....#CREX</model>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#CREX</model>
                 <minCardinality>1</minCardinality>
             </resource>
         </resource-requirement>

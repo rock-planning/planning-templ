@@ -1,5 +1,6 @@
 #include "Mission.hpp"
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace templ {
 
@@ -34,9 +35,15 @@ std::string Role::toString(const Role::List& roles)
     return ss.str();
 }
 
-Mission::Mission(organization_model::OrganizationModel::Ptr om)
-    : mpOrganizationModel(om)
-    , mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
+Mission::Mission(const std::string& name)
+    : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
+    , mName(name)
+{}
+
+Mission::Mission(organization_model::OrganizationModel::Ptr om, const std::string& name)
+    : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
+    , mpOrganizationModel(om)
+    , mName(name)
 {}
 
 void Mission::setResources(const organization_model::ModelPool& modelPool)
@@ -70,6 +77,33 @@ void Mission::refresh()
     }
 }
 
+ObjectVariable::Ptr Mission::getObjectVariable(const std::string& name, const std::string& type) const
+{
+    std::set<ObjectVariable::Ptr>::const_iterator cit = mObjectVariables.begin();
+    for(; cit != mObjectVariables.end(); ++cit)
+    {
+        ObjectVariable::Ptr variable = *cit;
+        if(variable->getTypeName() == type && variable->getInstanceName() == name)
+        {
+            return variable;
+        }
+    }
+    throw std::invalid_argument("templ::Mission::getObjectVariable: variable with name '" + name + "'"
+            " and type '" + type + "' not found");
+}
+
+ObjectVariable::Ptr Mission::getOrCreateObjectVariable(const std::string& name, const std::string& type) const
+{
+    ObjectVariable::Ptr variable;
+    try {                                                                                
+         variable = getObjectVariable(name, type);
+    } catch(const std::invalid_argument& e)                                              
+    {                                                                                    
+        variable = ObjectVariable::getInstance(name, type);
+    }
+    return variable;
+}
+
 void Mission::prepare()
 {
     using namespace solvers::temporal;
@@ -80,6 +114,48 @@ void Mission::prepare()
         Interval interval(pc->getFromTimePoint(), pc->getToTimePoint(), point_algebra::TimePointComparator(mpTemporalConstraintNetwork));
         mTimeIntervals.insert(interval);
     }
+}
+
+solvers::temporal::point_algebra::TimePoint::Ptr Mission::getTimePoint(const std::string& name) const
+{
+    using namespace solvers::temporal::point_algebra;
+
+    graph_analysis::VertexIterator::Ptr it = mpTemporalConstraintNetwork->getVariableIterator();
+    while(it->next())
+    {
+        QualitativeTimePoint::Ptr t = boost::dynamic_pointer_cast<QualitativeTimePoint>(it->current());
+        if(t && t->getLabel() == name)
+        {
+            return t;
+        }
+    }
+    throw std::invalid_argument("templ::Mission::getTimePoint: timepoint with label '" + name + "'"
+            " not found");
+}
+
+solvers::temporal::point_algebra::TimePoint::Ptr Mission::getOrCreateTimePoint(const std::string& name) const
+{
+    using namespace solvers::temporal::point_algebra;
+    TimePoint::Ptr timepoint;
+    try {
+        timepoint = getTimePoint(name);
+    } catch(const std::invalid_argument& e)
+    {
+        try {
+            if(name == "inf")
+            {
+                return TimePoint::create(std::numeric_limits<uint64_t>::infinity(), std::numeric_limits<uint64_t>::infinity());
+            } else {
+                uint64_t exactTime = boost::lexical_cast<uint64_t>(name);
+                return TimePoint::create(exactTime, exactTime);
+            }
+        } catch(const std::bad_cast& e)
+        {
+            return TimePoint::create(name);
+        }
+    }
+
+    throw std::runtime_error("templ::Mission::getOrCreateTimePoint: timepoint with label/value '" + name + "' could neither be found nor created");
 }
 
 void Mission::addConstraint(organization_model::Service service,
@@ -116,6 +192,14 @@ void Mission::addTemporalConstraint(pa::TimePoint::Ptr t1, pa::TimePoint::Ptr t2
 void Mission::addConstraint(solvers::Constraint::Ptr constraint)
 {
     mConstraints.push_back(constraint);
+}
+
+std::string Mission::toString() const
+{
+    std::stringstream ss;
+    ss << "Mission: " << mName << std::endl;
+    ss << mModelPool.toString();
+    return ss.str();
 }
 
 } // end namespace templ

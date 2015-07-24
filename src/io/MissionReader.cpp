@@ -29,7 +29,6 @@ std::string TemporalRequirement::toString() const
 {
     std::stringstream ss;
     ss << "TemporalRequirement:" << std::endl;
-    ss << "    id:   " << id << std::endl;
     ss << "    from: " << from << std::endl;
     ss << "    to:   " << to << std::endl;
     return ss.str();
@@ -49,7 +48,7 @@ std::string Requirement::toString() const
     ss << spatial.toString();
     ss << temporal.toString();
     ss << "Services: ";
-    ss << services.toString() << std::endl;
+    ss << functional.toString() << std::endl;
     ss << resources.toString();
     return ss.str();
 }
@@ -137,7 +136,7 @@ std::string MissionReader::getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, con
 
         subNode = subNode->next;
     }
-    throw std::invalid_argument("templ::io::MissionReader::getSubNodeContent: could not find subnode '" + name + "'");
+    throw std::invalid_argument("templ::io::MissionReader::getSubNodeContent: could not find subnode '" + name + "' in node '" + std::string((const char*) node->name) + "'");
 }
 
 Mission MissionReader::fromFile(const std::string& url)
@@ -182,19 +181,66 @@ Mission MissionReader::fromFile(const std::string& url)
         {
             if(nameMatches(firstLevelChild, "name"))
             {
-                LOG_DEBUG_S << "Found first level node: 'name' " << getContent(doc, firstLevelChild);
+                std::string name = getContent(doc, firstLevelChild);
+                LOG_DEBUG_S << "Found first level node: 'name' " << name;
+                mission.setName(name);
             } else if(nameMatches(firstLevelChild, "resources"))
             {
                 LOG_DEBUG_S << "Found first level node: 'resources' ";
-                parseResources(doc, firstLevelChild);
+                organization_model::ModelPool modelPool = parseResources(doc, firstLevelChild);
+                mission.setResources(modelPool);
             } else if(nameMatches(firstLevelChild, "requirements"))
             {
                 LOG_DEBUG_S << "Found first level node: 'requirements' ";
-                parseRequirements(doc, firstLevelChild);
+                std::vector<Requirement> requirements = parseRequirements(doc, firstLevelChild);
+                std::vector<Requirement>::const_iterator cit = requirements.begin();
+                for(;cit != requirements.end(); ++cit)
+                {
+                    const Requirement& requirement = *cit;
+
+                    ObjectVariable::Ptr location = mission.getOrCreateObjectVariable(requirement.spatial.location.id, "Location");
+
+                    using namespace solvers::temporal::point_algebra;
+
+                    TimePoint::Ptr from = mission.getOrCreateTimePoint(requirement.temporal.from);
+                    TimePoint::Ptr to = mission.getOrCreateTimePoint(requirement.temporal.to);
+
+                    if( from->getType() != to->getType())
+                    {
+                        throw std::invalid_argument("templ::io::MissionReader::fromFile: temporal definition mixes qualitative"
+                                " and quantitative values: from '" + requirement.temporal.from + "' "
+                                " and to '" + requirement.temporal.to + "'");
+                    }
+
+                    owlapi::model::IRIList::const_iterator sit = requirement.functional.services.begin();
+                    for(; sit != requirement.functional.services.end(); ++sit)
+                    {
+                        owlapi::model::IRI model = *sit; 
+                        mission.addConstraint(organization_model::Service(model), location, from, to);
+                    }
+                }
             } else if(nameMatches(firstLevelChild, "constraints"))
             {
                 LOG_DEBUG_S << "Found first level node: 'constraints' ";
-                parseConstraints(doc, firstLevelChild);
+                Constraints constraints = parseConstraints(doc, firstLevelChild);
+
+                std::vector<TemporalConstraint>::const_iterator cit = constraints.temporal.begin();
+                for(; cit != constraints.temporal.end(); ++cit)
+                {
+                    TemporalConstraint temporalConstraint = *cit;
+
+                    using namespace solvers::temporal::point_algebra;
+                    try {
+                        TimePoint::Ptr t0 = mission.getTimePoint(temporalConstraint.lval);
+                        TimePoint::Ptr t1 = mission.getTimePoint(temporalConstraint.rval);
+                        solvers::Constraint::Ptr constraint = QualitativeTimePointConstraint::create(t0, t1, temporalConstraint.type);
+                        mission.addConstraint(constraint);
+                    } catch(const std::invalid_argument& e)
+                    {
+                        LOG_WARN_S << "Unused timepoint exists in constraints -- ignoring" << std::endl
+                            << "    detailled error: " << e.what();
+                    }
+                }
             }
             firstLevelChild = firstLevelChild->next;
         }
@@ -214,23 +260,45 @@ Mission MissionReader::fromFile(const std::string& url)
     return mission;
 }
 
-void MissionReader::parseResource(xmlDocPtr doc, xmlNodePtr current)
+std::pair<owlapi::model::IRI, size_t> MissionReader::parseResource(xmlDocPtr doc, xmlNodePtr current)
 {
     if(nameMatches(current, "resource"))
     {
         LOG_INFO_S << "Parsing: " << current->name;
+        std::string model = getSubNodeContent(doc, current, "model");
+        std::string maxCardinalityTxt = getSubNodeContent(doc, current, "maxCardinality");
+
+        owlapi::model::IRI modelIRI(model);
+        uint32_t maxCardinality = boost::lexical_cast<uint32_t>(maxCardinalityTxt);
+
+        return std::pair<owlapi::model::IRI, size_t>(modelIRI, maxCardinality); 
     }
+    throw std::invalid_argument("templ::io::MissionReader::parseResource: expected tag 'resource' found '" + std::string((const char*) current->name) + "'");
 }
 
-void MissionReader::parseResources(xmlDocPtr doc, xmlNodePtr current)
+organization_model::ModelPool MissionReader::parseResources(xmlDocPtr doc, xmlNodePtr current)
 {
     LOG_INFO_S << "Parsing: " << current->name;
-    xmlNodePtr resource = current->xmlChildrenNode;
-    while(resource != NULL)
+
+    organization_model::ModelPool pool;
+    current = current->xmlChildrenNode;
+    while(current != NULL)
     {
-        parseResource(doc, resource);
-        resource = resource->next;
+        if(!nameMatches(current, "text"))
+        {
+            std::pair<owlapi::model::IRI, size_t> resourceBound = parseResource(doc, current);
+
+            organization_model::ModelPool::const_iterator cit = pool.find(resourceBound.first);
+            if(cit != pool.end())
+            {
+                throw std::invalid_argument("templ::io::MissionReader::parseResources: multiple resource entry of type '" +resourceBound.first.toString() + "'");
+            } else {
+                pool.insert(resourceBound);
+            }
+        }
+        current = current->next;
     }
+    return pool;
 }
 
 SpatialRequirement MissionReader::parseSpatialRequirement(xmlDocPtr doc, xmlNodePtr current)
@@ -255,21 +323,12 @@ TemporalRequirement MissionReader::parseTemporalRequirement(xmlDocPtr doc, xmlNo
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(nameMatches(current, "quantitative"))
+        if(nameMatches(current,"from"))
         {
-            std::string from = getSubNodeContent(doc, current, "from");
-            requirement.from = boost::lexical_cast<uint32_t>(from);
-
-            std::string to = getSubNodeContent(doc, current, "to");
-            if(to == "inf")
-            {
-                requirement.to = std::numeric_limits<uint32_t>::infinity();
-            } else {
-                requirement.to = boost::lexical_cast<uint32_t>(to);
-            }
-        } else if(nameMatches(current, "qualitative"))
+            requirement.from = getContent(doc, current);
+        } else if(nameMatches(current, "to"))
         {
-            requirement.id = getSubNodeContent(doc, current, "id");
+            requirement.to = getContent(doc, current);
         }
         current = current->next;
     }
@@ -335,9 +394,9 @@ Requirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNodePtr current)
                 LOG_DEBUG_S << "Parsed temporal requirement: " << requirement.temporal.toString();
             } else if(nameMatches(requirementNode, "service-requirement"))
             {
-                LOG_DEBUG_S << "Parse service requirement";
-                requirement.services = parseServiceRequirement(doc, requirementNode);
-                LOG_DEBUG_S << "Parsed service requirement: " << requirement.services.toString();
+                LOG_DEBUG_S << "Parse functional requirement";
+                requirement.functional = parseServiceRequirement(doc, requirementNode);
+                LOG_DEBUG_S << "Parsed service requirement: " << requirement.functional.toString();
             } else if(nameMatches(requirementNode, "resource-requirement"))
             {
                 LOG_DEBUG_S << "Parse resource requirement";
@@ -352,22 +411,22 @@ Requirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNodePtr current)
     return requirement;
 }
 
-void MissionReader::parseRequirements(xmlDocPtr doc, xmlNodePtr current)
+std::vector<Requirement> MissionReader::parseRequirements(xmlDocPtr doc, xmlNodePtr current)
 {
     LOG_INFO_S << "Parsing: " << current->name;
-    xmlNodePtr requirement = current->xmlChildrenNode;
-    while(requirement != NULL)
+    std::vector<Requirement> requirements;
+    current = current->xmlChildrenNode;
+    while(current != NULL)
     {
-        try {
-            Requirement r = parseRequirement(doc, requirement);
-            LOG_INFO_S << "Parsed requirement: " << r.toString();
-        } catch(const std::invalid_argument& e)
+        if(nameMatches(current, "requirement"))
         {
-            LOG_WARN_S << e.what();
-            // filter out 'text' nodes
+            Requirement requirement = parseRequirement(doc, current);
+            LOG_INFO_S << "Parsed requirement: " << requirement.toString();
+            requirements.push_back(requirement);
         }
-        requirement = requirement->next;
+        current = current->next;
     }
+    return requirements;
 }
 
 std::vector<TemporalConstraint> MissionReader::parseTemporalConstraints(xmlDocPtr doc, xmlNodePtr current)

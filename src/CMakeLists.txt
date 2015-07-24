@@ -73,7 +73,12 @@ rock_executable(templ_bin Main.cpp
     DEPS templ)
 
 rock_executable(templ-mission_reader
-    MissionReaderMain.cpp
+    utils/MissionReaderMain.cpp
+    DEPS templ
+)
+
+rock_executable(templ-mission_planner
+    utils/MissionPlannerMain.cpp
     DEPS templ
 )
 
