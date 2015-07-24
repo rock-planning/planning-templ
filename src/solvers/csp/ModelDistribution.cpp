@@ -41,11 +41,15 @@ ModelDistribution::Solution ModelDistribution::getSolution() const
 organization_model::ModelCombinationSet ModelDistribution::getDomain(const FluentTimeService& requirement) const
 {
     std::set<organization_model::Service> services;
-    services.insert( organization_model::Service( mServices[requirement.service] ) );
-    LOG_INFO_S << "Services size: " << services.size() << " " << services.begin()->getModel().toString();
+    std::set<uint32_t>::const_iterator cit = requirement.services.begin();
+    for(; cit != requirement.services.end(); ++cit)
+    {
+        organization_model::Service service( mServices[*cit] );
+        services.insert(service);
+        LOG_INFO_S << "Add service requirement: " << service.getModel().toString();
+    }
 
     organization_model::ModelCombinationSet combinations = mAsk.getBoundedResourceSupport(services);
-
     LOG_INFO_S << "Bounded resources: " << organization_model::OrganizationModel::toString(combinations);
     return combinations;
 }
@@ -202,7 +206,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
         }
     }
     // Part (B) General resource constraints
-    // - identify overlapping fts, limit resources for these 
+    // - identify overlapping fts, limit resources for these
     {
         // Set of available models: mModelPool
         // Make sure the assignments are within resource bounds for concurrent requirements
@@ -420,7 +424,32 @@ std::vector<FluentTimeService> ModelDistribution::getRequirements() const
 
         }
     }
+
+    compact(requirements);
     return requirements;
+}
+
+void ModelDistribution::compact(std::vector<FluentTimeService>& requirements) const
+{
+    std::vector<FluentTimeService>::iterator it = requirements.begin();
+    for(; it != requirements.end(); ++it)
+    {
+        FluentTimeService& fts = *it;
+
+        std::vector<FluentTimeService>::iterator compareIt = it + 1;
+        for(; compareIt != requirements.end();)
+        {
+            FluentTimeService& otherFts = *compareIt;
+
+            if(fts.time == otherFts.time && fts.fluent == otherFts.fluent)
+            {
+                fts.services.insert(otherFts.services.begin(), otherFts.services.end());
+                requirements.erase(compareIt);
+            } else {
+                ++compareIt;
+            }
+        }
+    }
 }
 
 std::vector< std::vector<FluentTimeService> > FluentTimeService::getConcurrent(const std::vector<FluentTimeService>& requirements, const std::vector<solvers::temporal::Interval>& intervals)

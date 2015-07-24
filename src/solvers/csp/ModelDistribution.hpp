@@ -16,26 +16,27 @@ namespace csp {
 
 struct FluentTimeService
 {
-    uint32_t service;
+    std::set<uint32_t> services;
     uint32_t time;
     uint32_t fluent;
 
     typedef std::vector<FluentTimeService> List;
 
     FluentTimeService(uint32_t service, uint32_t time, uint32_t fluent)
-        : service(service)
-        , time(time)
+        : time(time)
         , fluent(fluent)
-    {}
+    {
+        services.insert(service);
+    }
 
     bool operator==(const FluentTimeService& other) const
     {
-        return service == other.service && time == other.time && fluent == other.fluent;
+        return services == other.services && time == other.time && fluent == other.fluent;
     }
 
     bool operator<(const FluentTimeService& other) const
     {
-        if(service == other.service)
+        if(services == other.services)
         {
             if(time == other.time)
             {
@@ -43,14 +44,24 @@ struct FluentTimeService
             }
             return time < other.time;
         }
-        return service < other.service;
+        return services < other.services;
     }
 
     std::string toString() const
     {
         std::stringstream ss;
         ss << "FluentTimeService: " << std::endl;
-        ss << "    service: #" << service << std::endl;
+        ss << "    services: #";
+        std::set<uint32_t>::const_iterator cit = services.begin();
+        for(; cit != services.end(); )
+        {
+            ss << *cit;
+            if(++cit != services.end())
+            {
+                ss << ",";
+            }
+        }
+        ss << std::endl;
         ss << "    time: #" << time << std::endl;
         ss << "    fluent: #" << fluent << std::endl;
         return ss.str();
@@ -66,6 +77,8 @@ struct FluentTimeService
             const std::vector<solvers::temporal::Interval>& intervals);
 
 };
+
+
 
 class ModelDistribution : public Gecode::Space
 {
@@ -141,6 +154,7 @@ private:
 
     size_t getMaxResourceCount(const organization_model::ModelPool& model) const;
 
+    void compact(std::vector<FluentTimeService>& requirements) const;
 protected:
 
 public:

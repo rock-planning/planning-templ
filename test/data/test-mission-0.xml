@@ -1,0 +1,79 @@
+<mission>
+<name>Transterra</name>
+<resources>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+        <maxCardinality>2</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#CREX</model>
+        <maxCardinality>2</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+        <maxCardinality>2</maxCardinality>
+    </resource>
+</resources>
+<requirements>
+    <requirement>
+        <spatial-requirement>
+            <!-- where it is required -->
+            <location>
+                <id>l0</id>
+            </location>
+        </spatial-requirement>
+
+        <!-- when it is required / mixing qualitative and quantitative
+        information -->
+        <temporal-requirement type="persistence-condition | event" >
+            <from>t0</from>
+            <to>t1</to>
+        </temporal-requirement>
+
+        <!-- what is required at this very position -->
+        <service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
+        </service-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#CREX</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement>
+        <spatial-requirement>
+            <!-- where it is required -->
+            <location>
+                <id>l1</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t2</from>
+            <to>t3</to>
+        </temporal-requirement>
+
+        <!-- what is required at this very position -->
+        <service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
+        </service-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#CREX</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+</requirements>
+<constraints>
+    <temporal-constraints>
+        <greaterThan lval="t1" rval="t2" />
+        <lessThan lval="t0" rval="t3" />
+    </temporal-constraints>
+</constraints>
+
+</mission>
+
+
