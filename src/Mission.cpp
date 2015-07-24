@@ -138,7 +138,7 @@ solvers::temporal::point_algebra::TimePoint::Ptr Mission::getOrCreateTimePoint(c
     using namespace solvers::temporal::point_algebra;
     TimePoint::Ptr timepoint;
     try {
-        timepoint = getTimePoint(name);
+        return getTimePoint(name);
     } catch(const std::invalid_argument& e)
     {
         try {
