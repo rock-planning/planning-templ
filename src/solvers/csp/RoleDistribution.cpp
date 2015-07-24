@@ -77,27 +77,27 @@ RoleDistribution::RoleDistribution(const Mission& mission, const ModelDistributi
         std::vector< std::vector<FluentTimeService> >::const_iterator cit = concurrentRequirements.begin();
         if(concurrentRequirements.empty())
         {
-            throw std::runtime_error("No concurrent requirements");
-        }
-
-        for(; cit != concurrentRequirements.end(); ++cit)
-        {
-            LOG_DEBUG_S << "Concurrent roles requirements: " << mRoles.size();
-            const std::vector<FluentTimeService>& concurrentFluents = *cit;
-
-            for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
+            LOG_WARN_S << "No concurrent requirements found";
+        } else {
+            for(; cit != concurrentRequirements.end(); ++cit)
             {
-                Gecode::IntVarArgs args;
+                LOG_DEBUG_S << "Concurrent roles requirements: " << mRoles.size();
+                const std::vector<FluentTimeService>& concurrentFluents = *cit;
 
-                std::vector<FluentTimeService>::const_iterator fit = concurrentFluents.begin();
-                for(; fit != concurrentFluents.end(); ++fit)
+                for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
                 {
-                    size_t row = getFluentIndex(*fit);
-                    LOG_DEBUG_S << "    index: " << roleIndex << "/" << row;
-                    Gecode::IntVar v = roleDistribution(roleIndex, row);
-                    args << v;
+                    Gecode::IntVarArgs args;
+
+                    std::vector<FluentTimeService>::const_iterator fit = concurrentFluents.begin();
+                    for(; fit != concurrentFluents.end(); ++fit)
+                    {
+                        size_t row = getFluentIndex(*fit);
+                        LOG_DEBUG_S << "    index: " << roleIndex << "/" << row;
+                        Gecode::IntVar v = roleDistribution(roleIndex, row);
+                        args << v;
+                    }
+                    rel(*this, sum(args) <= 1);
                 }
-                rel(*this, sum(args) <= 1);
             }
         }
     }
