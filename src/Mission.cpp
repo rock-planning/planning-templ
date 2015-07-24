@@ -191,7 +191,14 @@ void Mission::addTemporalConstraint(pa::TimePoint::Ptr t1, pa::TimePoint::Ptr t2
 
 void Mission::addConstraint(solvers::Constraint::Ptr constraint)
 {
-    mConstraints.push_back(constraint);
+    using namespace solvers::temporal::point_algebra;
+    QualitativeTimePointConstraint::Ptr timeConstraint = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(constraint);
+    if(timeConstraint)
+    {
+        mpTemporalConstraintNetwork->addConstraint(timeConstraint);
+    } else {
+        mConstraints.push_back(constraint);
+    }
 }
 
 std::string Mission::toString() const

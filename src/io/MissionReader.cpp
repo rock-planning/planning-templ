@@ -233,8 +233,7 @@ Mission MissionReader::fromFile(const std::string& url)
                     try {
                         TimePoint::Ptr t0 = mission.getTimePoint(temporalConstraint.lval);
                         TimePoint::Ptr t1 = mission.getTimePoint(temporalConstraint.rval);
-                        solvers::Constraint::Ptr constraint = QualitativeTimePointConstraint::create(t0, t1, temporalConstraint.type);
-                        mission.addConstraint(constraint);
+                        mission.addTemporalConstraint(t0, t1, temporalConstraint.type);
                     } catch(const std::invalid_argument& e)
                     {
                         LOG_WARN_S << "Unused timepoint exists in constraints -- ignoring" << std::endl
