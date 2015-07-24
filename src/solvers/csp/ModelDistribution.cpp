@@ -42,11 +42,11 @@ organization_model::ModelCombinationSet ModelDistribution::getDomain(const Fluen
 {
     std::set<organization_model::Service> services;
     services.insert( organization_model::Service( mServices[requirement.service] ) );
-    LOG_WARN_S << "Services size: " << services.size() << " " << services.begin()->getModel().toString();
+    LOG_INFO_S << "Services size: " << services.size() << " " << services.begin()->getModel().toString();
 
     organization_model::ModelCombinationSet combinations = mAsk.getBoundedResourceSupport(services);
 
-    LOG_WARN_S << "Bounded resources: " << organization_model::OrganizationModel::toString(combinations);
+    LOG_INFO_S << "Bounded resources: " << organization_model::OrganizationModel::toString(combinations);
     return combinations;
 }
 
@@ -77,7 +77,7 @@ std::vector<uint32_t> ModelDistribution::toCSP(const organization_model::ModelCo
         uint32_t index = systemModelToCSP(*cit);
         csp_combination[index]++;
     }
-    LOG_WARN_S << "TO CSP: of " << combination << " returns size: " << csp_combination.size();
+    LOG_INFO_S << "TO CSP: of " << combination << " returns size: " << csp_combination.size();
     return csp_combination;
 }
 
@@ -394,7 +394,7 @@ std::vector<FluentTimeService> ModelDistribution::getRequirements() const
             std::vector<Interval>::const_iterator iit = std::find(mIntervals.begin(), mIntervals.end(), interval);
             if(iit == mIntervals.end())
             {
-                LOG_WARN_S << "Size of intervals: " << mIntervals.size();
+                LOG_INFO_S << "Size of intervals: " << mIntervals.size();
                 throw std::runtime_error("Could not find interval");
             }
 
