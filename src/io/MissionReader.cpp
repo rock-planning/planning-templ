@@ -283,7 +283,7 @@ organization_model::ModelPool MissionReader::parseResources(xmlDocPtr doc, xmlNo
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(!nameMatches(current, "text"))
+        if(nameMatches(current, "resource"))
         {
             std::pair<owlapi::model::IRI, size_t> resourceBound = parseResource(doc, current);
 
