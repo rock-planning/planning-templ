@@ -434,7 +434,7 @@ std::vector<TemporalConstraint> MissionReader::parseTemporalConstraints(xmlDocPt
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(!nameMatches(current,"text"))
+        if(! (nameMatches(current,"text") || nameMatches(current, "comment")))
         {
             TemporalConstraint constraint;
             constraint.type = TemporalConstraint::getTemporalConstraintType( std::string((const char*) current->name) );
