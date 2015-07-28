@@ -3,15 +3,15 @@
 <resources>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
-        <maxCardinality>3</maxCardinality>
+        <maxCardinality>100</maxCardinality>
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#CREX</model>
-        <maxCardinality>3</maxCardinality>
+        <maxCardinality>500</maxCardinality>
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-        <maxCardinality>10</maxCardinality>
+        <maxCardinality>100</maxCardinality>
     </resource>
 </resources>
 <requirements>
