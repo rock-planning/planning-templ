@@ -2,10 +2,10 @@ find_package(Boost REQUIRED system filesystem)
 
 rock_library(templ
     SOURCES 
-        Mission.cpp
-        MissionPlanner.cpp
+	#Mission.cpp
+        #MissionPlanner.cpp
         ObjectVariable.cpp
-        solvers/csp/ModelDistribution.cpp
+        #solvers/csp/ModelDistribution.cpp
         solvers/temporal/Bounds.cpp
         solvers/temporal/Chronicle.cpp
         solvers/temporal/Event.cpp
@@ -27,11 +27,11 @@ rock_library(templ
         Value.cpp
     HEADERS 
         Constant.hpp
-        Mission.hpp
-        MissionPlanner.hpp
+        #Mission.hpp
+        #MissionPlanner.hpp
         ObjectVariable.hpp
         PlannerElement.hpp
-        solvers/csp/ModelDistribution.hpp
+        #solvers/csp/ModelDistribution.hpp
         solvers/temporal/Bounds.hpp
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
@@ -52,16 +52,16 @@ rock_library(templ
         solvers/Constraint.hpp
         StateVariable.hpp
         Value.hpp
-    LIBS gecodesearch
-        gecodesupport
-        gecodeset
-        gecodekernel
-        gecodeminimodel
-        gecodeint
-        gecodefloat
-        gecodegist
+    LIBS #gecodesearch
+        #gecodesupport
+        #gecodeset
+        #gecodekernel
+        #gecodeminimodel
+        #gecodeint
+        #gecodefloat
+        #gecodegist
         ${Boost_LIBRARIES}
-    DEPS_PKGCONFIG graph_analysis numeric organization_model
+    DEPS_PKGCONFIG graph_analysis numeric
 )
 
 rock_executable(templ_bin Main.cpp

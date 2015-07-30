@@ -14,13 +14,13 @@ BOOST_AUTO_TEST_CASE(qualitative_constraints)
 {
     using namespace templ::solvers::temporal::point_algebra;
 
-    BOOST_REQUIRE_MESSAGE( QualitativeTimePointConstraint::isConsistent(QTPC::Universal, QTPC::Equal), "Consistency and =" );
-    BOOST_REQUIRE_MESSAGE( QualitativeTimePointConstraint::isConsistent(QTPC::Universal, QTPC::Less), "Consistency P and <" );
-    BOOST_REQUIRE_MESSAGE( QualitativeTimePointConstraint::isConsistent(QTPC::Universal, QTPC::Greater), "Consistency P and >" );
-    BOOST_REQUIRE_MESSAGE( QualitativeTimePointConstraint::isConsistent(QTPC::Universal, QTPC::GreaterOrEqual), "Consistency P and >= " );
+    BOOST_REQUIRE_MESSAGE( QualitativeTimePointConstraint::isConsistent(QTPC::Universal, QTPC::Equal), "Consistency: P and =" );
+    BOOST_REQUIRE_MESSAGE( QualitativeTimePointConstraint::isConsistent(QTPC::Universal, QTPC::Less), "Consistency: P and <" );
+    BOOST_REQUIRE_MESSAGE( QualitativeTimePointConstraint::isConsistent(QTPC::Universal, QTPC::Greater), "Consistency: P and >" );
+    BOOST_REQUIRE_MESSAGE( QualitativeTimePointConstraint::isConsistent(QTPC::Universal, QTPC::GreaterOrEqual), "Consistency: P and >= " );
     BOOST_REQUIRE_MESSAGE( QualitativeTimePointConstraint::isConsistent(QTPC::Universal, QTPC::LessOrEqual), "Consistency: P and <=" );
 
-    BOOST_REQUIRE_MESSAGE(  QualitativeTimePointConstraint::isConsistent(QTPC::Equal, QTPC::Equal), "Consistency = and =" );
+    BOOST_REQUIRE_MESSAGE(  QualitativeTimePointConstraint::isConsistent(QTPC::Equal, QTPC::Equal), "Consistency: = and =" );
     BOOST_REQUIRE_MESSAGE(  QualitativeTimePointConstraint::isConsistent(QTPC::Equal, QTPC::LessOrEqual), "Consistency: = and <=" );
     BOOST_REQUIRE_MESSAGE(  QualitativeTimePointConstraint::isConsistent(QTPC::Equal, QTPC::GreaterOrEqual), "Consistency: = and >=" );
     BOOST_REQUIRE_MESSAGE(! QualitativeTimePointConstraint::isConsistent(QTPC::Equal, QTPC::Less),    "Consistency: = and <" );

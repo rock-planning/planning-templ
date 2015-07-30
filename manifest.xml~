@@ -1,0 +1,12 @@
+<package>
+  <description brief="Temporal planner for reconfiguration multi-robot systems (TemPl)">
+  This planner is dedicated to solve temporal planning with reconfigurable multi-robot systems
+  </description>
+  <author>Thomas Roehr/thomas.roehr@dfki.de</author>
+  <license></license>
+  <url>http://</url>
+  <logo>http://</logo>
+  <depend package="base/cmake" />
+  <depend package="tools/graph_analysis" />
+  <depend package="multiagent/organization_model" />
+</package>

@@ -15,7 +15,7 @@ SimpleTemporalNetwork::SimpleTemporalNetwork()
     : TemporalConstraintNetwork()
 {
 }
-
+/*
 void SimpleTemporalNetwork::addInterval(TimePoint::Ptr source, TimePoint::Ptr target, const Bounds& bounds)
 {
     // Upper and lower bound are added as edges in forward and backward
@@ -38,7 +38,7 @@ void SimpleTemporalNetwork::addInterval(TimePoint::Ptr source, TimePoint::Ptr ta
         mpDistanceGraph->addEdge(edge);
     }
 }
-
+*/
 bool SimpleTemporalNetwork::isConsistent()
 {
     return !hasNegativeCycle();
