@@ -39,7 +39,7 @@ public:
     /*graph_analysis::BaseGraph::Ptr*/ void ult();
 
     // the intersection between two relations
-    /*graph_analysis::BaseGraph::Ptr*/void intersection(graph_analysis::BaseGraph::Ptr);
+    /*graph_analysis::BaseGraph::Ptr*/double intersection(TemporalConstraintNetwork);
 
     graph_analysis::BaseGraph::Ptr getDistanceGraph() const { return mpDistanceGraph; }
 

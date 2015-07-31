@@ -90,12 +90,121 @@ void TemporalConstraintNetwork::addInterval(TimePoint::Ptr source, TimePoint::Pt
 			}
 		}
 	}
-	mpDistanceGraph = graph;
+	mpDistanceGraph = graph->copy();
 	return cnt;
 }
 
-/*graph_analysis::BaseGraph::Ptr*/void TemporalConstraintNetwork::intersection(graph_analysis::BaseGraph::Ptr a)
+/*graph_analysis::BaseGraph::Ptr*/double TemporalConstraintNetwork::intersection(TemporalConstraintNetwork other)
 {
+	//graph1 is the simple temporal graph
+	BaseGraph::Ptr graph0 = mpDistanceGraph->copy();
+	BaseGraph::Ptr graph1 = mpDistanceGraph->copy();
+	BaseGraph::Ptr graph2 = other.mpDistanceGraph->copy();
+	BaseGraph::Ptr graph3 = other.mpDistanceGraph->copy();
+	//final graph
+	BaseGraph::Ptr graph;
+	BaseGraph::Ptr graph4 = mpDistanceGraph->copy();
+	VertexIterator::Ptr vit = graph4->getVertexIterator();
+
+	while (vit->next()) graph->addVertex(vit->current());
+
+	EdgeIterator::Ptr edgeIt0 = graph0->getEdgeIterator();
+	EdgeIterator::Ptr edgeIt1 = graph1->getEdgeIterator();
+	EdgeIterator::Ptr edgeIt2 = graph2->getEdgeIterator();
+	EdgeIterator::Ptr edgeIt3 = graph3->getEdgeIterator();
+	//while (edgeIt->next())
+	//{
+
+	//}
+/*
+	edgeIt1->next();
+	edgeIt2->next();
+	WeightedEdge::Ptr edge1 = boost::dynamic_pointer_cast<WeightedEdge>( edgeIt1->current() );
+	WeightedEdge::Ptr edge2 = boost::dynamic_pointer_cast<WeightedEdge>( edgeIt2->current() );
+*/	double cnt=0;
+	while (edgeIt0->next())
+	{
+		// move the pointer to the first negative weight
+		while (boost::dynamic_pointer_cast<WeightedEdge>(edgeIt1->current())->getWeight() > 0) edgeIt1->next();
+		
+		while (edgeIt2->next())
+		{
+			// move the pointer to the first negative weight
+			while (boost::dynamic_pointer_cast<WeightedEdge>(edgeIt3->current())->getWeight() > 0) edgeIt3->next();
+
+			//now compare if the absolute value of the negative weight (from graph3) is bigger than the positive weight (from graph0) 
+			//and if the positive value of the negative weight (from graph1) is less than the positive weight (from graph2)
+			//if one of them satisfy, then we have to remove that constraint 
+			WeightedEdge::Ptr edge0 = boost::dynamic_pointer_cast<WeightedEdge>( edgeIt0->current() );
+			WeightedEdge::Ptr edge1 = boost::dynamic_pointer_cast<WeightedEdge>( edgeIt1->current() );
+			WeightedEdge::Ptr edge2 = boost::dynamic_pointer_cast<WeightedEdge>( edgeIt2->current() );
+			WeightedEdge::Ptr edge3 = boost::dynamic_pointer_cast<WeightedEdge>( edgeIt3->current() );
+
+			if (edge0->getWeight() > edge2->getWeight()) 
+			{
+				if (edge1->getWeight() > edge3->getWeight()) 
+					{
+						WeightedEdge::Ptr newEdge0(new WeightedEdge(edge2->getWeight()));
+						newEdge0->setSourceVertex(edge0->getSourceVertex());
+						newEdge0->setTargetVertex(edge0->getTargetVertex());
+						graph->addEdge(newEdge0);
+
+						WeightedEdge::Ptr newEdge1(new WeightedEdge(edge3->getWeight()));
+						newEdge1->setSourceVertex(edge0->getTargetVertex());
+						newEdge1->setTargetVertex(edge0->getSourceVertex());
+						graph->addEdge(newEdge1);
+
+						cnt++;
+					}
+					else
+					{
+						WeightedEdge::Ptr newEdge0(new WeightedEdge(edge2->getWeight()));
+						newEdge0->setSourceVertex(edge0->getSourceVertex());
+						newEdge0->setTargetVertex(edge0->getTargetVertex());
+						graph->addEdge(newEdge0);
+
+						WeightedEdge::Ptr newEdge1(new WeightedEdge(edge1->getWeight()));
+						newEdge1->setSourceVertex(edge0->getTargetVertex());
+						newEdge1->setTargetVertex(edge0->getSourceVertex());
+						graph->addEdge(newEdge1);
+
+						cnt++;
+					}
+			}
+			else
+			{
+				if (edge1->getWeight() > edge3->getWeight()) 
+					{
+						WeightedEdge::Ptr newEdge0(new WeightedEdge(edge0->getWeight()));
+						newEdge0->setSourceVertex(edge0->getSourceVertex());
+						newEdge0->setTargetVertex(edge0->getTargetVertex());
+						graph->addEdge(newEdge0);
+
+						WeightedEdge::Ptr newEdge1(new WeightedEdge(edge3->getWeight()));
+						newEdge1->setSourceVertex(edge0->getTargetVertex());
+						newEdge1->setTargetVertex(edge0->getSourceVertex());
+						graph->addEdge(newEdge1);
+
+						cnt++;	
+					}
+					else
+					{
+						WeightedEdge::Ptr newEdge0(new WeightedEdge(edge0->getWeight()));
+						newEdge0->setSourceVertex(edge0->getSourceVertex());
+						newEdge0->setTargetVertex(edge0->getTargetVertex());
+						graph->addEdge(newEdge0);
+
+						WeightedEdge::Ptr newEdge1(new WeightedEdge(edge1->getWeight()));
+						newEdge1->setSourceVertex(edge0->getTargetVertex());
+						newEdge1->setTargetVertex(edge0->getSourceVertex());
+						graph->addEdge(newEdge1);
+
+						cnt++;
+					}	
+			}
+		}
+	}
+	return cnt;
 }
 
 /*graph_analysis::BaseGraph::Ptr*/void TemporalConstraintNetwork::ult()
