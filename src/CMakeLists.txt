@@ -10,6 +10,7 @@ rock_library(templ
         solvers/temporal/Chronicle.cpp
         solvers/temporal/Event.cpp
         solvers/temporal/Interval.cpp
+	solvers/temporal/IntervalConstraint.cpp
         solvers/temporal/PersistenceCondition.cpp
         solvers/temporal/point_algebra/QualitativeTimePoint.cpp
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.cpp
@@ -36,6 +37,7 @@ rock_library(templ
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
         solvers/temporal/Interval.hpp
+	solvers/temporal/IntervalConstraint.hpp
         solvers/temporal/point_algebra/ExactTimePoint.hpp
         solvers/temporal/point_algebra/QualitativeTimePoint.hpp
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp

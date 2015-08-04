@@ -26,27 +26,20 @@ void TemporalConstraintNetwork::addTimePoint(point_algebra::TimePoint::Ptr t)
     mpDistanceGraph->addVertex(t);
 }
 
-void TemporalConstraintNetwork::addInterval(TimePoint::Ptr source, TimePoint::Ptr target, const Bounds& bounds)
+void TemporalConstraintNetwork::addIntervalConstraint(IntervalConstraint::Ptr i)
 {
-    // Upper and lower bound are added as edges in forward and backward
-    // direction between two edges
-    // A --- weight: upper bound   --> B
-    // B --- weight: - lower bound --> A
-    // the lower bound will be added as negative cost
-    using namespace graph_analysis;
-    {
-        WeightedEdge::Ptr edge(new WeightedEdge(bounds.getUpperBound()));
-        edge->setSourceVertex(source);
-        edge->setTargetVertex(target);
-        mpDistanceGraph->addEdge(edge);
-    }
-
-    {
-        WeightedEdge::Ptr edge(new WeightedEdge(- bounds.getLowerBound()));
-        edge->setSourceVertex(target);
-        edge->setTargetVertex(source);
-        mpDistanceGraph->addEdge(edge);
-    }
+	using namespace graph_analysis;
+/*	
+	WeightedEdge::Ptr edge(new WeightedEdge(bounds.getUpperBound()));
+    edge->setSourceVertex(source);
+    edge->setTargetVertex(target);
+*/
+    std::stringstream ss;
+    ss << "Interval: [" << i->getLowerBound() << "," << i->getUpperBound() << "]"; 
+    Edge::Ptr edge(new Edge(ss.str()));
+    edge->setSourceVertex(i->getSourceVertex());
+    edge->setTargetVertex(i->getTargetVertex());
+	mpDistanceGraph->addEdge(edge);
 }
 
 /*graph_analysis::BaseGraph::Ptr*/int TemporalConstraintNetwork::stp()
@@ -54,20 +47,45 @@ void TemporalConstraintNetwork::addInterval(TimePoint::Ptr source, TimePoint::Pt
 	BaseGraph::Ptr graph = mpDistanceGraph->copy();
 	VertexIterator::Ptr vit = graph->getVertexIterator();
 	
-	WeightedEdge::Ptr edge;
-	TimePoint::Ptr current, next;
+	EdgeIterator::Ptr edgeIt = graph->getEdgeIterator();
 	
 	int cnt=0;
+	Variable::Ptr current,next;
+	IntervalConstraint::Ptr edge;
 	double max1=0, min1=0;
+
 	while (vit->next())
 	{
-		current = boost::dynamic_pointer_cast<TimePoint>(vit->current());
+		current = boost::dynamic_pointer_cast<Variable>(vit->current());
 		EdgeIterator::Ptr edgeIt = graph->getEdgeIterator(current);
+
 		vit->next();
-		next = boost::dynamic_pointer_cast<TimePoint>(vit->current());
+		next = boost::dynamic_pointer_cast<Variable>(vit->current());
+		max1 = 0;
+		min1 = 10000;
+		while (edgeIt->next())
+		{
+			edge = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
+			if (boost::dynamic_pointer_cast<Variable>(edge->getSourceVariable) == next || boost::dynamic_pointer_cast<Variable>(edge->getTargetVariable) == next)
+			{
+				cnt++;
+			}
+		} 
+	}
+/*	
+	while (vit->next())
+	{
+		
+		current = boost::dynamic_pointer_cast<Variable>(vit->current());
+		EdgeIterator::Ptr edgeIt = graph->getEdgeIterator(current);
+		
+		vit->next();
+
+		next = boost::dynamic_pointer_cast<Variable>(vit->current());
 		
 		max1= 0;
 		min1= 0;
+
 		while (edgeIt->next())
 		{
 			//e = edgeIt->current();
@@ -88,8 +106,9 @@ void TemporalConstraintNetwork::addInterval(TimePoint::Ptr source, TimePoint::Pt
 				graph->removeEdge(edge);
 				cnt++;
 			}
-		}
+		}		
 	}
+*/
 	mpDistanceGraph = graph->copy();
 	return cnt;
 }
@@ -106,8 +125,11 @@ void TemporalConstraintNetwork::addInterval(TimePoint::Ptr source, TimePoint::Pt
 	BaseGraph::Ptr graph4 = mpDistanceGraph->copy();
 	VertexIterator::Ptr vit = graph4->getVertexIterator();
 
-	while (vit->next()) graph->addVertex(vit->current());
-
+	while (vit->next()) 
+	{
+		Vertex::Ptr current = vit->current();
+		//graph->addVertex(current);
+	}
 	EdgeIterator::Ptr edgeIt0 = graph0->getEdgeIterator();
 	EdgeIterator::Ptr edgeIt1 = graph1->getEdgeIterator();
 	EdgeIterator::Ptr edgeIt2 = graph2->getEdgeIterator();
@@ -122,7 +144,7 @@ void TemporalConstraintNetwork::addInterval(TimePoint::Ptr source, TimePoint::Pt
 	WeightedEdge::Ptr edge1 = boost::dynamic_pointer_cast<WeightedEdge>( edgeIt1->current() );
 	WeightedEdge::Ptr edge2 = boost::dynamic_pointer_cast<WeightedEdge>( edgeIt2->current() );
 */	double cnt=0;
-	while (edgeIt0->next())
+/*	while (edgeIt0->next())
 	{
 		// move the pointer to the first negative weight
 		while (boost::dynamic_pointer_cast<WeightedEdge>(edgeIt1->current())->getWeight() > 0) edgeIt1->next();
@@ -203,7 +225,7 @@ void TemporalConstraintNetwork::addInterval(TimePoint::Ptr source, TimePoint::Pt
 					}	
 			}
 		}
-	}
+	}*/
 	return cnt;
 }
 

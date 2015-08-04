@@ -22,7 +22,7 @@ public:
 
     bool isConsistent();
 
-    //void addInterval(point_algebra::TimePoint::Ptr source, point_algebra::TimePoint::Ptr target, const Bounds& bound);
+    void addInterval(point_algebra::TimePoint::Ptr source, point_algebra::TimePoint::Ptr target, const Bounds& bound);
 
     /** Propagate and check for consistency using FloydWarshall algorithm
      * \return the resulting distance graph

@@ -4,6 +4,7 @@
 #include <templ/solvers/ConstraintNetwork.hpp>
 #include <templ/solvers/temporal/Bounds.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
+#include <templ/solvers/temporal/IntervalConstraint.hpp>
 
 namespace templ {
 namespace solvers {
@@ -28,7 +29,7 @@ public:
 
     void addTimePoint(point_algebra::TimePoint::Ptr t);
 
-    void addInterval(point_algebra::TimePoint::Ptr source, point_algebra::TimePoint::Ptr target, const Bounds& bound);
+    void addIntervalConstraint(IntervalConstraint::Ptr i);
 
     virtual bool isConsistent() { throw std::runtime_error("templ::solvers::temporal::TemporalConstraintNetwork::isConsistent is not implemented"); }
 
