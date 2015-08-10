@@ -3,7 +3,7 @@
 
 #include <templ/solvers/Constraint.hpp>
 
-#define T_INTERVALCONSTRAINT(x) boost::dynamic_pointer_cast<templ::solvers::IntervalConstraint>(x)
+//#define T_INTERVALCONSTRAINT(x) boost::dynamic_pointer_cast<templ::solvers::IntervalConstraint>(x)
 
 namespace templ {
 namespace solvers {
@@ -14,8 +14,9 @@ namespace solvers {
  */
 class IntervalConstraint : public Constraint
 {
-    double lowerBound;
-    double upperBound;
+private:
+    uint64_t lowerBound;
+    uint64_t upperBound;
 
 public:
 
@@ -50,15 +51,18 @@ public:
      */
     Variable::Ptr getTargetVariable() { return boost::dynamic_pointer_cast<Variable>( getTargetVertex()); }
 
+    void setLowerBound(uint64_t bound) { lowerBound = bound; }
+
+    void setUpperBound(uint64_t bound) { upperBound = bound; }
     /**
      * Get the lower bound of this constraint
      */
-    double getLowerBound() { return lowerBound; }
+    uint64_t getLowerBound() { return lowerBound; }
 
     /**
      * Get the upper bound of this constraint
      */
-    double getUpperBound() { return upperBound; }
+    uint64_t getUpperBound() { return upperBound; }
 
 protected:
 
