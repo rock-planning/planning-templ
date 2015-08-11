@@ -37,6 +37,8 @@ public:
 
     std::string toString() const;
     static std::string toString(const std::vector<Role>& roles);
+
+    bool operator<(const Role& other) const { return mName < other.mName; }
 };
 
 class Mission

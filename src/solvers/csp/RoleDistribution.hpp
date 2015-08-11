@@ -63,6 +63,8 @@ public:
     static SolutionList solve(const Mission& mission, const ModelDistribution::Solution& modelDistribution);
 
     size_t getFluentIndex(const FluentTimeService& fluent) const;
+
+    const solvers::temporal::Interval& getInterval(size_t index) const { return mIntervals.at(index); }
 };
 
 std::ostream& operator<<(std::ostream& os, const RoleDistribution::Solution& solution);
