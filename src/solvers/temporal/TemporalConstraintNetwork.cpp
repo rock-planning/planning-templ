@@ -28,7 +28,6 @@ void TemporalConstraintNetwork::addTimePoint(point_algebra::TimePoint::Ptr t)
 
 void TemporalConstraintNetwork::addIntervalConstraint(IntervalConstraint::Ptr i)
 {
-	//using namespace graph_analysis;
 	mpDistanceGraph->addEdge(i);
 }
 
@@ -38,24 +37,25 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::stp()
 	//BaseGraph::Ptr graph2 = mpDistanceGraph->copy();
 	TemporalConstraintNetwork tcn;
 	//VertexIterator::Ptr vit = graph->getVertexIterator();
-	
+	double n = tcn.getEdgeNumber();
 	EdgeIterator::Ptr edgeIt = graph->getEdgeIterator();
 	
-	double ok=0;
 	//Variable::Ptr current,next;
-	IntervalConstraint::Ptr edge;
-	double max, min; 
+	IntervalConstraint::Ptr edge,prevEdge;
+	double max, min;
 	edgeIt->next();
 	edge = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
 	while (true)
 	{
 		if (edgeIt->next())
 		{
+			//if (ok==9) return edge->getLowerBound();
 			IntervalConstraint::Ptr nextEdge = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
 			Variable::Ptr source0 = edge->getSourceVariable();
 			Variable::Ptr source1 = nextEdge->getSourceVariable();
 			Variable::Ptr target0 = edge->getTargetVariable();
 			Variable::Ptr target1 = nextEdge->getTargetVariable();
+
 			if (source0 == source1 && target0 == target1)
 			{
 				max = 0;
@@ -64,8 +64,9 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::stp()
 				{
 					if (max < edge->getUpperBound()) max = edge->getUpperBound();
 					if (min > edge->getLowerBound()) min = edge->getLowerBound();
+					prevEdge = edge;
 					edge = nextEdge;
-					
+					//if (ok==8) return edge->getLowerBound();
 					if (!(edgeIt->next())) 
 					{
 						break;
@@ -78,25 +79,39 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::stp()
 					target1 = nextEdge->getTargetVariable();
 					
 				}
-
+				if (max < edge->getUpperBound()) max = edge->getUpperBound();
+				if (min > edge->getLowerBound()) min = edge->getLowerBound();
+				
 				IntervalConstraint::Ptr i(new IntervalConstraint(source0,target0,min,max));
 				tcn.addIntervalConstraint(i);
-				ok++;
+			}
+			else
+			{
+				//return edge->getLowerBound();
+				IntervalConstraint::Ptr i(new IntervalConstraint(edge->getSourceVariable(),edge->getTargetVariable(),edge->getLowerBound(),edge->getUpperBound()));
+				tcn.addIntervalConstraint(i);
+			}
+			prevEdge = edge;
+			edge = nextEdge;
+		}
+		else
+		{
+			if (n!=1)
+			{
+				if (prevEdge->getSourceVariable() != edge->getSourceVariable() || prevEdge->getTargetVariable() != edge->getTargetVariable())
+				{
+					IntervalConstraint::Ptr i(new IntervalConstraint(edge->getSourceVariable(),edge->getTargetVariable(),edge->getLowerBound(),edge->getUpperBound()));
+					tcn.addIntervalConstraint(i);
+				}
 			}
 			else
 			{
 				IntervalConstraint::Ptr i(new IntervalConstraint(edge->getSourceVariable(),edge->getTargetVariable(),edge->getLowerBound(),edge->getUpperBound()));
 				tcn.addIntervalConstraint(i);
-				ok++;
 			}
-			edge = nextEdge;
-		}
-		else
-		{
 			break;
 		}
 	}
-
 	mpDistanceGraph = tcn.mpDistanceGraph->copy();
 	return mpDistanceGraph;
 }
