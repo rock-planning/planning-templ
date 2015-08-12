@@ -7,18 +7,18 @@ using namespace templ;
 
 class RoleTimeline
 {
-    std::vector<solvers::csp::FluentTimeService> mFluents;
+    std::vector<solvers::csp::FluentTimeResource> mFluents;
     Role mRole;
 
 public:
     void setRole(const Role& role) { mRole = role; }
 
-    void add(const solvers::csp::FluentTimeService& fts) { mFluents.push_back(fts); }
+    void add(const solvers::csp::FluentTimeResource& fts) { mFluents.push_back(fts); }
 
     void sort(const std::vector<solvers::temporal::Interval>& intervals)
     {
         using namespace solvers::csp;
-        std::sort( mFluents.begin(), mFluents.end(), [&intervals](const FluentTimeService& a, const FluentTimeService& b)->bool
+        std::sort( mFluents.begin(), mFluents.end(), [&intervals](const FluentTimeResource& a, const FluentTimeResource& b)->bool
                 {
                     if(a == b)
                     {
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
         for(; cit != roleSolution.end(); ++cit)
         {
             const Role::List& roles = cit->second;
-            const FluentTimeService& fts = cit->first;
+            const FluentTimeResource& fts = cit->first;
 
             Role::List::const_iterator lit = roles.begin();
             for(; lit != roles.end(); ++lit)

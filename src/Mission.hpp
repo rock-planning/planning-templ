@@ -2,6 +2,7 @@
 #define TEMPL_MISSION_HPP
 
 #include <organization_model/OrganizationModel.hpp>
+#include <organization_model/OrganizationModelAsk.hpp>
 #include <organization_model/ModelPool.hpp>
 #include <templ/solvers/Constraint.hpp>
 #include <templ/ObjectVariable.hpp>
@@ -63,20 +64,48 @@ public:
 
     void prepare();
 
-    void addConstraint(organization_model::Service service,
-            ObjectVariable::Ptr location,
-            solvers::temporal::point_algebra::TimePoint::Ptr fromTp,
-            solvers::temporal::point_algebra::TimePoint::Ptr toTp);
+    /**
+     * Add a constraint that bind a resource (Service or Actor) to a specific
+     * location with a given cardinality
+     *
+     * \param locationId
+     * \param fromTp
+     * \param toTp
+     * \param resourceModel,
+     * \param cardinality
+     * \param type
+     */
+    void addResourceLocationCardinalityConstraint(
+            const std::string& locationId,
+            const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
+            const solvers::temporal::point_algebra::TimePoint::Ptr& toTp,
+            const owlapi::model::IRI& resourceModel,
+            uint32_t cardinality = 1,
+            owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType type = owlapi::model::OWLCardinalityRestriction::MIN
+            );
 
-    void addTemporalConstraint(solvers::temporal::point_algebra::TimePoint::Ptr t1,
-            solvers::temporal::point_algebra::TimePoint::Ptr t2,
+    /**
+     */
+    void addConstraint(const StateVariable& stateVariable,
+            const ObjectVariable::Ptr& objectVariable,
+            const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
+            const solvers::temporal::point_algebra::TimePoint::Ptr& toTp);
+
+    void addTemporalConstraint(const solvers::temporal::point_algebra::TimePoint::Ptr& t1,
+            const solvers::temporal::point_algebra::TimePoint::Ptr& t2,
             solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type constraint);
 
-    void addConstraint(solvers::Constraint::Ptr contraint);
+    void addConstraint(const solvers::Constraint::Ptr& contraint);
 
-    void setResources(const organization_model::ModelPool& modelPool);
+    /**
+     * Set the available resources
+     */
+    void setAvailableResources(const organization_model::ModelPool& modelPool);
 
-    const organization_model::ModelPool& getResources() const { return mModelPool; }
+    /**
+     * Get the model pool of available resources
+     */
+    const organization_model::ModelPool& getAvailableResources() const { return mModelPool; }
 
     /**
      * Refresh information, e.g. after updating the resources
@@ -98,8 +127,10 @@ public:
 
     organization_model::OrganizationModel::Ptr getOrganizationModel() const { return mpOrganizationModel; }
 
-    const owlapi::model::IRISet& getInvolvedServices() const { return mInvolvedServices; }
+    const owlapi::model::IRISet& getRequestedResources() const { return mRequestedResources; }
+
     const std::unordered_set<solvers::temporal::Interval>& getTimeIntervals() const { return mTimeIntervals; }
+
     const std::set<ObjectVariable::Ptr>& getObjectVariables() const { return mObjectVariables; }
 
     solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr getTemporalConstraintNetwork() const {
@@ -114,6 +145,7 @@ protected:
 
 private:
     organization_model::OrganizationModel::Ptr mpOrganizationModel;
+    organization_model::OrganizationModelAsk mAsk;
     std::string mName;
     organization_model::ModelPool mModelPool;
     // Set of roles that exists within this mission
@@ -124,7 +156,8 @@ private:
     std::vector<solvers::Constraint::Ptr> mConstraints;
 
     // Structures to facilitate CSP definition
-    owlapi::model::IRISet mInvolvedServices;
+    owlapi::model::IRISet mRequestedResources;
+
     /// Since a sorted set required the less operator for sorting in is not a suitable
     /// suitable container for Interval, since overlapping intervals have to be considered
     std::unordered_set<solvers::temporal::Interval> mTimeIntervals;

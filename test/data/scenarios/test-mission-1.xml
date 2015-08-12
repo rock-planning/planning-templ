@@ -11,7 +11,7 @@
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-        <maxCardinality>2</maxCardinality>
+        <maxCardinality>100</maxCardinality>
     </resource>
 </resources>
 <requirements>

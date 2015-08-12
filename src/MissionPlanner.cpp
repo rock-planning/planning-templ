@@ -6,7 +6,7 @@ namespace templ {
 MissionPlanner::MissionPlanner(const Mission& mission)
     : mCurrentMission(mission)
     , mOrganizationModelAsk(mission.getOrganizationModel(),
-            mission.getResources())
+            mission.getAvailableResources())
 {
 }
 
@@ -80,12 +80,15 @@ CandidateMissions MissionPlanner::solve()
 void MissionPlanner::computeExpansion(const StateVariable& stateVariable)
 {
     const std::string& function = stateVariable.getFunction();
-    if(function == "service_location")
+    owlapi::model::IRI service = owlapi::vocabulary::OM::Service();
+    std::string serviceLocation = service.getFragment() + "-Location";
+
+    if(function == serviceLocation)
     {
 
     } else {
         throw std::invalid_argument("templ::MissionPlanner::computeExansion: could not expand state "
-                "variable " + stateVariable.toString() + " requiring function 'service_location'");
+                "variable " + stateVariable.toString() + " requiring function '" + serviceLocation + "'");
     }
 }
 

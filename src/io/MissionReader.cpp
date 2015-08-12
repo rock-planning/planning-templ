@@ -188,7 +188,7 @@ Mission MissionReader::fromFile(const std::string& url)
             {
                 LOG_DEBUG_S << "Found first level node: 'resources' ";
                 organization_model::ModelPool modelPool = parseResources(doc, firstLevelChild);
-                mission.setResources(modelPool);
+                mission.setAvailableResources(modelPool);
             } else if(nameMatches(firstLevelChild, "requirements"))
             {
                 LOG_DEBUG_S << "Found first level node: 'requirements' ";
@@ -198,7 +198,7 @@ Mission MissionReader::fromFile(const std::string& url)
                 {
                     const Requirement& requirement = *cit;
 
-                    ObjectVariable::Ptr location = mission.getOrCreateObjectVariable(requirement.spatial.location.id, "Location");
+                    std::string locationId = requirement.spatial.location.id;
 
                     using namespace solvers::temporal::point_algebra;
 
@@ -215,8 +215,18 @@ Mission MissionReader::fromFile(const std::string& url)
                     owlapi::model::IRIList::const_iterator sit = requirement.functional.services.begin();
                     for(; sit != requirement.functional.services.end(); ++sit)
                     {
-                        owlapi::model::IRI model = *sit; 
-                        mission.addConstraint(organization_model::Service(model), location, from, to);
+                        const owlapi::model::IRI& model = *sit;
+                        mission.addResourceLocationCardinalityConstraint(locationId, from, to, model);
+                    }
+
+                    organization_model::ModelPool::const_iterator mit = requirement.resources.begin();
+                    for(; mit != requirement.resources.end(); ++mit)
+                    {
+                        const owlapi::model::IRI& model = mit->first;
+                        uint32_t cardinality = mit->second;
+
+                        // setting the min cardinality by default
+                        mission.addResourceLocationCardinalityConstraint(locationId, from, to, model, cardinality);
                     }
                 }
             } else if(nameMatches(firstLevelChild, "constraints"))
@@ -270,7 +280,7 @@ std::pair<owlapi::model::IRI, size_t> MissionReader::parseResource(xmlDocPtr doc
         owlapi::model::IRI modelIRI(model);
         uint32_t maxCardinality = boost::lexical_cast<uint32_t>(maxCardinalityTxt);
 
-        return std::pair<owlapi::model::IRI, size_t>(modelIRI, maxCardinality); 
+        return std::pair<owlapi::model::IRI, size_t>(modelIRI, maxCardinality);
     }
     throw std::invalid_argument("templ::io::MissionReader::parseResource: expected tag 'resource' found '" + std::string((const char*) current->name) + "'");
 }

@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
 
     organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
                 getRootDir() + "test/data/om-schema-v0.8.owl");
-    organization_model::Service location_image_provider( owlapi::vocabulary::OM::resolve("ImageProvider"));
+    owlapi::model::IRI location_image_provider = owlapi::vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
     point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
@@ -30,14 +30,10 @@ BOOST_AUTO_TEST_CASE(mission_0)
     point_algebra::TimePoint::Ptr t2 = point_algebra::QualitativeTimePoint::getInstance("t2");
     point_algebra::TimePoint::Ptr t3 = point_algebra::QualitativeTimePoint::getInstance("t3");
 
-    ObjectVariable::Ptr mp0 = ObjectVariable::getInstance("mp0","Location");
-    ObjectVariable::Ptr mp1 = ObjectVariable::getInstance("mp1","Location");
-
     Mission mission(om);
-    mission.addConstraint(location_image_provider,
-            mp0, t0, t1);
-    mission.addConstraint(location_image_provider,
-            mp1, t2, t3);
+
+    mission.addResourceLocationCardinalityConstraint("loc0", t0, t1, location_image_provider);
+    mission.addResourceLocationCardinalityConstraint("loc1", t2, t3, location_image_provider);
 
     mission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
 
@@ -53,14 +49,14 @@ BOOST_AUTO_TEST_CASE(mission_0)
     {
         organization_model::ModelPool modelPool;
         modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
-        mission.setResources(modelPool);
+        mission.setAvailableResources(modelPool);
         solvers::csp::ModelDistribution::solve(mission);
     }
 
     {
         organization_model::ModelPool modelPool;
         modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
-        mission.setResources(modelPool);
+        mission.setAvailableResources(modelPool);
         solvers::csp::ModelDistribution::solve(mission);
     }
 
@@ -68,7 +64,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
         organization_model::ModelPool modelPool;
         modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
         modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 2;
-        mission.setResources(modelPool);
+        mission.setAvailableResources(modelPool);
         solvers::csp::ModelDistribution::solve(mission);
     }
 
@@ -77,7 +73,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
         modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
         modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 2;
         modelPool[ owlapi::vocabulary::OM::resolve("Payload") ] = 10;
-        mission.setResources(modelPool);
+        mission.setAvailableResources(modelPool);
         solvers::csp::ModelDistribution::solve(mission);
     }
 }
@@ -95,7 +91,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
 
     organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
                 getRootDir() + "test/data/om-schema-v0.8.owl");
-    organization_model::Service location_image_provider( owlapi::vocabulary::OM::resolve("ImageProvider"));
+    owlapi::model::IRI location_image_provider = owlapi::vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
     point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
@@ -103,14 +99,12 @@ BOOST_AUTO_TEST_CASE(mission_1)
     point_algebra::TimePoint::Ptr t2 = point_algebra::QualitativeTimePoint::getInstance("t2");
     point_algebra::TimePoint::Ptr t3 = point_algebra::QualitativeTimePoint::getInstance("t3");
 
-    ObjectVariable::Ptr mp0 = ObjectVariable::getInstance("mp0","Location");
-    ObjectVariable::Ptr mp1 = ObjectVariable::getInstance("mp1","Location");
+    std::string loc0 = "location0";
+    std::string loc1 = "location1";
 
     Mission mission(om);
-    mission.addConstraint(location_image_provider,
-            mp0, t0, t1);
-    mission.addConstraint(location_image_provider,
-            mp1, t2, t3);
+    mission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
+    mission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
 
     // Overlapping intervals at two locations
     mission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Greater);
@@ -129,7 +123,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     {
         organization_model::ModelPool modelPool;
         modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
-        mission.setResources(modelPool);
+        mission.setAvailableResources(modelPool);
         BOOST_REQUIRE_THROW(solvers::csp::ModelDistribution::solve(mission), std::runtime_error);
     }
 
@@ -137,7 +131,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     {
         organization_model::ModelPool modelPool;
         modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 10;
-        mission.setResources(modelPool);
+        mission.setAvailableResources(modelPool);
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
 
@@ -151,7 +145,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
         organization_model::ModelPool modelPool;
         modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
         modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 1;
-        mission.setResources(modelPool);
+        mission.setAvailableResources(modelPool);
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
 
@@ -166,7 +160,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
         modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
         modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 3;
         modelPool[ owlapi::vocabulary::OM::resolve("Payload") ] = 10;
-        mission.setResources(modelPool);
+        mission.setAvailableResources(modelPool);
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
 
@@ -181,11 +175,11 @@ BOOST_AUTO_TEST_CASE(mission_1)
         modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
         modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 3;
         modelPool[ owlapi::vocabulary::OM::resolve("Payload") ] = 10;
-        mission.setResources(modelPool);
+        mission.setAvailableResources(modelPool);
 
-        organization_model::Service emi_power_provider( owlapi::vocabulary::OM::resolve("EmiPowerProvider"));
-        mission.addConstraint(emi_power_provider,
-            mp1, t2, t3);
+        owlapi::model::IRI emi_power_provider = owlapi::vocabulary::OM::resolve("EmiPowerProvider");
+        mission.addResourceLocationCardinalityConstraint(loc1, t2, t3, emi_power_provider);
+            
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
 
@@ -209,7 +203,7 @@ BOOST_AUTO_TEST_CASE(mission_tt)
 
     organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
                 getRootDir() + "test/data/om-schema-v0.8.owl");
-    organization_model::Service location_image_provider( owlapi::vocabulary::OM::resolve("ImageProvider"));
+    owlapi::model::IRI location_image_provider = owlapi::vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
     point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
@@ -217,14 +211,12 @@ BOOST_AUTO_TEST_CASE(mission_tt)
     point_algebra::TimePoint::Ptr t2 = point_algebra::QualitativeTimePoint::getInstance("t2");
     point_algebra::TimePoint::Ptr t3 = point_algebra::QualitativeTimePoint::getInstance("t3");
 
-    ObjectVariable::Ptr mp0 = ObjectVariable::getInstance("mp0","Location");
-    ObjectVariable::Ptr mp1 = ObjectVariable::getInstance("mp1","Location");
+    std::string loc0 = "location0";
+    std::string loc1 = "location1";
 
     Mission mission(om);
-    mission.addConstraint(location_image_provider,
-            mp0, t0, t1);
-    mission.addConstraint(location_image_provider,
-            mp1, t2, t3);
+    mission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
+    mission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider); 
 
     mission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
 
@@ -241,7 +233,7 @@ BOOST_AUTO_TEST_CASE(mission_tt)
         organization_model::ModelPool modelPool;
         modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 2;
         modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
-        mission.setResources(modelPool);
+        mission.setAvailableResources(modelPool);
 
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);

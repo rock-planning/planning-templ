@@ -14,29 +14,33 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
-struct FluentTimeService
+struct FluentTimeResource
 {
-    std::set<uint32_t> services;
+    std::set<uint32_t> resources;
     uint32_t time;
     uint32_t fluent;
 
-    typedef std::vector<FluentTimeService> List;
+    // Set the min cardinality
+    // of the available models
+    organization_model::ModelPool minCardinalities;
 
-    FluentTimeService(uint32_t service, uint32_t time, uint32_t fluent)
+    typedef std::vector<FluentTimeResource> List;
+
+    FluentTimeResource(uint32_t resource, uint32_t time, uint32_t fluent)
         : time(time)
         , fluent(fluent)
     {
-        services.insert(service);
+        resources.insert(resource);
     }
 
-    bool operator==(const FluentTimeService& other) const
+    bool operator==(const FluentTimeResource& other) const
     {
-        return services == other.services && time == other.time && fluent == other.fluent;
+        return resources == other.resources && time == other.time && fluent == other.fluent;
     }
 
-    bool operator<(const FluentTimeService& other) const
+    bool operator<(const FluentTimeResource& other) const
     {
-        if(services == other.services)
+        if(resources == other.resources)
         {
             if(time == other.time)
             {
@@ -44,19 +48,19 @@ struct FluentTimeService
             }
             return time < other.time;
         }
-        return services < other.services;
+        return resources < other.resources;
     }
 
     std::string toString() const
     {
         std::stringstream ss;
-        ss << "FluentTimeService: " << std::endl;
-        ss << "    services: #";
-        std::set<uint32_t>::const_iterator cit = services.begin();
-        for(; cit != services.end(); )
+        ss << "FluentTimeResource: " << std::endl;
+        ss << "    resources: #";
+        std::set<uint32_t>::const_iterator cit = resources.begin();
+        for(; cit != resources.end(); )
         {
             ss << *cit;
-            if(++cit != services.end())
+            if(++cit != resources.end())
             {
                 ss << ",";
             }
@@ -68,12 +72,12 @@ struct FluentTimeService
     }
 
     /**
-     * Get the overlapping/concurrent FluentTimeServices
+     * Get the overlapping/concurrent FluentTimeResources
      * from indexed list of intervals
      * \param requirements Referencing intervals using index
      * \param intervals Intervallist that is reference by requirements
      */
-    static std::vector< std::vector<FluentTimeService> > getConcurrent(const std::vector<FluentTimeService>& requirements,
+    static std::vector< std::vector<FluentTimeResource> > getConcurrent(const std::vector<FluentTimeResource>& requirements,
             const std::vector<solvers::temporal::Interval>& intervals);
 
 };
@@ -83,7 +87,7 @@ struct FluentTimeService
 class ModelDistribution : public Gecode::Space
 {
 public:
-    typedef std::map<FluentTimeService, organization_model::ModelPool > Solution;
+    typedef std::map<FluentTimeResource, organization_model::ModelPool > Solution;
     typedef std::vector<Solution> SolutionList;
 
 private:
@@ -92,19 +96,15 @@ private:
     organization_model::OrganizationModelAsk mAsk;
 
     owlapi::model::IRIList mServices;
+    owlapi::model::IRIList mResources;
     std::vector<solvers::temporal::Interval> mIntervals;
     std::vector<ObjectVariable::Ptr> mVariables;
 
-    /// Requirement that arise from the mission scenario
-    std::vector<FluentTimeService> mRequirements;
+    /// Service Requirement that arise from the mission scenario
+    std::vector<FluentTimeResource> mResourceRequirements;
 
     // map timeslot to fluenttime service
-    std::map<uint32_t, std::vector<FluentTimeService> > mTimeIndexedRequirements;
-
-    /// Total domain for assignment of reconfigurable systems
-    organization_model::ModelCombinationList mDomain;
-    /// Domain for each requirement
-    std::map<FluentTimeService, organization_model::ModelCombinationSet> mRequirementsDomain;
+    std::map<uint32_t, std::vector<FluentTimeResource> > mTimeIndexedRequirements;
 
     // Array which will be access using Gecode::Matrix
     // -- contains information about the robot types required to
@@ -132,7 +132,7 @@ private:
 
     // Get the minimum requirements as set of ModelCombinations
     // \return ModelCombinations that fulfill the requirement
-    organization_model::ModelCombinationSet getDomain(const FluentTimeService& requirement) const;
+    organization_model::ModelCombinationSet getDomain(const FluentTimeResource& requirement) const;
 
     std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelCombinationSet& set) const;
     std::vector<uint32_t> toCSP(const organization_model::ModelCombination& combination) const;
@@ -145,16 +145,20 @@ private:
      */
     Gecode::TupleSet toTupleSet(const organization_model::ModelCombinationSet& combinations) const;
 
-    size_t getFluentIndex(const FluentTimeService& fluent) const;
+    size_t getFluentIndex(const FluentTimeResource& fluent) const;
     size_t getResourceModelIndex(const owlapi::model::IRI& model) const;
     const owlapi::model::IRI& getResourceModelFromIndex(size_t index) const;
     size_t getResourceModelMaxCardinality(size_t model) const;
 
-    std::vector<FluentTimeService> getRequirements() const;
+    std::vector<FluentTimeResource> getResourceRequirements() const;
 
     size_t getMaxResourceCount(const organization_model::ModelPool& model) const;
 
-    void compact(std::vector<FluentTimeService>& requirements) const;
+    /**
+     * Create a compact representation for all requirement that 
+     * refer to the same fluent and time
+     */
+    void compact(std::vector<FluentTimeResource>& requirements) const;
 protected:
 
 public:

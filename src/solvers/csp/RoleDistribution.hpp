@@ -27,14 +27,14 @@ class RoleDistribution : public Gecode::Space
     // model-based first stage guarantees conflict free solution on type basis
    
     Role::List mRoles;
-    FluentTimeService::List mRequirements;
+    FluentTimeResource::List mRequirements;
 
     // Get time intervals
     std::vector<solvers::temporal::Interval> mIntervals;
     owlapi::model::IRIList mAvailableModels;
 
 public:
-    typedef std::map<FluentTimeService, Role::List> Solution;
+    typedef std::map<FluentTimeResource, Role::List> Solution;
     typedef std::vector<Solution> SolutionList;
 
     /**
@@ -62,7 +62,7 @@ public:
 
     static SolutionList solve(const Mission& mission, const ModelDistribution::Solution& modelDistribution);
 
-    size_t getFluentIndex(const FluentTimeService& fluent) const;
+    size_t getFluentIndex(const FluentTimeResource& fluent) const;
 
     const solvers::temporal::Interval& getInterval(size_t index) const { return mIntervals.at(index); }
 };

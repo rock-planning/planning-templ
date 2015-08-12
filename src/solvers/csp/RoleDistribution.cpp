@@ -19,15 +19,15 @@ RoleDistribution::RoleDistribution(const Mission& mission, const ModelDistributi
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ modelDistribution.size());
 
     const owlapi::model::IRIList& models = mission.getModels();
-    const organization_model::ModelPool& resources = mission.getResources();
+    const organization_model::ModelPool& resources = mission.getAvailableResources();
 
-    // foreach FluentTimeService
+    // foreach FluentTimeResource
     //     same role types -> sum <= modelbound given by solution
     ModelDistribution::Solution::const_iterator cit = modelDistribution.begin();
     size_t column = 0;
     for(; cit != modelDistribution.end(); ++cit, ++column)
     {
-        const FluentTimeService& fts = cit->first;
+        const FluentTimeResource& fts = cit->first;
         const organization_model::ModelPool& solutionPool = cit->second;
 
         // build initial requirement list
@@ -72,9 +72,9 @@ RoleDistribution::RoleDistribution(const Mission& mission, const ModelDistributi
     {
         // Set of available models: mModelPool
         // Make sure the assignments are within resource bounds for concurrent requirements
-        std::vector< std::vector<FluentTimeService> > concurrentRequirements = FluentTimeService::getConcurrent(mRequirements, mIntervals);
+        std::vector< std::vector<FluentTimeResource> > concurrentRequirements = FluentTimeResource::getConcurrent(mRequirements, mIntervals);
 
-        std::vector< std::vector<FluentTimeService> >::const_iterator cit = concurrentRequirements.begin();
+        std::vector< std::vector<FluentTimeResource> >::const_iterator cit = concurrentRequirements.begin();
         if(concurrentRequirements.empty())
         {
             LOG_WARN_S << "No concurrent requirements found";
@@ -82,13 +82,13 @@ RoleDistribution::RoleDistribution(const Mission& mission, const ModelDistributi
             for(; cit != concurrentRequirements.end(); ++cit)
             {
                 LOG_DEBUG_S << "Concurrent roles requirements: " << mRoles.size();
-                const std::vector<FluentTimeService>& concurrentFluents = *cit;
+                const std::vector<FluentTimeResource>& concurrentFluents = *cit;
 
                 for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
                 {
                     Gecode::IntVarArgs args;
 
-                    std::vector<FluentTimeService>::const_iterator fit = concurrentFluents.begin();
+                    std::vector<FluentTimeResource>::const_iterator fit = concurrentFluents.begin();
                     for(; fit != concurrentFluents.end(); ++fit)
                     {
                         size_t row = getFluentIndex(*fit);
@@ -122,9 +122,9 @@ Gecode::Space* RoleDistribution::copy(bool share)
     return new RoleDistribution(share, *this);
 }
 
-size_t RoleDistribution::getFluentIndex(const FluentTimeService& fluent) const
+size_t RoleDistribution::getFluentIndex(const FluentTimeResource& fluent) const
 {
-    std::vector<FluentTimeService>::const_iterator ftsIt = std::find(mRequirements.begin(), mRequirements.end(), fluent);
+    std::vector<FluentTimeResource>::const_iterator ftsIt = std::find(mRequirements.begin(), mRequirements.end(), fluent);
     if(ftsIt != mRequirements.end())
     {
         int index = ftsIt - mRequirements.begin();
@@ -219,7 +219,7 @@ std::ostream& operator<<(std::ostream& os, const RoleDistribution::Solution& sol
     os << "Solution" << std::endl;
     for(; cit != solution.end(); ++cit)
     {
-        const FluentTimeService& fts = cit->first;
+        const FluentTimeResource& fts = cit->first;
         os << "--- requirement #" << count++ << std::endl;
         os << fts.toString() << std::endl;
 

@@ -5,6 +5,8 @@
 
 #include <gecode/gist.hh>
 #include <organization_model/Algebra.hpp>
+#include <owlapi/Vocabulary.hpp>
+#include <templ/object_variables/LocationCardinality.hpp>
 
 namespace templ {
 namespace solvers {
@@ -13,13 +15,13 @@ namespace csp {
 ModelDistribution::Solution ModelDistribution::getSolution() const
 {
     Solution solution;
-    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mModelPool.size(), mRequirements.size());
+    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mModelPool.size(), mResourceRequirements.size());
 
     // Check if resource requirements holds
-    for(size_t i = 0; i < mRequirements.size(); ++i)
+    for(size_t i = 0; i < mResourceRequirements.size(); ++i)
     {
         organization_model::ModelPool modelPool;
-        for(size_t mi = 0; mi < mMission.getResources().size(); ++mi)
+        for(size_t mi = 0; mi < mMission.getAvailableResources().size(); ++mi)
         {
             Gecode::IntVar var = resourceDistribution(mi, i);
             if(!var.assigned())
@@ -32,25 +34,48 @@ ModelDistribution::Solution ModelDistribution::getSolution() const
             modelPool[ mAvailableModels[mi] ] = v.val();
         }
 
-        solution[ mRequirements[i] ] = modelPool;
+        solution[ mResourceRequirements[i] ] = modelPool;
     }
 
     return solution;
 }
 
-organization_model::ModelCombinationSet ModelDistribution::getDomain(const FluentTimeService& requirement) const
+organization_model::ModelCombinationSet ModelDistribution::getDomain(const FluentTimeResource& requirement) const
 {
+    // The domain account for service requirements as well as explicetly stated
+    // resource model requirements
+    //
     std::set<organization_model::Service> services;
-    std::set<uint32_t>::const_iterator cit = requirement.services.begin();
-    for(; cit != requirement.services.end(); ++cit)
+    std::set<organization_model::ModelCombination> singleActorCombinations;
+
+    std::set<uint32_t>::const_iterator cit = requirement.resources.begin();
+    for(; cit != requirement.resources.end(); ++cit)
     {
-        organization_model::Service service( mServices[*cit] );
-        services.insert(service);
-        LOG_INFO_S << "Add service requirement: " << service.getModel().toString();
+        const owlapi::model::IRI& resourceModel = mResources[*cit];
+        using namespace owlapi;
+
+        if( mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Service()) )
+        {
+            organization_model::Service service(resourceModel);
+            services.insert(service);
+            LOG_INFO_S << "Add service requirement: " << service.getModel().toString();
+        } else if(mAsk.ontology().isSubClassOf(resourceModel, vocabulary::OM::Actor()) || mAsk.ontology().isInstanceOf(resourceModel, vocabulary::OM::Actor()) )
+        {
+            // The resource is either a model or the individual actor
+            organization_model::ModelCombination singleActor;
+            singleActor.push_back(resourceModel);
+            singleActorCombinations.insert(singleActor);
+        }
     }
 
     organization_model::ModelCombinationSet combinations = mAsk.getBoundedResourceSupport(services);
     LOG_INFO_S << "Bounded resources: " << organization_model::OrganizationModel::toString(combinations);
+
+    // Add allowed single actors or actormodel (even if the service requirement
+    // is not specified)
+    // TODO: combinations of a set of explicitely state single actors 
+    combinations.insert(singleActorCombinations.begin(), singleActorCombinations.end());
+
     return combinations;
 }
 
@@ -103,19 +128,25 @@ uint32_t ModelDistribution::systemModelToCSP(const owlapi::model::IRI& model) co
 ModelDistribution::ModelDistribution(const templ::Mission& mission)
     : Gecode::Space()
     , mMission(mission)
-    , mModelPool(mission.getResources())
-    , mAsk(mission.getOrganizationModel(), mission.getResources(), true)
-    , mServices(mission.getInvolvedServices().begin(), mission.getInvolvedServices().end())
+    , mModelPool(mission.getAvailableResources())
+    , mAsk(mission.getOrganizationModel(), mission.getAvailableResources(), true)
+    , mResources(mission.getRequestedResources().begin(), mission.getRequestedResources().end())
     , mIntervals(mission.getTimeIntervals().begin(), mission.getTimeIntervals().end())
     , mVariables(mission.getObjectVariables().begin(), mission.getObjectVariables().end())
-    , mRequirements(getRequirements())
-    , mModelUsage(*this, /*# of models*/ mission.getResources().size()*
-            /*# of fluent time services*/mRequirements.size(), 0, getMaxResourceCount(mModelPool))
+    , mResourceRequirements(getResourceRequirements())
+    , mModelUsage(*this, /*# of models*/ mission.getAvailableResources().size()*
+            /*# of fluent time services*/mResourceRequirements.size(), 0, getMaxResourceCount(mModelPool))
     , mAvailableModels(mission.getModels())
 {
+    if(mResourceRequirements.empty())
+    {
+        throw std::invalid_argument("templ::solvers::csp::ModelDistribution: no resource requirements given");
+    }
+
     LOG_INFO_S << "ModelDistribution CSP Problem Construction" << std::endl
-    << "    services: " << mServices << std::endl
-    << "    intervals: " << mIntervals.size() << std::endl;
+    << "    requested resources: " << mResources << std::endl
+    << "    intervals: " << mIntervals.size() << std::endl
+    << "    # requirements: " << mResourceRequirements.size() << std::endl;
 
     //Gecode::IntArgs x = Gecode::IntArgs::create(3,2,0);
     //Gecode::IntArgs y = Gecode::IntArgs::create(2,2,0);
@@ -125,7 +156,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
 
     ////rel(*this, x + y, Gecode::SRT_SUB, z)
 
-    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mission.getResources().size(), /*height --> row*/ mRequirements.size());
+    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mission.getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
     // Example usage
     //
     //Gecode::IntVar v = resourceDistribution(0,0);
@@ -144,7 +175,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
     // Add explit constraints, i.e. set of model combinations can be added this
     // way
     // Gecode::TupleSet tupleSet;
-    // tupleSet.add( Gecode::IntArgs::create( mission.getResources().size(), 1, 0) );
+    // tupleSet.add( Gecode::IntArgs::create( mission.getAvailableResources().size(), 1, 0) );
     // tupleSet.finalize();
     //
     // extensional(*this, resourceDistribution.row(0), tupleSet);
@@ -157,6 +188,8 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
     //     - identify overlapping fts, limit resources for these (TODO: better
     //     indentification of overlapping requirements)
     //
+    //
+    // (C) Minimal resource constraints associated with Time-Location
     // Part (A)
     {
         using namespace solvers::temporal;
@@ -164,20 +197,33 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
         LOG_DEBUG_S << "Involved services: " << owlapi::model::IRI::toString(mServices, true);
 
         {
-            std::vector<FluentTimeService>::const_iterator fit = mRequirements.begin();
-            for(; fit != mRequirements.end(); ++fit)
+            std::vector<FluentTimeResource>::const_iterator fit = mResourceRequirements.begin();
+            for(; fit != mResourceRequirements.end(); ++fit)
             {
-                const FluentTimeService& fts = *fit;
+                const FluentTimeResource& fts = *fit;
                 LOG_DEBUG_S << "(A) Define requirement: " << fts.toString();
 
                 // row: index of requirement
                 // col: index of model type
-                size_t requirementIndex = fit - mRequirements.begin();
+                size_t requirementIndex = fit - mResourceRequirements.begin();
                 for(size_t mi = 0; mi < mAvailableModels.size(); ++mi)
                 {
                     Gecode::IntVar v = resourceDistribution(mi, requirementIndex);
-                    // default min requirement is 0
-                    rel(*this, v, Gecode::IRT_GQ, 0);
+
+                    {
+                        // default min requirement is 0
+                        uint32_t minCardinality = 0;
+                        /// Consider additional resource cardinality constraint
+                        organization_model::ModelPool::const_iterator cardinalityIt = fts.minCardinalities.find( mAvailableModels[mi] );
+                        if(cardinalityIt != fts.minCardinalities.end())
+                        {
+                            minCardinality = cardinalityIt->second;
+                            LOG_DEBUG_S << "Found extra resource cardinality constraint: " << std::endl
+                                << "    " << mAvailableModels[mi] << ": minCardinality " << minCardinality;
+                        } 
+                        rel(*this, v, Gecode::IRT_GQ, minCardinality);
+                    }
+
                     // setting the upper bound for this model and this service
                     // based on what the model pool can provide
                     LOG_DEBUG_S << "requirement: " << requirementIndex
@@ -210,19 +256,19 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
     {
         // Set of available models: mModelPool
         // Make sure the assignments are within resource bounds for concurrent requirements
-        std::vector< std::vector<FluentTimeService> > concurrentRequirements = FluentTimeService::getConcurrent(mRequirements, mIntervals);
+        std::vector< std::vector<FluentTimeResource> > concurrentRequirements = FluentTimeResource::getConcurrent(mResourceRequirements, mIntervals);
 
-        std::vector< std::vector<FluentTimeService> >::const_iterator cit = concurrentRequirements.begin();
+        std::vector< std::vector<FluentTimeResource> >::const_iterator cit = concurrentRequirements.begin();
         for(; cit != concurrentRequirements.end(); ++cit)
         {
             LOG_DEBUG_S << "Concurrent requirements";
-            const std::vector<FluentTimeService>& concurrentFluents = *cit;
+            const std::vector<FluentTimeResource>& concurrentFluents = *cit;
             for(size_t mi = 0; mi < mAvailableModels.size(); ++mi)
             {
                 LOG_DEBUG_S << "    model: " << mAvailableModels[ mi ].toString();
                 Gecode::IntVarArgs args;
 
-                std::vector<FluentTimeService>::const_iterator fit = concurrentFluents.begin();
+                std::vector<FluentTimeResource>::const_iterator fit = concurrentFluents.begin();
                 for(; fit != concurrentFluents.end(); ++fit)
                 {
                     Gecode::IntVar v = resourceDistribution(mi, getFluentIndex(*fit));
@@ -258,8 +304,7 @@ ModelDistribution::ModelDistribution(bool share, ModelDistribution& other)
     , mServices(other.mServices)
     , mIntervals(other.mIntervals)
     , mVariables(other.mVariables)
-    , mRequirements(other.mRequirements)
-    , mDomain(other.mDomain)
+    , mResourceRequirements(other.mResourceRequirements)
     , mAvailableModels(other.mAvailableModels)
 {
     LOG_DEBUG_S << "Copy construct";
@@ -331,12 +376,12 @@ Gecode::TupleSet ModelDistribution::toTupleSet(const organization_model::ModelCo
     return tupleSet;
 }
 
-size_t ModelDistribution::getFluentIndex(const FluentTimeService& fluent) const
+size_t ModelDistribution::getFluentIndex(const FluentTimeResource& fluent) const
 {
-    std::vector<FluentTimeService>::const_iterator ftsIt = std::find(mRequirements.begin(), mRequirements.end(), fluent);
-    if(ftsIt != mRequirements.end())
+    std::vector<FluentTimeResource>::const_iterator ftsIt = std::find(mResourceRequirements.begin(), mResourceRequirements.end(), fluent);
+    if(ftsIt != mResourceRequirements.end())
     {
-        int index = ftsIt - mRequirements.begin();
+        int index = ftsIt - mResourceRequirements.begin();
         assert(index >= 0);
         return (size_t) index;
     }
@@ -376,9 +421,9 @@ size_t ModelDistribution::getResourceModelMaxCardinality(size_t index) const
     throw std::invalid_argument("templ::solvers::csp::ModelDistribution::getResourceModelMaxCardinality: model not found");
 }
 
-std::vector<FluentTimeService> ModelDistribution::getRequirements() const
+std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() const
 {
-    std::vector<FluentTimeService> requirements;
+    std::vector<FluentTimeResource> requirements;
 
     using namespace templ::solvers::temporal;
     const std::vector<PersistenceCondition::Ptr>& conditions = mMission.getPersistenceConditions();
@@ -390,9 +435,16 @@ std::vector<FluentTimeService> ModelDistribution::getRequirements() const
         Interval interval(p->getFromTimePoint(), p->getToTimePoint(),
                 point_algebra::TimePointComparator(mMission.getTemporalConstraintNetwork()) );
 
-        owlapi::model::IRI serviceModel(p->getStateVariable().getResource());
 
+        StateVariable stateVariable = p->getStateVariable();
+        if(stateVariable.getFunction() != "Location-Cardinality")
+        {
+            continue;
+        }
+
+        owlapi::model::IRI resourceModel(stateVariable.getResource());
         ObjectVariable::Ptr objectVariable = boost::dynamic_pointer_cast<ObjectVariable>(p->getValue());
+        object_variables::LocationCardinality::Ptr locationCardinality = boost::dynamic_pointer_cast<object_variables::LocationCardinality>(objectVariable);
 
         {
             std::vector<Interval>::const_iterator iit = std::find(mIntervals.begin(), mIntervals.end(), interval);
@@ -402,8 +454,8 @@ std::vector<FluentTimeService> ModelDistribution::getRequirements() const
                 throw std::runtime_error("Could not find interval");
             }
 
-            owlapi::model::IRIList::const_iterator sit = std::find(mServices.begin(), mServices.end(), serviceModel);
-            if(sit == mServices.end())
+            owlapi::model::IRIList::const_iterator sit = std::find(mResources.begin(), mResources.end(), resourceModel);
+            if(sit == mResources.end())
             {
                 throw std::runtime_error("Could not find service");
             }
@@ -415,12 +467,22 @@ std::vector<FluentTimeService> ModelDistribution::getRequirements() const
             }
 
             uint32_t timeIndex = iit - mIntervals.begin();
-            FluentTimeService lts((int) (sit - mServices.begin()),
+            FluentTimeResource ftr((int) (sit - mResources.begin()),
                     timeIndex,
                     (int) (oit - mVariables.begin()));
 
-            requirements.push_back(lts);
-            LOG_DEBUG_S << lts.toString();
+            if(mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Service()))
+            {
+            } else if(mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Actor()))
+            {
+                ftr.minCardinalities[ resourceModel ] = locationCardinality->getCardinality();
+            } else {
+                LOG_WARN_S << "Unsupported state variable: " << resourceModel;
+                continue;
+            }
+
+            requirements.push_back(ftr);
+            LOG_DEBUG_S << ftr.toString();
 
         }
     }
@@ -429,21 +491,23 @@ std::vector<FluentTimeService> ModelDistribution::getRequirements() const
     return requirements;
 }
 
-void ModelDistribution::compact(std::vector<FluentTimeService>& requirements) const
+void ModelDistribution::compact(std::vector<FluentTimeResource>& requirements) const
 {
-    std::vector<FluentTimeService>::iterator it = requirements.begin();
+    std::vector<FluentTimeResource>::iterator it = requirements.begin();
     for(; it != requirements.end(); ++it)
     {
-        FluentTimeService& fts = *it;
+        FluentTimeResource& fts = *it;
 
-        std::vector<FluentTimeService>::iterator compareIt = it + 1;
+        std::vector<FluentTimeResource>::iterator compareIt = it + 1;
         for(; compareIt != requirements.end();)
         {
-            FluentTimeService& otherFts = *compareIt;
+            FluentTimeResource& otherFts = *compareIt;
 
             if(fts.time == otherFts.time && fts.fluent == otherFts.fluent)
             {
-                fts.services.insert(otherFts.services.begin(), otherFts.services.end());
+                fts.resources.insert(otherFts.resources.begin(), otherFts.resources.end());
+                fts.minCardinalities = organization_model::Algebra::maxMin(fts.minCardinalities, otherFts.minCardinalities);
+
                 requirements.erase(compareIt);
             } else {
                 ++compareIt;
@@ -452,15 +516,15 @@ void ModelDistribution::compact(std::vector<FluentTimeService>& requirements) co
     }
 }
 
-std::vector< std::vector<FluentTimeService> > FluentTimeService::getConcurrent(const std::vector<FluentTimeService>& requirements, const std::vector<solvers::temporal::Interval>& intervals)
+std::vector< std::vector<FluentTimeResource> > FluentTimeResource::getConcurrent(const std::vector<FluentTimeResource>& requirements, const std::vector<solvers::temporal::Interval>& intervals)
 {
     // map timeslot to fluenttime service
-    std::map<uint32_t, std::vector<FluentTimeService> > timeIndexedRequirements;
+    std::map<uint32_t, std::vector<FluentTimeResource> > timeIndexedRequirements;
     {
-        std::vector<FluentTimeService>::const_iterator rit = requirements.begin();
+        std::vector<FluentTimeResource>::const_iterator rit = requirements.begin();
         for(; rit != requirements.end(); ++rit)
         {
-            const FluentTimeService& fts = *rit;
+            const FluentTimeResource& fts = *rit;
             // map the time index
             timeIndexedRequirements[ rit->time ].push_back(fts);
         }
@@ -475,8 +539,8 @@ std::vector< std::vector<FluentTimeService> > FluentTimeService::getConcurrent(c
 
 
     // All fluents that are on the same time overlap by default
-    std::vector< std::vector<FluentTimeService> > concurrentFts;
-    std::map<uint32_t, std::vector<FluentTimeService> >::const_iterator fit = timeIndexedRequirements.begin();
+    std::vector< std::vector<FluentTimeResource> > concurrentFts;
+    std::map<uint32_t, std::vector<FluentTimeResource> >::const_iterator fit = timeIndexedRequirements.begin();
     for(; fit != timeIndexedRequirements.end(); ++fit)
     {
         concurrentFts.push_back(fit->second);
@@ -486,14 +550,14 @@ std::vector< std::vector<FluentTimeService> > FluentTimeService::getConcurrent(c
     IndexCombinationSet::const_iterator cit = overlappingIntervals.begin();
     for(; cit != overlappingIntervals.end(); ++cit)
     {
-        std::vector<FluentTimeService> concurrent;
+        std::vector<FluentTimeResource> concurrent;
 
         const IndexCombination& indexCombination = *cit;
         IndexCombination::const_iterator iit = indexCombination.begin();
         for(; iit != indexCombination.end(); ++iit)
         {
             uint32_t timeIndex = *iit;
-            const std::vector<FluentTimeService>& fts = timeIndexedRequirements[ timeIndex ];
+            const std::vector<FluentTimeResource>& fts = timeIndexedRequirements[ timeIndex ];
 
             concurrent.insert(concurrent.end(), fts.begin(), fts.end());
         }
@@ -518,17 +582,17 @@ std::string ModelDistribution::toString() const
 {
     std::stringstream ss;
     ss << "ModelDistribution: #" << std::endl;
-    //Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mModelPool.size(), mRequirements.size());
+    //Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mModelPool.size(), mResourceRequirements.size());
 
     //// Check if resource requirements holds
-    //for(size_t i = 0; i < mRequirements.size(); ++i)
+    //for(size_t i = 0; i < mResourceRequirements.size(); ++i)
     //{
     //    ss << "assignment for:"
-    //        << mRequirements[i].toString()
-    //        << " available resources: " << mMission.getResources().size()
+    //        << mResourceRequirements[i].toString()
+    //        << " available resources: " << mMission.getAvailableResources().size()
     //        << std::endl;
 
-    //    for(size_t mi = 0; mi < mMission.getResources().size(); ++mi)
+    //    for(size_t mi = 0; mi < mMission.getAvailableResources().size(); ++mi)
     //    {
     //        Gecode::IntVar var = resourceDistribution(mi, i);
     //        var.assigned();
@@ -554,7 +618,7 @@ std::ostream& operator<<(std::ostream& os, const ModelDistribution::Solution& so
     os << "Solution" << std::endl;
     for(; cit != solution.end(); ++cit)
     {
-        const FluentTimeService& fts = cit->first;
+        const FluentTimeResource& fts = cit->first;
         os << "--- requirement #" << count++ << std::endl;
         os << fts.toString() << std::endl;
 

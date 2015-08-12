@@ -1,17 +1,25 @@
 <mission>
-<name>Transterra</name>
+<name>TransTerrA</name>
 <resources>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
-        <maxCardinality>2</maxCardinality>
+        <maxCardinality>1</maxCardinality>
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#CREX</model>
-        <maxCardinality>2</maxCardinality>
+        <maxCardinality>1</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+        <maxCardinality>1</maxCardinality>
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-        <maxCardinality>2</maxCardinality>
+        <maxCardinality>10</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#BaseCamp</model>
+        <maxCardinality>3</maxCardinality>
     </resource>
 </resources>
 <requirements>
@@ -69,8 +77,8 @@
 </requirements>
 <constraints>
     <temporal-constraints>
-        <greaterThan lval="t1" rval="t2" />
-        <lessThan lval="t0" rval="t3" />
+        <!--     <greaterThan lval="t1" rval="t2" />
+        <lessThan lval="t0" rval="t3" />-->
     </temporal-constraints>
 </constraints>
 

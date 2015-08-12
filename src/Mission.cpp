@@ -1,6 +1,9 @@
 #include "Mission.hpp"
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 #include <boost/lexical_cast.hpp>
+#include <owlapi/Vocabulary.hpp>
+
+#include <templ/object_variables/LocationCardinality.hpp>
 
 namespace templ {
 
@@ -37,16 +40,19 @@ std::string Role::toString(const Role::List& roles)
 
 Mission::Mission(const std::string& name)
     : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
+    , mpOrganizationModel()
+    , mAsk(mpOrganizationModel)
     , mName(name)
 {}
 
 Mission::Mission(organization_model::OrganizationModel::Ptr om, const std::string& name)
     : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
     , mpOrganizationModel(om)
+    , mAsk(om)
     , mName(name)
 {}
 
-void Mission::setResources(const organization_model::ModelPool& modelPool)
+void Mission::setAvailableResources(const organization_model::ModelPool& modelPool)
 {
     mModelPool = modelPool;
     refresh();
@@ -158,38 +164,75 @@ solvers::temporal::point_algebra::TimePoint::Ptr Mission::getOrCreateTimePoint(c
     throw std::runtime_error("templ::Mission::getOrCreateTimePoint: timepoint with label/value '" + name + "' could neither be found nor created");
 }
 
-void Mission::addConstraint(organization_model::Service service,
-        ObjectVariable::Ptr location,
-        solvers::temporal::point_algebra::TimePoint::Ptr from,
-        solvers::temporal::point_algebra::TimePoint::Ptr to)
+void Mission::addResourceLocationCardinalityConstraint(
+            const std::string& locationId,
+            const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
+            const solvers::temporal::point_algebra::TimePoint::Ptr& toTp,
+            const owlapi::model::IRI& resourceModel,
+            uint32_t cardinality,
+            owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType type
+)
 {
-    // the combination of service and location represent a state variable
-    // sloc
+    using namespace owlapi;
+
+    if(!mpOrganizationModel)
+    {
+        throw std::runtime_error("templ::Mission::addConstraint: mission has not been initialized with organization model");
+    }
+
+    //// Retrieve the type of the resource model
+    //owlapi::model::IRI type;
+    //if(mAsk.ontology().isSubClassOf(resourceModel, vocabulary::OM::Service()) )
+    //{
+    //    mInvolvedServices.insert(resourceModel);
+    //    type = vocabulary::OM::Service();
+    //} else if(mAsk.ontology().isSubClassOf(resourceModel, vocabulary::OM::Actor()) )
+    //{
+    //    mInvolvedActors.insert(resourceModel);
+    //    type = vocabulary::OM::Actor();
+    //} else {
+    //    throw std::invalid_argument("templ::Mission::addConstraint: unsupported resource type for '" +
+    //            resourceModel.toString() + "' -- supported are: " + 
+    //            vocabulary::OM::Service().toString() + ", and " +
+    //            vocabulary::OM::Actor().toString());
+    //}
+
+    mRequestedResources.insert(resourceModel);
+
+    ObjectVariable::Ptr locationCardinality(new object_variables::LocationCardinality(locationId, cardinality, type));
+    mObjectVariables.insert(locationCardinality);
+
+    // the combination of resource, location and cardinality represents a state variable
     // which needs to be translated into resource based state variables
-    StateVariable sloc("service-location",
-            service.getModel().toString());
+    StateVariable rloc("Location-Cardinality",
+            resourceModel.toString());
 
-    mInvolvedServices.insert(service.getModel());
-    mObjectVariables.insert(location);
+    addConstraint(rloc, locationCardinality, fromTp, toTp);
+}
 
+void Mission::addConstraint(const StateVariable& stateVariable,
+        const ObjectVariable::Ptr& objectVariable,
+        const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
+        const solvers::temporal::point_algebra::TimePoint::Ptr& toTp)
+{
     using namespace solvers::temporal;
-    PersistenceCondition::Ptr persistenceCondition = PersistenceCondition::getInstance(sloc,
-            location,
-            from,
-            to);
+    PersistenceCondition::Ptr persistenceCondition = PersistenceCondition::getInstance(stateVariable,
+            objectVariable,
+            fromTp,
+            toTp);
 
-    mpTemporalConstraintNetwork->addConstraint(from, to, pa::QualitativeTimePointConstraint::LessOrEqual);
-
-
+    mpTemporalConstraintNetwork->addConstraint(fromTp, toTp, pa::QualitativeTimePointConstraint::LessOrEqual);
     mPersistenceConditions.push_back(persistenceCondition);
 }
 
-void Mission::addTemporalConstraint(pa::TimePoint::Ptr t1, pa::TimePoint::Ptr t2, pa::QualitativeTimePointConstraint::Type constraint)
+void Mission::addTemporalConstraint(const pa::TimePoint::Ptr& t1,
+        const pa::TimePoint::Ptr& t2,
+        pa::QualitativeTimePointConstraint::Type constraint)
 {
     mpTemporalConstraintNetwork->addConstraint(t1, t2, constraint);
 }
 
-void Mission::addConstraint(solvers::Constraint::Ptr constraint)
+void Mission::addConstraint(const solvers::Constraint::Ptr& constraint)
 {
     using namespace solvers::temporal::point_algebra;
     QualitativeTimePointConstraint::Ptr timeConstraint = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(constraint);
