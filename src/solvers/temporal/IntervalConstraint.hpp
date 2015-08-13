@@ -15,8 +15,8 @@ namespace solvers {
 class IntervalConstraint : public Constraint
 {
 private:
-    uint64_t lowerBound;
-    uint64_t upperBound;
+    double lowerBound;
+    double upperBound;
 
 public:
 
@@ -51,18 +51,18 @@ public:
      */
     Variable::Ptr getTargetVariable() { return boost::dynamic_pointer_cast<Variable>( getTargetVertex()); }
 
-    void setLowerBound(uint64_t bound) { lowerBound = bound; }
+    void setLowerBound(double bound) { lowerBound = bound; }
 
-    void setUpperBound(uint64_t bound) { upperBound = bound; }
+    void setUpperBound(double bound) { upperBound = bound; }
     /**
      * Get the lower bound of this constraint
      */
-    uint64_t getLowerBound() { return lowerBound; }
+    double getLowerBound() { return lowerBound; }
 
     /**
      * Get the upper bound of this constraint
      */
-    uint64_t getUpperBound() { return upperBound; }
+    double getUpperBound() { return upperBound; }
 
 protected:
 

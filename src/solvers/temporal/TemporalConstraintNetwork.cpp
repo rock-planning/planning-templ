@@ -2,7 +2,7 @@
 //#include <numeric/Combinatorics.hpp>
 //#include <base/Logging.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
-//#include <graph_analysis/algorithms/FloydWarshall.hpp>
+#include <graph_analysis/algorithms/FloydWarshall.hpp>
 
 using namespace templ::solvers::temporal::point_algebra;
 using namespace graph_analysis;
@@ -31,16 +31,15 @@ void TemporalConstraintNetwork::addIntervalConstraint(IntervalConstraint::Ptr i)
 	mpDistanceGraph->addEdge(i);
 }
 
-graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::stp()
+void TemporalConstraintNetwork::stp()
 {
 	BaseGraph::Ptr graph = mpDistanceGraph->copy();
-	//BaseGraph::Ptr graph2 = mpDistanceGraph->copy();
+	
 	TemporalConstraintNetwork tcn;
-	//VertexIterator::Ptr vit = graph->getVertexIterator();
+	
 	double n = tcn.getEdgeNumber();
 	EdgeIterator::Ptr edgeIt = graph->getEdgeIterator();
 	
-	//Variable::Ptr current,next;
 	IntervalConstraint::Ptr edge,prevEdge;
 	double max, min;
 	edgeIt->next();
@@ -49,7 +48,6 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::stp()
 	{
 		if (edgeIt->next())
 		{
-			//if (ok==9) return edge->getLowerBound();
 			IntervalConstraint::Ptr nextEdge = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
 			Variable::Ptr source0 = edge->getSourceVariable();
 			Variable::Ptr source1 = nextEdge->getSourceVariable();
@@ -66,7 +64,6 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::stp()
 					if (min > edge->getLowerBound()) min = edge->getLowerBound();
 					prevEdge = edge;
 					edge = nextEdge;
-					//if (ok==8) return edge->getLowerBound();
 					if (!(edgeIt->next())) 
 					{
 						break;
@@ -87,7 +84,6 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::stp()
 			}
 			else
 			{
-				//return edge->getLowerBound();
 				IntervalConstraint::Ptr i(new IntervalConstraint(edge->getSourceVariable(),edge->getTargetVariable(),edge->getLowerBound(),edge->getUpperBound()));
 				tcn.addIntervalConstraint(i);
 			}
@@ -113,31 +109,29 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::stp()
 		}
 	}
 	mpDistanceGraph = tcn.mpDistanceGraph->copy();
-	return mpDistanceGraph;
 }
 
-// other represents the simple temporal network
-graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::intersection(TemporalConstraintNetwork other)
+graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::intersection(graph_analysis::BaseGraph::Ptr other)
 {
-	//graph1 is the simple temporal graph
+	//graph0 is the simple temporal network graph
 	BaseGraph::Ptr graph0 = mpDistanceGraph->copy();
-	BaseGraph::Ptr graph1 = other.mpDistanceGraph->copy();
+	BaseGraph::Ptr graph1 = other->copy();
 	//final graph
 	TemporalConstraintNetwork tcn;
 
-	EdgeIterator::Ptr edgeIt0 = graph0->getEdgeIterator();
 	EdgeIterator::Ptr edgeIt1 = graph1->getEdgeIterator();
 	Variable::Ptr source,target;
 	IntervalConstraint::Ptr edge0,edge1;
 
 	double cnt=0;
-	edgeIt0->next();
+	
 	while (edgeIt1->next()) 
 	{
 		edge1 = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt1->current() );
 		source = edge1 -> getSourceVariable();
 		target = edge1 -> getTargetVariable();
-		while (true)
+		EdgeIterator::Ptr edgeIt0 = graph0->getEdgeIterator();
+		while (edgeIt0->next())
 		{
 			edge0 = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt0->current() );
 			if (target == edge0->getTargetVariable() && source == edge0->getSourceVariable())
@@ -148,7 +142,7 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::intersection(TemporalC
 					tcn.addIntervalConstraint(i);
 					cnt++;
 				}
-					
+				else
 				if (edge1->getLowerBound() <= edge0->getLowerBound() && edge1->getUpperBound() <= edge0->getUpperBound())
 				{
 					if (edge0->getLowerBound() <= edge1->getUpperBound())
@@ -158,7 +152,7 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::intersection(TemporalC
 						cnt++;
 					}
 				}
-
+				else
 				if (edge1->getLowerBound() >= edge0->getLowerBound() && edge1->getUpperBound() >= edge0->getUpperBound())
 				{
 					if (edge0->getUpperBound() >= edge1->getLowerBound())
@@ -168,7 +162,7 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::intersection(TemporalC
 						cnt++;
 					}
 				}
-
+				else
 				if (edge1->getLowerBound() >= edge0->getLowerBound() && edge1->getUpperBound() <= edge0->getUpperBound())
 				{
 					IntervalConstraint::Ptr i(new IntervalConstraint(source, target, edge1->getLowerBound(), edge1->getUpperBound()));
@@ -176,20 +170,108 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::intersection(TemporalC
 					cnt++;
 				}
 			}
-			else
-			{
-				break;
-			}
-
-			if (!(edgeIt0->next())) break;
 		}
 	}
 	mpDistanceGraph = tcn.mpDistanceGraph->copy();
 	return mpDistanceGraph;
 }
 
-/*graph_analysis::BaseGraph::Ptr*/void TemporalConstraintNetwork::upperLowerTightening()
+
+graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::toWeightedGraph()
 {
+	BaseGraph::Ptr graph(new graph_analysis::lemon::DirectedGraph());
+	BaseGraph::Ptr tcn = mpDistanceGraph->copy();
+	EdgeIterator::Ptr edgeIt = tcn->getEdgeIterator();
+	//VertexIterator::Ptr vit = tcn->getVertexIterator();
+
+	//while (vit->next()) graph->addVertex(vit->current);
+
+	while (edgeIt->next())
+    {
+    	IntervalConstraint::Ptr edge0 = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
+        WeightedEdge::Ptr edge1(new WeightedEdge(edge0->getUpperBound()));
+        edge1->setSourceVertex(edge0->getSourceVariable());
+        edge1->setTargetVertex(edge0->getTargetVariable());
+        graph->addEdge(edge1);
+
+        WeightedEdge::Ptr edge2(new WeightedEdge(-edge0->getLowerBound()));
+        edge2->setSourceVertex(edge0->getTargetVariable());
+        edge2->setTargetVertex(edge0->getSourceVariable());
+        graph->addEdge(edge2);
+    }
+
+    return graph;
+}
+
+
+void TemporalConstraintNetwork::minNetwork()
+{
+	TemporalConstraintNetwork tcn;
+	BaseGraph::Ptr graph = (toWeightedGraph())->copy();
+	BaseGraph::Ptr oldGraph = mpDistanceGraph->copy();
+	algorithms::DistanceMatrix distanceMatrix = algorithms::FloydWarshall::allShortestPaths(graph, [](Edge::Ptr e) -> double
+                {
+                    return boost::dynamic_pointer_cast<WeightedEdge>(e)->getWeight();
+                });
+	EdgeIterator::Ptr edgeIt = oldGraph->getEdgeIterator();
+	//vit->next();
+	double cnt=0;
+	Variable::Ptr v1,v2;
+	while (edgeIt->next())
+	{
+		IntervalConstraint::Ptr edge = boost::dynamic_pointer_cast<IntervalConstraint>(edgeIt->current());
+		v1 = edge->getSourceVariable();
+		v2 = edge->getTargetVariable();
+	
+		cnt++; 
+
+		double distance12 = distanceMatrix[std::pair<Variable::Ptr, Variable::Ptr>(v1,v2)];
+		double distance21 = distanceMatrix[std::pair<Variable::Ptr, Variable::Ptr>(v2,v1)];
+		distance21 = (-1)*distance21;
+		IntervalConstraint::Ptr i(new IntervalConstraint(v1, v2, distance21, distance12));
+		tcn.addIntervalConstraint(i);	
+	}
+	mpDistanceGraph = tcn.mpDistanceGraph->copy();
+}
+
+bool TemporalConstraintNetwork::areEqual(graph_analysis::BaseGraph::Ptr other)
+{
+	EdgeIterator::Ptr edgeIt1 = mpDistanceGraph -> getEdgeIterator();
+	EdgeIterator::Ptr edgeIt2 = other -> getEdgeIterator();
+	while (edgeIt1->next() && edgeIt2->next())
+	{
+		IntervalConstraint::Ptr i1 = boost::dynamic_pointer_cast<IntervalConstraint>(edgeIt1->current());
+		IntervalConstraint::Ptr i2 = boost::dynamic_pointer_cast<IntervalConstraint>(edgeIt2->current());
+		if (i1->getSourceVariable() != i2->getSourceVariable()) return false;
+		if (i1->getTargetVariable() != i2->getTargetVariable()) return false;
+		if (i1->getLowerBound() != i2->getLowerBound()) return false;
+		if (i1->getUpperBound() != i2->getUpperBound()) return false;
+	}
+	return true;
+}
+
+void TemporalConstraintNetwork::upperLowerTightening()
+{
+	int cnt=0;
+	BaseGraph::Ptr oldGraph = mpDistanceGraph->copy();
+	do
+	{
+		cnt++;
+		oldGraph = mpDistanceGraph->copy();
+		stp();
+		minNetwork();
+		EdgeIterator::Ptr edgeIt = oldGraph->getEdgeIterator();
+		TemporalConstraintNetwork tcn;
+		while (edgeIt->next())
+		{
+			IntervalConstraint::Ptr i = boost::dynamic_pointer_cast<IntervalConstraint>(edgeIt->current());
+			IntervalConstraint::Ptr n(new IntervalConstraint(i->getSourceVariable(),i->getTargetVariable(),i->getLowerBound(),i->getUpperBound()));
+			tcn.addIntervalConstraint(n);
+		}
+		tcn.intersection(mpDistanceGraph);
+		mpDistanceGraph = (tcn.mpDistanceGraph) -> copy();
+		oldGraph = oldGraph ->copy();
+	} while (!areEqual(oldGraph));
 }
 
 int TemporalConstraintNetwork::getEdgeNumber()
