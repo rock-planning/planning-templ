@@ -204,9 +204,11 @@ void Mission::addResourceLocationCardinalityConstraint(
 
     // the combination of resource, location and cardinality represents a state variable
     // which needs to be translated into resource based state variables
-    StateVariable rloc("Location-Cardinality",
+    StateVariable rloc(ObjectVariable::TypeTxt[ObjectVariable::LOCATION_CARDINALITY],
             resourceModel.toString());
 
+    // Add to locations
+    mLocations.insert(locationId);
     addConstraint(rloc, locationCardinality, fromTp, toTp);
 }
 

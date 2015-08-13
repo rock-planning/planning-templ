@@ -132,6 +132,7 @@ public:
     const std::unordered_set<solvers::temporal::Interval>& getTimeIntervals() const { return mTimeIntervals; }
 
     const std::set<ObjectVariable::Ptr>& getObjectVariables() const { return mObjectVariables; }
+    const owlapi::model::IRISet& getLocations() const { return mLocations; }
 
     solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr getTemporalConstraintNetwork() const {
         return mpTemporalConstraintNetwork; }
@@ -162,6 +163,7 @@ private:
     /// suitable container for Interval, since overlapping intervals have to be considered
     std::unordered_set<solvers::temporal::Interval> mTimeIntervals;
     std::set<ObjectVariable::Ptr> mObjectVariables;
+    owlapi::model::IRISet mLocations;
 };
 
 } // end namespace templ

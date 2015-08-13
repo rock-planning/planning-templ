@@ -12,6 +12,9 @@ class ObjectVariable : public PlannerElement
 public:
     typedef boost::shared_ptr<ObjectVariable> Ptr;
 
+    enum Type { UNKNOWN, LOCATION, LOCATION_CARDINALITY };
+    static std::map<Type, std::string> TypeTxt;
+
     ObjectVariable(const std::string& name, const std::string& typeName)
         : PlannerElement(name, typeName, PlannerElement::OBJECT_VARIABLE)
     {}

@@ -68,12 +68,13 @@ organization_model::ModelCombinationSet ModelDistribution::getDomain(const Fluen
         }
     }
 
-    organization_model::ModelCombinationSet combinations = mAsk.getBoundedResourceSupport(services);
+    organization_model::ModelCombinationSet combinations = mAsk.getResourceSupport(services);
+    combinations = mAsk.applyUpperBound(combinations, requirement.maxCardinalities);
     LOG_INFO_S << "Bounded resources: " << organization_model::OrganizationModel::toString(combinations);
 
     // Add allowed single actors or actormodel (even if the service requirement
     // is not specified)
-    // TODO: combinations of a set of explicitely state single actors 
+    // TODO: combinations of a set of explicitely state single actors
     combinations.insert(singleActorCombinations.begin(), singleActorCombinations.end());
 
     return combinations;
@@ -132,12 +133,14 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
     , mAsk(mission.getOrganizationModel(), mission.getAvailableResources(), true)
     , mResources(mission.getRequestedResources().begin(), mission.getRequestedResources().end())
     , mIntervals(mission.getTimeIntervals().begin(), mission.getTimeIntervals().end())
-    , mVariables(mission.getObjectVariables().begin(), mission.getObjectVariables().end())
+    , mLocations(mission.getLocations().begin(), mission.getLocations().end())
     , mResourceRequirements(getResourceRequirements())
     , mModelUsage(*this, /*# of models*/ mission.getAvailableResources().size()*
             /*# of fluent time services*/mResourceRequirements.size(), 0, getMaxResourceCount(mModelPool))
     , mAvailableModels(mission.getModels())
 {
+    ConstraintMatrix constraintMatrix(mAvailableModels);
+
     if(mResourceRequirements.empty())
     {
         throw std::invalid_argument("templ::solvers::csp::ModelDistribution: no resource requirements given");
@@ -201,7 +204,8 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
             for(; fit != mResourceRequirements.end(); ++fit)
             {
                 const FluentTimeResource& fts = *fit;
-                LOG_DEBUG_S << "(A) Define requirement: " << fts.toString();
+                LOG_DEBUG_S << "(A) Define requirement: " << fts.toString()
+                            << "        available models: " << mAvailableModels << std::endl;
 
                 // row: index of requirement
                 // col: index of model type
@@ -214,31 +218,37 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
                         // default min requirement is 0
                         uint32_t minCardinality = 0;
                         /// Consider additional resource cardinality constraint
+                        LOG_DEBUG_S << "Check extra min cardinality for " << mAvailableModels[mi];
                         organization_model::ModelPool::const_iterator cardinalityIt = fts.minCardinalities.find( mAvailableModels[mi] );
                         if(cardinalityIt != fts.minCardinalities.end())
                         {
                             minCardinality = cardinalityIt->second;
                             LOG_DEBUG_S << "Found extra resource cardinality constraint: " << std::endl
                                 << "    " << mAvailableModels[mi] << ": minCardinality " << minCardinality;
-                        } 
+                        }
+                        constraintMatrix.setMin(requirementIndex, mi, minCardinality);
                         rel(*this, v, Gecode::IRT_GQ, minCardinality);
                     }
 
+                    uint32_t maxCardinality = mModelPool[ mAvailableModels[mi] ];
                     // setting the upper bound for this model and this service
                     // based on what the model pool can provide
                     LOG_DEBUG_S << "requirement: " << requirementIndex
                         << ", model: " << mi
-                        << " IRT_GQ 0 IRT_LQ: " << mModelPool[ mAvailableModels[mi] ];
-                    rel(*this, v, Gecode::IRT_LQ, mModelPool[ mAvailableModels[mi] ]);
+                        << " IRT_GQ 0 IRT_LQ: " << maxCardinality;
+                    constraintMatrix.setMax(requirementIndex, mi, maxCardinality);
+                    rel(*this, v, Gecode::IRT_LQ, maxCardinality);
                 }
 
                 // Extensional constraints, i.e. specifying the allowed
                 // combinations
                 organization_model::ModelCombinationSet allowedCombinations = getDomain(fts);
-                Gecode::TupleSet tupleSet = toTupleSet(allowedCombinations);
-                tupleSet.finalize();
+
+                appendToTupleSet(mExtensionalConstraints[requirementIndex], allowedCombinations);
+
+                //tupleSet.finalize();
                 //LOG_DEBUG_S << "TupleSet: " << tupleSet.size();
-                extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
+        //        extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
 
                 // there can be no empty assignment for a service
                 rel(*this, sum( resourceDistribution.row(requirementIndex) ) > 0);
@@ -250,6 +260,17 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
                 // linear(*this, c, resourceDistribution.row(requirementIndex), Gecode::IRT_GR, 0);
             }
         }
+
+        for(auto pair : mExtensionalConstraints)
+        {
+            uint32_t requirementIndex = pair.first;
+            Gecode::TupleSet& tupleSet = pair.second;
+
+            tupleSet.finalize();
+            extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
+        }
+
+        LOG_WARN_S << constraintMatrix.toString();
     }
     // Part (B) General resource constraints
     // - identify overlapping fts, limit resources for these
@@ -278,7 +299,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
                 }
 
                 uint32_t maxCardinality = mModelPool[ mAvailableModels[mi] ];
-                LOG_DEBUG_S << "General resource usage constraint: " << std::endl
+                LOG_DEBUG_S << "Add general resource usage constraint: " << std::endl
                     << "     " << mAvailableModels[mi].toString() << "# <= " << maxCardinality;
                 rel(*this, sum(args) <= maxCardinality);
             }
@@ -303,7 +324,7 @@ ModelDistribution::ModelDistribution(bool share, ModelDistribution& other)
     , mAsk(other.mAsk)
     , mServices(other.mServices)
     , mIntervals(other.mIntervals)
-    , mVariables(other.mVariables)
+    , mLocations(other.mLocations)
     , mResourceRequirements(other.mResourceRequirements)
     , mAvailableModels(other.mAvailableModels)
 {
@@ -351,10 +372,8 @@ std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::M
     return solutions;
 }
 
-Gecode::TupleSet ModelDistribution::toTupleSet(const organization_model::ModelCombinationSet& combinations) const
+void ModelDistribution::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelCombinationSet& combinations) const
 {
-    Gecode::TupleSet tupleSet;
-
     std::set< std::vector<uint32_t> > csp = toCSP( combinations );
     std::set< std::vector<uint32_t> >::const_iterator cit = csp.begin();
 
@@ -372,8 +391,6 @@ Gecode::TupleSet ModelDistribution::toTupleSet(const organization_model::ModelCo
 
         tupleSet.add( args );
     }
-
-    return tupleSet;
 }
 
 size_t ModelDistribution::getFluentIndex(const FluentTimeResource& fluent) const
@@ -437,7 +454,7 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
 
 
         StateVariable stateVariable = p->getStateVariable();
-        if(stateVariable.getFunction() != "Location-Cardinality")
+        if(stateVariable.getFunction() != ObjectVariable::TypeTxt[ObjectVariable::LOCATION_CARDINALITY] )
         {
             continue;
         }
@@ -460,19 +477,24 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
                 throw std::runtime_error("Could not find service");
             }
 
-            std::vector<ObjectVariable::Ptr>::const_iterator oit = std::find(mVariables.begin(), mVariables.end(), objectVariable);
-            if(oit == mVariables.end())
+            owlapi::model::IRI location(locationCardinality->getLocation());
+            owlapi::model::IRIList::const_iterator lit = std::find(mLocations.begin(), mLocations.end(), location);
+            if(lit == mLocations.end())
             {
-                throw std::runtime_error("Could not find variable");
+                throw std::runtime_error("Could not find location: " + location.toString());
             }
 
             uint32_t timeIndex = iit - mIntervals.begin();
-            FluentTimeResource ftr((int) (sit - mResources.begin()),
-                    timeIndex,
-                    (int) (oit - mVariables.begin()));
+            FluentTimeResource ftr((int) (sit - mResources.begin())
+                    , timeIndex
+                    , (int) (lit - mLocations.begin())
+                    , mModelPool);
 
             if(mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Service()))
             {
+                // retrieve upper bount
+                ftr.maxCardinalities = mAsk.getFunctionalSaturationBound(resourceModel);
+
             } else if(mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Actor()))
             {
                 ftr.minCardinalities[ resourceModel ] = locationCardinality->getCardinality();
@@ -483,7 +505,6 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
 
             requirements.push_back(ftr);
             LOG_DEBUG_S << ftr.toString();
-
         }
     }
 
@@ -493,6 +514,7 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
 
 void ModelDistribution::compact(std::vector<FluentTimeResource>& requirements) const
 {
+    LOG_DEBUG_S << "BEGIN compact requirements";
     std::vector<FluentTimeResource>::iterator it = requirements.begin();
     for(; it != requirements.end(); ++it)
     {
@@ -505,8 +527,21 @@ void ModelDistribution::compact(std::vector<FluentTimeResource>& requirements) c
 
             if(fts.time == otherFts.time && fts.fluent == otherFts.fluent)
             {
+                LOG_DEBUG_S << "Compacting: " << std::endl
+                    << fts.toString() << std::endl
+                    << otherFts.toString() << std::endl;
+
                 fts.resources.insert(otherFts.resources.begin(), otherFts.resources.end());
-                fts.minCardinalities = organization_model::Algebra::maxMin(fts.minCardinalities, otherFts.minCardinalities);
+
+                // MaxMax -->
+                // since the max cardinality is an upper bound defined through
+                // services, we need have to use the maximum here of any
+                // available maximum cardinality since we account for the set of
+                // services
+                fts.maxCardinalities = organization_model::Algebra::max(fts.maxCardinalities, otherFts.maxCardinalities);
+
+                // MaxMin --> min cardinalities are a lower bound specified explicitely
+                fts.minCardinalities = organization_model::Algebra::max(fts.minCardinalities, otherFts.minCardinalities);
 
                 requirements.erase(compareIt);
             } else {
@@ -514,6 +549,7 @@ void ModelDistribution::compact(std::vector<FluentTimeResource>& requirements) c
             }
         }
     }
+    LOG_DEBUG_S << "END compact requirements";
 }
 
 std::vector< std::vector<FluentTimeResource> > FluentTimeResource::getConcurrent(const std::vector<FluentTimeResource>& requirements, const std::vector<solvers::temporal::Interval>& intervals)

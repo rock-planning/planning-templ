@@ -1,12 +1,12 @@
 #ifndef TEMPL_OBJECT_VARIABLES_LOCATION_CARDINALITY_HPP
 #define TEMPL_OBJECT_VARIABLES_LOCATION_CARDINALITY_HPP
 
-#include <templ/ObjectVariable.hpp>
+#include <templ/object_variables/Location.hpp>
 
 namespace templ {
 namespace object_variables {
 
-class LocationCardinality : public ObjectVariable
+class LocationCardinality : public Location
 {
     uint32_t mCardinality;
     owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType mCardinalityRestrictionType;
@@ -18,7 +18,7 @@ public:
             uint32_t cardinality = 1,
             owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType type = owlapi::model::OWLCardinalityRestriction::MIN
     )
-        : ObjectVariable(location, "Location-Cardinality")
+        : Location(location, ObjectVariable::TypeTxt[LOCATION_CARDINALITY])
         , mCardinality(cardinality)
         , mCardinalityRestrictionType(type)
     {}

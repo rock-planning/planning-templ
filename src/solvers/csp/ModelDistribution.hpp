@@ -6,6 +6,7 @@
 #include <vector>
 #include <gecode/set.hh>
 #include <gecode/search.hh>
+#include <iomanip>
 
 #include <templ/Mission.hpp>
 #include <organization_model/OrganizationModelAsk.hpp>
@@ -20,15 +21,20 @@ struct FluentTimeResource
     uint32_t time;
     uint32_t fluent;
 
+    //ObjectVariable::Ptr objectVariable;
+
     // Set the min cardinality
     // of the available models
     organization_model::ModelPool minCardinalities;
+    organization_model::ModelPool maxCardinalities;
 
     typedef std::vector<FluentTimeResource> List;
 
-    FluentTimeResource(uint32_t resource, uint32_t time, uint32_t fluent)
+    FluentTimeResource(uint32_t resource, uint32_t time, uint32_t fluent,
+            const organization_model::ModelPool& availableModels = organization_model::ModelPool())
         : time(time)
         , fluent(fluent)
+        , maxCardinalities(availableModels)
     {
         resources.insert(resource);
     }
@@ -68,6 +74,8 @@ struct FluentTimeResource
         ss << std::endl;
         ss << "    time: #" << time << std::endl;
         ss << "    fluent: #" << fluent << std::endl;
+        ss << "    max cardinalities: " << maxCardinalities.toString() << std::endl;
+        ss << "    min cardinalities: " << minCardinalities.toString() << std::endl;
         return ss.str();
     }
 
@@ -83,6 +91,55 @@ struct FluentTimeResource
 };
 
 
+class ConstraintMatrix
+{
+    struct MinMax
+    {
+        uint32_t min;
+        uint32_t max;
+
+        std::string toString() const
+        {
+            std::stringstream ss;
+            ss << std::setw(4) << "(" << min << "," << max << ")";
+            return ss.str();
+        }
+    };
+
+    typedef uint32_t RowId, ColumnId;
+    typedef MinMax Column;
+
+    // Requirement mapped to the min,max setting
+    std::map<RowId, std::map<ColumnId, MinMax> > mMatrix;
+    owlapi::model::IRIList mAvailableModels;
+public:
+
+    ConstraintMatrix(const owlapi::model::IRIList& availableModels)
+        : mAvailableModels(availableModels)
+    {}
+
+    void setMax(RowId row, ColumnId col, uint32_t max) {  mMatrix[row][col].max = max; }
+    void setMin(RowId row, ColumnId col, uint32_t min) {  mMatrix[row][col].min = min; }
+
+    std::string toString() const 
+    {
+        std::stringstream ss;
+        ss << "Constraint matrix:" << std::endl;
+        ss << "Available models: " << mAvailableModels << std::endl;
+        for(auto row : mMatrix)
+        {
+            ss << "#" << std::setw(4) << row.first << " ";
+            
+            for(auto col : row.second)
+            {
+                ss << " " << col.second.toString();
+            }
+            ss << std::endl;
+        }
+        return ss.str();
+    }
+
+};
 
 class ModelDistribution : public Gecode::Space
 {
@@ -98,7 +155,7 @@ private:
     owlapi::model::IRIList mServices;
     owlapi::model::IRIList mResources;
     std::vector<solvers::temporal::Interval> mIntervals;
-    std::vector<ObjectVariable::Ptr> mVariables;
+    owlapi::model::IRIList mLocations;
 
     /// Service Requirement that arise from the mission scenario
     std::vector<FluentTimeResource> mResourceRequirements;
@@ -116,6 +173,9 @@ private:
     //  r-1         |      0       |      2       |      2       | ...
     Gecode::IntVarArray mModelUsage;
     owlapi::model::IRIList mAvailableModels;
+
+    // Per requirement: collect the extensional constraints
+    std::map<uint32_t, Gecode::TupleSet> mExtensionalConstraints;
 
 private:
     /**
@@ -143,7 +203,7 @@ private:
      * extensional constraints out of the combination set
      * \return TupleSet
      */
-    Gecode::TupleSet toTupleSet(const organization_model::ModelCombinationSet& combinations) const;
+    void appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelCombinationSet& combinations) const;
 
     size_t getFluentIndex(const FluentTimeResource& fluent) const;
     size_t getResourceModelIndex(const owlapi::model::IRI& model) const;
