@@ -266,6 +266,7 @@ Mission MissionReader::fromFile(const std::string& url)
      */
     xmlCleanupParser();
 
+    mission.validateAvailableResources();
     return mission;
 }
 
@@ -278,8 +279,14 @@ std::pair<owlapi::model::IRI, size_t> MissionReader::parseResource(xmlDocPtr doc
         std::string maxCardinalityTxt = getSubNodeContent(doc, current, "maxCardinality");
 
         owlapi::model::IRI modelIRI(model);
-        uint32_t maxCardinality = boost::lexical_cast<uint32_t>(maxCardinalityTxt);
+        int32_t cardinality = boost::lexical_cast<int32_t>(maxCardinalityTxt);
+        if(cardinality < 0)
+        {
+            throw std::invalid_argument("templ::MissionReader: invalid value in mission specification --"
+                    " maxCardinality for '" + model + "' was '" + maxCardinalityTxt + "' but expected a value >= 0");
+        }
 
+        uint32_t maxCardinality = boost::lexical_cast<uint32_t>(maxCardinalityTxt);
         return std::pair<owlapi::model::IRI, size_t>(modelIRI, maxCardinality);
     }
     throw std::invalid_argument("templ::io::MissionReader::parseResource: expected tag 'resource' found '" + std::string((const char*) current->name) + "'");

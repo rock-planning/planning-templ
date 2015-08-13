@@ -84,6 +84,9 @@ ObjectVariable::Ptr Mission::getOrCreateObjectVariable(const std::string& name, 
 void Mission::prepare()
 {
     using namespace solvers::temporal;
+
+    validateAvailableResources();
+
     std::vector<PersistenceCondition::Ptr>::const_iterator cit =  mPersistenceConditions.begin();
     for(;cit != mPersistenceConditions.end(); ++cit)
     {
@@ -224,6 +227,18 @@ std::string Mission::toString() const
     ss << "Mission: " << mName << std::endl;
     ss << mModelPool.toString();
     return ss.str();
+}
+
+void Mission::validateAvailableResources() const
+{
+    for(auto pair : mModelPool)
+    {
+        if(pair.second > 0)
+            return;
+    }
+
+    throw std::runtime_error("templ::Mission: mission has no available resources specified (not present or max cardinalities sum up to 0) -- \ndefined "
+            + mModelPool.toString());
 }
 
 } // end namespace templ

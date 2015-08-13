@@ -126,6 +126,8 @@ public:
 protected:
     std::vector<solvers::Constraint::Ptr> getConstraints() const { return mConstraints; }
 
+    void validateAvailableResources() const;
+
 private:
     organization_model::OrganizationModel::Ptr mpOrganizationModel;
     organization_model::OrganizationModelAsk mAsk;

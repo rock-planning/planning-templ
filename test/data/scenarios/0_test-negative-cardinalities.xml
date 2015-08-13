@@ -1,0 +1,31 @@
+<mission>
+<name>Transterra</name>
+<resources>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+        <maxCardinality>-1</maxCardinality>
+    </resource>
+</resources>
+<requirements>
+    <requirement>
+        <spatial-requirement>
+            <!-- where it is required -->
+            <location>
+                <id>l1</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t0</from>
+            <to>t1</to>
+        </temporal-requirement>
+
+        <!-- what is required at this very position -->
+        <service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
+        </service-requirement>
+    </requirement>
+</requirements>
+</mission>
+
+

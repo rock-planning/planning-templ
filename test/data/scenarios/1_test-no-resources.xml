@@ -1,0 +1,23 @@
+<mission>
+<name>Transterra</name>
+<resources>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+        <maxCardinality>0</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#CREX</model>
+        <maxCardinality>0</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+        <maxCardinality>0</maxCardinality>
+    </resource>
+</resources>
+<requirements>
+</requirements>
+<constraints>
+</constraints>
+</mission>
+
+
