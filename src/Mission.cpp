@@ -1,42 +1,13 @@
 #include "Mission.hpp"
-#include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 #include <boost/lexical_cast.hpp>
-#include <owlapi/Vocabulary.hpp>
 
+#include <owlapi/Vocabulary.hpp>
+#include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 #include <templ/object_variables/LocationCardinality.hpp>
 
 namespace templ {
 
 namespace pa = solvers::temporal::point_algebra;
-
-Role::Role()
-    : mName("unknown")
-    , mModel()
-{}
-
-Role::Role(const std::string& name, const owlapi::model::IRI& model)
-    : mName(name)
-    , mModel(model)
-{}
-
-std::string Role::toString() const
-{
-    std::stringstream ss;
-    ss << "Role: " << mName << " (" << mModel.toString() << ")";
-    return ss.str();
-}
-
-std::string Role::toString(const Role::List& roles)
-{
-    std::stringstream ss;
-    Role::List::const_iterator cit = roles.begin();
-    ss << "Roles: " << std::endl;
-    for(; cit != roles.end(); ++cit)
-    {
-        ss << "    - " << cit->toString() << std::endl;
-    }
-    return ss.str();
-}
 
 Mission::Mission(const std::string& name)
     : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
@@ -118,6 +89,7 @@ void Mission::prepare()
     {
         PersistenceCondition::Ptr pc = *cit;
         Interval interval(pc->getFromTimePoint(), pc->getToTimePoint(), point_algebra::TimePointComparator(mpTemporalConstraintNetwork));
+
         mTimeIntervals.insert(interval);
     }
 }

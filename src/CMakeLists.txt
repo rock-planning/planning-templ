@@ -5,7 +5,13 @@ rock_library(templ
         Mission.cpp
         MissionPlanner.cpp
         ObjectVariable.cpp
+        PlannerElement.cpp
+        Role.cpp
+        Value.cpp
         io/MissionReader.cpp
+        solvers/Constraint.cpp
+        solvers/ConstraintNetwork.cpp
+        solvers/Variable.cpp
         solvers/csp/ModelDistribution.cpp
         solvers/csp/RoleDistribution.cpp
         solvers/csp/RoleTimeline.cpp
@@ -14,27 +20,28 @@ rock_library(templ
         solvers/temporal/Event.cpp
         solvers/temporal/Interval.cpp
         solvers/temporal/PersistenceCondition.cpp
-        solvers/temporal/point_algebra/QualitativeTimePoint.cpp
-        solvers/temporal/point_algebra/QualitativeTimePointConstraint.cpp
-        solvers/temporal/point_algebra/TimePoint.cpp
-        solvers/temporal/point_algebra/TimePointComparator.cpp
         solvers/temporal/QualitativeTemporalConstraintNetwork.cpp
         solvers/temporal/SimpleTemporalNetwork.cpp
         solvers/temporal/TemporalAssertion.cpp
         solvers/temporal/TemporalConstraintNetwork.cpp
         solvers/temporal/Timeline.cpp
-        solvers/ConstraintNetwork.cpp
-        solvers/Constraint.cpp
-        solvers/Variable.cpp
-        PlannerElement.cpp
-        Value.cpp
+        solvers/temporal/point_algebra/QualitativeTimePoint.cpp
+        solvers/temporal/point_algebra/QualitativeTimePointConstraint.cpp
+        solvers/temporal/point_algebra/TimePoint.cpp
+        solvers/temporal/point_algebra/TimePointComparator.cpp
     HEADERS 
         Constant.hpp
         Mission.hpp
         MissionPlanner.hpp
         ObjectVariable.hpp
         PlannerElement.hpp
+        Role.hpp
+        StateVariable.hpp
+        Value.hpp
         io/MissionReader.hpp
+        solvers/Constraint.hpp
+        solvers/ConstraintNetwork.hpp
+        solvers/Variable.hpp
         solvers/csp/ModelDistribution.hpp
         solvers/csp/RoleDistribution.hpp
         solvers/csp/RoleTimeline.hpp
@@ -42,22 +49,17 @@ rock_library(templ
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
         solvers/temporal/Interval.hpp
-        solvers/temporal/point_algebra/ExactTimePoint.hpp
-        solvers/temporal/point_algebra/QualitativeTimePoint.hpp
-        solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp
-        solvers/temporal/point_algebra/TimePoint.hpp
-        solvers/temporal/point_algebra/TimePointComparator.hpp
         solvers/temporal/PersistenceCondition.hpp
         solvers/temporal/QualitativeTemporalConstraintNetwork.hpp
         solvers/temporal/SimpleTemporalNetwork.hpp
         solvers/temporal/TemporalAssertion.hpp
         solvers/temporal/TemporalConstraintNetwork.hpp
         solvers/temporal/Timeline.hpp
-        solvers/ConstraintNetwork.hpp
-        solvers/Variable.hpp
-        solvers/Constraint.hpp
-        StateVariable.hpp
-        Value.hpp
+        solvers/temporal/point_algebra/ExactTimePoint.hpp
+        solvers/temporal/point_algebra/QualitativeTimePoint.hpp
+        solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp
+        solvers/temporal/point_algebra/TimePoint.hpp
+        solvers/temporal/point_algebra/TimePointComparator.hpp
     LIBS gecodesearch
         gecodesupport
         gecodeset

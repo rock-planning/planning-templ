@@ -1,6 +1,8 @@
 #ifndef TEMPL_MISSION_HPP
 #define TEMPL_MISSION_HPP
 
+#include <unordered_set>
+
 #include <organization_model/OrganizationModel.hpp>
 #include <organization_model/OrganizationModelAsk.hpp>
 #include <organization_model/ModelPool.hpp>
@@ -9,7 +11,7 @@
 #include <templ/solvers/temporal/Interval.hpp>
 #include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
-#include <unordered_set>
+#include <templ/Role.hpp>
 
 namespace templ {
 
@@ -21,26 +23,6 @@ class MissionPlanner;
 namespace io {
     class MissionReader;
 }
-
-/**
- * Role within the mission, representing an individual
- * system and the corresponding model
- */
-class Role
-{
-    std::string mName;
-    owlapi::model::IRI mModel;
-public:
-    typedef std::vector<Role> List;
-
-    Role();
-    Role(const std::string& name, const owlapi::model::IRI& model);
-
-    std::string toString() const;
-    static std::string toString(const std::vector<Role>& roles);
-
-    bool operator<(const Role& other) const { return mName < other.mName; }
-};
 
 class Mission
 {
