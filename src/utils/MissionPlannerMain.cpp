@@ -34,7 +34,7 @@ public:
     std::string toString() const
     {
         std::stringstream ss;
-        ss << mRole.toString() << std::endl;
+        ss << "-- Timeline: " << mRole.toString() << std::endl;
         for(auto &fluent : mFluents)
         {
             ss << fluent.toString() << std::endl;
@@ -63,6 +63,7 @@ int main(int argc, char** argv)
     OrganizationModel::Ptr organizationModel = OrganizationModel::getInstance(organizationModelFilename);
     mission.setOrganizationModel(organizationModel);
 
+    mission.prepare();
 
     std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
     if(!solutions.empty())
@@ -83,7 +84,7 @@ int main(int argc, char** argv)
     }
 
 
-    std::cout << "TIMELINES" << std::endl;
+    std::cout << "-- BEGIN TIMELINES --------" << std::endl;
 
     // Compute the timelines per role for one role solution
     std::map<Role, RoleTimeline> timelines;
@@ -109,15 +110,14 @@ int main(int argc, char** argv)
         }
 
         // Sort timeline
-        std::map<Role, RoleTimeline>::iterator it = timelines.begin();
-
         std::vector<solvers::temporal::Interval> intervals(mission.getTimeIntervals().begin(), mission.getTimeIntervals().end());
 
+        std::map<Role, RoleTimeline>::iterator it = timelines.begin();
         for(; it != timelines.end(); ++it)
         {
             RoleTimeline& timeline = it->second;
             timeline.sort(intervals);
-            std::cout << "Timeline: " << std::endl;
+
             std::cout << timeline.toString() << std::endl;
         }
     }
