@@ -8,6 +8,7 @@ rock_library(templ
         io/MissionReader.cpp
         solvers/csp/ModelDistribution.cpp
         solvers/csp/RoleDistribution.cpp
+        solvers/csp/RoleTimeline.cpp
         solvers/temporal/Bounds.cpp
         solvers/temporal/Chronicle.cpp
         solvers/temporal/Event.cpp
@@ -36,6 +37,7 @@ rock_library(templ
         io/MissionReader.hpp
         solvers/csp/ModelDistribution.hpp
         solvers/csp/RoleDistribution.hpp
+        solvers/csp/RoleTimeline.hpp
         solvers/temporal/Bounds.hpp
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
