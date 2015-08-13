@@ -40,7 +40,7 @@ std::string Role::toString(const Role::List& roles)
 
 Mission::Mission(const std::string& name)
     : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
-    , mpOrganizationModel()
+    , mpOrganizationModel(new organization_model::OrganizationModel())
     , mAsk(mpOrganizationModel)
     , mName(name)
 {}
