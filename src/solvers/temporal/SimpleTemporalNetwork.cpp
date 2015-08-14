@@ -66,7 +66,7 @@ bool SimpleTemporalNetwork::hasNegativeCycle()
 graph_analysis::BaseGraph::Ptr SimpleTemporalNetwork::propagate()
 {
     using namespace graph_analysis;
-
+    
     if(hasNegativeCycle())
     {
         throw std::runtime_error("templ::solvers::temporal::SimpleTemporalNetwork::propagate: cannot progate on a network with negative cycle");

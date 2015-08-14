@@ -9,5 +9,4 @@ rock_testsuite(test_suite suite.cpp
     #test_TemporalAssertion.cpp
     test_Timeline.cpp
     test_TemporalConstraintNetwork.cpp
-    test_IntervalConstraint.cpp
     DEPS templ)

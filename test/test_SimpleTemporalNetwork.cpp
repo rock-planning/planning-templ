@@ -2,6 +2,7 @@
 #include <templ/solvers/temporal/SimpleTemporalNetwork.hpp>
 #include <numeric/Combinatorics.hpp>
 #include <graph_analysis/GraphIO.hpp>
+#include <graph_analysis/WeightedEdge.hpp>
 
 using namespace templ::solvers;
 using namespace templ::solvers::temporal;
@@ -97,4 +98,39 @@ BOOST_AUTO_TEST_CASE(value_propagation_2)
         }
     }
 }
+
+BOOST_AUTO_TEST_CASE(value_propagation_3)
+{
+    {
+        SimpleTemporalNetwork stn;
+
+        point_algebra::TimePoint::Ptr tp0(new point_algebra::TimePoint(10,20));
+        point_algebra::TimePoint::Ptr tp1(new point_algebra::TimePoint(30,100));
+        
+        stn.addInterval(tp0, tp1, Bounds(30,38));
+
+        {
+            graph_analysis::BaseGraph::Ptr baseGraph = stn.getDistanceGraph();
+            graph_analysis::io::GraphIO::write("test_SimpleTemporalNetwork-before-domain_propagation", baseGraph, graph_analysis::representation::GEXF);
+            graph_analysis::io::GraphIO::write("test_SimpleTemporalNetwork-before-domain_propagation", baseGraph, graph_analysis::representation::GRAPHVIZ);
+        }
+
+        // Using for loop to check stability of result
+        for(int i = 0; i < 2; ++i)
+        {
+            stn.propagate();
+            graph_analysis::BaseGraph::Ptr baseGraph = stn.getDistanceGraph();
+
+            BOOST_REQUIRE_MESSAGE( tp0->getLowerBound() == 10, "Lower bound corrected after propagation: expected 10, actual " << tp0->getLowerBound());
+            BOOST_REQUIRE_MESSAGE( tp0->getUpperBound() == 20, "Upper bound corrected after propagation: expected 20, actual " << tp0->getUpperBound());
+            BOOST_REQUIRE_MESSAGE( tp1->getLowerBound() == 48, "Lower bound corrected after propagation: expected 48, actual " << tp1->getLowerBound());
+            BOOST_REQUIRE_MESSAGE( tp1->getUpperBound() == 100, "Upper bound corrected after propagation: expected 100, actual " << tp1->getUpperBound());
+
+            graph_analysis::io::GraphIO::write("test_SimpleTemporalNetwork-after-domain_propagation", baseGraph, graph_analysis::representation::GEXF);
+            graph_analysis::io::GraphIO::write("test_SimpleTemporalNetwork-after-domain_propagation", baseGraph, graph_analysis::representation::GRAPHVIZ);
+
+        }
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

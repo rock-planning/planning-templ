@@ -1,7 +1,7 @@
 #ifndef TEMPL_SOLVERS_TEMPORAL_SIMPLE_TEMPORAL_NETWORK_HPP
 #define TEMPL_SOLVERS_TEMPORAL_SIMPLE_TEMPORAL_NETWORK_HPP
 
-//#include <templ/solvers/temporal/Bounds.hpp>
+#include <templ/solvers/temporal/Bounds.hpp>
 #include <templ/solvers/temporal/TemporalConstraintNetwork.hpp>
 
 namespace templ {
