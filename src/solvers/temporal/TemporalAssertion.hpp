@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 #include <boost/shared_ptr.hpp>
-#include <templ/StateVariable.hpp>
+#include <templ/symbols/StateVariable.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 
 namespace templ {
@@ -36,14 +36,14 @@ protected:
      * Construct temporal assertion type
      * Only possible via subclasses
      */
-    TemporalAssertion(const StateVariable& stateVariable, Type type);
+    TemporalAssertion(const symbols::StateVariable& stateVariable, Type type);
 
-    virtual bool refersToSameValue(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
+    virtual bool refersToSameValue(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
 
-    virtual bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
+    virtual bool refersToSameValue(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
 
-    virtual bool disjointFrom(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
-    virtual bool disjointFrom(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
+    virtual bool disjointFrom(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
+    virtual bool disjointFrom(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
 
 
 public:
@@ -60,7 +60,7 @@ public:
     /**
      * Get the StateVariable
      */
-    const StateVariable& getStateVariable() const { return mStateVariable; }
+    const symbols::StateVariable& getStateVariable() const { return mStateVariable; }
 
     /**
      * Check that TemporalAssertion is disjoint from another TemporalAssertion
@@ -68,20 +68,20 @@ public:
      * \param comparator Comparator that allows to compare two Timepoints
      * \return True if both assertions are disjoint, false otherwise
      */
-    bool isDisjointFrom(TemporalAssertion::Ptr other, const point_algebra::TimePointComparator& comparator) const;
+    bool isDisjointFrom(const TemporalAssertion::Ptr& other, const point_algebra::TimePointComparator& comparator) const;
 
     /**
      * Check if this TemporalAssertion refers to the same value and/or same timepoint 
      * as the other TemporalAssertion
      * \throw std::invalid_argument if invalid type is used
      */
-    bool isReferringToSameValue(TemporalAssertion::Ptr other, const point_algebra::TimePointComparator& comparator) const;
+    bool isReferringToSameValue(const TemporalAssertion::Ptr& other, const point_algebra::TimePointComparator& comparator) const;
 
     virtual std::string toString() const;
 
 private:
     Type mType;
-    StateVariable mStateVariable;
+    symbols::StateVariable mStateVariable;
 };
 
 typedef std::vector<TemporalAssertion::Ptr> TemporalAssertionList;

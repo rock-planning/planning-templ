@@ -5,6 +5,7 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <base/Logging.hpp>
+#include <templ/symbols/constants/Location.hpp>
 
 namespace templ {
 namespace io {
@@ -199,6 +200,9 @@ Mission MissionReader::fromFile(const std::string& url)
                     const Requirement& requirement = *cit;
 
                     std::string locationId = requirement.spatial.location.id;
+                    symbols::Constant::Ptr constant = mission.getConstant(locationId, symbols::Constant::LOCATION);
+                    symbols::constants::Location::Ptr location = boost::dynamic_pointer_cast<symbols::constants::Location>(constant);
+                    assert(location);
 
                     using namespace solvers::temporal::point_algebra;
 
@@ -216,7 +220,7 @@ Mission MissionReader::fromFile(const std::string& url)
                     for(; sit != requirement.functional.services.end(); ++sit)
                     {
                         const owlapi::model::IRI& model = *sit;
-                        mission.addResourceLocationCardinalityConstraint(locationId, from, to, model);
+                        mission.addResourceLocationCardinalityConstraint(location, from, to, model);
                     }
 
                     organization_model::ModelPool::const_iterator mit = requirement.resources.begin();
@@ -226,7 +230,7 @@ Mission MissionReader::fromFile(const std::string& url)
                         uint32_t cardinality = mit->second;
 
                         // setting the min cardinality by default
-                        mission.addResourceLocationCardinalityConstraint(locationId, from, to, model, cardinality);
+                        mission.addResourceLocationCardinalityConstraint(location, from, to, model, cardinality);
                     }
                 }
             } else if(nameMatches(firstLevelChild, "constraints"))
@@ -250,7 +254,19 @@ Mission MissionReader::fromFile(const std::string& url)
                             << "    detailled error: " << e.what();
                     }
                 }
+            } else if(nameMatches(firstLevelChild, "constants"))
+            {
+                LOG_DEBUG_S << "Found first level node: 'constants' ";
+                using namespace ::templ::symbols;
+                std::set<Constant::Ptr> constants = parseConstants(doc, firstLevelChild);
+
+                std::set<Constant::Ptr>::const_iterator cit = constants.begin();
+                for(; cit != constants.end(); ++cit)
+                {
+                    mission.addConstant(*cit);
+                }
             }
+
             firstLevelChild = firstLevelChild->next;
         }
 
@@ -482,6 +498,39 @@ Constraints MissionReader::parseConstraints(xmlDocPtr doc, xmlNodePtr current)
         current = current->next;
     }
     return constraints;
+}
+
+std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr doc, xmlNodePtr current)
+{
+    std::set<templ::symbols::Constant::Ptr> constants;
+    std::set<std::string> locations;
+
+    current = current->xmlChildrenNode;
+    while(current != NULL)
+    {
+        if(nameMatches(current, "location"))
+        {
+            std::string name = getSubNodeContent(doc, current, "id");
+
+            if(locations.count(name))
+            {
+                throw std::invalid_argument("templ::MissionReader location '" + name + "' defined"
+                        " multiple times");
+            }
+            base::Point position;
+
+            position.x() = boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "x") );
+            position.y() = boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "y") );
+            position.z() = boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "z") );
+
+            using namespace ::templ::symbols;
+            constants::Location::Ptr location(new constants::Location( name, position));
+            constants.insert(location);
+            locations.insert(name);
+        }
+        current = current->next;
+    }
+    return constants;
 }
 
 } // end namespace io

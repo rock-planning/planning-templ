@@ -7,8 +7,8 @@ namespace temporal {
 
 void Chronicle::addTimeline(const Timeline& timeline)
 {
-    StateVariable stateVar = timeline.getStateVariable();
-    std::map<StateVariable, Timeline>::iterator it = mTimelines.find(stateVar);
+    symbols::StateVariable stateVar = timeline.getStateVariable();
+    std::map<symbols::StateVariable, Timeline>::iterator it = mTimelines.find(stateVar);
     if(it != mTimelines.end())
     {
         throw std::invalid_argument("templ::solvers::temporal::Chronicle::addTimeline: timeline has already been added");
@@ -18,7 +18,7 @@ void Chronicle::addTimeline(const Timeline& timeline)
 
 bool Chronicle::isConsistent() const
 {
-    std::map<StateVariable, Timeline>::const_iterator cit = mTimelines.begin();
+    std::map<symbols::StateVariable, Timeline>::const_iterator cit = mTimelines.begin();
     for(; cit != mTimelines.end(); ++cit)
     {
         const Timeline& timeline = cit->second;
@@ -35,7 +35,7 @@ std::string Chronicle::toString() const
 {
     std::stringstream ss;
     ss << "BEGIN Chronicle ---" << std::endl;
-    std::map<StateVariable, Timeline>::const_iterator cit = mTimelines.begin();
+    std::map<symbols::StateVariable, Timeline>::const_iterator cit = mTimelines.begin();
     for(; cit != mTimelines.end(); ++cit)
     {
         const Timeline& timeline = cit->second;

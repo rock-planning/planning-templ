@@ -8,11 +8,11 @@ namespace solvers {
 namespace temporal {
 
 Timeline::Timeline()
-    : mStateVariable(StateVariable("",""))
+    : mStateVariable( symbols::StateVariable("",""))
     , mConstraintNetwork(new QualitativeTemporalConstraintNetwork())
 {}
 
-Timeline::Timeline(const StateVariable& stateVariable)
+Timeline::Timeline(const symbols::StateVariable& stateVariable)
     : mStateVariable(stateVariable)
     , mConstraintNetwork(new QualitativeTemporalConstraintNetwork())
 {}
@@ -98,14 +98,14 @@ bool Timeline::isConsistent() const
     return true;
 }
 
-ConstantList Timeline::getConstants() const
+symbols::ConstantList Timeline::getConstants() const
 {
-    return getTypeInstances<Constant>(PlannerElement::CONSTANT);
+    return getTypeInstances<symbols::Constant>(Symbol::CONSTANT);
 }
 
-ObjectVariableList Timeline::getObjectVariables() const
+symbols::ObjectVariableList Timeline::getObjectVariables() const
 {
-    return getTypeInstances<ObjectVariable>(PlannerElement::OBJECT_VARIABLE);
+    return getTypeInstances<symbols::ObjectVariable>(Symbol::OBJECT_VARIABLE);
 }
 
 point_algebra::TimePointList Timeline::getTimePoints() const

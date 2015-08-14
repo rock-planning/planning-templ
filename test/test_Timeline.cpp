@@ -1,11 +1,12 @@
 #include <boost/test/unit_test.hpp>
-#include <templ/Value.hpp>
-#include <templ/values/Int.hpp>
+#include <templ/symbols/Value.hpp>
+#include <templ/symbols/values/Int.hpp>
 #include <templ/solvers/temporal/Event.hpp>
 #include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/Timeline.hpp>
 
 using namespace templ;
+using namespace templ::symbols;
 using namespace templ::solvers::temporal;
 
 namespace pa = templ::solvers::temporal::point_algebra;
@@ -18,9 +19,9 @@ BOOST_AUTO_TEST_CASE(persistence_conditions)
     Timeline timeline(stateVariable);
 
     // rloc(robot0)@[t0,t1) : l0
-    ObjectVariable::Ptr l0(new ObjectVariable("l0","Location"));
-    ObjectVariable::Ptr l1(new ObjectVariable("l1","Location"));
-    ObjectVariable::Ptr l2(new ObjectVariable("l2","Location"));
+    ObjectVariable::Ptr l0(new ObjectVariable("l0"));
+    ObjectVariable::Ptr l1(new ObjectVariable("l1"));
+    ObjectVariable::Ptr l2(new ObjectVariable("l2"));
 
     point_algebra::TimePoint::Ptr t0(new point_algebra::QualitativeTimePoint("t0"));
     point_algebra::TimePoint::Ptr t1(new point_algebra::QualitativeTimePoint("t1"));
@@ -57,9 +58,9 @@ BOOST_AUTO_TEST_CASE(events)
     Timeline timeline(stateVariable);
 
     // rloc(robot0)@[t0,t1) : l0
-    ObjectVariable::Ptr l0 = ObjectVariable::getInstance("l0","Location");
-    ObjectVariable::Ptr l1 = ObjectVariable::getInstance("l1","Location");
-    ObjectVariable::Ptr l2 = ObjectVariable::getInstance("l2","Location");
+    ObjectVariable::Ptr l0 = ObjectVariable::getInstance("l0");
+    ObjectVariable::Ptr l1 = ObjectVariable::getInstance("l1");
+    ObjectVariable::Ptr l2 = ObjectVariable::getInstance("l2");
 
     point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
     point_algebra::TimePoint::Ptr t1 = point_algebra::QualitativeTimePoint::getInstance("t1");
@@ -90,9 +91,9 @@ BOOST_AUTO_TEST_CASE(persistence_conditions_and_events)
     Timeline timeline(stateVariable);
 
     // rloc(robot0)@[t0,t1) : l0
-    ObjectVariable::Ptr l0 = ObjectVariable::getInstance("l0","Location");
-    ObjectVariable::Ptr l1 = ObjectVariable::getInstance("l1","Location");
-    ObjectVariable::Ptr l2 = ObjectVariable::getInstance("l2","Location");
+    ObjectVariable::Ptr l0 = ObjectVariable::getInstance("l0");
+    ObjectVariable::Ptr l1 = ObjectVariable::getInstance("l1");
+    ObjectVariable::Ptr l2 = ObjectVariable::getInstance("l2");
 
     point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
     point_algebra::TimePoint::Ptr t1 = point_algebra::QualitativeTimePoint::getInstance("t1");

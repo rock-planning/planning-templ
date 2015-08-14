@@ -32,8 +32,12 @@ BOOST_AUTO_TEST_CASE(mission_0)
 
     Mission mission(om);
 
-    mission.addResourceLocationCardinalityConstraint("loc0", t0, t1, location_image_provider);
-    mission.addResourceLocationCardinalityConstraint("loc1", t2, t3, location_image_provider);
+    using namespace ::templ::symbols;
+    constants::Location::Ptr loc0( new constants::Location("loc0", base::Point(0,0,0)));
+    constants::Location::Ptr loc1( new constants::Location("loc1", base::Point(10,10,0)));
+
+    mission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
+    mission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
 
     mission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
 
@@ -99,8 +103,9 @@ BOOST_AUTO_TEST_CASE(mission_1)
     point_algebra::TimePoint::Ptr t2 = point_algebra::QualitativeTimePoint::getInstance("t2");
     point_algebra::TimePoint::Ptr t3 = point_algebra::QualitativeTimePoint::getInstance("t3");
 
-    std::string loc0 = "location0";
-    std::string loc1 = "location1";
+    using namespace ::templ::symbols;
+    constants::Location::Ptr loc0(new constants::Location("loc0", base::Point(0,0,0)));
+    constants::Location::Ptr loc1(new constants::Location("loc1", base::Point(10,10,0)));
 
     Mission mission(om);
     mission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
@@ -211,8 +216,9 @@ BOOST_AUTO_TEST_CASE(mission_tt)
     point_algebra::TimePoint::Ptr t2 = point_algebra::QualitativeTimePoint::getInstance("t2");
     point_algebra::TimePoint::Ptr t3 = point_algebra::QualitativeTimePoint::getInstance("t3");
 
-    std::string loc0 = "location0";
-    std::string loc1 = "location1";
+    using namespace ::templ::symbols;
+    constants::Location::Ptr loc0(new constants::Location("loc0", base::Point(0,0,0)));
+    constants::Location::Ptr loc1(new constants::Location("loc1", base::Point(10,10,0)));
 
     Mission mission(om);
     mission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);

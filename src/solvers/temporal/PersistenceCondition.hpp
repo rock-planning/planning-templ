@@ -1,7 +1,7 @@
 #ifndef TEMPL_PERSISTENCE_CONDITION_HPP
 #define TEMPL_PERSISTENCE_CONDITION_HPP
 
-#include <templ/Value.hpp>
+#include <templ/Symbol.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
 #include <templ/solvers/temporal/TemporalAssertion.hpp>
 
@@ -21,25 +21,31 @@ class PersistenceCondition : public TemporalAssertion
 {
     friend class Event;
 
-    PlannerElement::Ptr mpValue;
+    Symbol::Ptr mpValue;
 
     point_algebra::TimePoint::Ptr mpFromTimepoint;
     point_algebra::TimePoint::Ptr mpToTimepoint;
 
-    bool refersToSameValue(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const;
-    bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const;
+    bool refersToSameValue(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const;
+    bool refersToSameValue(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const;
 
-    bool disjointFrom(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const;
-    bool disjointFrom(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const;
+    bool disjointFrom(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const;
+    bool disjointFrom(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const;
 
 public:
     typedef boost::shared_ptr<PersistenceCondition> Ptr;
 
-    PersistenceCondition(const StateVariable& stateVariable, PlannerElement::Ptr value, point_algebra::TimePoint::Ptr fromTimepoint, point_algebra::TimePoint::Ptr toTimepoint);
+    PersistenceCondition(const symbols::StateVariable& stateVariable,
+            const Symbol::Ptr& value,
+            const point_algebra::TimePoint::Ptr& fromTimepoint,
+            const point_algebra::TimePoint::Ptr& toTimepoint);
 
-    static PersistenceCondition::Ptr getInstance(const StateVariable& stateVariable, PlannerElement::Ptr value, point_algebra::TimePoint::Ptr fromTimepoint, point_algebra::TimePoint::Ptr toTimepoint);
+    static PersistenceCondition::Ptr getInstance(const symbols::StateVariable& stateVariable,
+            const Symbol::Ptr& value,
+            const point_algebra::TimePoint::Ptr& fromTimepoint,
+            const point_algebra::TimePoint::Ptr& toTimepoint);
 
-    PlannerElement::Ptr getValue() const { return mpValue; }
+    Symbol::Ptr getValue() const { return mpValue; }
 
     point_algebra::TimePoint::Ptr getFromTimePoint() const { return mpFromTimepoint; }
     point_algebra::TimePoint::Ptr getToTimePoint() const { return mpToTimepoint; }

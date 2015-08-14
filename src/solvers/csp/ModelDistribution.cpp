@@ -6,7 +6,7 @@
 #include <gecode/gist.hh>
 #include <organization_model/Algebra.hpp>
 #include <owlapi/Vocabulary.hpp>
-#include <templ/object_variables/LocationCardinality.hpp>
+#include <templ/symbols/object_variables/LocationCardinality.hpp>
 
 namespace templ {
 namespace solvers {
@@ -133,7 +133,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
     , mAsk(mission.getOrganizationModel(), mission.getAvailableResources(), true)
     , mResources(mission.getRequestedResources().begin(), mission.getRequestedResources().end())
     , mIntervals(mission.getTimeIntervals().begin(), mission.getTimeIntervals().end())
-    , mLocations(mission.getLocations().begin(), mission.getLocations().end())
+    , mLocations(mission.getLocations())
     , mResourceRequirements(getResourceRequirements())
     , mModelUsage(*this, /*# of models*/ mission.getAvailableResources().size()*
             /*# of fluent time services*/mResourceRequirements.size(), 0, getMaxResourceCount(mModelPool))
@@ -270,7 +270,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
             extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
         }
 
-        LOG_WARN_S << constraintMatrix.toString();
+        LOG_INFO_S << constraintMatrix.toString();
     }
     // Part (B) General resource constraints
     // - identify overlapping fts, limit resources for these
@@ -453,15 +453,15 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
                 point_algebra::TimePointComparator(mMission.getTemporalConstraintNetwork()) );
 
 
-        StateVariable stateVariable = p->getStateVariable();
-        if(stateVariable.getFunction() != ObjectVariable::TypeTxt[ObjectVariable::LOCATION_CARDINALITY] )
+        symbols::StateVariable stateVariable = p->getStateVariable();
+        if(stateVariable.getFunction() != symbols::ObjectVariable::TypeTxt[symbols::ObjectVariable::LOCATION_CARDINALITY] )
         {
             continue;
         }
 
         owlapi::model::IRI resourceModel(stateVariable.getResource());
-        ObjectVariable::Ptr objectVariable = boost::dynamic_pointer_cast<ObjectVariable>(p->getValue());
-        object_variables::LocationCardinality::Ptr locationCardinality = boost::dynamic_pointer_cast<object_variables::LocationCardinality>(objectVariable);
+        symbols::ObjectVariable::Ptr objectVariable = boost::dynamic_pointer_cast<symbols::ObjectVariable>(p->getValue());
+        symbols::object_variables::LocationCardinality::Ptr locationCardinality = boost::dynamic_pointer_cast<symbols::object_variables::LocationCardinality>(objectVariable);
 
         {
             std::vector<Interval>::const_iterator iit = std::find(mIntervals.begin(), mIntervals.end(), interval);
@@ -477,11 +477,11 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
                 throw std::runtime_error("Could not find service");
             }
 
-            owlapi::model::IRI location(locationCardinality->getLocation());
-            owlapi::model::IRIList::const_iterator lit = std::find(mLocations.begin(), mLocations.end(), location);
+            symbols::constants::Location::Ptr location = locationCardinality->getLocation();
+            std::vector<symbols::constants::Location::Ptr>::const_iterator lit = std::find(mLocations.begin(), mLocations.end(), location);
             if(lit == mLocations.end())
             {
-                throw std::runtime_error("Could not find location: " + location.toString());
+                throw std::runtime_error("Could not find location: " + location->toString());
             }
 
             uint32_t timeIndex = iit - mIntervals.begin();

@@ -5,19 +5,25 @@ namespace templ {
 namespace solvers {
 namespace temporal {
 
-PersistenceCondition::PersistenceCondition(const StateVariable& stateVariable, PlannerElement::Ptr value, point_algebra::TimePoint::Ptr fromTimepoint, point_algebra::TimePoint::Ptr toTimepoint)
+PersistenceCondition::PersistenceCondition(const symbols::StateVariable& stateVariable,
+        const Symbol::Ptr& value,
+        const point_algebra::TimePoint::Ptr& fromTimepoint,
+        const point_algebra::TimePoint::Ptr& toTimepoint)
         : TemporalAssertion(stateVariable, TemporalAssertion::PERSISTENCE_CONDITION)
         , mpValue(value)
         , mpFromTimepoint(fromTimepoint)
         , mpToTimepoint(toTimepoint)
 {}
 
-PersistenceCondition::Ptr PersistenceCondition::getInstance(const StateVariable& stateVariable, PlannerElement::Ptr value, point_algebra::TimePoint::Ptr fromTimepoint, point_algebra::TimePoint::Ptr toTimepoint)
+PersistenceCondition::Ptr PersistenceCondition::getInstance(const symbols::StateVariable& stateVariable,
+        const Symbol::Ptr& value,
+        const point_algebra::TimePoint::Ptr& fromTimepoint,
+        const point_algebra::TimePoint::Ptr& toTimepoint)
 {
     return PersistenceCondition::Ptr( new PersistenceCondition(stateVariable, value, fromTimepoint, toTimepoint));
 }
 
-bool PersistenceCondition::refersToSameValue(Event::Ptr other, const point_algebra::TimePointComparator& comparator) const
+bool PersistenceCondition::refersToSameValue(const Event::Ptr& other, const point_algebra::TimePointComparator& comparator) const
 {
     if(comparator.equals(other->mpTimepoint, mpFromTimepoint))
     {
@@ -34,20 +40,20 @@ bool PersistenceCondition::refersToSameValue(Event::Ptr other, const point_algeb
     }
 }
 
-bool PersistenceCondition::refersToSameValue(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const
+bool PersistenceCondition::refersToSameValue(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const
 {
     return mpValue->equals(other->mpValue);
 }
 
 
-bool PersistenceCondition::disjointFrom(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const
+bool PersistenceCondition::disjointFrom(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const
 {
     // Checks if timepoint of event is outside of the define interval of the
     // persistence condition
     return comparator.lessThan(other->mpTimepoint, mpFromTimepoint) || comparator.greaterThan(other->mpTimepoint, mpToTimepoint);
 }
 
-bool PersistenceCondition::disjointFrom(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const
+bool PersistenceCondition::disjointFrom(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const
 {
     return !comparator.hasIntervalOverlap(mpFromTimepoint, mpToTimepoint, other->mpFromTimepoint, other->mpToTimepoint);
 }

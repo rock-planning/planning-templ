@@ -23,8 +23,8 @@ CandidateMissions MissionPlanner::solve()
     for(; pit != persistenceConditions.end(); ++pit)
     {
         PersistenceCondition::Ptr pc = *pit;
-        StateVariable stateVariable = pc->getStateVariable();
-        PlannerElement::Ptr plannerElement = pc->getValue();
+        symbols::StateVariable stateVariable = pc->getStateVariable();
+        Symbol::Ptr symbol = pc->getValue();
 
         // Expand e.g. the service requirement into resource requirements
         computeExpansion(stateVariable);
@@ -77,11 +77,11 @@ CandidateMissions MissionPlanner::solve()
     return CandidateMissions();
 }
 
-void MissionPlanner::computeExpansion(const StateVariable& stateVariable)
+void MissionPlanner::computeExpansion(const symbols::StateVariable& stateVariable)
 {
     const std::string& function = stateVariable.getFunction();
     owlapi::model::IRI service = owlapi::vocabulary::OM::Service();
-    std::string serviceLocation = service.getFragment() + "-Location";
+    std::string serviceLocation = "LocationCardinality";
 
     if(function == serviceLocation)
     {

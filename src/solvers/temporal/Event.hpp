@@ -1,7 +1,7 @@
 #ifndef TEMPL_EVENT_HPP
 #define TEMPL_EVENT_HPP
 
-#include <templ/PlannerElement.hpp>
+#include <templ/Symbol.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
 #include <templ/solvers/temporal/TemporalAssertion.hpp>
 
@@ -19,27 +19,33 @@ class Event : public TemporalAssertion
     friend class PersistenceCondition;
 
 protected:
-    PlannerElement::Ptr mpFromValue;
-    PlannerElement::Ptr mpToValue;
+    Symbol::Ptr mpFromValue;
+    Symbol::Ptr mpToValue;
     
     // Time constant or time variable
     point_algebra::TimePoint::Ptr mpTimepoint;
 
-    bool refersToSameValue(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const;
-    bool refersToSameValue(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const;
+    bool refersToSameValue(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const;
+    bool refersToSameValue(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const;
 
-    bool disjointFrom(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const;
-    bool disjointFrom(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const;
+    bool disjointFrom(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const;
+    bool disjointFrom(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const;
 
 public:
     typedef boost::shared_ptr<Event> Ptr;
 
-    static Event::Ptr getInstance(const StateVariable& stateVariable, PlannerElement::Ptr from, PlannerElement::Ptr to, point_algebra::TimePoint::Ptr timepoint);
+    static Event::Ptr getInstance(const symbols::StateVariable& stateVariable,
+            const Symbol::Ptr& from,
+            const Symbol::Ptr& to,
+            const point_algebra::TimePoint::Ptr& timepoint);
 
-    Event(const StateVariable& stateVariable, PlannerElement::Ptr from, PlannerElement::Ptr to, point_algebra::TimePoint::Ptr timepoint);
+    Event(const symbols::StateVariable& stateVariable,
+            const Symbol::Ptr& from,
+            const Symbol::Ptr& to,
+            const point_algebra::TimePoint::Ptr& timepoint);
 
-    PlannerElement::Ptr getFromValue() const { return mpFromValue; }
-    PlannerElement::Ptr getToValue() const { return mpToValue; }
+    Symbol::Ptr getFromValue() const { return mpFromValue; }
+    Symbol::Ptr getToValue() const { return mpToValue; }
 
     point_algebra::TimePoint::Ptr getTimePoint() const { return mpTimepoint; }
 

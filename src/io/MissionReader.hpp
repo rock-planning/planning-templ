@@ -14,6 +14,9 @@ namespace io {
 struct Location
 {
     std::string id;
+    int32_t x;
+    int32_t y;
+    int32_t z;
 
     std::string toString() const;
 };
@@ -81,6 +84,13 @@ private:
 
     static std::string getProperty(xmlNodePtr node, const std::string& name);
 
+    /**
+     * Retrieve the content of a named subnode
+     * \param doc xml document
+     * \param node the current node
+     * \param the name of the subnode
+     * \throws std::invalid_argument if subnode of given name cannot be found
+     */
     static std::string getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, const std::string& name);
 
     static std::pair<owlapi::model::IRI, size_t> parseResource(xmlDocPtr doc, xmlNodePtr current);
@@ -102,6 +112,8 @@ private:
     static std::vector<TemporalConstraint> parseTemporalConstraints(xmlDocPtr doc, xmlNodePtr current);
 
     static Constraints parseConstraints(xmlDocPtr doc, xmlNodePtr current);
+
+    static std::set<templ::symbols::Constant::Ptr> parseConstants(xmlDocPtr doc, xmlNodePtr current);
 };
 
 } // end namespace io

@@ -1,8 +1,8 @@
 #ifndef TEMPL_TIMELINE_HPP
 #define TEMPL_TIMELINE_HPP
 
-#include <templ/Constant.hpp>
-#include <templ/ObjectVariable.hpp>
+#include <templ/symbols/Constant.hpp>
+#include <templ/symbols/ObjectVariable.hpp>
 #include <templ/solvers/Constraint.hpp>
 #include <templ/solvers/temporal/Event.hpp>
 #include <templ/solvers/temporal/PersistenceCondition.hpp>
@@ -22,7 +22,7 @@ namespace temporal {
  */
 class Timeline
 {
-    StateVariable mStateVariable;
+    symbols::StateVariable mStateVariable;
 
     TemporalAssertionList mTemporalAssertions;
     ConstraintList mConstraints;
@@ -32,7 +32,7 @@ class Timeline
 public:
     Timeline();
 
-    Timeline(const StateVariable& stateVariable);
+    Timeline(const symbols::StateVariable& stateVariable);
 
     /**
      * Add temporal assertion
@@ -57,10 +57,10 @@ public:
      */
     bool isConsistent() const;
 
-    const StateVariable& getStateVariable() const { return mStateVariable; }
+    const symbols::StateVariable& getStateVariable() const { return mStateVariable; }
 
     template<typename T>
-    std::vector< boost::shared_ptr<T> > getTypeInstances(PlannerElement::Type type) const
+    std::vector< boost::shared_ptr<T> > getTypeInstances(Symbol::Type type) const
     {
         std::vector< boost::shared_ptr<T> > list;
 
@@ -73,8 +73,8 @@ public:
                 case TemporalAssertion::EVENT:
                 {
                     Event::Ptr event = boost::dynamic_pointer_cast<Event>(assertion);
-                    PlannerElement::Ptr from = event->getFromValue();
-                    PlannerElement::Ptr to = event->getToValue();
+                    Symbol::Ptr from = event->getFromValue();
+                    Symbol::Ptr to = event->getToValue();
                     if(from->getType() == type)
                     {
                         list.push_back(boost::dynamic_pointer_cast<T>(from));
@@ -88,7 +88,7 @@ public:
                 case TemporalAssertion::PERSISTENCE_CONDITION:
                 {
                     PersistenceCondition::Ptr persistenceCondition = boost::dynamic_pointer_cast<PersistenceCondition>(assertion);
-                    PlannerElement::Ptr value = persistenceCondition->getValue();
+                    Symbol::Ptr value = persistenceCondition->getValue();
                     if(value->getType() == type)
                     {
                         list.push_back(boost::dynamic_pointer_cast<T>(value));
@@ -106,13 +106,13 @@ public:
      * Get all constants that are used within this timeline
      * \return list of constants
      */
-    ConstantList getConstants() const;
+    symbols::ConstantList getConstants() const;
 
     /**
      * Get all object variable that are used within this timeline
      * \return list of object variables
      */
-    ObjectVariableList getObjectVariables() const;
+    symbols::ObjectVariableList getObjectVariables() const;
 
     /**
      * Get the list of (qualitative) timepoints

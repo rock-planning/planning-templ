@@ -145,7 +145,7 @@ typedef std::vector<Mission> CandidateMissions;
 
 class MissionPlanner
 {
-    typedef std::map<StateVariable, std::vector< std::vector<StateVariable> >  >
+    typedef std::map<symbols::StateVariable, std::vector< std::vector<symbols::StateVariable> >  >
         StateVariableExpansionMap;
 
     StateVariableExpansionMap mStateVariableExpansionMap;
@@ -157,7 +157,7 @@ public:
 
 protected:
     solvers::temporal::Chronicle::Ptr getCandidateChronicle();
-    void computeExpansion(const StateVariable& stateVariable);
+    void computeExpansion(const symbols::StateVariable& stateVariable);
 
     Mission mCurrentMission;
     organization_model::OrganizationModelAsk mOrganizationModelAsk;

@@ -1,15 +1,15 @@
 #include <boost/test/unit_test.hpp>
-#include <templ/StateVariable.hpp>
-#include <templ/Value.hpp>
-#include <templ/values/Int.hpp>
 #include <templ/solvers/temporal/TemporalAssertion.hpp>
 #include <templ/solvers/temporal/Event.hpp>
 #include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/point_algebra/QualitativeTimePoint.hpp>
-#include <templ/ObjectVariable.hpp>
-#include <templ/StateVariable.hpp>
+#include <templ/symbols/ObjectVariable.hpp>
+#include <templ/symbols/StateVariable.hpp>
+#include <templ/symbols/Value.hpp>
+#include <templ/symbols/values/Int.hpp>
 
 using namespace templ;
+using namespace templ::symbols;
 using namespace templ::solvers;
 using namespace templ::solvers::temporal;
 
@@ -90,14 +90,14 @@ BOOST_AUTO_TEST_CASE(persistence_condition)
     StateVariable stateVariable("robot_location","robot0");
     {
         // rloc(robot0)@[t2,t3) : l1
-        ObjectVariable::Ptr objectVariable0(new ObjectVariable("l1","Location"));
+        ObjectVariable::Ptr objectVariable0(new ObjectVariable("l1"));
         point_algebra::TimePoint::Ptr fromT(new point_algebra::QualitativeTimePoint("t2"));
         point_algebra::TimePoint::Ptr toT(new point_algebra::QualitativeTimePoint("t3"));
 
         PersistenceCondition::Ptr assertion0(new PersistenceCondition(stateVariable, objectVariable0, fromT, toT));
 
         // rloc(robot0)@[t2,t3) : l3
-        ObjectVariable::Ptr objectVariable1(new ObjectVariable("l3","Location"));
+        ObjectVariable::Ptr objectVariable1(new ObjectVariable("l3"));
         PersistenceCondition::Ptr assertion1(new PersistenceCondition(stateVariable, objectVariable1, fromT, toT));
 
         QualitativeTemporalConstraintNetwork::Ptr qtcn(new QualitativeTemporalConstraintNetwork());

@@ -4,11 +4,10 @@ rock_library(templ
     SOURCES 
         Mission.cpp
         MissionPlanner.cpp
-        ObjectVariable.cpp
-        PlannerElement.cpp
         Role.cpp
-        Value.cpp
+        Symbol.cpp
         io/MissionReader.cpp
+        problems/Scheduling.cpp
         solvers/Constraint.cpp
         solvers/ConstraintNetwork.cpp
         solvers/Variable.cpp
@@ -29,16 +28,19 @@ rock_library(templ
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.cpp
         solvers/temporal/point_algebra/TimePoint.cpp
         solvers/temporal/point_algebra/TimePointComparator.cpp
+        symbols/Constant.cpp
+        symbols/ObjectVariable.cpp
+        symbols/StateVariable.cpp
+        symbols/Value.cpp
     HEADERS 
-        Constant.hpp
         Mission.hpp
         MissionPlanner.hpp
-        ObjectVariable.hpp
-        PlannerElement.hpp
         Role.hpp
-        StateVariable.hpp
-        Value.hpp
+        Symbol.hpp
+        Timepoint.hpp
+        Variable.hpp
         io/MissionReader.hpp
+        problems/Scheduling.hpp
         solvers/Constraint.hpp
         solvers/ConstraintNetwork.hpp
         solvers/Variable.hpp
@@ -60,6 +62,13 @@ rock_library(templ
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp
         solvers/temporal/point_algebra/TimePoint.hpp
         solvers/temporal/point_algebra/TimePointComparator.hpp
+        symbols/Constant.hpp
+        symbols/ObjectVariable.hpp
+        symbols/StateVariable.hpp
+        symbols/Value.hpp
+        symbols/constants/Location.hpp
+        symbols/object_variables/LocationCardinality.hpp
+        symbols/values/Int.hpp
     LIBS gecodesearch
         gecodesupport
         gecodeset
@@ -70,7 +79,7 @@ rock_library(templ
         gecodegist
         ${Boost_LIBRARIES}
     DEPS_PKGCONFIG graph_analysis numeric organization_model
-        libxml-2.0
+        libxml-2.0 base-types
 )
 
 rock_executable(templ_bin Main.cpp

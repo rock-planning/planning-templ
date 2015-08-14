@@ -7,7 +7,7 @@ namespace templ {
 namespace solvers {
 namespace temporal {
 
-TemporalAssertion::TemporalAssertion(const StateVariable& stateVariable, TemporalAssertion::Type type)
+TemporalAssertion::TemporalAssertion(const symbols::StateVariable& stateVariable, TemporalAssertion::Type type)
     : mType(type)
     , mStateVariable(stateVariable)
 {}
@@ -18,7 +18,7 @@ std::map<TemporalAssertion::Type, std::string> TemporalAssertion::TypeTxt = boos
     (PERSISTENCE_CONDITION, "PERSISTENCE_CONDITION")
     ;
 
-bool TemporalAssertion::isDisjointFrom(TemporalAssertion::Ptr other, const point_algebra::TimePointComparator& comparator) const
+bool TemporalAssertion::isDisjointFrom(const TemporalAssertion::Ptr& other, const point_algebra::TimePointComparator& comparator) const
 {
     switch(other->getType())
     {
@@ -37,7 +37,7 @@ bool TemporalAssertion::isDisjointFrom(TemporalAssertion::Ptr other, const point
     }
 }
 
-bool TemporalAssertion::isReferringToSameValue(TemporalAssertion::Ptr other, const point_algebra::TimePointComparator& comparator) const
+bool TemporalAssertion::isReferringToSameValue(const TemporalAssertion::Ptr& other, const point_algebra::TimePointComparator& comparator) const
 {
     switch(other->getType())
     {

@@ -4,9 +4,10 @@
 #include <map>
 #include <stdexcept>
 #include <boost/shared_ptr.hpp>
-#include <templ/PlannerElement.hpp>
+#include <templ/Symbol.hpp>
 
 namespace templ {
+namespace symbols {
 
 /**
  * A Value represents the basic type for all values that can be used throughout
@@ -15,7 +16,7 @@ namespace templ {
  * Note: these values might have to be cast into domains for other (underlying csp
  * solvers that will be used)
  */
-class Value : public PlannerElement
+class Value : public Symbol
 {
 public:
     enum Type { UNKNOWN, INT };
@@ -25,20 +26,21 @@ public:
 
     typedef boost::shared_ptr<Value> Ptr;
 
-    virtual bool equals(PlannerElement::Ptr other) const { throw std::runtime_error("templ::Value::equals not implemented"); }
-
-    const std::string& getValueTypeName() const { return getTypeName(); }
+    virtual bool equals(const Symbol::Ptr& other) const { throw std::runtime_error("templ::Value::equals not implemented"); }
 
     /**
      * Default constructor
      */
-    Value();
+    Value(Value::Type type = UNKNOWN);
 
     virtual ~Value() {};
 
+    Type getValueType() const { return mValueType; }
+
 protected:
-    Value(const ValueTypeName& typeName);
+    Type mValueType;
 };
 
+} // end namespace symbols
 } // end namespace templ
-#endif // TEMPL_VALUE_HPP
+#endif // TEMPL_SYMBOLS_VALUE_HPP

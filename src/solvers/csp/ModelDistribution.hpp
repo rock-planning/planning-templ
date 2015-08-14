@@ -155,7 +155,7 @@ private:
     owlapi::model::IRIList mServices;
     owlapi::model::IRIList mResources;
     std::vector<solvers::temporal::Interval> mIntervals;
-    owlapi::model::IRIList mLocations;
+    std::vector<symbols::constants::Location::Ptr> mLocations;
 
     /// Service Requirement that arise from the mission scenario
     std::vector<FluentTimeResource> mResourceRequirements;

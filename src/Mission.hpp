@@ -7,11 +7,12 @@
 #include <organization_model/OrganizationModelAsk.hpp>
 #include <organization_model/ModelPool.hpp>
 #include <templ/solvers/Constraint.hpp>
-#include <templ/ObjectVariable.hpp>
 #include <templ/solvers/temporal/Interval.hpp>
 #include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
 #include <templ/Role.hpp>
+#include <templ/symbols/ObjectVariable.hpp>
+#include <templ/symbols/constants/Location.hpp>
 
 namespace templ {
 
@@ -58,7 +59,7 @@ public:
      * \param type
      */
     void addResourceLocationCardinalityConstraint(
-            const std::string& locationId,
+            const symbols::constants::Location::Ptr& location,
             const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
             const solvers::temporal::point_algebra::TimePoint::Ptr& toTp,
             const owlapi::model::IRI& resourceModel,
@@ -68,8 +69,8 @@ public:
 
     /**
      */
-    void addConstraint(const StateVariable& stateVariable,
-            const ObjectVariable::Ptr& objectVariable,
+    void addConstraint(const symbols::StateVariable& stateVariable,
+            const symbols::ObjectVariable::Ptr& objectVariable,
             const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
             const solvers::temporal::point_algebra::TimePoint::Ptr& toTp);
 
@@ -94,9 +95,6 @@ public:
      */
     void refresh();
 
-    ObjectVariable::Ptr getObjectVariable(const std::string& name, const std::string& type) const;
-    ObjectVariable::Ptr getOrCreateObjectVariable(const std::string& name, const std::string& type) const;
-
     solvers::temporal::point_algebra::TimePoint::Ptr getTimePoint(const std::string& name) const;
     solvers::temporal::point_algebra::TimePoint::Ptr getOrCreateTimePoint(const std::string& name) const;
 
@@ -113,8 +111,12 @@ public:
 
     const std::unordered_set<solvers::temporal::Interval>& getTimeIntervals() const { return mTimeIntervals; }
 
-    const std::set<ObjectVariable::Ptr>& getObjectVariables() const { return mObjectVariables; }
-    const owlapi::model::IRISet& getLocations() const { return mLocations; }
+    const std::set<symbols::ObjectVariable::Ptr>& getObjectVariables() const { return mObjectVariables; }
+    symbols::ObjectVariable::Ptr getObjectVariable(const std::string& name, symbols::ObjectVariable::Type type) const;
+    symbols::ObjectVariable::Ptr getOrCreateObjectVariable(const std::string& name, symbols::ObjectVariable::Type type) const;
+
+    const std::set<symbols::Constant::Ptr>& getConstants() const { return mConstants; }
+    const symbols::Constant::Ptr& getConstant(const std::string& id, symbols::Constant::Type type = symbols::Constant::UNKNOWN);
 
     solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr getTemporalConstraintNetwork() const {
         return mpTemporalConstraintNetwork; }
@@ -123,8 +125,13 @@ public:
 
     std::string toString() const;
 
+    // Get special sets of constants
+    std::vector<symbols::constants::Location::Ptr> getLocations() const;
+
 protected:
     std::vector<solvers::Constraint::Ptr> getConstraints() const { return mConstraints; }
+
+    void addConstant(const symbols::Constant::Ptr& constant);
 
     void validateAvailableResources() const;
 
@@ -146,8 +153,9 @@ private:
     /// Since a sorted set required the less operator for sorting in is not a suitable
     /// suitable container for Interval, since overlapping intervals have to be considered
     std::unordered_set<solvers::temporal::Interval> mTimeIntervals;
-    std::set<ObjectVariable::Ptr> mObjectVariables;
-    owlapi::model::IRISet mLocations;
+
+    std::set<symbols::ObjectVariable::Ptr> mObjectVariables;
+    std::set<symbols::Constant::Ptr> mConstants;
 };
 
 } // end namespace templ

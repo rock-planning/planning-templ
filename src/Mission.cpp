@@ -3,7 +3,7 @@
 
 #include <owlapi/Vocabulary.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
-#include <templ/object_variables/LocationCardinality.hpp>
+#include <templ/symbols/object_variables/LocationCardinality.hpp>
 
 namespace templ {
 
@@ -54,23 +54,26 @@ void Mission::refresh()
     }
 }
 
-ObjectVariable::Ptr Mission::getObjectVariable(const std::string& name, const std::string& type) const
+symbols::ObjectVariable::Ptr Mission::getObjectVariable(const std::string& name, symbols::ObjectVariable::Type type) const
 {
+    using namespace ::templ::symbols;
     std::set<ObjectVariable::Ptr>::const_iterator cit = mObjectVariables.begin();
     for(; cit != mObjectVariables.end(); ++cit)
     {
         ObjectVariable::Ptr variable = *cit;
-        if(variable->getTypeName() == type && variable->getInstanceName() == name)
+        if(type != ObjectVariable::UNKNOWN && variable->getObjectVariableType() == type && variable->getInstanceName() == name)
         {
             return variable;
         }
     }
     throw std::invalid_argument("templ::Mission::getObjectVariable: variable with name '" + name + "'"
-            " and type '" + type + "' not found");
+            " and type '" + ObjectVariable::TypeTxt[type] + "' not found");
 }
 
-ObjectVariable::Ptr Mission::getOrCreateObjectVariable(const std::string& name, const std::string& type) const
+symbols::ObjectVariable::Ptr Mission::getOrCreateObjectVariable(const std::string& name, symbols::ObjectVariable::Type type) const
 {
+    using namespace ::templ::symbols;
+
     ObjectVariable::Ptr variable;
     try {                                                                                
          variable = getObjectVariable(name, type);
@@ -140,7 +143,7 @@ solvers::temporal::point_algebra::TimePoint::Ptr Mission::getOrCreateTimePoint(c
 }
 
 void Mission::addResourceLocationCardinalityConstraint(
-            const std::string& locationId,
+            const symbols::constants::Location::Ptr& location,
             const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
             const solvers::temporal::point_algebra::TimePoint::Ptr& toTp,
             const owlapi::model::IRI& resourceModel,
@@ -174,21 +177,22 @@ void Mission::addResourceLocationCardinalityConstraint(
 
     mRequestedResources.insert(resourceModel);
 
-    ObjectVariable::Ptr locationCardinality(new object_variables::LocationCardinality(locationId, cardinality, type));
+    using namespace ::templ::symbols;
+    // Make sure constant is known
+    addConstant(location);
+    ObjectVariable::Ptr locationCardinality(new object_variables::LocationCardinality(location, cardinality, type));
     mObjectVariables.insert(locationCardinality);
 
     // the combination of resource, location and cardinality represents a state variable
     // which needs to be translated into resource based state variables
-    StateVariable rloc(ObjectVariable::TypeTxt[ObjectVariable::LOCATION_CARDINALITY],
+    symbols::StateVariable rloc(ObjectVariable::TypeTxt[ObjectVariable::LOCATION_CARDINALITY],
             resourceModel.toString());
 
-    // Add to locations
-    mLocations.insert(locationId);
     addConstraint(rloc, locationCardinality, fromTp, toTp);
 }
 
-void Mission::addConstraint(const StateVariable& stateVariable,
-        const ObjectVariable::Ptr& objectVariable,
+void Mission::addConstraint(const symbols::StateVariable& stateVariable,
+        const symbols::ObjectVariable::Ptr& objectVariable,
         const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
         const solvers::temporal::point_algebra::TimePoint::Ptr& toTp)
 {
@@ -239,6 +243,47 @@ void Mission::validateAvailableResources() const
 
     throw std::runtime_error("templ::Mission: mission has no available resources specified (not present or max cardinalities sum up to 0) -- \ndefined "
             + mModelPool.toString());
+}
+
+
+// Get special sets of constants
+std::vector<symbols::constants::Location::Ptr> Mission::getLocations() const
+{
+    using namespace symbols;
+    std::vector<constants::Location::Ptr> locations;
+    std::set<Constant::Ptr>::const_iterator cit = mConstants.begin();
+    for(; cit != mConstants.end(); ++cit)
+    {
+        const Constant::Ptr& constant = *cit;
+        if(constant->getConstantType() == Constant::LOCATION)
+        {
+            locations.push_back( boost::dynamic_pointer_cast<constants::Location>(constant) );
+        }
+    }
+    return locations;
+}
+
+void Mission::addConstant(const symbols::Constant::Ptr& constant)
+{
+    mConstants.insert(constant);
+}
+
+const symbols::Constant::Ptr& Mission::getConstant(const std::string& id, symbols::Constant::Type type)
+{
+    using namespace symbols;
+    std::set<Constant::Ptr>::const_iterator cit = mConstants.begin();
+    for(; cit != mConstants.end(); ++cit)
+    {
+        const Constant::Ptr& constant = *cit;
+        if(type != symbols::Constant::UNKNOWN && constant->getConstantType() == type)
+        {
+            if(constant->getInstanceName() == id)
+            {
+                return constant;
+            }
+        }
+    }
+    throw std::invalid_argument("templ::Mission: no constant named '" + id + "' of type '" + symbols::Constant::TypeTxt[type] + "' known");
 }
 
 } // end namespace templ

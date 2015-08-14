@@ -1,39 +1,46 @@
 #include "Event.hpp"
 #include "PersistenceCondition.hpp"
+#include <base/Logging.hpp>
 
 namespace templ {
 namespace solvers {
 namespace temporal {
 
-Event::Event(const StateVariable& stateVariable, PlannerElement::Ptr from, PlannerElement::Ptr to, const point_algebra::TimePoint::Ptr timepoint)
+Event::Event(const symbols::StateVariable& stateVariable,
+        const Symbol::Ptr& from,
+        const Symbol::Ptr& to,
+        const point_algebra::TimePoint::Ptr& timepoint)
     : TemporalAssertion(stateVariable, TemporalAssertion::EVENT)
     , mpFromValue(from)
     , mpToValue(to)
     , mpTimepoint(timepoint)
 {}
 
-Event::Ptr Event::getInstance(const StateVariable& stateVariable, PlannerElement::Ptr from, PlannerElement::Ptr to, const point_algebra::TimePoint::Ptr timepoint)
+Event::Ptr Event::getInstance(const symbols::StateVariable& stateVariable,
+        const Symbol::Ptr& from,
+        const Symbol::Ptr& to,
+        const point_algebra::TimePoint::Ptr& timepoint)
 {
     return Event::Ptr( new Event(stateVariable, from, to, timepoint));
 }
 
 
-bool Event::refersToSameValue(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const
+bool Event::refersToSameValue(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const
 {
     return mpFromValue->equals(other->mpFromValue) && mpToValue->equals(other->mpToValue);
 }
 
-bool Event::refersToSameValue(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const
+bool Event::refersToSameValue(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const
 {
     return other->refersToSameValue( Event::Ptr(new Event(*this)), comparator);
 }
 
-bool Event::disjointFrom(boost::shared_ptr<Event> other, const point_algebra::TimePointComparator& comparator) const
+bool Event::disjointFrom(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const
 {
     return !comparator.equals(mpTimepoint, other->mpTimepoint);
 }
 
-bool Event::disjointFrom(boost::shared_ptr<PersistenceCondition> other, const point_algebra::TimePointComparator& comparator) const
+bool Event::disjointFrom(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const
 {
     return other->disjointFrom( Event::Ptr( new Event(*this)), comparator);
 }

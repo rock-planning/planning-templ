@@ -2,7 +2,7 @@
 #define TEMPL_CHRONICLE_HPP
 
 #include <map>
-#include <templ/StateVariable.hpp>
+#include <templ/symbols/StateVariable.hpp>
 #include <templ/solvers/temporal/Timeline.hpp>
 
 namespace templ {
@@ -21,7 +21,7 @@ namespace temporal {
  */
 class Chronicle
 {
-    std::map<StateVariable, Timeline> mTimelines;
+    std::map<symbols::StateVariable, Timeline> mTimelines;
 
 public:
     typedef boost::shared_ptr<Chronicle> Ptr;

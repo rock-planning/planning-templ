@@ -1,6 +1,6 @@
 #include <boost/test/unit_test.hpp>
-#include <templ/Value.hpp>
-#include <templ/values/Int.hpp>
+#include <templ/symbols/Value.hpp>
+#include <templ/symbols/values/Int.hpp>
 #include <templ/solvers/temporal/Event.hpp>
 #include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/Timeline.hpp>
@@ -11,6 +11,7 @@
 #include <owlapi/Vocabulary.hpp>
 
 using namespace templ;
+using namespace templ::symbols;
 using namespace templ::solvers::temporal;
 
 namespace pa = templ::solvers::temporal::point_algebra;
@@ -23,9 +24,9 @@ BOOST_AUTO_TEST_CASE(chronicle)
     Timeline timeline(stateVariable);
 
     // rloc(robot0)@[t0,t1) : l0
-    ObjectVariable::Ptr l0 = ObjectVariable::getInstance("l0","Location");
-    ObjectVariable::Ptr l1 = ObjectVariable::getInstance("l1","Location");
-    ObjectVariable::Ptr l2 = ObjectVariable::getInstance("l2","Location");
+    ObjectVariable::Ptr l0 = ObjectVariable::getInstance("l0", ObjectVariable::LOCATION_CARDINALITY);
+    ObjectVariable::Ptr l1 = ObjectVariable::getInstance("l1", ObjectVariable::LOCATION_CARDINALITY);
+    ObjectVariable::Ptr l2 = ObjectVariable::getInstance("l2", ObjectVariable::LOCATION_CARDINALITY);
 
     point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
     point_algebra::TimePoint::Ptr t1 = point_algebra::QualitativeTimePoint::getInstance("t1");
@@ -82,8 +83,9 @@ BOOST_AUTO_TEST_CASE(mission_1)
     point_algebra::TimePoint::Ptr t2 = point_algebra::QualitativeTimePoint::getInstance("t2");
     point_algebra::TimePoint::Ptr t3 = point_algebra::QualitativeTimePoint::getInstance("t3");
 
-    std::string loc0 = "loc0";
-    std::string loc1 = "loc1";
+    using namespace ::templ::symbols;
+    constants::Location::Ptr loc0( new constants::Location("loc0", base::Point(0,0,0)));
+    constants::Location::Ptr loc1( new constants::Location("loc1", base::Point(10,10,0)));
 
     Mission mission(om);
     mission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
@@ -139,8 +141,6 @@ BOOST_AUTO_TEST_CASE(mission_1)
 //
 // timeline -> chronicle for a single state variable
 //    -- isConsistent --> iff every pair of assertions is disjoint or refers to
-//    the same value and/or the same time points
-//
 // chronicle -> 
 //    -- isConsistent iff the timelines for all the state variables in it are
 //    consistent
