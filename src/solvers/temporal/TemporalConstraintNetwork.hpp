@@ -27,9 +27,9 @@ public:
 
     virtual ~TemporalConstraintNetwork();
 
-    void addTimePoint(point_algebra::TimePoint::Ptr t);
+    void addTimePoint(point_algebra::TimePoint::Ptr t) { mpDistanceGraph->addVertex(t); }
 
-    void addIntervalConstraint(IntervalConstraint::Ptr i);
+    void addIntervalConstraint(IntervalConstraint::Ptr i) { mpDistanceGraph->addEdge(i); }
 
     virtual bool isConsistent() { throw std::runtime_error("templ::solvers::temporal::TemporalConstraintNetwork::isConsistent is not implemented"); }
 

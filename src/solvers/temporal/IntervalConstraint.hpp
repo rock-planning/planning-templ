@@ -3,6 +3,7 @@
 
 #include <graph_analysis/Edge.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
+#include <templ/solvers/temporal/Bounds.hpp>
 
 #define T_INTERVALCONSTRAINT(x) boost::dynamic_pointer_cast<templ::solvers::IntervalConstraint>(x)
 
@@ -11,14 +12,13 @@ namespace solvers {
 namespace temporal {
 
 /**
- * An Interval Constraint represents an edge in the constraint network identified by an interval
- * \ which represents the constraint between two variables
+ * An Interval Constraint represents an edge in the constraint network identified by a set of intervals
+ * \ which represents the constraints between two TimePoints
  */
 class IntervalConstraint : public graph_analysis::Edge
 {
 private:
-    double lowerBound;
-    double upperBound;
+    std::vector<Bounds> intervals;
 
 public:
 
@@ -27,7 +27,7 @@ public:
     /**
      * Default constructor for an interval constraint
      */
-    IntervalConstraint(point_algebra::TimePoint::Ptr source, point_algebra::TimePoint::Ptr target, double lowerBound, double upperBound);
+    IntervalConstraint(point_algebra::TimePoint::Ptr source, point_algebra::TimePoint::Ptr target);
 
     virtual ~IntervalConstraint() {}
 
@@ -53,18 +53,17 @@ public:
      */
     point_algebra::TimePoint::Ptr getTargetVariable() { return boost::dynamic_pointer_cast<point_algebra::TimePoint>( getTargetVertex()); }
 
-    void setLowerBound(double bound) { lowerBound = bound; }
+    // add a new interval
+    void addInterval(Bounds newInterval) { intervals.push_back(newInterval); }
 
-    void setUpperBound(double bound) { upperBound = bound; }
-    /**
-     * Get the lower bound of this constraint
-     */
-    double getLowerBound() { return lowerBound; }
+    // returns the set of intervals
+    std::vector<Bounds> getIntervals() { return intervals; }
 
-    /**
-     * Get the upper bound of this constraint
-     */
-    double getUpperBound() { return upperBound; }
+    // returns the number of intervals
+    int getIntervalsNumber() {return intervals.size(); }
+
+    // check if a given interval is included in a constraint
+    bool checkInterval(Bounds x);
 
 protected:
 

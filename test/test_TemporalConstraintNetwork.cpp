@@ -47,34 +47,59 @@ BOOST_AUTO_TEST_CASE(test_ult)
     point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
     point_algebra::TimePoint::Ptr v3(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
 
-    IntervalConstraint::Ptr i0(new IntervalConstraint(v0,v1,10,40));
-    IntervalConstraint::Ptr i1(new IntervalConstraint(v1,v2,20,40));
-    IntervalConstraint::Ptr i2(new IntervalConstraint(v1,v2,60,70));
-    IntervalConstraint::Ptr i3(new IntervalConstraint(v2,v3,0,50));
-    IntervalConstraint::Ptr i4(new IntervalConstraint(v1,v3,0,40));
-    IntervalConstraint::Ptr i5(new IntervalConstraint(v1,v3,60,90));
-    IntervalConstraint::Ptr i6(new IntervalConstraint(v1,v3,130,150));
-    IntervalConstraint::Ptr i7(new IntervalConstraint(v0,v3,20,130));
-    IntervalConstraint::Ptr i8(new IntervalConstraint(v0,v3,140,170));
-    IntervalConstraint::Ptr i9(new IntervalConstraint(v0,v3,180,200));
+    IntervalConstraint::Ptr i0(new IntervalConstraint(v0,v1));
+    i0->addInterval(Bounds(10,40));
+    IntervalConstraint::Ptr i1(new IntervalConstraint(v1,v2));
+    i1->addInterval(Bounds(20,40));
+    i1->addInterval(Bounds(60,70));
+    IntervalConstraint::Ptr i2(new IntervalConstraint(v2,v3));
+    i2->addInterval(Bounds(0,50));
+    IntervalConstraint::Ptr i3(new IntervalConstraint(v1,v3));
+    i3->addInterval(Bounds(0,40));
+    i3->addInterval(Bounds(60,90));
+    i3->addInterval(Bounds(130,150));
+    IntervalConstraint::Ptr i4(new IntervalConstraint(v0,v3));
+    i4->addInterval(Bounds(20,130));
+    i4->addInterval(Bounds(140,170));
+    i4->addInterval(Bounds(180,200));
 
     tcn.addIntervalConstraint(i0);
     tcn.addIntervalConstraint(i1);
     tcn.addIntervalConstraint(i2);
     tcn.addIntervalConstraint(i3);
     tcn.addIntervalConstraint(i4);
-    tcn.addIntervalConstraint(i5);
-    tcn.addIntervalConstraint(i6);
-    tcn.addIntervalConstraint(i7);
-    tcn.addIntervalConstraint(i8);
-    tcn.addIntervalConstraint(i9);
     
 
-    BOOST_REQUIRE_MESSAGE(tcn.getEdgeNumber() == 10,"Expected: 10, Actual: "<<tcn.getEdgeNumber());
+    BOOST_REQUIRE_MESSAGE(tcn.getEdgeNumber() == 5,"Expected: 5, Actual: "<<tcn.getEdgeNumber());
 
     tcn.upperLowerTightening();
-    
-    BOOST_REQUIRE_MESSAGE(tcn.getEdgeNumber() == 7,"Expected: 7, Actual: "<<tcn.getEdgeNumber());
+
+    BaseGraph::Ptr graph = tcn.getDistanceGraph();
+    EdgeIterator::Ptr edgeIt = graph->getEdgeIterator();
+    while (edgeIt->next())
+    {
+        IntervalConstraint::Ptr i = boost::dynamic_pointer_cast<IntervalConstraint>(edgeIt->current());
+        if (i->getSourceVariable() == v0 && i->getTargetVariable() == v1)
+        {
+            BOOST_REQUIRE_MESSAGE(i->getIntervalsNumber() == 1,"Expected: 1, Actual: "<<i->getIntervalsNumber());
+        }
+        if (i->getSourceVariable() == v1 && i->getTargetVariable() == v2)
+        {
+            BOOST_REQUIRE_MESSAGE(i->getIntervalsNumber() == 2,"Expected: 2, Actual: "<<i->getIntervalsNumber());
+        }
+        if (i->getSourceVariable() == v2 && i->getTargetVariable() == v3)
+        {
+            BOOST_REQUIRE_MESSAGE(i->getIntervalsNumber() == 1,"Expected: 1, Actual: "<<i->getIntervalsNumber());
+        }
+        if (i->getSourceVariable() == v1 && i->getTargetVariable() == v3)
+        {
+            BOOST_REQUIRE_MESSAGE(i->getIntervalsNumber() == 2,"Expected: 2, Actual: "<<i->getIntervalsNumber());
+        }
+        if (i->getSourceVariable() == v0 && i->getTargetVariable() == v3)
+        {
+            BOOST_REQUIRE_MESSAGE(i->getIntervalsNumber() == 1,"Expected: 1, Actual: "<<i->getIntervalsNumber());
+        }
+    }    
 }
 
 BOOST_AUTO_TEST_SUITE_END()
