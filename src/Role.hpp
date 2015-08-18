@@ -19,6 +19,9 @@ public:
     Role();
     Role(const std::string& name, const owlapi::model::IRI& model);
 
+    const std::string& getName() const { return mName; }
+    const owlapi::model::IRI& getModel() const { return mModel; }
+
     std::string toString() const;
     static std::string toString(const std::vector<Role>& roles);
 
