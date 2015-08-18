@@ -6,6 +6,7 @@
 #include <libxml/tree.h>
 #include <base/Logging.hpp>
 #include <templ/symbols/constants/Location.hpp>
+#include <templ/utils/CartographicMapping.hpp>
 
 namespace templ {
 namespace io {
@@ -518,11 +519,35 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
                         " multiple times");
             }
             base::Point position;
+            bool metricDefinition = false;
+            try {
+                position.x() = boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "x") );
+                position.y() = boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "y") );
+                position.z() = boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "z") );
+                metricDefinition = true;
+            } catch(const std::exception& e)
+            {
+                LOG_INFO_S << "Metric location information: " << e.what();
+            }
 
-            position.x() = boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "x") );
-            position.y() = boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "y") );
-            position.z() = boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "z") );
+            if(!metricDefinition)
+            {
+                try {
 
+                    double latitude = boost::lexical_cast<double>( getSubNodeContent(doc, current, "latitude") );
+                    double longitude = boost::lexical_cast<double>( getSubNodeContent(doc, current, "longitude") );
+                    std::string radius = getSubNodeContent(doc, current, "radius");
+                    utils::CartographicMapping mapping(radius);
+                    base::Point point(latitude, longitude, 0.0);
+                    position = mapping.latitudeLongitudeToMetric(point);
+                    LOG_INFO_S << "LatitudeLongitude information: " << point;
+                } catch(const std::exception& e)
+                {
+                    throw std::runtime_error("templ::io::MissionReader::parseConstants: failed to extract location: " + std::string(e.what()));
+                }
+            }
+
+            LOG_INFO_S << "Metric location information: " << position;
             using namespace ::templ::symbols;
             constants::Location::Ptr location(new constants::Location( name, position));
             constants.insert(location);

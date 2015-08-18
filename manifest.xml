@@ -11,4 +11,6 @@
   <depend package="tools/graph_analysis" />
   <depend package="multiagent/organization_model" />
   <depend package="libxml2" />
+  <!-- cartographic library />
+  <depend package="libproj-dev" />
 </package>

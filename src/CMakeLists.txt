@@ -32,6 +32,7 @@ rock_library(templ
         symbols/ObjectVariable.cpp
         symbols/StateVariable.cpp
         symbols/Value.cpp
+        utils/CartographicMapping.cpp
     HEADERS 
         Mission.hpp
         MissionPlanner.hpp
@@ -69,6 +70,7 @@ rock_library(templ
         symbols/constants/Location.hpp
         symbols/object_variables/LocationCardinality.hpp
         symbols/values/Int.hpp
+        utils/CartographicMapping.hpp
     LIBS gecodesearch
         gecodesupport
         gecodeset
@@ -78,6 +80,7 @@ rock_library(templ
         gecodefloat
         gecodegist
         ${Boost_LIBRARIES}
+        proj
     DEPS_PKGCONFIG graph_analysis numeric organization_model
         libxml-2.0 base-types
 )

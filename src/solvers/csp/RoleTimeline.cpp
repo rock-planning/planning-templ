@@ -29,7 +29,8 @@ std::string RoleTimeline::toString() const
     {
         ss << fluent.toString() << std::endl;
     }
-    ss << "    estimated energy cost: " << estimatedEnergyCost();
+    ss << "    travel distance (in km):       " << travelDistance()/1.0E3;
+    ss << "    estimated energy cost (in Wh): " << estimatedEnergyCost();
     return ss.str();
 }
 
