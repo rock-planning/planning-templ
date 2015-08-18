@@ -116,26 +116,6 @@
     
 
 
-    <!-- http://www.rock-robotics.org/2014/01/om-schema#avgEnergyConsumption -->
-
-    <owl:DatatypeProperty rdf:about="http://www.rock-robotics.org/2014/01/om-schema#avgEnergyConsumption">
-        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
-        <rdfs:subPropertyOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#energyProperty"/>
-        <rdfs:range rdf:resource="&xsd;double"/>
-    </owl:DatatypeProperty>
-    
-
-
-    <!-- http://www.rock-robotics.org/2014/01/om-schema#energy -->
-
-    <owl:DatatypeProperty rdf:about="http://www.rock-robotics.org/2014/01/om-schema#energy">
-        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
-        <rdfs:subPropertyOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#energyProperty"/>
-        <rdfs:range rdf:resource="&xsd;double"/>
-    </owl:DatatypeProperty>
-    
-
-
     <!-- http://www.rock-robotics.org/2014/01/om-schema#energyCapacity -->
 
     <owl:DatatypeProperty rdf:about="http://www.rock-robotics.org/2014/01/om-schema#energyCapacity">
@@ -179,9 +159,9 @@
     
 
 
-    <!-- http://www.rock-robotics.org/2014/01/om-schema#maxAccelleration -->
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#maxAcceleration -->
 
-    <owl:DatatypeProperty rdf:about="http://www.rock-robotics.org/2014/01/om-schema#maxAccelleration">
+    <owl:DatatypeProperty rdf:about="http://www.rock-robotics.org/2014/01/om-schema#maxAcceleration">
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
         <rdfs:subPropertyOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#locomotionProperty"/>
         <rdfs:range rdf:resource="&xsd;double"/>
@@ -229,9 +209,9 @@
     
 
 
-    <!-- http://www.rock-robotics.org/2014/01/om-schema#minAccelleration -->
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#minAcceleration -->
 
-    <owl:DatatypeProperty rdf:about="http://www.rock-robotics.org/2014/01/om-schema#minAccelleration">
+    <owl:DatatypeProperty rdf:about="http://www.rock-robotics.org/2014/01/om-schema#minAcceleration">
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
         <rdfs:subPropertyOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#locomotionProperty"/>
         <rdfs:range rdf:resource="&xsd;double"/>
@@ -269,9 +249,9 @@
     
 
 
-    <!-- http://www.rock-robotics.org/2014/01/om-schema#nominalAccelleration -->
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#nominalAcceleration -->
 
-    <owl:DatatypeProperty rdf:about="http://www.rock-robotics.org/2014/01/om-schema#nominalAccelleration">
+    <owl:DatatypeProperty rdf:about="http://www.rock-robotics.org/2014/01/om-schema#nominalAcceleration">
         <rdfs:subPropertyOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#locomotionProperty"/>
         <rdfs:range rdf:resource="&xsd;double"/>
     </owl:DatatypeProperty>
@@ -283,6 +263,16 @@
     <owl:DatatypeProperty rdf:about="http://www.rock-robotics.org/2014/01/om-schema#nominalHeight">
         <rdf:type rdf:resource="&owl;FunctionalProperty"/>
         <rdfs:subPropertyOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#physicalProperty"/>
+        <rdfs:range rdf:resource="&xsd;double"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#nominalPowerConsumption -->
+
+    <owl:DatatypeProperty rdf:about="http://www.rock-robotics.org/2014/01/om-schema#nominalPowerConsumption">
+        <rdf:type rdf:resource="&owl;FunctionalProperty"/>
+        <rdfs:subPropertyOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#energyProperty"/>
         <rdfs:range rdf:resource="&xsd;double"/>
     </owl:DatatypeProperty>
     
@@ -395,28 +385,7 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
-                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Camera"/>
-                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#LaserScanner"/>
-                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Locomotion"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Power"/>
                 <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
@@ -430,7 +399,28 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Power"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#LaserScanner"/>
+                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Camera"/>
+                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Locomotion"/>
                 <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
@@ -477,7 +467,7 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Power"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Locomotion"/>
                 <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
@@ -485,6 +475,13 @@
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
                 <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Localization"/>
+                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Power"/>
                 <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
@@ -499,13 +496,6 @@
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
                 <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Mapping"/>
-                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Locomotion"/>
                 <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
@@ -707,7 +697,7 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Power"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Mapping"/>
                 <owl:minQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:minQualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
@@ -728,7 +718,7 @@
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Mapping"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Power"/>
                 <owl:minQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:minQualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
@@ -857,29 +847,8 @@ a StereoImageProvider service cannot depends upon two instances of ImageProvider
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Mapping"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Localization"/>
                 <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Power"/>
-                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
-                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">4</owl:maxQualifiedCardinality>
-            </owl:Restriction>
-        </rdfs:subClassOf>
-        <rdfs:subClassOf>
-            <owl:Restriction>
-                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiActive"/>
-                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">2</owl:maxQualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
@@ -892,14 +861,35 @@ a StereoImageProvider service cannot depends upon two instances of ImageProvider
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
-                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Localization"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Power"/>
                 <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
         <rdfs:subClassOf>
             <owl:Restriction>
                 <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiActive"/>
+                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">2</owl:maxQualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">4</owl:maxQualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
                 <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Locomotion"/>
+                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Mapping"/>
                 <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">1</owl:maxQualifiedCardinality>
             </owl:Restriction>
         </rdfs:subClassOf>
@@ -959,18 +949,19 @@ a StereoImageProvider service cannot depends upon two instances of ImageProvider
 
     <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#CREX">
         <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#CREX"/>
-        <nominalAccelleration rdf:datatype="&xsd;double">0.0</nominalAccelleration>
+        <nominalAcceleration rdf:datatype="&xsd;double">0.0</nominalAcceleration>
         <nominalVelocity rdf:datatype="&xsd;double">0.1</nominalVelocity>
         <minHeight rdf:datatype="&xsd;double">0.25</minHeight>
         <nominalHeight rdf:datatype="&xsd;double">0.5</nominalHeight>
         <nominalWidth rdf:datatype="&xsd;double">1.0</nominalWidth>
         <minWidth rdf:datatype="&xsd;double">1.0</minWidth>
         <maxWidth rdf:datatype="&xsd;double">1.5</maxWidth>
-        <avgEnergyConsumption rdf:datatype="&xsd;double">100.0</avgEnergyConsumption>
+        <nominalPowerConsumption rdf:datatype="&xsd;double">100.0</nominalPowerConsumption>
         <mass rdf:datatype="&xsd;double">27.0</mass>
         <maxHeight rdf:datatype="&xsd;double">4.0</maxHeight>
         <supplyVoltage rdf:datatype="&xsd;double">48.0</supplyVoltage>
         <maxEnergyCapacity rdf:datatype="&xsd;double">7.2</maxEnergyCapacity>
+        <energyCapacity rdf:datatype="&xsd;double">7.2</energyCapacity>
     </owl:NamedIndividual>
     
 
@@ -985,10 +976,9 @@ a StereoImageProvider service cannot depends upon two instances of ImageProvider
 
     <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII">
         <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII"/>
-        <energy rdf:datatype="&xsd;double"></energy>
+        <nominalAcceleration rdf:datatype="&xsd;double">0.0</nominalAcceleration>
+        <minAcceleration rdf:datatype="&xsd;double">0.0</minAcceleration>
         <minVelocity rdf:datatype="&xsd;double">0.0</minVelocity>
-        <minAccelleration rdf:datatype="&xsd;double">0.0</minAccelleration>
-        <nominalAccelleration rdf:datatype="&xsd;double">0.0</nominalAccelleration>
         <nominalVelocity rdf:datatype="&xsd;double">0.2</nominalVelocity>
         <nominalHeight rdf:datatype="&xsd;double">0.3</nominalHeight>
         <maxHeight rdf:datatype="&xsd;double">0.3</maxHeight>
@@ -997,10 +987,10 @@ a StereoImageProvider service cannot depends upon two instances of ImageProvider
         <nominalWidth rdf:datatype="&xsd;double">0.5</nominalWidth>
         <minWidth rdf:datatype="&xsd;double">0.5</minWidth>
         <maxWidth rdf:datatype="&xsd;double">0.5</maxWidth>
-        <maxAccelleration rdf:datatype="&xsd;double">1.0</maxAccelleration>
+        <maxAcceleration rdf:datatype="&xsd;double">1.0</maxAcceleration>
         <mass rdf:datatype="&xsd;double">15.0</mass>
         <supplyVoltage rdf:datatype="&xsd;double">48.0</supplyVoltage>
-        <avgEnergyConsumption rdf:datatype="&xsd;double">50.0</avgEnergyConsumption>
+        <nominalPowerConsumption rdf:datatype="&xsd;double">50.0</nominalPowerConsumption>
         <maxEnergyCapacity rdf:datatype="&xsd;double">7.2</maxEnergyCapacity>
     </owl:NamedIndividual>
     
@@ -1037,7 +1027,7 @@ a StereoImageProvider service cannot depends upon two instances of ImageProvider
         <nominalHeight rdf:datatype="&xsd;double">0.15</nominalHeight>
         <nominalWidth rdf:datatype="&xsd;double">0.15</nominalWidth>
         <minWidth rdf:datatype="&xsd;double">0.15</minWidth>
-        <avgEnergyConsumption rdf:datatype="&xsd;double">25.0</avgEnergyConsumption>
+        <nominalPowerConsumption rdf:datatype="&xsd;double">25.0</nominalPowerConsumption>
         <mass rdf:datatype="&xsd;double">3.0</mass>
         <supplyVoltage rdf:datatype="&xsd;double">48.0</supplyVoltage>
     </owl:NamedIndividual>
@@ -1060,17 +1050,18 @@ a StereoImageProvider service cannot depends upon two instances of ImageProvider
 
     <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Sherpa">
         <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Sherpa"/>
-        <minAccelleration rdf:datatype="&xsd;double">-0.1</minAccelleration>
+        <minAcceleration rdf:datatype="&xsd;double">-0.1</minAcceleration>
         <minVelocity rdf:datatype="&xsd;double">-1.0</minVelocity>
-        <nominalAccelleration rdf:datatype="&xsd;double">0.0</nominalAccelleration>
+        <nominalAcceleration rdf:datatype="&xsd;double">0.0</nominalAcceleration>
         <minVelocity rdf:datatype="&xsd;double">0.0</minVelocity>
-        <maxAccelleration rdf:datatype="&xsd;double">0.1</maxAccelleration>
+        <maxAcceleration rdf:datatype="&xsd;double">0.1</maxAcceleration>
         <nominalVelocity rdf:datatype="&xsd;double">0.5</nominalVelocity>
         <probabilityOfFailure rdf:datatype="&xsd;double">0.5</probabilityOfFailure>
-        <avgEnergyConsumption rdf:datatype="&xsd;double">0.8</avgEnergyConsumption>
+        <nominalPowerConsumption rdf:datatype="&xsd;double">0.8</nominalPowerConsumption>
         <maxVelocity rdf:datatype="&xsd;double">1.0</maxVelocity>
         <minHeight rdf:datatype="&xsd;double">1.5</minHeight>
         <maxEnergyCapacity rdf:datatype="&xsd;double">10.0</maxEnergyCapacity>
+        <energyCapacity rdf:datatype="&xsd;double">10.0</energyCapacity>
         <mass rdf:datatype="&xsd;double">160.0</mass>
         <minWidth rdf:datatype="&xsd;double">2.0</minWidth>
         <nominalHeight rdf:datatype="&xsd;double">2.0</nominalHeight>
