@@ -42,7 +42,7 @@ public:
     graph_analysis::BaseGraph::Ptr getDistanceGraph() const { return mpDistanceGraph; }
 
     // change a simple temporal constraint network into a weighted graph
-    // Upper and lower bound are added as edges in forward and backward
+    // Upper and lower bounds of each interval are added as edges in forward and backward
     // direction between two edges
     // A --- weight: upper bound   --> B
     // B --- weight: - lower bound --> A

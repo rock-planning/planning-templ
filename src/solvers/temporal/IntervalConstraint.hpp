@@ -44,25 +44,25 @@ public:
     virtual std::string toString() const;
 
     /**
-     * Get the source vertex/variable of this interval constraint
+     * Get the source vertex/TimePoint of this interval constraint
      */
-    point_algebra::TimePoint::Ptr getSourceVariable() { return boost::dynamic_pointer_cast<point_algebra::TimePoint>( getSourceVertex()); }
+    point_algebra::TimePoint::Ptr getSourceTimePoint() { return boost::dynamic_pointer_cast<point_algebra::TimePoint>( getSourceVertex()); }
 
     /**
-     * Get the target vertex/variable of this interval constraint
+     * Get the target vertex/TimePoint of this interval constraint
      */
-    point_algebra::TimePoint::Ptr getTargetVariable() { return boost::dynamic_pointer_cast<point_algebra::TimePoint>( getTargetVertex()); }
+    point_algebra::TimePoint::Ptr getTargetTimePoint() { return boost::dynamic_pointer_cast<point_algebra::TimePoint>( getTargetVertex()); }
 
     // add a new interval
     void addInterval(Bounds newInterval) { intervals.push_back(newInterval); }
 
-    // returns the set of intervals
+    // returns the set of intervals for an interval constraint
     std::vector<Bounds> getIntervals() { return intervals; }
 
-    // returns the number of intervals
+    // returns the number of intervals of an interval constraint
     int getIntervalsNumber() {return intervals.size(); }
 
-    // check if a given interval is included in a constraint
+    // check if a given interval is included in an interval constraint
     bool checkInterval(Bounds x);
 
 protected:
