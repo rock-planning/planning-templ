@@ -1,4 +1,5 @@
 #include "RoleTimeline.hpp"
+#include <organization_model/facets/Robot.hpp>
 
 namespace templ {
 namespace solvers {
@@ -28,6 +29,7 @@ std::string RoleTimeline::toString() const
     {
         ss << fluent.toString() << std::endl;
     }
+    ss << "    estimated energy cost: " << estimatedEnergyCost();
     return ss.str();
 }
 
@@ -47,8 +49,11 @@ std::map<Role,RoleTimeline> RoleTimeline::computeTimelines(const Mission& missio
         for(; lit != roles.end(); ++lit)
         {
             const Role& role = *lit;
-            timelines[role].setRole(role);
-            timelines[role].add(fts);
+            RoleTimeline& timeline = timelines[role];
+            timeline.setRole(role);
+            timeline.add(fts);
+            timeline.mLocations = mission.getLocations();
+            timeline.mOrganizationModel = mission.getOrganizationModel();
         }
     }
 
@@ -63,6 +68,37 @@ std::map<Role,RoleTimeline> RoleTimeline::computeTimelines(const Mission& missio
     }
 
     return timelines;
+}
+
+double RoleTimeline::travelDistance() const
+{
+    using namespace ::templ::symbols;
+    constants::Location::Ptr fromLocation;
+    constants::Location::Ptr toLocation;
+
+    std::vector<FluentTimeResource>::const_iterator cit = mFluents.begin();
+    double totalDistance;
+    for(; cit != mFluents.end(); ++cit)
+    {
+        const FluentTimeResource& ftr = *cit;
+        if(!fromLocation)
+        {
+            fromLocation = mLocations[ftr.fluent];
+            continue;
+        }
+        toLocation = mLocations[ftr.fluent];
+        totalDistance += (toLocation->getPosition() - fromLocation->getPosition()).norm();
+
+        fromLocation = toLocation;
+    }
+    return totalDistance;
+}
+
+double RoleTimeline::estimatedEnergyCost() const
+{
+    organization_model::facets::Robot robot(mRole.getModel(), mOrganizationModel);
+    double distance = travelDistance();
+    return robot.estimatedEnergyCost(distance);
 }
 
 } // end namespace csp

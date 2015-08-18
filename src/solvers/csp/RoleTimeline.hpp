@@ -11,6 +11,9 @@ namespace csp {
 class RoleTimeline
 {
     std::vector<FluentTimeResource> mFluents;
+    std::vector<symbols::constants::Location::Ptr> mLocations;
+    organization_model::OrganizationModel::Ptr mOrganizationModel;
+
     Role mRole;
 
 public:
@@ -28,6 +31,10 @@ public:
     std::string toString() const;
 
     static std::map<Role,RoleTimeline> computeTimelines(const Mission& mission, const RoleDistribution::Solution& solution);
+
+    double travelDistance() const;
+
+    double estimatedEnergyCost() const;
 };
 
 } // end namespace csp
