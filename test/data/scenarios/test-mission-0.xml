@@ -14,6 +14,20 @@
         <maxCardinality>0</maxCardinality>
     </resource>
 </resources>
+<constants>
+    <location>
+        <id>l0</id>
+        <x>0</x>
+        <y>0</y>
+        <z>0</z>
+    </location>
+    <location>
+        <id>l1</id>
+        <x>10</x>
+        <y>10</y>
+        <z>0</z>
+    </location>
+</constants>
 <requirements>
     <requirement>
         <spatial-requirement>
