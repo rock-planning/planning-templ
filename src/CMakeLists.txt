@@ -21,6 +21,7 @@ rock_library(templ
         solvers/temporal/TemporalAssertion.cpp
         solvers/temporal/TemporalConstraintNetwork.cpp
         solvers/temporal/Timeline.cpp
+        solvers/temporal/LoosePathConsistency.cpp
         solvers/ConstraintNetwork.cpp
         solvers/Constraint.cpp
         solvers/Variable.cpp
@@ -49,6 +50,7 @@ rock_library(templ
         solvers/temporal/TemporalAssertion.hpp
         solvers/temporal/TemporalConstraintNetwork.hpp
         solvers/temporal/Timeline.hpp
+        solvers/temporal/LoosePathConsistency.hpp
         solvers/ConstraintNetwork.hpp
         solvers/Variable.hpp
         solvers/Constraint.hpp
