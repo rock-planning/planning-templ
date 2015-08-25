@@ -79,7 +79,7 @@ templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type Te
         return QualitativeTimePointConstraint::LessOrEqual;
     }
 
-    throw std::invalid_argument("templ::MissionReader: unknown temporal constraint type: '" + name + "'");
+    throw std::invalid_argument("templ::io::MissionReader::getTemporalConstraintType: unknown temporal constraint type: '" + name + "'");
 }
 
 std::string TemporalConstraint::toString() const
@@ -162,19 +162,19 @@ Mission MissionReader::fromFile(const std::string& url)
         doc = xmlReadFile(url.c_str(), NULL, options);
         if(doc == NULL)
         {
-            throw std::runtime_error("Failed to parse url '" + url + "'");
+            throw std::runtime_error("templ::io::MissionReader::fromFile: Failed to parse url '" + url + "'");
         }
 
         xmlNodePtr rootNode;
         rootNode = xmlDocGetRootElement(doc);
         if(rootNode == NULL)
         {
-            throw std::runtime_error("Empty document");
+            throw std::invalid_argument("templ::io::MissionReader::fromFile: Empty document");
         }
 
         if(xmlStrcmp(rootNode->name, (const xmlChar*) "mission"))
         {
-            throw std::runtime_error("Unexpected root node type: '" + std::string((const char*) rootNode->name) );
+            throw std::invalid_argument("templ::io::MissionReader::fromFile: Unexpected root node type: '" + std::string((const char*) rootNode->name) + "' -- expected <mission> tag");
         }
         LOG_INFO_S << "Found root node: " << rootNode->name;
 
@@ -299,7 +299,7 @@ std::pair<owlapi::model::IRI, size_t> MissionReader::parseResource(xmlDocPtr doc
         int32_t cardinality = boost::lexical_cast<int32_t>(maxCardinalityTxt);
         if(cardinality < 0)
         {
-            throw std::invalid_argument("templ::MissionReader: invalid value in mission specification --"
+            throw std::invalid_argument("templ::MissionReader::parseResource: invalid value in mission specification --"
                     " maxCardinality for '" + model + "' was '" + maxCardinalityTxt + "' but expected a value >= 0");
         }
 
@@ -439,7 +439,7 @@ Requirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNodePtr current)
             requirementNode = requirementNode->next;
         }
     } else {
-        throw std::invalid_argument("Unexpected tag: '" + std::string((const char*) current->name) + "' expected requirement");
+        throw std::invalid_argument("templ::io::MissionReader::parseRequirement: Unexpected tag: '" + std::string((const char*) current->name) + "' expected requirement");
     }
     return requirement;
 }
@@ -515,7 +515,7 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
 
             if(locations.count(name))
             {
-                throw std::invalid_argument("templ::MissionReader location '" + name + "' defined"
+                throw std::invalid_argument("templ::io::MissionReader::parseConstants: location '" + name + "' defined"
                         " multiple times");
             }
             base::Point position;
