@@ -35,6 +35,8 @@ public:
     double travelDistance() const;
 
     double estimatedEnergyCost() const;
+
+    double duration() const;
 };
 
 } // end namespace csp

@@ -29,8 +29,9 @@ std::string RoleTimeline::toString() const
     {
         ss << fluent.toString() << std::endl;
     }
-    ss << "    travel distance (in km):       " << travelDistance()/1.0E3;
-    ss << "    estimated energy cost (in Wh): " << estimatedEnergyCost();
+    ss << "    travel distance (in km):         " << travelDistance()/1.0E3 << std::endl;
+    ss << "    estimated time (in h):         " << duration()/3.6E3 << std::endl;
+    ss << "    estimated energy cost (in kWh):  " << estimatedEnergyCost()/1.0E3 << std::endl;
     return ss.str();
 }
 
@@ -100,6 +101,12 @@ double RoleTimeline::estimatedEnergyCost() const
     organization_model::facets::Robot robot(mRole.getModel(), mOrganizationModel);
     double distance = travelDistance();
     return robot.estimatedEnergyCost(distance);
+}
+
+double RoleTimeline::duration() const
+{
+    organization_model::facets::Robot robot(mRole.getModel(), mOrganizationModel);
+    return travelDistance()/robot.getNominalVelocity();
 }
 
 } // end namespace csp
