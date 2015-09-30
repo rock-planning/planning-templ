@@ -16,7 +16,7 @@ std::string IntervalConstraint::toString() const
 { 
 	std::stringstream ss;
 	ss << "Interval Constraint: from " << getSourceVertex()->toString() << " to " << getTargetVertex()->toString() << " ";
-    return ss.str();
+    	return ss.str();
 }
 
 

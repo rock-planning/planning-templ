@@ -32,7 +32,7 @@ void TemporalConstraintNetwork::stp()
 	double max, min;
 	while (edgeIt->next())
 	{
-		// for each edge of the temp.const.network, check each interval and find the lowest lower bound and the biggest upper bound
+		// for each edge of the temp.const.network, check each interval and find the min lower bound and the max upper bound
 		edge = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
 		max = 0; min = std::numeric_limits<double>::infinity();
 		std::vector<Bounds> v = edge->getIntervals();

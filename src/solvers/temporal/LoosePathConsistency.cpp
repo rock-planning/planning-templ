@@ -24,13 +24,13 @@ const std::vector<Bounds> LoosePathConsistency::intersection(std::vector<Bounds>
 			if (ita->getLowerBound() <= itb->getLowerBound() && ita->getUpperBound() >= itb->getUpperBound())
 			{
 				// if an interval is not already in the final set then we add it
-				if (!checkInterval(result,Bounds(itb->getLowerBound(),itb->getUpperBound())) && itb->getLowerBound() < itb->getUpperBound()) 
+				if (!checkInterval(result,Bounds(itb->getLowerBound(),itb->getUpperBound())) && 				itb>getLowerBound() < itb->getUpperBound()) 
 				{	
 					result.push_back(Bounds(itb->getLowerBound(),itb->getUpperBound()));
 				}
 			}
 			else
-			/*  edge1: [x------------y]
+			/*      edge1: [x------------y]
 				edge0:      [a------------b]
 				=> add:     [a-------y] 
 			*/
@@ -38,7 +38,7 @@ const std::vector<Bounds> LoosePathConsistency::intersection(std::vector<Bounds>
 			{
 				if (itb->getLowerBound() <= ita->getUpperBound())
 				{
-					if (!checkInterval(result,Bounds(itb->getLowerBound(),ita->getUpperBound())) && itb->getLowerBound() < ita->getUpperBound()) 
+					if (!checkInterval(result,Bounds(itb->getLowerBound(),ita->getUpperBound())) && 					itb->getLowerBound() < ita->getUpperBound()) 
 					{
 						result.push_back(Bounds(itb->getLowerBound(),ita->getUpperBound()));
 					}
@@ -46,33 +46,33 @@ const std::vector<Bounds> LoosePathConsistency::intersection(std::vector<Bounds>
 			}
 			else
 			/*  edge1:        [x-----------y]
-		    	edge0:    [a---------b]
-		    	=> add:       [x-----b]
+		    	    edge0:    [a---------b]
+		    	    => add:       [x-----b]
 			*/
 		    if (ita->getLowerBound() >= itb->getLowerBound() && ita->getUpperBound() >= itb->getUpperBound())
 			{
 				if (itb->getUpperBound() >= ita->getLowerBound())
 				{
-					if (!checkInterval(result,Bounds(ita->getLowerBound(),itb->getUpperBound())) && ita->getLowerBound() < itb->getUpperBound()) 
+					if (!checkInterval(result,Bounds(ita->getLowerBound(),itb->getUpperBound())) && 					ita->getLowerBound() < itb->getUpperBound()) 
 					{
 						result.push_back(Bounds(ita->getLowerBound(),itb->getUpperBound()));
 					}
 				}
 			}
 			else
-			/*  edge1:     [x----y]
+			/*      edge1:     [x----y]
 				edge0:  [a-----------b]
 				=> add:    [x----y]
 			*/
 			if (ita->getLowerBound() >= itb->getLowerBound() && ita->getUpperBound() <= itb->getUpperBound())
 			{
-				if (!checkInterval(result,Bounds(ita->getLowerBound(),ita->getUpperBound())) && ita->getLowerBound() < ita->getUpperBound()) 
+				if (!checkInterval(result,Bounds(ita->getLowerBound(),ita->getUpperBound())) && 				ita->getLowerBound() < ita->getUpperBound()) 
 				{
 					result.push_back(Bounds(ita->getLowerBound(),ita->getUpperBound()));
 				}
 			}
 			// otherwise:
-			/*  edge1:  [x----y]
+			/*      edge1:  [x----y]
 				edge0:            [a----b]
 				or
 				edge1:            [x----y]
@@ -137,14 +137,14 @@ const std::vector<Bounds> LoosePathConsistency::looseIntersection(std::vector<Bo
 		double min,max;
 		min = std::numeric_limits<double>::infinity();
 		max = - std::numeric_limits<double>::infinity();
-		// find the lower and upper bounds of the computed intersection and add this interval into result, if it was not already added
+		// find the lower and upper bounds of the computed intersection and add this interval into result, if it was 			// not already added
 		while (ith!=help.end())
 		{
 			if (min > ith->getLowerBound()) min = ith->getLowerBound();
 			if (max < ith->getUpperBound()) max = ith->getUpperBound();
 			ith++;
 		}
-		if (min!= std::numeric_limits<double>::infinity() && max!= - std::numeric_limits<double>::infinity() && !checkInterval(result,Bounds(min,max)))
+		if (min!= std::numeric_limits<double>::infinity() && max!= - std::numeric_limits<double>::infinity() && 		!checkInterval(result,Bounds(min,max)))
 		{
 			result.push_back(Bounds(min,max));
 		}
@@ -160,10 +160,10 @@ const std::vector<Bounds> LoosePathConsistency::reverseIntervals(std::vector<Bou
 	std::vector<Bounds> result;
 	std::vector<Bounds>::iterator it = v.begin();
 	while (it!=v.end()) 
-		{
-			result.push_back(Bounds(-(it->getUpperBound()), -(it->getLowerBound())));
-			it++;
-		}
+	{
+		result.push_back(Bounds(-(it->getUpperBound()), -(it->getLowerBound())));
+		it++;
+	}
 	return result;
 }
 
@@ -173,8 +173,8 @@ TemporalConstraintNetwork LoosePathConsistency::intersectionNetwork(TemporalCons
 	TemporalConstraintNetwork tcn;
 	graph_analysis::BaseGraph::Ptr graph = t.getDistanceGraph();
 	graph_analysis::EdgeIterator::Ptr edgeIt = graph->getEdgeIterator();
-	// for each edge in the distance graph of the temp.constr.network check any combination between this edge and another vertex
-	// from the distance graph
+	// for each edge in the distance graph of the temp.constr.network check any combination between this edge and another 
+	// vertex from the distance graph
 	while (edgeIt->next())
 	{
 		IntervalConstraint::Ptr edge = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
@@ -186,7 +186,7 @@ TemporalConstraintNetwork LoosePathConsistency::intersectionNetwork(TemporalCons
 		while (vit->next())
 		{
 			cnt = 0;
-			point_algebra::TimePoint::Ptr vertex = boost::dynamic_pointer_cast<point_algebra::TimePoint>( vit->current() );
+			point_algebra::TimePoint::Ptr vertex = boost::dynamic_pointer_cast<point_algebra::TimePoint>	 				(vit->current() );
  			// check if the vertex is not the source or target of our current edge
  			if (vertex != edge->getSourceTimePoint() && vertex != edge->getTargetTimePoint())
  			{
@@ -227,11 +227,11 @@ TemporalConstraintNetwork LoosePathConsistency::intersectionNetwork(TemporalCons
  				}
  				/*
 					source --------> target
-										^
-										|
-										|
-										|
-									  vertex
+						 	^
+							|
+							|
+							|
+	       					  vertex
 					=> we keep the same intervals
  				*/
  				z = graph->graph_analysis::BaseGraph::getEdges(vertex,edge->getTargetTimePoint());
@@ -243,11 +243,11 @@ TemporalConstraintNetwork LoosePathConsistency::intersectionNetwork(TemporalCons
  				}
  				/*
  					source --------> target
- 										|
- 										|
- 										|
- 										*
- 									  vertex
+ 							|
+ 							|
+ 							|
+ 							*
+ 						  vertex
  					=> we need to reverse the intervals corresponding to [target,vertex]
  				*/
  				p = graph->graph_analysis::BaseGraph::getEdges(edge->getTargetTimePoint(),vertex);
@@ -267,7 +267,7 @@ TemporalConstraintNetwork LoosePathConsistency::intersectionNetwork(TemporalCons
  			}
  			else
  			{
- 				// if we know the values of final and temp, then we need to compute the intersection between them
+ 				// if we know the values of final and temp, then we need to compute the intersection between 					// them
  				if (cnt==2) final = intersection(final,temp);
  			}
 
