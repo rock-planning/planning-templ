@@ -263,6 +263,22 @@ std::vector<symbols::constants::Location::Ptr> Mission::getLocations() const
     return locations;
 }
 
+
+std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> Mission::getTimepoints() const
+{
+    using namespace graph_analysis;
+    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints;
+
+    VertexIterator::Ptr vertexIt = mpTemporalConstraintNetwork->getGraph()->getVertexIterator();
+    while(vertexIt->next())
+    {
+        solvers::temporal::point_algebra::TimePoint::Ptr tp =
+            boost::dynamic_pointer_cast<solvers::temporal::point_algebra::TimePoint>(vertexIt->current());
+        timepoints.push_back(tp);
+    }
+    return timepoints;
+}
+
 void Mission::addConstant(const symbols::Constant::Ptr& constant)
 {
     mConstants.insert(constant);

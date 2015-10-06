@@ -128,6 +128,8 @@ public:
     // Get special sets of constants
     std::vector<symbols::constants::Location::Ptr> getLocations() const;
 
+    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> getTimepoints() const;
+
 protected:
     std::vector<solvers::Constraint::Ptr> getConstraints() const { return mConstraints; }
 

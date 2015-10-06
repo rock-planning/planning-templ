@@ -4,6 +4,10 @@
 #include <templ/solvers/csp/RoleDistribution.hpp>
 #include <templ/solvers/csp/RoleTimeline.hpp>
 
+#include <templ/LocationTimepointTuple.hpp>
+#include <graph_analysis/WeightedEdge.hpp>
+#include <limits>
+
 using namespace templ;
 
 int main(int argc, char** argv)
@@ -59,7 +63,55 @@ int main(int argc, char** argv)
             std::cout << timeline.toString() << std::endl;
         }
     }
+
+    std::cout << "-- BEGIN TEMPORALLY-EXPANDED LOCATION NETWORK -------" << std::endl;
+
+    // basic graph creating can be done even earlier -- setting of edges is
+    // required according to the selected robot assignments
     
+    // Create temporally-expanded location network
+    // timepoints -- locations
+    //
+    // foreach location l in L
+    //     foreach timepoint t in T
+    //         create node (t,l)
+    //         add to t indexed sorted location
+    //         add to l indexed sorted timepoints
+    // 
+    // need to known all timepoints: from mission.getTimepoints()
+    // --> all vertices
+    {
+        namespace pa = templ::solvers::temporal::point_algebra;
+        namespace co = templ::symbols::constants;
+
+        using namespace graph_analysis;
+        std::vector<pa::TimePoint::Ptr> timepoints = mission.getTimepoints();
+        std::sort(timepoints.begin(), timepoints.end());
+
+        std::vector<co::Location::Ptr> locations = mission.getLocations();
+
+        BaseGraph::Ptr spaceTimeGraph = BaseGraph::getInstance();
+
+        std::vector<co::Location::Ptr>::const_iterator lit = locations.begin();
+        for(; lit != locations.end(); ++lit)
+        {
+            boost::shared_ptr<LocationTimepointTuple> lastTuple;
+
+            std::vector<pa::TimePoint::Ptr>::const_iterator tit = timepoints.begin();
+            for(; tit != timepoints.end(); ++tit)
+            {
+                boost::shared_ptr<LocationTimepointTuple> ltTuplePtr(new LocationTimepointTuple(*lit, *tit));
+                spaceTimeGraph->addVertex(ltTuplePtr);
+
+                if(lastTuple)
+                {
+                    WeightedEdge::Ptr edge(new WeightedEdge(lastTuple, ltTuplePtr, std::numeric_limits<WeightedEdge::value_t>::max()));
+                    spaceTimeGraph->addEdge(edge);
+                }
+                lastTuple = ltTuplePtr;
+            }
+        }
+    }
 
     // Analyse the cost of the planning approach
 
