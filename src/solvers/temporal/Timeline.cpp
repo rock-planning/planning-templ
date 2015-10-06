@@ -53,7 +53,7 @@ void Timeline::addTemporalAssertion(TemporalAssertion::Ptr assertion)
             {
                 // duplicate
             }
-            mConstraintNetwork->addConstraint(fromTime, toTime, point_algebra::QualitativeTimePointConstraint::LessOrEqual);
+            mConstraintNetwork->addQualitativeConstraint(fromTime, toTime, point_algebra::QualitativeTimePointConstraint::LessOrEqual);
             break;
         }
         case TemporalAssertion::UNKNOWN:

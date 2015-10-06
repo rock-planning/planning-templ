@@ -30,7 +30,6 @@ BOOST_AUTO_TEST_CASE(disjoint)
     TemporalAssertion::Ptr event1(new Event(stateVariable, fromValue, toValue, t1));
 
     QualitativeTemporalConstraintNetwork::Ptr qtcn(new QualitativeTemporalConstraintNetwork());
-    //qtcn->addConstraint(t0
     point_algebra::TimePointComparator comparator(qtcn);
     BOOST_REQUIRE_MESSAGE(!event0a->isDisjointFrom(event0b, comparator), "Identical events are not disjoint" );
     BOOST_REQUIRE_MESSAGE(!event0a->isDisjointFrom(event0a_alias, comparator), "Identical events are not disjoint" );
@@ -101,7 +100,7 @@ BOOST_AUTO_TEST_CASE(persistence_condition)
         PersistenceCondition::Ptr assertion1(new PersistenceCondition(stateVariable, objectVariable1, fromT, toT));
 
         QualitativeTemporalConstraintNetwork::Ptr qtcn(new QualitativeTemporalConstraintNetwork());
-        qtcn->addConstraint(fromT, toT, point_algebra::QualitativeTimePointConstraint::LessOrEqual);
+        qtcn->addQualitativeConstraint(fromT, toT, point_algebra::QualitativeTimePointConstraint::LessOrEqual);
 
         qtcn->addTimePoint(fromT);
         qtcn->addTimePoint(toT);
@@ -112,12 +111,12 @@ BOOST_AUTO_TEST_CASE(persistence_condition)
         // Check if there is no connecting constraint between two intervals
         point_algebra::TimePoint::Ptr fromT2(new point_algebra::QualitativeTimePoint("t4"));
         point_algebra::TimePoint::Ptr toT2(new point_algebra::QualitativeTimePoint("t5"));
-        qtcn->addConstraint(fromT2, toT2, point_algebra::QualitativeTimePointConstraint::LessOrEqual);
+        qtcn->addQualitativeConstraint(fromT2, toT2, point_algebra::QualitativeTimePointConstraint::LessOrEqual);
 
         PersistenceCondition::Ptr assertion2(new PersistenceCondition(stateVariable, objectVariable1, fromT2, toT2));
         BOOST_REQUIRE_MESSAGE(assertion0->isDisjointFrom(assertion2, comparator), "Non overlapping persistence conditions are disjoint");
 
-        qtcn->addConstraint(fromT2, fromT, point_algebra::QualitativeTimePointConstraint::Equal);
+        qtcn->addQualitativeConstraint(fromT2, fromT, point_algebra::QualitativeTimePointConstraint::Equal);
         BOOST_REQUIRE_MESSAGE(!assertion0->isDisjointFrom(assertion2, comparator), "Overlapping persistence conditions are not disjoint");
     }
 

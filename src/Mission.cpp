@@ -202,7 +202,7 @@ void Mission::addConstraint(const symbols::StateVariable& stateVariable,
             fromTp,
             toTp);
 
-    mpTemporalConstraintNetwork->addConstraint(fromTp, toTp, pa::QualitativeTimePointConstraint::LessOrEqual);
+    mpTemporalConstraintNetwork->addQualitativeConstraint(fromTp, toTp, pa::QualitativeTimePointConstraint::LessOrEqual);
     mPersistenceConditions.push_back(persistenceCondition);
 }
 
@@ -210,7 +210,7 @@ void Mission::addTemporalConstraint(const pa::TimePoint::Ptr& t1,
         const pa::TimePoint::Ptr& t2,
         pa::QualitativeTimePointConstraint::Type constraint)
 {
-    mpTemporalConstraintNetwork->addConstraint(t1, t2, constraint);
+    mpTemporalConstraintNetwork->addQualitativeConstraint(t1, t2, constraint);
 }
 
 void Mission::addConstraint(const solvers::Constraint::Ptr& constraint)
@@ -219,7 +219,7 @@ void Mission::addConstraint(const solvers::Constraint::Ptr& constraint)
     QualitativeTimePointConstraint::Ptr timeConstraint = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(constraint);
     if(timeConstraint)
     {
-        mpTemporalConstraintNetwork->addConstraint(timeConstraint);
+        mpTemporalConstraintNetwork->addConstraint(boost::dynamic_pointer_cast<solvers::Constraint>(timeConstraint));
     } else {
         mConstraints.push_back(constraint);
     }
