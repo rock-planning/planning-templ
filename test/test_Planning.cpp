@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(chronicle)
     Chronicle chronicle;
     chronicle.addTimeline(timeline);
     BOOST_TEST_MESSAGE(chronicle.toString());
-    BOOST_REQUIRE_MESSAGE(chronicle.isConsistent(), "Chronicle is conistent");
+    BOOST_REQUIRE_MESSAGE(chronicle.isConsistent(), "Chronicle is consistent");
 
 
 //    Chronicle otherChronicle;
