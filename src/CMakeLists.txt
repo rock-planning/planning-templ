@@ -18,6 +18,8 @@ rock_library(templ
         solvers/temporal/Chronicle.cpp
         solvers/temporal/Event.cpp
         solvers/temporal/Interval.cpp
+        solvers/temporal/IntervalConstraint.cpp
+        solvers/temporal/LoosePathConsistency.cpp
         solvers/temporal/PersistenceCondition.cpp
         solvers/temporal/QualitativeTemporalConstraintNetwork.cpp
         solvers/temporal/SimpleTemporalNetwork.cpp
@@ -33,12 +35,19 @@ rock_library(templ
         symbols/StateVariable.cpp
         symbols/Value.cpp
         utils/CartographicMapping.cpp
-    HEADERS 
+    HEADERS
+        Constant.hpp
         Mission.hpp
         MissionPlanner.hpp
+        ObjectVariable.hpp
+        PlannerElement.cpp
+        PlannerElement.hpp
         Role.hpp
+        StateVariable.hpp
         Symbol.hpp
         Timepoint.hpp
+        Value.cpp
+        Value.hpp
         Variable.hpp
         io/MissionReader.hpp
         problems/Scheduling.hpp
@@ -52,6 +61,8 @@ rock_library(templ
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
         solvers/temporal/Interval.hpp
+        solvers/temporal/IntervalConstraint.hpp
+        solvers/temporal/LoosePathConsistency.hpp
         solvers/temporal/PersistenceCondition.hpp
         solvers/temporal/QualitativeTemporalConstraintNetwork.hpp
         solvers/temporal/SimpleTemporalNetwork.hpp
