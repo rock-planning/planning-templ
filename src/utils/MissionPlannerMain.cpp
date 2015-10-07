@@ -6,6 +6,7 @@
 
 #include <templ/LocationTimepointTuple.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
+#include <graph_analysis/GraphIO.hpp>
 #include <limits>
 
 using namespace templ;
@@ -111,7 +112,16 @@ int main(int argc, char** argv)
                 lastTuple = ltTuplePtr;
             }
         }
+
+        std::string filename = "/tmp/space-time-graph.dot";
+        graph_analysis::io::GraphIO::write(filename, spaceTimeGraph);
+        std::cout << "Written temporally expanded graph to: " << filename << std::endl;
+        std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
     }
+
+    // Per Role --> add capacities (in terms of capability of carrying a
+    // payload)
+
 
     // Analyse the cost of the planning approach
 
