@@ -353,7 +353,7 @@ TemporalConstraintNetwork LoosePathConsistency::loosePathConsistency(TemporalCon
         n1 = intersectionNetwork(n);
         n2 = looseNetwork(n,n1);
         graph = n2.getDistanceGraph();  
-    } while (!n.areEqual(graph) && checkConsistency(n2));
+    } while (!n.equals(graph) && checkConsistency(n2));
     return n;
 }
 

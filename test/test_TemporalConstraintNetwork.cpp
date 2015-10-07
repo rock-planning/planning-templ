@@ -11,7 +11,7 @@ using namespace graph_analysis;
 BOOST_AUTO_TEST_SUITE(temporal_constraint_network)
 
 
-BOOST_AUTO_TEST_CASE(test_ult)
+BOOST_AUTO_TEST_CASE(ult)
 {
 // Input (a * near a vertex means that it is a target vertex):    
 // .-------------------------------------------------------
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(test_ult)
     expected.addIntervalConstraint(e5);
 
 //  check if the expected result and the actual result are the same
-    bool ok = expected.areEqual(graph);
+    bool ok = expected.equals(graph);
     BOOST_REQUIRE_MESSAGE(ok, "Expected: 1, Actual: " << ok);
 }
 

@@ -8,7 +8,7 @@ using namespace graph_analysis;
 BOOST_AUTO_TEST_SUITE(loose_path_consistency)
 
 
-BOOST_AUTO_TEST_CASE(test_intersectionNetwork)
+BOOST_AUTO_TEST_CASE(intersection_network)
 {
     TemporalConstraintNetwork tcn,expected;
 
@@ -64,10 +64,10 @@ BOOST_AUTO_TEST_CASE(test_intersectionNetwork)
     TemporalConstraintNetwork result = LoosePathConsistency::intersectionNetwork(tcn);
     BaseGraph::Ptr graph = result.getDistanceGraph();
 
-    BOOST_REQUIRE_MESSAGE(expected.areEqual(graph), "Expected: 1, Actual: "<<expected.areEqual(graph));
+    BOOST_REQUIRE_MESSAGE(expected.equals(graph), "Expected: 1, Actual: "<<expected.equals(graph));
 }
 
-BOOST_AUTO_TEST_CASE(test_looseIntersection)
+BOOST_AUTO_TEST_CASE(loose_intersection)
 {
     TemporalConstraintNetwork tcn,tcn2,expected;
 
@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(test_looseIntersection)
     TemporalConstraintNetwork result = LoosePathConsistency::looseNetwork(tcn,tcn2);
     BaseGraph::Ptr graph = result.getDistanceGraph();
 
-    BOOST_REQUIRE_MESSAGE(expected.areEqual(graph), "Expected: 1, Actual: "<<expected.areEqual(graph));
+    BOOST_REQUIRE_MESSAGE(expected.equals(graph), "Expected: 1, Actual: "<<expected.equals(graph));
 }
 
 /*
@@ -173,7 +173,7 @@ EXPECTED (after execution of loose path-consistency):
     v0
 
 */
-BOOST_AUTO_TEST_CASE(test_lpc)
+BOOST_AUTO_TEST_CASE(lpc)
 {
     TemporalConstraintNetwork tcn,expected;
 
@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_CASE(test_lpc)
     TemporalConstraintNetwork result = LoosePathConsistency::loosePathConsistency(tcn);
     BaseGraph::Ptr graph = result.getDistanceGraph();
 
-    BOOST_REQUIRE_MESSAGE(expected.areEqual(graph),"Expected: 1, Actual: "<<expected.areEqual(graph));
+    BOOST_REQUIRE_MESSAGE(expected.equals(graph),"Expected: 1, Actual: "<<expected.equals(graph));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
