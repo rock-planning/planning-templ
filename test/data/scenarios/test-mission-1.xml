@@ -14,6 +14,38 @@
         <maxCardinality>100</maxCardinality>
     </resource>
 </resources>
+<constants>
+    <location>
+        <id>l0</id>
+        <x>0</x>
+        <y>0</y>
+        <z>0</z>
+    </location>
+    <location>
+        <id>l1</id>
+        <x>10</x>
+        <y>10</y>
+        <z>0</z>
+    </location>
+    <location>
+        <id>l2</id>
+        <x>0</x>
+        <y>10</y>
+        <z>0</z>
+    </location>
+    <location>
+        <id>l3</id>
+        <x>20</x>
+        <y>20</y>
+        <z>0</z>
+    </location>
+    <location>
+        <id>l4</id>
+        <x>20</x>
+        <y>0</y>
+        <z>0</z>
+    </location>
+</constants>
 <requirements>
     <requirement>
         <spatial-requirement>
