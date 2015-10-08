@@ -323,6 +323,12 @@ bool QualitativeTemporalConstraintNetwork::isConsistent(graph_analysis::Vertex::
 
 QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getDirectionalConstraintType(graph_analysis::Vertex::Ptr i, graph_analysis::Vertex::Ptr j) const
 {
+    if(i == j)
+    {
+        LOG_WARN_S << "Checking directional constraint for same vertex";
+        return QualitativeTimePointConstraint::Universal;
+    }
+
     std::vector<Edge::Ptr> edgesIJ = getGraph()->getEdges(i, j);
     QualitativeTimePointConstraint::Type constraintTypeIJ = QualitativeTimePointConstraint::Universal;
 
@@ -344,6 +350,11 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getDi
 
 QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getBidirectionalConstraintType(graph_analysis::Vertex::Ptr i, graph_analysis::Vertex::Ptr j) const
 {
+    if(i == j)
+    {
+        throw std::runtime_error("templ::solvers::temporal::getBidirectionalConstraintType: identical vertex in comparison");
+    }
+
     QualitativeTimePointConstraint::Type constraintTypeIJ = getDirectionalConstraintType(i,j);
     QualitativeTimePointConstraint::Type constraintTypeJI = QualitativeTimePointConstraint::getSymmetric( getDirectionalConstraintType(j,i) );
 
@@ -351,7 +362,7 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getBi
     {
         LOG_DEBUG_S << "IJ symmetry assumption does not hold" <<
             " ij: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << " vs. ji " << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI];
-        throw std::runtime_error("QualitativeTimePointConstraint::getBidirectionalConstraintType: IJ - JI with inconsistent contraints");
+        throw std::runtime_error("QualitativeTimePointConstraint::getBidirectionalConstraintType: IJ - JI with inconsistent constraints: '" + i->toString() + "' - '" + j->toString());
     }
 
     QualitativeTimePointConstraint::Type compositionType = QualitativeTimePointConstraint::getIntersection(constraintTypeIJ, constraintTypeJI);
