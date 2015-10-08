@@ -69,7 +69,7 @@ int main(int argc, char** argv)
 
     // basic graph creating can be done even earlier -- setting of edges is
     // required according to the selected robot assignments
-    
+
     // Create temporally-expanded location network
     // timepoints -- locations
     //
@@ -78,7 +78,7 @@ int main(int argc, char** argv)
     //         create node (t,l)
     //         add to t indexed sorted location
     //         add to l indexed sorted timepoints
-    // 
+    //
     // need to known all timepoints: from mission.getTimepoints()
     // --> all vertices
     {
@@ -86,23 +86,37 @@ int main(int argc, char** argv)
         namespace co = templ::symbols::constants;
 
         using namespace graph_analysis;
+
         std::vector<pa::TimePoint::Ptr> timepoints = mission.getTimepoints();
-        std::sort(timepoints.begin(), timepoints.end());
+        pa::TimePointComparator tpc(mission.getTemporalConstraintNetwork());
+        std::sort(timepoints.begin(), timepoints.end(), [&tpc](const pa::TimePoint::Ptr& a, const pa::TimePoint::Ptr& b)
+                {
+                    if(a == b)
+                    {
+                        return false;
+                    }
+
+                    return tpc.lessThan(a,b);
+                }
+        );
 
         std::vector<co::Location::Ptr> locations = mission.getLocations();
 
         BaseGraph::Ptr spaceTimeGraph = BaseGraph::getInstance();
+        typedef std::pair< co::Location::Ptr, pa::TimePoint::Ptr> LocationTimePointPair;
+        std::map< LocationTimePointPair, LocationTimepointTuple::Ptr > tupleMap;
 
         std::vector<co::Location::Ptr>::const_iterator lit = locations.begin();
         for(; lit != locations.end(); ++lit)
         {
-            boost::shared_ptr<LocationTimepointTuple> lastTuple;
+            LocationTimepointTuple::Ptr lastTuple;
 
             std::vector<pa::TimePoint::Ptr>::const_iterator tit = timepoints.begin();
             for(; tit != timepoints.end(); ++tit)
             {
-                boost::shared_ptr<LocationTimepointTuple> ltTuplePtr(new LocationTimepointTuple(*lit, *tit));
+                LocationTimepointTuple::Ptr ltTuplePtr(new LocationTimepointTuple(*lit, *tit));
                 spaceTimeGraph->addVertex(ltTuplePtr);
+                tupleMap[ LocationTimePointPair(*lit, *tit) ] = ltTuplePtr;
 
                 if(lastTuple)
                 {
@@ -113,14 +127,77 @@ int main(int argc, char** argv)
             }
         }
 
-        std::string filename = "/tmp/space-time-graph.dot";
-        graph_analysis::io::GraphIO::write(filename, spaceTimeGraph);
-        std::cout << "Written temporally expanded graph to: " << filename << std::endl;
-        std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
-    }
+        {
+            std::string filename = "/tmp/space-time-graph.dot";
+            graph_analysis::io::GraphIO::write(filename, spaceTimeGraph);
+            std::cout << "Written temporally expanded graph to: " << filename << std::endl;
+            std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
+        }
+        {
+            std::string filename = "/tmp/mission-temporally-constrained-network.dot";
+            graph_analysis::io::GraphIO::write(filename, mission.getTemporalConstraintNetwork()->getGraph());
+            std::cout << "Written temporal constraint network to: " << filename << std::endl;
+            std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
+        }
 
-    // Per Role --> add capacities (in terms of capability of carrying a
-    // payload)
+        // Per Role --> add capacities (in terms of capability of carrying a
+        // payload)
+        //std::map<Role, RoleTimeline> timelines
+        std::map<Role, RoleTimeline>::const_iterator rit = timelines.begin();
+        for(; rit != timelines.end(); ++rit)
+        {
+            // infer capacity from role
+
+            // infer connections from timeline
+            // sequentially ordered timeline
+            // locations and timeline
+            // connection from (l0, i0_end) ---> (l1, i1_start)
+            //
+            const Role& role = rit->first;
+            std::cout << "Start adding role for : " << role.toString() << std::endl;
+            const RoleTimeline& roleTimeline = rit->second;
+
+
+            namespace pa = templ::solvers::temporal::point_algebra;
+            pa::TimePoint::Ptr prevIntervalEnd;
+            co::Location::Ptr prevLocation;
+            LocationTimepointTuple::Ptr startTuple, endTuple;
+
+            //const std::vector<symbols::constants::Location::Ptr>& locations = roleTimeline.getLocations();
+            //const std::vector<solvers::temporal::Interval>& getIntervals = roleTimeline.getIntervals();
+            const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
+            std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
+            for(; fit != ftrs.end(); ++fit)
+            {
+                symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
+                solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
+
+                std::cout << "Location: " << location->toString() << " -- interval: " << interval.toString() << std::endl;
+
+                endTuple = tupleMap[ LocationTimePointPair(location, interval.getFrom()) ];
+
+                // Find start node: Tuple of location  and interval.getFrom()
+                if(prevIntervalEnd)
+                {
+                    startTuple = tupleMap[ LocationTimePointPair(prevLocation, prevIntervalEnd) ];
+
+                    WeightedEdge::Ptr weightedEdge(new WeightedEdge(startTuple, endTuple, 1.0));
+                    spaceTimeGraph->addEdge(weightedEdge);
+
+                }
+
+                prevIntervalEnd = interval.getTo();
+                prevLocation = location;
+            }
+        }
+
+        {
+            std::string filename = "/tmp/space-time-graph-with-timeline.dot";
+            graph_analysis::io::GraphIO::write(filename, spaceTimeGraph);
+            std::cout << "Written temporally expanded graph to: " << filename << std::endl;
+            std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
+        }
+    }
 
 
     // Analyse the cost of the planning approach
