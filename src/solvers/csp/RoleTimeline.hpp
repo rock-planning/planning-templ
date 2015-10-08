@@ -12,6 +12,7 @@ class RoleTimeline
 {
     std::vector<FluentTimeResource> mFluents;
     std::vector<symbols::constants::Location::Ptr> mLocations;
+    std::vector<solvers::temporal::Interval> mIntervals;
     organization_model::OrganizationModel::Ptr mOrganizationModel;
 
     Role mRole;
@@ -21,12 +22,20 @@ public:
 
     void add(const solvers::csp::FluentTimeResource& fts) { mFluents.push_back(fts); }
 
+    const std::vector<FluentTimeResource>& getFluentTimeResources() const { return mFluents; }
+    const std::vector<symbols::constants::Location::Ptr>& getLocations() const { return mLocations; }
+    const std::vector<solvers::temporal::Interval>& getIntervals() const { return mIntervals; }
+
+    symbols::constants::Location::Ptr getLocation(const solvers::csp::FluentTimeResource& fts) const;
+    solvers::temporal::Interval getInterval(const solvers::csp::FluentTimeResource& fts) const;
+
     /**
-     * Sort his timeline given the set of intervals 
-     * which allow to map back the indices in the FluentTimeResource
+     * Sort this timeline using the set of intervals 
+     * to map the time indices in the FluentTimeResource to actual intervals
      *
+     * TODO: a timeline has not necessarily a unique ordering
      */
-    void sort(const std::vector<solvers::temporal::Interval>& intervals);
+    void sortByTime();
 
     std::string toString() const;
 

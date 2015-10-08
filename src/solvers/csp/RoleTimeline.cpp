@@ -1,22 +1,38 @@
 #include "RoleTimeline.hpp"
 #include <organization_model/facets/Robot.hpp>
+#include <base/Logging.hpp>
 
 namespace templ {
 namespace solvers {
 namespace csp {
 
-void RoleTimeline::sort(const std::vector<solvers::temporal::Interval>& intervals)
+symbols::constants::Location::Ptr RoleTimeline::getLocation(const solvers::csp::FluentTimeResource& fts) const
+{
+    return mLocations.at(fts.fluent);
+}
+
+solvers::temporal::Interval RoleTimeline::getInterval(const solvers::csp::FluentTimeResource& fts) const
+{
+    return mIntervals.at(fts.time);
+}
+
+void RoleTimeline::sortByTime()
 {
     using namespace solvers::csp;
-    std::sort( mFluents.begin(), mFluents.end(), [&intervals](const FluentTimeResource& a, const FluentTimeResource& b)->bool
+    if(mIntervals.empty())
+    {
+        throw std::runtime_error("templ::solvers::csp::RoleTimeline::sortByTime: intervals not set");
+    }
+
+    std::sort( mFluents.begin(), mFluents.end(), [this](const FluentTimeResource& a, const FluentTimeResource& b)->bool
             {
                 if(a == b)
                 {
                     return false;
                 }
 
-                const solvers::temporal::Interval& lval = intervals.at(a.time);
-                const solvers::temporal::Interval& rval = intervals.at(b.time);
+                const solvers::temporal::Interval& lval = this->mIntervals.at(a.time);
+                const solvers::temporal::Interval& rval = this->mIntervals.at(b.time);
                 return lval.before(rval);
             });
 }
@@ -66,7 +82,9 @@ std::map<Role,RoleTimeline> RoleTimeline::computeTimelines(const Mission& missio
     for(; it != timelines.end(); ++it)
     {
         RoleTimeline& timeline = it->second;
-        timeline.sort(intervals);
+        timeline.mIntervals = intervals;
+
+        timeline.sortByTime();
     }
 
     return timelines;
