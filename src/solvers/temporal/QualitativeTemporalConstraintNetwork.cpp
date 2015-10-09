@@ -18,7 +18,7 @@ QualitativeTemporalConstraintNetwork::QualitativeTemporalConstraintNetwork()
     : TemporalConstraintNetwork()
 {}
 
-QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getConstraint(const TimePoint::Ptr& t1, const TimePoint::Ptr& t2)
+QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getQualitativeConstraint(const TimePoint::Ptr& t1, const TimePoint::Ptr& t2)
 {
     std::pair<Vertex::Ptr, Vertex::Ptr> key(t1,t2);
     std::map< std::pair<Vertex::Ptr, Vertex::Ptr>, QualitativeTimePointConstraint::Type >::const_iterator cit = mCompositionConstraints.find(key);
@@ -173,7 +173,7 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getDi
 {
     if(i == j)
     {
-        LOG_WARN_S << "Checking directional constraint for same vertex";
+        LOG_INFO_S << "Checking directional constraint for same vertex";
         return QualitativeTimePointConstraint::Universal;
     }
 
@@ -200,7 +200,8 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getBi
 {
     if(i == j)
     {
-        throw std::runtime_error("templ::solvers::temporal::getBidirectionalConstraintType: identical vertex in comparison");
+        LOG_INFO_S << "Checking bidirectional constraint for same vertex";
+        return QualitativeTimePointConstraint::Universal;
     }
 
     QualitativeTimePointConstraint::Type constraintTypeIJ = getDirectionalConstraintType(i,j);

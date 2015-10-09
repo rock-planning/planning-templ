@@ -27,7 +27,7 @@ class Timeline
     TemporalAssertionList mTemporalAssertions;
     ConstraintList mConstraints;
 
-    QualitativeTemporalConstraintNetwork::Ptr mConstraintNetwork;
+    TemporalConstraintNetwork::Ptr mConstraintNetwork;
 
 public:
     Timeline();

@@ -29,7 +29,7 @@ class Mission
 {
     friend class MissionPlanner;
     friend class io::MissionReader;
-    solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
+    solvers::temporal::TemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
 
 protected:
     Mission(const std::string& name = "");
@@ -118,7 +118,7 @@ public:
     const std::set<symbols::Constant::Ptr>& getConstants() const { return mConstants; }
     const symbols::Constant::Ptr& getConstant(const std::string& id, symbols::Constant::Type type = symbols::Constant::UNKNOWN);
 
-    solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr getTemporalConstraintNetwork() const {
+    solvers::temporal::TemporalConstraintNetwork::Ptr getTemporalConstraintNetwork() const {
         return mpTemporalConstraintNetwork; }
 
     std::vector<solvers::temporal::PersistenceCondition::Ptr> getPersistenceConditions() const { return mPersistenceConditions; }

@@ -3,7 +3,7 @@
 
 #include <map>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
-#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
+#include <templ/solvers/temporal/TemporalConstraintNetwork.hpp>
 
 namespace templ {
 namespace solvers {
@@ -17,32 +17,37 @@ namespace point_algebra {
  */
 class TimePointComparator
 {
-    QualitativeTemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
+    TemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
 
 public:
-    TimePointComparator(QualitativeTemporalConstraintNetwork::Ptr tcn = QualitativeTemporalConstraintNetwork::Ptr());
+    /**
+     * Default constructor
+     * Note that to handle qualitative constraints -- a
+     * QualitativeTemporalConstraintNetwork needs to be given
+     */
+    TimePointComparator(const TemporalConstraintNetwork::Ptr& tcn = TemporalConstraintNetwork::Ptr());
 
     virtual ~TimePointComparator() {};
 
     /**
      * Check equality of two timepoints
      */
-    virtual bool equals(TimePoint::Ptr t0, TimePoint::Ptr t1) const;
+    virtual bool equals(const TimePoint::Ptr& t0, const TimePoint::Ptr& t1) const;
 
     /**
      * Check if one timepoint (t0) is greater (more progressed in time) than another (t1)
      */
-    virtual bool greaterThan(TimePoint::Ptr t0, TimePoint::Ptr t1) const;
+    virtual bool greaterThan(const TimePoint::Ptr& t0, const TimePoint::Ptr& t1) const;
 
-    bool greaterOrEqual(TimePoint::Ptr t0, TimePoint::Ptr t1) const { return equals(t0,t1) || greaterThan(t0, t1); }
+    bool greaterOrEqual(const TimePoint::Ptr t0, const TimePoint::Ptr& t1) const { return equals(t0,t1) || greaterThan(t0, t1); }
 
-    bool lessOrEqual(TimePoint::Ptr t0, TimePoint::Ptr t1) const { return greaterOrEqual(t1, t0); }
+    bool lessOrEqual(const TimePoint::Ptr& t0, const TimePoint::Ptr& t1) const { return greaterOrEqual(t1, t0); }
 
-    bool lessThan(TimePoint::Ptr t0, TimePoint::Ptr t1) const { return greaterThan(t1,t0); }
+    bool lessThan(const TimePoint::Ptr& t0, const TimePoint::Ptr& t1) const { return greaterThan(t1,t0); }
 
-    bool hasIntervalOverlap(TimePoint::Ptr a_start, TimePoint::Ptr a_end, TimePoint::Ptr b_start, TimePoint::Ptr b_end) const;
+    bool hasIntervalOverlap(const TimePoint::Ptr& a_start, const TimePoint::Ptr& a_end, const TimePoint::Ptr& b_start, const TimePoint::Ptr& b_end) const;
 
-    bool inInterval(TimePoint::Ptr t0, TimePoint::Ptr i_start, TimePoint::Ptr i_end) const;
+    bool inInterval(const TimePoint::Ptr& t0, const TimePoint::Ptr& i_start, const TimePoint::Ptr& i_end) const;
 };
 
 } // end namespace point_algebra

@@ -2,6 +2,7 @@
 #include <numeric/Combinatorics.hpp>
 
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
+#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
 
 namespace templ {
 namespace solvers {

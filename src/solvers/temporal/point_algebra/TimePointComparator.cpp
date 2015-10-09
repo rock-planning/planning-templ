@@ -6,7 +6,7 @@ namespace solvers {
 namespace temporal {
 namespace point_algebra {
 
-TimePointComparator::TimePointComparator(QualitativeTemporalConstraintNetwork::Ptr tcn)
+TimePointComparator::TimePointComparator(const TemporalConstraintNetwork::Ptr& tcn)
     : mpTemporalConstraintNetwork(tcn)
 {
     if(mpTemporalConstraintNetwork && !mpTemporalConstraintNetwork->isConsistent())
@@ -15,12 +15,12 @@ TimePointComparator::TimePointComparator(QualitativeTemporalConstraintNetwork::P
     }
 }
 
-bool TimePointComparator::equals(TimePoint::Ptr t0, TimePoint::Ptr t1) const
+bool TimePointComparator::equals(const TimePoint::Ptr& t0, const TimePoint::Ptr& t1) const
 {
     return t0->equals(t1);
 }
 
-bool TimePointComparator::greaterThan(TimePoint::Ptr t0, TimePoint::Ptr t1) const
+bool TimePointComparator::greaterThan(const TimePoint::Ptr& t0, const TimePoint::Ptr& t1) const
 {
     if(t0->getType() != t1->getType())
     {
@@ -38,10 +38,10 @@ bool TimePointComparator::greaterThan(TimePoint::Ptr t0, TimePoint::Ptr t1) cons
         }
 
         {
-            QualitativeTimePointConstraint::Type constraint = mpTemporalConstraintNetwork->getConstraint(t1,t0);
+            QualitativeTimePointConstraint::Type constraint = mpTemporalConstraintNetwork->getQualitativeConstraint(t1,t0);
             LOG_DEBUG_S << "Inverse Constraint: " << QualitativeTimePointConstraint::TypeTxt[constraint];
         }
-        QualitativeTimePointConstraint::Type constraint = mpTemporalConstraintNetwork->getConstraint(t0,t1);
+        QualitativeTimePointConstraint::Type constraint = mpTemporalConstraintNetwork->getQualitativeConstraint(t0,t1);
         LOG_DEBUG_S << "Constraint: " << QualitativeTimePointConstraint::TypeTxt[constraint];
         if(constraint == QualitativeTimePointConstraint::Empty || constraint == QualitativeTimePointConstraint::Universal)
         {
@@ -63,7 +63,7 @@ bool TimePointComparator::greaterThan(TimePoint::Ptr t0, TimePoint::Ptr t1) cons
     }
 }
 
-bool TimePointComparator::hasIntervalOverlap(TimePoint::Ptr a_start, TimePoint::Ptr a_end, TimePoint::Ptr b_start, TimePoint::Ptr b_end) const
+bool TimePointComparator::hasIntervalOverlap(const TimePoint::Ptr& a_start, const TimePoint::Ptr& a_end, const TimePoint::Ptr& b_start, const TimePoint::Ptr& b_end) const
 {
 //    if(TimePointComparator::inInterval(a_start, b_start, b_end))
 //    {
@@ -91,7 +91,7 @@ bool TimePointComparator::hasIntervalOverlap(TimePoint::Ptr a_start, TimePoint::
     return !(TimePointComparator::lessOrEqual(a_end, b_start) || TimePointComparator::lessOrEqual(b_end, a_start));
 }
 
-bool TimePointComparator::inInterval(TimePoint::Ptr t0, TimePoint::Ptr i_start, TimePoint::Ptr i_end) const
+bool TimePointComparator::inInterval(const TimePoint::Ptr& t0, const TimePoint::Ptr& i_start, const TimePoint::Ptr& i_end) const
 {
     if(TimePointComparator::greaterOrEqual(t0, i_start) && TimePointComparator::lessOrEqual(t0, i_end))
     {

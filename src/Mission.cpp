@@ -3,6 +3,7 @@
 
 #include <owlapi/Vocabulary.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
+#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
 #include <templ/symbols/object_variables/LocationCardinality.hpp>
 
 namespace templ {

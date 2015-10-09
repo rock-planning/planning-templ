@@ -11,8 +11,7 @@ namespace temporal {
 /**
  * \class QualitativeTemporalConstraintNetwork
  * \brief A constraint network of qualitative timepoints
- *
- * Automated Planning p 292
+ * \details Automated Planning p 292
  * "A PA [Point Algebra] network (X,C) is consistent iff there is a set of
  * primitives p_ij \in r_ij, for each pair(i,j) such that every triple of
  * primitives verifies p_ij \in (p_ik o p_kj)
@@ -37,16 +36,16 @@ public:
     QualitativeTemporalConstraintNetwork();
 
     /**
-     * Get the known and consolidated constraint between two timepoints
+     * Get the known and consolidated qualitative constraint between two timepoints
      * \return consolidated timepoint constraint
      */
-    point_algebra::QualitativeTimePointConstraint::Type getConstraint(const point_algebra::TimePoint::Ptr& t1, const point_algebra::TimePoint::Ptr& t2);
+    point_algebra::QualitativeTimePointConstraint::Type getQualitativeConstraint(const point_algebra::TimePoint::Ptr& t1, const point_algebra::TimePoint::Ptr& t2);
 
     /**
      * Add timepoint constraint to the constraint network
      * \return Added constraint
      */
-    Constraint::Ptr addQualitativeConstraint(const point_algebra::TimePoint::Ptr& t1, const point_algebra::TimePoint::Ptrr& t2, point_algebra::QualitativeTimePointConstraint::Type constraint);
+    Constraint::Ptr addQualitativeConstraint(const point_algebra::TimePoint::Ptr& t1, const point_algebra::TimePoint::Ptr& t2, point_algebra::QualitativeTimePointConstraint::Type constraint);
 
     /** Check 3-path consistency withing the constraint graph
      * \return true if graph is consistent, false otherwise

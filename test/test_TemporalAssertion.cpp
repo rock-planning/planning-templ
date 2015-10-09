@@ -3,6 +3,7 @@
 #include <templ/solvers/temporal/Event.hpp>
 #include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/point_algebra/QualitativeTimePoint.hpp>
+#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
 #include <templ/symbols/ObjectVariable.hpp>
 #include <templ/symbols/StateVariable.hpp>
 #include <templ/symbols/Value.hpp>
