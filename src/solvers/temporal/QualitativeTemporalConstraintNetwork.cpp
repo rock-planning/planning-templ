@@ -18,7 +18,7 @@ QualitativeTemporalConstraintNetwork::QualitativeTemporalConstraintNetwork()
     : TemporalConstraintNetwork()
 {}
 
-QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getConstraint(TimePoint::Ptr t1, TimePoint::Ptr t2)
+QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getConstraint(const TimePoint::Ptr& t1, const TimePoint::Ptr& t2)
 {
     std::pair<Vertex::Ptr, Vertex::Ptr> key(t1,t2);
     std::map< std::pair<Vertex::Ptr, Vertex::Ptr>, QualitativeTimePointConstraint::Type >::const_iterator cit = mCompositionConstraints.find(key);
@@ -187,7 +187,8 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getCo
 //  //  }
 //}
 
-Constraint::Ptr QualitativeTemporalConstraintNetwork::addQualitativeConstraint(TimePoint::Ptr t1, TimePoint::Ptr t2, QualitativeTimePointConstraint::Type constraintType)
+
+Constraint::Ptr QualitativeTemporalConstraintNetwork::addQualitativeConstraint(const TimePoint::Ptr& t1, const TimePoint::Ptr& t2, QualitativeTimePointConstraint::Type constraintType)
 {
     // Add a qualitative constraint -- translate "complexer" type to primitive
     // relations
@@ -309,7 +310,7 @@ bool QualitativeTemporalConstraintNetwork::isConsistent(const std::vector<Vertex
     return false;
 }
 
-bool QualitativeTemporalConstraintNetwork::isConsistent(graph_analysis::Vertex::Ptr v0, graph_analysis::Vertex::Ptr v1)
+bool QualitativeTemporalConstraintNetwork::isConsistent(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1)
 {
     try {
         QualitativeTemporalConstraintNetwork::getBidirectionalConstraintType(v0, v1);
@@ -321,7 +322,7 @@ bool QualitativeTemporalConstraintNetwork::isConsistent(graph_analysis::Vertex::
     }
 }
 
-QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getDirectionalConstraintType(graph_analysis::Vertex::Ptr i, graph_analysis::Vertex::Ptr j) const
+QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getDirectionalConstraintType(const graph_analysis::Vertex::Ptr& i, const graph_analysis::Vertex::Ptr& j) const
 {
     if(i == j)
     {
@@ -348,7 +349,7 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getDi
     return constraintTypeIJ;
 }
 
-QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getBidirectionalConstraintType(graph_analysis::Vertex::Ptr i, graph_analysis::Vertex::Ptr j) const
+QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getBidirectionalConstraintType(const graph_analysis::Vertex::Ptr& i, const graph_analysis::Vertex::Ptr& j) const
 {
     if(i == j)
     {

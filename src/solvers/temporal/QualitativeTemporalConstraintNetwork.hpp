@@ -31,19 +31,22 @@ class QualitativeTemporalConstraintNetwork : public TemporalConstraintNetwork
 public:
     typedef boost::shared_ptr<QualitativeTemporalConstraintNetwork> Ptr;
 
+    /**
+     * Default constructor
+     */
     QualitativeTemporalConstraintNetwork();
 
     /**
      * Get the known and consolidated constraint between two timepoints
      * \return consolidated timepoint constraint
      */
-    point_algebra::QualitativeTimePointConstraint::Type getConstraint(point_algebra::TimePoint::Ptr t1, point_algebra::TimePoint::Ptr t2);
+    point_algebra::QualitativeTimePointConstraint::Type getConstraint(const point_algebra::TimePoint::Ptr& t1, const point_algebra::TimePoint::Ptr& t2);
 
     /**
      * Add timepoint constraint to the constraint network
      * \return Added constraint
      */
-    Constraint::Ptr addQualitativeConstraint(point_algebra::TimePoint::Ptr t1, point_algebra::TimePoint::Ptr t2, point_algebra::QualitativeTimePointConstraint::Type constraint);
+    Constraint::Ptr addQualitativeConstraint(const point_algebra::TimePoint::Ptr& t1, const point_algebra::TimePoint::Ptrr& t2, point_algebra::QualitativeTimePointConstraint::Type constraint);
 
     /** Check 3-path consistency withing the constraint graph
      * \return true if graph is consistent, false otherwise
@@ -58,7 +61,7 @@ public:
     /** Check consistency between two vertices
      * \return true if constraints between two vertices are consistent, false otherwise
      */
-    bool isConsistent(graph_analysis::Vertex::Ptr v0, graph_analysis::Vertex::Ptr v1);
+    bool isConsistent(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1);
 
     /**
      * Get the consistent constraint type between two vertices, i.e. takes
@@ -66,7 +69,7 @@ public:
      * \return composition constraint
      * \throw if the constraints between the two vertices are not consistent
      */
-    point_algebra::QualitativeTimePointConstraint::Type getDirectionalConstraintType(graph_analysis::Vertex::Ptr v0, graph_analysis::Vertex::Ptr v1) const;
+    point_algebra::QualitativeTimePointConstraint::Type getDirectionalConstraintType(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1) const;
 
     /**
      * Get the consistent constraint between two vertices accouting for all
@@ -74,7 +77,7 @@ public:
      * \return composition constraint
      * \throw if the constraints between the two vertices are not consistent
      */
-    point_algebra::QualitativeTimePointConstraint::Type getBidirectionalConstraintType(graph_analysis::Vertex::Ptr v0, graph_analysis::Vertex::Ptr v1) const;
+    point_algebra::QualitativeTimePointConstraint::Type getBidirectionalConstraintType(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1) const;
 
 };
 
