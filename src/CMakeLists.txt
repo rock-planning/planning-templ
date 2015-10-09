@@ -36,21 +36,15 @@ rock_library(templ
         symbols/Value.cpp
         utils/CartographicMapping.cpp
     HEADERS
-        Constant.hpp
+        LocationTimepointTuple.hpp
         Mission.hpp
         MissionPlanner.hpp
-        ObjectVariable.hpp
-        PlannerElement.cpp
-        PlannerElement.hpp
         Role.hpp
-        StateVariable.hpp
         Symbol.hpp
         Timepoint.hpp
-        Value.cpp
-        Value.hpp
+        Tuple.hpp
         Variable.hpp
         io/MissionReader.hpp
-        problems/Scheduling.hpp
         solvers/Constraint.hpp
         solvers/ConstraintNetwork.hpp
         solvers/Variable.hpp
