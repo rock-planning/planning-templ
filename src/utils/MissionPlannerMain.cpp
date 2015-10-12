@@ -9,6 +9,8 @@
 #include <graph_analysis/GraphIO.hpp>
 #include <limits>
 
+#include <organization_model/facets/Robot.hpp>
+
 using namespace templ;
 
 int main(int argc, char** argv)
@@ -146,16 +148,21 @@ int main(int argc, char** argv)
         std::map<Role, RoleTimeline>::const_iterator rit = timelines.begin();
         for(; rit != timelines.end(); ++rit)
         {
-            // infer capacity from role
-
             // infer connections from timeline
             // sequentially ordered timeline
             // locations and timeline
             // connection from (l0, i0_end) ---> (l1, i1_start)
             //
             const Role& role = rit->first;
-            std::cout << "Start adding role for : " << role.toString() << std::endl;
             const RoleTimeline& roleTimeline = rit->second;
+
+
+            // infer capacity from role
+            organization_model::facets::Robot robot(role.getModel(), organizationModel);
+            uint32_t capacity = robot.getPayloadTransportCapacity();
+
+            std::cout << "Start adding role for : " << role.toString() << std::endl
+                << "    transport capacity: " << capacity << std::endl;
 
 
             namespace pa = templ::solvers::temporal::point_algebra;
@@ -180,10 +187,25 @@ int main(int argc, char** argv)
                 if(prevIntervalEnd)
                 {
                     startTuple = tupleMap[ LocationTimePointPair(prevLocation, prevIntervalEnd) ];
+                    std::vector< WeightedEdge::Ptr > edges = spaceTimeGraph->getEdges<WeightedEdge>(startTuple, endTuple);
+                    if(edges.empty())
+                    {
+                        WeightedEdge::Ptr weightedEdge(new WeightedEdge(startTuple, endTuple, capacity));
+                        spaceTimeGraph->addEdge(weightedEdge);
+                    } else {
+                        if(edges.size() > 1)
+                        {
+                            throw std::runtime_error("MissionPlanner: multiple capacity edges detected");
+                        }
 
-                    WeightedEdge::Ptr weightedEdge(new WeightedEdge(startTuple, endTuple, 1.0));
-                    spaceTimeGraph->addEdge(weightedEdge);
-
+                        WeightedEdge::Ptr& existingEdge = edges[0];
+                        double existingCapacity = existingEdge->getWeight();
+                        if(existingCapacity < std::numeric_limits<WeightedEdge::value_t>::max())
+                        {
+                            capacity += existingCapacity;
+                            existingEdge->setWeight(capacity, 0);
+                        }
+                    }
                 }
 
                 prevIntervalEnd = interval.getTo();
