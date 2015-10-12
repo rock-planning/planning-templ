@@ -9,6 +9,7 @@
 #include <graph_analysis/GraphIO.hpp>
 #include <limits>
 
+#include <owlapi/Vocabulary.hpp>
 #include <organization_model/facets/Robot.hpp>
 
 using namespace templ;
@@ -156,12 +157,23 @@ int main(int argc, char** argv)
             const Role& role = rit->first;
             const RoleTimeline& roleTimeline = rit->second;
 
+            // Check if this item is a payload -- WARNING: this is domain specific
+            owlapi::model::OWLOntologyAsk ask(organizationModel->ontology());
+            owlapi::model::IRI payloadClass = owlapi::vocabulary::OM::resolve("Payload");
+            if(payloadClass == role.getModel() || ask.isSubClassOf(role.getModel(), owlapi::vocabulary::OM::resolve("Payload")))
+            {
+                std::cout << "Delay handling of payload" << std::endl;
+                continue;
+            } else {
+                std::cout << "HANDLING: " << role.getModel() << " since it is not a " << payloadClass << std::endl;
+            }
 
-            // infer capacity from role
+            // infer capacity from role -- when robot is mobile / has
+            // transportCapacity
             organization_model::facets::Robot robot(role.getModel(), organizationModel);
-            uint32_t capacity = robot.getPayloadTransportCapacity();
 
-            std::cout << "Start adding role for : " << role.toString() << std::endl
+            uint32_t capacity = robot.getPayloadTransportCapacity();
+            std::cout << "Role: " << role.toString() << std::endl
                 << "    transport capacity: " << capacity << std::endl;
 
 

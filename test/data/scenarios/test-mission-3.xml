@@ -1,0 +1,145 @@
+<mission>
+<name>Transterra</name>
+<resources>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+        <maxCardinality>1</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+        <maxCardinality>100</maxCardinality>
+    </resource>
+</resources>
+<constants>
+    <location>
+        <id>l0</id>
+        <x>0</x>
+        <y>0</y>
+        <z>0</z>
+    </location>
+    <location>
+        <id>l1</id>
+        <x>10</x>
+        <y>10</y>
+        <z>0</z>
+    </location>
+    <location>
+        <id>l2</id>
+        <x>0</x>
+        <y>10</y>
+        <z>0</z>
+    </location>
+    <location>
+        <id>l3</id>
+        <x>20</x>
+        <y>20</y>
+        <z>0</z>
+    </location>
+    <location>
+        <id>l4</id>
+        <x>20</x>
+        <y>0</y>
+        <z>0</z>
+    </location>
+</constants>
+<requirements>
+    <requirement>
+        <spatial-requirement>
+            <!-- where it is required -->
+            <location>
+                <id>l0</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t0</from>
+            <to>t1</to>
+        </temporal-requirement>
+        <service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+            <!--<service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service> -->
+        </service-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement>
+        <spatial-requirement>
+            <location>
+                <id>l1</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t2</from>
+            <to>t3</to>
+        </temporal-requirement>
+        <service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
+        </service-requirement>
+    </requirement>
+    <requirement>
+        <spatial-requirement>
+            <location>
+                <id>l2</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t4</from>
+            <to>t5</to>
+        </temporal-requirement>
+        <service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
+        </service-requirement>
+    </requirement>
+    <requirement>
+        <spatial-requirement>
+            <location>
+                <id>l3</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t6</from>
+            <to>t7</to>
+        </temporal-requirement>
+        <service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
+        </service-requirement>
+    </requirement>
+    <requirement>
+        <spatial-requirement>
+            <location>
+                <id>l4</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t8</from>
+            <to>t9</to>
+        </temporal-requirement>
+        <service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
+        </service-requirement>
+    </requirement>
+</requirements>
+<constraints>
+    <temporal-constraints>
+        <greaterThan lval="t9" rval="t8" />
+        <greaterThan lval="t8" rval="t7" />
+        <greaterThan lval="t7" rval="t6" />
+        <greaterThan lval="t6" rval="t5" />
+        <greaterThan lval="t5" rval="t4" />
+        <greaterThan lval="t4" rval="t3" />
+        <greaterThan lval="t3" rval="t2" />
+        <greaterThan lval="t2" rval="t1" />
+        <greaterThan lval="t1" rval="t0" />
+    </temporal-constraints>
+</constraints>
+
+</mission>
+
+
