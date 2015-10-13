@@ -1,0 +1,110 @@
+#include "FluentTimeResource.hpp"
+
+#include <base/Logging.hpp>
+
+namespace templ {
+namespace solvers {
+namespace csp {
+
+FluentTimeResource::FluentTimeResource(uint32_t resource, uint32_t time, uint32_t fluent,
+        const organization_model::ModelPool& availableModels)
+    : time(time)
+    , fluent(fluent)
+    , maxCardinalities(availableModels)
+{
+    resources.insert(resource);
+}
+
+bool FluentTimeResource::operator==(const FluentTimeResource& other) const
+{
+    return resources == other.resources && time == other.time && fluent == other.fluent;
+}
+
+bool FluentTimeResource::operator<(const FluentTimeResource& other) const
+{
+    if(resources == other.resources)
+    {
+        if(time == other.time)
+        {
+            return fluent < other.fluent;
+        }
+        return time < other.time;
+    }
+    return resources < other.resources;
+}
+
+std::string FluentTimeResource::toString() const
+{
+    std::stringstream ss;
+    ss << "FluentTimeResource: " << std::endl;
+    ss << "    resources: #";
+    std::set<uint32_t>::const_iterator cit = resources.begin();
+    for(; cit != resources.end(); )
+    {
+        ss << *cit;
+        if(++cit != resources.end())
+        {
+            ss << ",";
+        }
+    }
+    ss << std::endl;
+    ss << "    time: #" << time << std::endl;
+    ss << "    fluent: #" << fluent << std::endl;
+    ss << "    max cardinalities: " << maxCardinalities.toString() << std::endl;
+    ss << "    min cardinalities: " << minCardinalities.toString() << std::endl;
+    return ss.str();
+}
+
+std::vector< std::vector<FluentTimeResource> > FluentTimeResource::getConcurrent(const std::vector<FluentTimeResource>& requirements, const std::vector<solvers::temporal::Interval>& intervals)
+{
+    // map timeslot to fluenttime service
+    std::map<uint32_t, std::vector<FluentTimeResource> > timeIndexedRequirements;
+    {
+        std::vector<FluentTimeResource>::const_iterator rit = requirements.begin();
+        for(; rit != requirements.end(); ++rit)
+        {
+            const FluentTimeResource& fts = *rit;
+            // map the time index
+            timeIndexedRequirements[ rit->time ].push_back(fts);
+        }
+    }
+
+    typedef std::vector<uint32_t> IndexCombination;
+    typedef std::set< IndexCombination > IndexCombinationSet;
+    IndexCombinationSet overlappingIntervals = solvers::temporal::Interval::overlappingIntervals(intervals);
+
+    LOG_INFO_S << "Number of overlapping interval combinations: " << overlappingIntervals.size()
+        << " from " << intervals.size() << " intervals overall";
+
+
+    // All fluents that are on the same time overlap by default
+    std::vector< std::vector<FluentTimeResource> > concurrentFts;
+    std::map<uint32_t, std::vector<FluentTimeResource> >::const_iterator fit = timeIndexedRequirements.begin();
+    for(; fit != timeIndexedRequirements.end(); ++fit)
+    {
+        concurrentFts.push_back(fit->second);
+    }
+
+    // All fluents that are in overlappping intervals overlap
+    IndexCombinationSet::const_iterator cit = overlappingIntervals.begin();
+    for(; cit != overlappingIntervals.end(); ++cit)
+    {
+        std::vector<FluentTimeResource> concurrent;
+
+        const IndexCombination& indexCombination = *cit;
+        IndexCombination::const_iterator iit = indexCombination.begin();
+        for(; iit != indexCombination.end(); ++iit)
+        {
+            uint32_t timeIndex = *iit;
+            const std::vector<FluentTimeResource>& fts = timeIndexedRequirements[ timeIndex ];
+
+            concurrent.insert(concurrent.end(), fts.begin(), fts.end());
+        }
+        concurrentFts.push_back(concurrent);
+    }
+
+    return concurrentFts;
+}
+} // end namespace csp
+} // end namespace solvers
+} // end namespace templ

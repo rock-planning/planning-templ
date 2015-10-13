@@ -1,145 +1,20 @@
 #ifndef TEMPL_SOLVERS_CSP_MODEL_DISTRIBUTION_HPP
 #define TEMPL_SOLVERS_CSP_MODEL_DISTRIBUTION_HPP
 
-#include <string.h>
+#include <string>
 #include <map>
 #include <vector>
 #include <gecode/set.hh>
 #include <gecode/search.hh>
-#include <iomanip>
+
+#include <organization_model/OrganizationModelAsk.hpp>
 
 #include <templ/Mission.hpp>
-#include <organization_model/OrganizationModelAsk.hpp>
+#include <templ/solvers/csp/FluentTimeResource.hpp>
 
 namespace templ {
 namespace solvers {
 namespace csp {
-
-struct FluentTimeResource
-{
-    std::set<uint32_t> resources;
-    uint32_t time;
-    uint32_t fluent;
-
-    //ObjectVariable::Ptr objectVariable;
-
-    // Set the min cardinality
-    // of the available models
-    organization_model::ModelPool minCardinalities;
-    organization_model::ModelPool maxCardinalities;
-
-    typedef std::vector<FluentTimeResource> List;
-
-    FluentTimeResource(uint32_t resource, uint32_t time, uint32_t fluent,
-            const organization_model::ModelPool& availableModels = organization_model::ModelPool())
-        : time(time)
-        , fluent(fluent)
-        , maxCardinalities(availableModels)
-    {
-        resources.insert(resource);
-    }
-
-    bool operator==(const FluentTimeResource& other) const
-    {
-        return resources == other.resources && time == other.time && fluent == other.fluent;
-    }
-
-    bool operator<(const FluentTimeResource& other) const
-    {
-        if(resources == other.resources)
-        {
-            if(time == other.time)
-            {
-                return fluent < other.fluent;
-            }
-            return time < other.time;
-        }
-        return resources < other.resources;
-    }
-
-    std::string toString() const
-    {
-        std::stringstream ss;
-        ss << "FluentTimeResource: " << std::endl;
-        ss << "    resources: #";
-        std::set<uint32_t>::const_iterator cit = resources.begin();
-        for(; cit != resources.end(); )
-        {
-            ss << *cit;
-            if(++cit != resources.end())
-            {
-                ss << ",";
-            }
-        }
-        ss << std::endl;
-        ss << "    time: #" << time << std::endl;
-        ss << "    fluent: #" << fluent << std::endl;
-        ss << "    max cardinalities: " << maxCardinalities.toString() << std::endl;
-        ss << "    min cardinalities: " << minCardinalities.toString() << std::endl;
-        return ss.str();
-    }
-
-    /**
-     * Get the overlapping/concurrent FluentTimeResources
-     * from indexed list of intervals
-     * \param requirements Referencing intervals using index
-     * \param intervals Intervallist that is reference by requirements
-     */
-    static std::vector< std::vector<FluentTimeResource> > getConcurrent(const std::vector<FluentTimeResource>& requirements,
-            const std::vector<solvers::temporal::Interval>& intervals);
-
-};
-
-
-class ConstraintMatrix
-{
-    struct MinMax
-    {
-        uint32_t min;
-        uint32_t max;
-
-        std::string toString() const
-        {
-            std::stringstream ss;
-            ss << std::setw(4) << "(" << min << "," << max << ")";
-            return ss.str();
-        }
-    };
-
-    typedef uint32_t RowId, ColumnId;
-    typedef MinMax Column;
-
-    // Requirement mapped to the min,max setting
-    std::map<RowId, std::map<ColumnId, MinMax> > mMatrix;
-    owlapi::model::IRIList mAvailableModels;
-public:
-
-    ConstraintMatrix(const owlapi::model::IRIList& availableModels)
-        : mAvailableModels(availableModels)
-    {}
-
-    void setMax(RowId row, ColumnId col, uint32_t max) {  mMatrix[row][col].max = max; }
-    void setMin(RowId row, ColumnId col, uint32_t min) {  mMatrix[row][col].min = min; }
-
-    std::string toString() const 
-    {
-        std::stringstream ss;
-        ss << "Constraint matrix:" << std::endl;
-        ss << "Available models: " << mAvailableModels << std::endl;
-        for(auto row : mMatrix)
-        {
-            ss << "#" << std::setw(4) << row.first << " ";
-            
-            for(auto col : row.second)
-            {
-                ss << " " << col.second.toString();
-            }
-            ss << std::endl;
-        }
-        return ss.str();
-    }
-
-};
 
 class ModelDistribution : public Gecode::Space
 {

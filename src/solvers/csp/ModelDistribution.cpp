@@ -7,6 +7,7 @@
 #include <organization_model/Algebra.hpp>
 #include <owlapi/Vocabulary.hpp>
 #include <templ/symbols/object_variables/LocationCardinality.hpp>
+#include <templ/solvers/csp/ConstraintMatrix.hpp>
 
 namespace templ {
 namespace solvers {
@@ -550,57 +551,6 @@ void ModelDistribution::compact(std::vector<FluentTimeResource>& requirements) c
         }
     }
     LOG_DEBUG_S << "END compact requirements";
-}
-
-std::vector< std::vector<FluentTimeResource> > FluentTimeResource::getConcurrent(const std::vector<FluentTimeResource>& requirements, const std::vector<solvers::temporal::Interval>& intervals)
-{
-    // map timeslot to fluenttime service
-    std::map<uint32_t, std::vector<FluentTimeResource> > timeIndexedRequirements;
-    {
-        std::vector<FluentTimeResource>::const_iterator rit = requirements.begin();
-        for(; rit != requirements.end(); ++rit)
-        {
-            const FluentTimeResource& fts = *rit;
-            // map the time index
-            timeIndexedRequirements[ rit->time ].push_back(fts);
-        }
-    }
-
-    typedef std::vector<uint32_t> IndexCombination;
-    typedef std::set< IndexCombination > IndexCombinationSet;
-    IndexCombinationSet overlappingIntervals = solvers::temporal::Interval::overlappingIntervals(intervals);
-
-    LOG_INFO_S << "Number of overlapping interval combinations: " << overlappingIntervals.size()
-        << " from " << intervals.size() << " intervals overall";
-
-
-    // All fluents that are on the same time overlap by default
-    std::vector< std::vector<FluentTimeResource> > concurrentFts;
-    std::map<uint32_t, std::vector<FluentTimeResource> >::const_iterator fit = timeIndexedRequirements.begin();
-    for(; fit != timeIndexedRequirements.end(); ++fit)
-    {
-        concurrentFts.push_back(fit->second);
-    }
-
-    // All fluents that are in overlappping intervals overlap
-    IndexCombinationSet::const_iterator cit = overlappingIntervals.begin();
-    for(; cit != overlappingIntervals.end(); ++cit)
-    {
-        std::vector<FluentTimeResource> concurrent;
-
-        const IndexCombination& indexCombination = *cit;
-        IndexCombination::const_iterator iit = indexCombination.begin();
-        for(; iit != indexCombination.end(); ++iit)
-        {
-            uint32_t timeIndex = *iit;
-            const std::vector<FluentTimeResource>& fts = timeIndexedRequirements[ timeIndex ];
-
-            concurrent.insert(concurrent.end(), fts.begin(), fts.end());
-        }
-        concurrentFts.push_back(concurrent);
-    }
-
-    return concurrentFts;
 }
 
 size_t ModelDistribution::getMaxResourceCount(const organization_model::ModelPool& pool) const
