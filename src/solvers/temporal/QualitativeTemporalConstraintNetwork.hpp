@@ -45,7 +45,13 @@ public:
      * Add timepoint constraint to the constraint network
      * \return Added constraint
      */
-    Constraint::Ptr addQualitativeConstraint(const point_algebra::TimePoint::Ptr& t1, const point_algebra::TimePoint::Ptr& t2, point_algebra::QualitativeTimePointConstraint::Type constraint);
+    point_algebra::QualitativeTimePointConstraint::Ptr addQualitativeConstraint(const point_algebra::TimePoint::Ptr& t1, const point_algebra::TimePoint::Ptr& t2, point_algebra::QualitativeTimePointConstraint::Type constraint);
+
+    /**
+     * Remove a qualitative constraint
+     * Clears internal caches
+     */
+    void removeQualitativeConstraint(const point_algebra::QualitativeTimePointConstraint::Ptr& constraint);
 
     /** Check 3-path consistency withing the constraint graph
      * \return true if graph is consistent, false otherwise

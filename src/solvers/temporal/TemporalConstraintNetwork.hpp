@@ -32,7 +32,12 @@ public:
      * Add timepoint constraint to the constraint network
      * \return Added constraint
      */
-    virtual Constraint::Ptr addQualitativeConstraint(const point_algebra::TimePoint::Ptr& t1, const point_algebra::TimePoint::Ptr& t2, point_algebra::QualitativeTimePointConstraint::Type constraint) { throw std::runtime_error("templ::solvers::temporal::TemporalConstraintNetwork::addQualitativeConstraint is not implemented"); }
+    virtual point_algebra::QualitativeTimePointConstraint::Ptr addQualitativeConstraint(const point_algebra::TimePoint::Ptr& t1, const point_algebra::TimePoint::Ptr& t2, point_algebra::QualitativeTimePointConstraint::Type constraint) { throw std::runtime_error("templ::solvers::temporal::TemporalConstraintNetwork::addQualitativeConstraint is not implemented"); }
+
+    /**
+     * Remove a constraint from the constraint network
+     */
+    virtual void removeQualitativeConstraint(const point_algebra::QualitativeTimePointConstraint::Ptr& constraint) { throw std::runtime_error("templ::solvers::temporal::TemporalConstraintNetwork::removeQualitativeConstraint is not implemented"); }
     /**
      * Get the known and consolidated constraint between two timepoints
      * \return consolidated timepoint constraint

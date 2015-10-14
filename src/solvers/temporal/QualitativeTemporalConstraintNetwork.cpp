@@ -35,7 +35,7 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getQu
     }
 }
 
-Constraint::Ptr QualitativeTemporalConstraintNetwork::addQualitativeConstraint(const TimePoint::Ptr& t1, const TimePoint::Ptr& t2, QualitativeTimePointConstraint::Type constraintType)
+QualitativeTimePointConstraint::Ptr QualitativeTemporalConstraintNetwork::addQualitativeConstraint(const TimePoint::Ptr& t1, const TimePoint::Ptr& t2, QualitativeTimePointConstraint::Type constraintType)
 {
     // Add a qualitative constraint -- translate "complexer" type to primitive
     // relations
@@ -52,6 +52,13 @@ Constraint::Ptr QualitativeTemporalConstraintNetwork::addQualitativeConstraint(c
 
     TemporalConstraintNetwork::addConstraint(constraint);
     return constraint;
+}
+
+
+void QualitativeTemporalConstraintNetwork::removeQualitativeConstraint(const point_algebra::QualitativeTimePointConstraint::Ptr& constraint)
+{
+    mCompositionConstraints.clear();
+    removeConstraint(constraint);
 }
 
 bool QualitativeTemporalConstraintNetwork::isConsistent()
