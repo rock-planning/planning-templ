@@ -6,6 +6,8 @@
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 #include <numeric/Combinatorics.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
+#include <graph_analysis/VertexTypeManager.hpp>
+#include <graph_analysis/EdgeTypeManager.hpp>
 #include <graph_analysis/GraphIO.hpp>
 
 using namespace templ::solvers;
@@ -111,6 +113,22 @@ BOOST_AUTO_TEST_CASE(ult)
 //  check if the expected result and the actual result are the same
     bool ok = expected.equals(graph);
     BOOST_REQUIRE_MESSAGE(ok, "Expected: 1, Actual: " << ok);
+}
+
+BOOST_AUTO_TEST_CASE(io)
+{
+    using namespace templ::solvers::temporal;
+    using namespace graph_analysis;
+
+    QualitativeTemporalConstraintNetwork::Ptr tpc(new QualitativeTemporalConstraintNetwork());
+
+    Vertex::Ptr t0 = VertexTypeManager::getInstance()->createVertex("QualitativeTimePoint", "t0");
+    Vertex::Ptr t1 = VertexTypeManager::getInstance()->createVertex("QualitativeTimePoint", "t1");
+    BOOST_REQUIRE_MESSAGE(t0->getClassName() == "QualitativeTimePoint", "QualitativeTimePoint is instanciated for t0");
+    BOOST_REQUIRE_MESSAGE(t1->getClassName() == "QualitativeTimePoint", "QualitativeTimePoint is instanciated for t1");
+
+    Edge::Ptr e0 = EdgeTypeManager::getInstance()->createEdge("QualitativeTimePointConstraint", t0,t1,"<");
+    BOOST_REQUIRE_MESSAGE(e0->getClassName() == "QualitativeTimePointConstraint", "QualitativeTimePointConstraint is instanciated for e0");
 }
 
 BOOST_AUTO_TEST_CASE(io_non_overlapping_intervals)
