@@ -16,6 +16,13 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
+/**
+ * \class ModelDistribution
+ * \details ModelDistribution tries to associate actor models
+ * according to the requirement of a given mission.
+ *
+ *
+ */
 class ModelDistribution : public Gecode::Space
 {
 public:
@@ -23,13 +30,23 @@ public:
     typedef std::vector<Solution> SolutionList;
 
 private:
+    /// The mission to plan for
     Mission mMission;
+
+    /// The model pool -- in terms of available resources that can be used for
+    /// planning
     organization_model::ModelPool mModelPool;
+    /// The organization model
     organization_model::OrganizationModelAsk mAsk;
 
+    /// All available services
     owlapi::model::IRIList mServices;
+    /// All available resources
     owlapi::model::IRIList mResources;
+
+    /// (Time)Intervals (as defined in the mission)
     std::vector<solvers::temporal::Interval> mIntervals;
+    /// Constants: Locations (as defined in the mission)
     std::vector<symbols::constants::Location::Ptr> mLocations;
 
     /// Service Requirement that arise from the mission scenario
@@ -38,9 +55,10 @@ private:
     // map timeslot to fluenttime service
     std::map<uint32_t, std::vector<FluentTimeResource> > mTimeIndexedRequirements;
 
-    // Array which will be access using Gecode::Matrix
-    // -- contains information about the robot types required to
-    // fullfill r-0
+    // Array which will be accessed using Gecode::Matrix
+    // The array contains information about the robot types required to
+    // fullfill a requirement, e.g., r-0
+    //
     // Additional resource constraints apply due to the upper resource
     // bound and time
     //  requirement | robot-type-0 | robot-type-1 | robot-type-2 | ...
@@ -90,7 +108,7 @@ private:
     size_t getMaxResourceCount(const organization_model::ModelPool& model) const;
 
     /**
-     * Create a compact representation for all requirement that 
+     * Create a compact representation for all requirement that
      * refer to the same fluent and time
      */
     void compact(std::vector<FluentTimeResource>& requirements) const;

@@ -43,41 +43,32 @@ ModelDistribution::Solution ModelDistribution::getSolution() const
 
 organization_model::ModelCombinationSet ModelDistribution::getDomain(const FluentTimeResource& requirement) const
 {
-    // The domain account for service requirements as well as explicetly stated
+    // The domain definition accounts for service requirements as well as explicitly stated
     // resource model requirements
     //
+    // It construct a model combination set, i.e., extensional constraints from
+    // where solutions can be picked
     std::set<organization_model::Service> services;
-    std::set<organization_model::ModelCombination> singleActorCombinations;
-
     std::set<uint32_t>::const_iterator cit = requirement.resources.begin();
     for(; cit != requirement.resources.end(); ++cit)
     {
         const owlapi::model::IRI& resourceModel = mResources[*cit];
         using namespace owlapi;
 
-        if( mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Service()) )
+        if( mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Service()))
         {
             organization_model::Service service(resourceModel);
             services.insert(service);
             LOG_INFO_S << "Add service requirement: " << service.getModel().toString();
-        } else if(mAsk.ontology().isSubClassOf(resourceModel, vocabulary::OM::Actor()) || mAsk.ontology().isInstanceOf(resourceModel, vocabulary::OM::Actor()) )
-        {
-            // The resource is either a model or the individual actor
-            organization_model::ModelCombination singleActor;
-            singleActor.push_back(resourceModel);
-            singleActorCombinations.insert(singleActor);
         }
     }
 
     organization_model::ModelCombinationSet combinations = mAsk.getResourceSupport(services);
+    LOG_INFO_S << "Resources: " << organization_model::OrganizationModel::toString(combinations);
     combinations = mAsk.applyUpperBound(combinations, requirement.maxCardinalities);
-    LOG_INFO_S << "Bounded resources: " << organization_model::OrganizationModel::toString(combinations);
-
-    // Add allowed single actors or actormodel (even if the service requirement
-    // is not specified)
-    // TODO: combinations of a set of explicitely state single actors
-    combinations.insert(singleActorCombinations.begin(), singleActorCombinations.end());
-
+    LOG_INFO_S << "Bounded resources (upper bound): " << organization_model::OrganizationModel::toString(combinations);
+    combinations = mAsk.applyLowerBound(combinations, requirement.minCardinalities);
+    LOG_INFO_S << "Bounded resources (lower bound): " << organization_model::OrganizationModel::toString(combinations);
     return combinations;
 }
 
