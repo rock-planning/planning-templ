@@ -7,6 +7,7 @@
 #include <templ/LocationTimepointTuple.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
 #include <graph_analysis/GraphIO.hpp>
+#include <graph_analysis/algorithms/MultiCommodityMinCostFlow.hpp>
 #include <limits>
 
 #include <owlapi/Vocabulary.hpp>
@@ -84,11 +85,16 @@ int main(int argc, char** argv)
     //
     // need to known all timepoints: from mission.getTimepoints()
     // --> all vertices
-    {
-        namespace pa = templ::solvers::temporal::point_algebra;
-        namespace co = templ::symbols::constants;
+    using namespace graph_analysis;
+    namespace pa = templ::solvers::temporal::point_algebra;
+    namespace co = templ::symbols::constants;
 
-        using namespace graph_analysis;
+    BaseGraph::Ptr spaceTimeGraph = BaseGraph::getInstance();
+    typedef std::pair< co::Location::Ptr, pa::TimePoint::Ptr> LocationTimePointPair;
+    std::map< LocationTimePointPair, LocationTimepointTuple::Ptr > tupleMap;
+
+    uint32_t commodities = 0;
+    {
 
         std::vector<pa::TimePoint::Ptr> timepoints = mission.getTimepoints();
         pa::TimePointComparator tpc(mission.getTemporalConstraintNetwork());
@@ -99,15 +105,23 @@ int main(int argc, char** argv)
                         return false;
                     }
 
-                    return tpc.lessThan(a,b);
+                    if( tpc.lessThan(a,b) )
+                    {
+                        std::cout << a->toString() << " is less than " << b->toString() << std::endl;
+                        return true;
+                    }
+                    return false;
                 }
         );
 
+        std::vector<pa::TimePoint::Ptr>::const_iterator sit = timepoints.begin();
+        for(; sit != timepoints.end(); ++sit)
+        {
+            std::cout << "Timepoint: " << (*sit)->toString() << std::endl;
+        }
+
         std::vector<co::Location::Ptr> locations = mission.getLocations();
 
-        BaseGraph::Ptr spaceTimeGraph = BaseGraph::getInstance();
-        typedef std::pair< co::Location::Ptr, pa::TimePoint::Ptr> LocationTimePointPair;
-        std::map< LocationTimePointPair, LocationTimepointTuple::Ptr > tupleMap;
 
         std::vector<co::Location::Ptr>::const_iterator lit = locations.begin();
         for(; lit != locations.end(); ++lit)
@@ -137,6 +151,10 @@ int main(int argc, char** argv)
             std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
         }
         {
+            if( mission.getTemporalConstraintNetwork()->isConsistent())
+            {
+                std::cout << "Network is consistent" << std::endl;
+            }
             std::string filename = "/tmp/mission-temporally-constrained-network.dot";
             graph_analysis::io::GraphIO::write(filename, mission.getTemporalConstraintNetwork()->getGraph());
             std::cout << "Written temporal constraint network to: " << filename << std::endl;
@@ -145,7 +163,6 @@ int main(int argc, char** argv)
 
         // Per Role --> add capacities (in terms of capability of carrying a
         // payload)
-        //std::map<Role, RoleTimeline> timelines
         std::map<Role, RoleTimeline>::const_iterator rit = timelines.begin();
         for(; rit != timelines.end(); ++rit)
         {
@@ -155,7 +172,8 @@ int main(int argc, char** argv)
             // connection from (l0, i0_end) ---> (l1, i1_start)
             //
             const Role& role = rit->first;
-            const RoleTimeline& roleTimeline = rit->second;
+            RoleTimeline roleTimeline = rit->second;
+            roleTimeline.sortByTime();
 
             // Check if this item is a payload -- WARNING: this is domain specific
             owlapi::model::OWLOntologyAsk ask(organizationModel->ontology());
@@ -163,6 +181,7 @@ int main(int argc, char** argv)
             if(payloadClass == role.getModel() || ask.isSubClassOf(role.getModel(), owlapi::vocabulary::OM::resolve("Payload")))
             {
                 std::cout << "Delay handling of payload" << std::endl;
+                ++commodities;
                 continue;
             } else {
                 std::cout << "HANDLING: " << role.getModel() << " since it is not a " << payloadClass << std::endl;
@@ -229,6 +248,122 @@ int main(int argc, char** argv)
             std::string filename = "/tmp/space-time-graph-with-timeline.dot";
             graph_analysis::io::GraphIO::write(filename, spaceTimeGraph);
             std::cout << "Written temporally expanded graph to: " << filename << std::endl;
+            std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
+        }
+    }
+
+    // Compute multicommodity min-cost flow problem for payloads
+    {
+        using namespace graph_analysis::algorithms;
+
+        BaseGraph::Ptr flowGraph = BaseGraph::getInstance();
+        // uint32_t commodities --> see above: counted from existing payload
+        // roles
+        uint32_t edgeCapacityUpperBound = 60;
+
+        std::map<Vertex::Ptr, Vertex::Ptr> commodityToSpace; 
+        std::map<Vertex::Ptr, Vertex::Ptr> spaceToCommodity;
+
+        VertexIterator::Ptr vertexIt = spaceTimeGraph->getVertexIterator();
+        while(vertexIt->next())
+        {
+            LocationTimepointTuple::Ptr tuple = boost::dynamic_pointer_cast<LocationTimepointTuple>(vertexIt->current());
+
+            MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex(new MultiCommodityMinCostFlow::vertex_t(commodities));
+            commodityToSpace[multicommodityVertex] = tuple;
+            spaceToCommodity[tuple] = multicommodityVertex;
+
+            flowGraph->addVertex(multicommodityVertex);
+        }
+
+        EdgeIterator::Ptr edgeIt = spaceTimeGraph->getEdgeIterator();
+        while(edgeIt->next())
+        {
+            WeightedEdge::Ptr edge = boost::dynamic_pointer_cast<WeightedEdge>(edgeIt->current());
+
+            Vertex::Ptr source = edge->getSourceVertex();
+            Vertex::Ptr target = edge->getTargetVertex();
+
+            MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge(new MultiCommodityMinCostFlow::edge_t(commodities));
+            multicommodityEdge->setSourceVertex( spaceToCommodity[source] );
+            multicommodityEdge->setTargetVertex( spaceToCommodity[target] );
+           
+            double weight = edge->getWeight();
+            uint32_t bound = 0;
+            if(weight == std::numeric_limits<double>::max())
+            {
+                bound = std::numeric_limits<uint32_t>::max();
+            } else {
+                bound = static_cast<uint32_t>(weight);
+            }
+
+            multicommodityEdge->setCapacityUpperBound(bound);
+            for(size_t i = 0; i < commodities; ++i)
+            {
+                multicommodityEdge->setCommodityCapacityUpperBound(i, bound);
+            }
+            
+            flowGraph->addEdge(multicommodityEdge);
+        }
+
+
+        uint32_t commodityId = 0;
+        std::map<Role, RoleTimeline>::const_iterator rit = timelines.begin();
+        for(; rit != timelines.end(); ++rit)
+        {
+            const Role& role = rit->first;
+            const RoleTimeline& roleTimeline = rit->second;
+
+            // Check if this item is a payload -- WARNING: this is domain specific
+            owlapi::model::OWLOntologyAsk ask(organizationModel->ontology());
+            owlapi::model::IRI payloadClass = owlapi::vocabulary::OM::resolve("Payload");
+            if(payloadClass == role.getModel() || ask.isSubClassOf(role.getModel(), owlapi::vocabulary::OM::resolve("Payload")))
+            {
+                std::cout << "Delay handling of payload" << std::endl;
+            } else {
+                // no payload -- no need
+                continue;
+            }
+
+            const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
+            std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
+            for(; fit != ftrs.end(); ++fit)
+            {
+
+                symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
+                solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
+
+                // LocationTimePoint::Ptr 
+                LocationTimepointTuple::Ptr currentTuple = tupleMap[ LocationTimePointPair(location, interval.getFrom()) ];
+
+                Vertex::Ptr vertex = spaceToCommodity[currentTuple];
+                assert(vertex);
+                MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex = 
+                    boost::dynamic_pointer_cast<MultiCommodityMinCostFlow::vertex_t>(vertex);
+
+                if(fit == ftrs.begin())
+                {
+                    multicommodityVertex->setCommoditySupply(commodityId, 1); 
+                } else {
+                    multicommodityVertex->setCommoditySupply(commodityId, -1); 
+                }
+            }
+
+            ++commodityId;
+
+            // First entry can be interpreted as source
+            // following entries as demands
+        }
+
+        MultiCommodityMinCostFlow minCostFlow(flowGraph, commodities);
+        uint32_t cost = minCostFlow.run();
+        std::cout << "Ran flow optimization: " << cost << std::cout;
+
+        {
+            std::string filename = "/tmp/mission-flow-optimization.dot";
+            minCostFlow.storeResult();
+            graph_analysis::io::GraphIO::write(filename, flowGraph);
+            std::cout << "Written flow network: " << filename << std::endl;
             std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
         }
     }

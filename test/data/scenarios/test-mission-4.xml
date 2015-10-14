@@ -1,0 +1,56 @@
+<mission>
+    <name>Transterra</name>
+    <description>
+        Simple test setup
+    </description>
+<resources>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+        <maxCardinality>1</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+        <maxCardinality>100</maxCardinality>
+    </resource>
+</resources>
+<constants>
+    <location>
+        <id>lander</id>
+        <x>10</x>
+        <y>0</y>
+        <z>0</z>
+    </location>
+</constants>
+<requirements>
+    <requirement>
+        <spatial-requirement>
+            <!-- where it is required -->
+            <location>
+                <id>lander</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t_lander0</from>
+            <to>t_lander1</to>
+        </temporal-requirement>
+        <service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
+        </service-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+</requirements>
+<constraints>
+    <temporal-constraints>
+        <greaterThan lval="t_lander1" rval="t_lander0" />
+    </temporal-constraints>
+</constraints>
+
+</mission>
+
+

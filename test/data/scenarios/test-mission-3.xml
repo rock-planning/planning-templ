@@ -90,12 +90,12 @@
             <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
             <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
         </service-requirement>
-        <!--<resource-requirement>
+        <resource-requirement>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
                 <minCardinality>1</minCardinality>
             </resource>
-        </resource-requirement>-->
+        </resource-requirement>
     </requirement>
     <requirement>
         <spatial-requirement>
