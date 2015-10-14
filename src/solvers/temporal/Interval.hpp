@@ -10,7 +10,9 @@ namespace solvers {
 namespace temporal {
 
 /**
- * Create an interval
+ * \class Interval
+ * \brief An interval between two TimePoints
+ * \details
  */
 class Interval
 {
@@ -24,8 +26,10 @@ public:
             const point_algebra::TimePoint::Ptr& to,
             const point_algebra::TimePointComparator& comparator);
 
-    point_algebra::TimePoint::Ptr getFrom() const { return mpFrom; }
-    point_algebra::TimePoint::Ptr getTo() const { return mpTo; }
+    const point_algebra::TimePoint::Ptr& getFrom() const { return mpFrom; }
+    const point_algebra::TimePoint::Ptr& getTo() const { return mpTo; }
+
+    const point_algebra::TimePointComparator& getTimePointComparator() const { return mTimePointComparator; }
 
     bool operator==(const Interval& other) const { return equals(other); }
 
