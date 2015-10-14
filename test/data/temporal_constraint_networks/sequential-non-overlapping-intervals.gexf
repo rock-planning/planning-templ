@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gexf xmlns="http://www.gexf.net/1.1draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.1draft http://gexf.net/1.1draft/gexf.xsd" version="1.1">
+  <graph mode="static" defaultedgetype="directed">
+    <attributes class="node" mode="static">
+      <attribute id="0" title="class" type="string"/>
+      <attribute id="1" title="label" type="string"/>
+    </attributes>
+    <attributes class="edge" mode="static">
+      <attribute id="0" title="class" type="string"/>
+      <attribute id="1" title="label" type="string"/>
+    </attributes>
+    <nodes>
+      <node id="10" label="QualitativeTimePoint: t8">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePoint"/>
+          <attvalue for="1" value="t8"/>
+        </attvalues>
+      </node>
+      <node id="11" label="QualitativeTimePoint: t9">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePoint"/>
+          <attvalue for="1" value="t9"/>
+        </attvalues>
+      </node>
+      <node id="2" label="QualitativeTimePoint: t0">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePoint"/>
+          <attvalue for="1" value="t0"/>
+        </attvalues>
+      </node>
+      <node id="3" label="QualitativeTimePoint: t1">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePoint"/>
+          <attvalue for="1" value="t1"/>
+        </attvalues>
+      </node>
+      <node id="4" label="QualitativeTimePoint: t2">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePoint"/>
+          <attvalue for="1" value="t2"/>
+        </attvalues>
+      </node>
+      <node id="5" label="QualitativeTimePoint: t3">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePoint"/>
+          <attvalue for="1" value="t3"/>
+        </attvalues>
+      </node>
+      <node id="6" label="QualitativeTimePoint: t4">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePoint"/>
+          <attvalue for="1" value="t4"/>
+        </attvalues>
+      </node>
+      <node id="7" label="QualitativeTimePoint: t5">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePoint"/>
+          <attvalue for="1" value="t5"/>
+        </attvalues>
+      </node>
+      <node id="8" label="QualitativeTimePoint: t6">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePoint"/>
+          <attvalue for="1" value="t6"/>
+        </attvalues>
+      </node>
+      <node id="9" label="QualitativeTimePoint: t7">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePoint"/>
+          <attvalue for="1" value="t7"/>
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge id="13" source="10" target="11" label="Constraint: from QualitativeTimePoint: t8 to QualitativeTimePoint: t9: &lt;=" weight="2">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&lt;="/>
+        </attvalues>
+      </edge>
+      <edge id="15" source="10" target="9" label="Constraint: from QualitativeTimePoint: t8 to QualitativeTimePoint: t7: &gt;">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&gt;"/>
+        </attvalues>
+      </edge>
+      <edge id="14" source="11" target="10" label="Constraint: from QualitativeTimePoint: t9 to QualitativeTimePoint: t8: &gt;">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&gt;"/>
+        </attvalues>
+      </edge>
+      <edge id="5" source="2" target="3" label="Constraint: from QualitativeTimePoint: t0 to QualitativeTimePoint: t1: &lt;=" weight="2">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&lt;="/>
+        </attvalues>
+      </edge>
+      <edge id="22" source="3" target="2" label="Constraint: from QualitativeTimePoint: t1 to QualitativeTimePoint: t0: &gt;">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&gt;"/>
+        </attvalues>
+      </edge>
+      <edge id="21" source="4" target="3" label="Constraint: from QualitativeTimePoint: t2 to QualitativeTimePoint: t1: &gt;">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&gt;"/>
+        </attvalues>
+      </edge>
+      <edge id="7" source="4" target="5" label="Constraint: from QualitativeTimePoint: t2 to QualitativeTimePoint: t3: &lt;=" weight="2">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&lt;="/>
+        </attvalues>
+      </edge>
+      <edge id="20" source="5" target="4" label="Constraint: from QualitativeTimePoint: t3 to QualitativeTimePoint: t2: &gt;">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&gt;"/>
+        </attvalues>
+      </edge>
+      <edge id="19" source="6" target="5" label="Constraint: from QualitativeTimePoint: t4 to QualitativeTimePoint: t3: &gt;">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&gt;"/>
+        </attvalues>
+        </edge>
+      <edge id="9" source="6" target="7" label="Constraint: from QualitativeTimePoint: t4 to QualitativeTimePoint: t5: &lt;=" weight="2">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&lt;="/>
+        </attvalues>
+      </edge>
+      <edge id="18" source="7" target="6" label="Constraint: from QualitativeTimePoint: t5 to QualitativeTimePoint: t4: &gt;">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&gt;"/>
+        </attvalues>
+      </edge>
+      <edge id="17" source="8" target="7" label="Constraint: from QualitativeTimePoint: t6 to QualitativeTimePoint: t5: &gt;">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&gt;"/>
+        </attvalues>
+      </edge>
+      <edge id="11" source="8" target="9" label="Constraint: from QualitativeTimePoint: t6 to QualitativeTimePoint: t7: &lt;=" weight="2">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&lt;="/>
+        </attvalues>
+      </edge>
+      <edge id="16" source="9" target="8" label="Constraint: from QualitativeTimePoint: t7 to QualitativeTimePoint: t6: &gt;">
+        <attvalues>
+          <attvalue for="0" value="QualitativeTimePointConstraint"/>
+          <attvalue for="1" value="&gt;"/>
+        </attvalues>
+      </edge>
+    </edges>
+  </graph>
+</gexf>

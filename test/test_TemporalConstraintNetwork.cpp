@@ -1,8 +1,12 @@
 #include <boost/test/unit_test.hpp>
+#include "test_utils.hpp"
+
 #include <templ/solvers/temporal/TemporalConstraintNetwork.hpp>
+#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
+#include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 #include <numeric/Combinatorics.hpp>
-#include <graph_analysis/GraphIO.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
+#include <graph_analysis/GraphIO.hpp>
 
 using namespace templ::solvers;
 using namespace templ::solvers::temporal;
@@ -107,6 +111,37 @@ BOOST_AUTO_TEST_CASE(ult)
 //  check if the expected result and the actual result are the same
     bool ok = expected.equals(graph);
     BOOST_REQUIRE_MESSAGE(ok, "Expected: 1, Actual: " << ok);
+}
+
+BOOST_AUTO_TEST_CASE(io_non_overlapping_intervals)
+{
+    std::string filename = getRootDir() + "/test/data/temporal_constraint_networks/sequential-non-overlapping-intervals.gexf";
+
+    using namespace templ::solvers::temporal;
+    using namespace graph_analysis;
+
+    QualitativeTemporalConstraintNetwork::Ptr tpc(new QualitativeTemporalConstraintNetwork());
+
+    std::string dotFilename = "/tmp/test-sequential-non-overlapping-intervals.dot";
+    graph_analysis::io::GraphIO::read(filename, tpc->getGraph());
+    graph_analysis::io::GraphIO::write(dotFilename, tpc->getGraph());
+    BOOST_TEST_MESSAGE("Dot file written to: " << dotFilename);
+
+    std::map<std::string, point_algebra::TimePoint::Ptr> timepoints;
+
+    VertexIterator::Ptr vertexIt = tpc->getGraph()->getVertexIterator();
+    while(vertexIt->next())
+    {
+        point_algebra::TimePoint::Ptr tp = boost::dynamic_pointer_cast<point_algebra::TimePoint>(vertexIt->current());
+        BOOST_REQUIRE_MESSAGE(tp, "Timepoint: " << tp->toString() << " found");
+        timepoints[tp->getLabel()] = tp;
+    }
+
+    point_algebra::TimePointComparator comparator(tpc);
+    BOOST_REQUIRE_MESSAGE( comparator.greaterThan(timepoints["t9"], timepoints["t0"]), "t9 > t0");
+    BOOST_REQUIRE_MESSAGE( !comparator.greaterThan(timepoints["t6"], timepoints["t9"]), "not t6 > t9");
+    BOOST_REQUIRE_MESSAGE( !comparator.greaterThan(timepoints["t0"], timepoints["t9"]), "not t0 > t9");
+    BOOST_REQUIRE_MESSAGE( !comparator.lessThan(timepoints["t9"], timepoints["t0"]), "not t9 < t0");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

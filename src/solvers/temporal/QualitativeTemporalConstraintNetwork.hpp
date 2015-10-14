@@ -18,15 +18,6 @@ namespace temporal {
  */
 class QualitativeTemporalConstraintNetwork : public TemporalConstraintNetwork
 {
-    std::map< std::pair<graph_analysis::Vertex::Ptr, graph_analysis::Vertex::Ptr>, point_algebra::QualitativeTimePointConstraint::Type> mCompositionConstraints;
-
-    /**
-     * Check if consistency between a set of edges (multiedge) is given
-     * for qualitative time point constraints
-     * \return True if multiedge is consistent, false if not
-     */
-    bool isConsistent(const std::vector<graph_analysis::Edge::Ptr>& edges);
-
 public:
     typedef boost::shared_ptr<QualitativeTemporalConstraintNetwork> Ptr;
 
@@ -84,6 +75,19 @@ public:
      */
     point_algebra::QualitativeTimePointConstraint::Type getBidirectionalConstraintType(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1) const;
 
+private:
+    typedef std::map< std::pair<graph_analysis::Vertex::Ptr, graph_analysis::Vertex::Ptr>, point_algebra::QualitativeTimePointConstraint::Type> ConstraintCache;
+
+    /**
+     * Check if consistency between a set of edges (multiedge) is given
+     * for qualitative time point constraints
+     * \return True if multiedge is consistent, false if not
+     */
+    bool isConsistent(const std::vector<graph_analysis::Edge::Ptr>& edges);
+
+    point_algebra::QualitativeTimePointConstraint::Type updateConstraintCache(const graph_analysis::Vertex::Ptr& v1, const graph_analysis::Vertex::Ptr& v2, point_algebra::QualitativeTimePointConstraint::Type constraint);
+
+    ConstraintCache mCompositionConstraints;
 };
 
 } // end namespace temporal

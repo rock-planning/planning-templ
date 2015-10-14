@@ -95,7 +95,7 @@ BOOST_AUTO_TEST_CASE(consistency_checking)
         qtcn.addQualitativeConstraint(tp1, tp2, point_algebra::QualitativeTimePointConstraint::GreaterOrEqual);
         qtcn.addQualitativeConstraint(tp0, tp2, point_algebra::QualitativeTimePointConstraint::Less);
 
-        BOOST_REQUIRE_MESSAGE(!qtcn.isConsistent(), "qtcn is inconsistent");
+        BOOST_REQUIRE_MESSAGE(!qtcn.isConsistent(), "qtcn is inconsistent: tp0 should be >= t2");
     }
     {
         QualitativeTemporalConstraintNetwork qtcn;

@@ -92,15 +92,21 @@ bool QualitativeTemporalConstraintNetwork::isConsistent()
             break;
     }
 
-    numeric::Combination<Vertex::Ptr> combination(vertices, 3, numeric::EXACT);
-    do {
-        std::vector<Vertex::Ptr> triangle = combination.current();
-        if(!isConsistent(triangle))
-        {
-            return false;
-        }
+    uint32_t compositionConstraints = 0;
+    do
+    {
+        compositionConstraints = mCompositionConstraints.size();
 
-    } while(combination.next());
+        numeric::Combination<Vertex::Ptr> combination(vertices, 3, numeric::EXACT);
+        do {
+            std::vector<Vertex::Ptr> triangle = combination.current();
+            if(!isConsistent(triangle))
+            {
+                return false;
+            }
+
+        } while(combination.next());
+    } while(compositionConstraints != mCompositionConstraints.size());
 
     return true;
 }
@@ -145,32 +151,43 @@ bool QualitativeTemporalConstraintNetwork::isConsistent(const std::vector<Edge::
     return true;
 }
 
-bool QualitativeTemporalConstraintNetwork::isConsistent(const std::vector<Vertex::Ptr>& triangle)
+bool QualitativeTemporalConstraintNetwork::isConsistent(const std::vector<Vertex::Ptr>& vertexTriangle)
 {
-    int i = 0;
-    int j = 2;
-    int k = 1;
+    numeric::Permutation<Vertex::Ptr> permutation(vertexTriangle);
 
-    try {
-        QualitativeTimePointConstraint::Type ij = getBidirectionalConstraintType(triangle[i], triangle[j]);
-        QualitativeTimePointConstraint::Type ik = getBidirectionalConstraintType(triangle[i], triangle[k]);
-        QualitativeTimePointConstraint::Type kj = getBidirectionalConstraintType(triangle[k], triangle[j]);
+    do {
+        std::vector<Vertex::Ptr> triangle = permutation.current();
 
-        QualitativeTimePointConstraint::Type ij_composition = QualitativeTimePointConstraint::getComposition(ik,kj);
+        int i = 0;
+        int j = 2;
+        int k = 1;
 
-        QualitativeTimePointConstraint::Type compositionType = QualitativeTimePointConstraint::getIntersection(ij, ij_composition);
-        if(compositionType != QualitativeTimePointConstraint::Empty)
+        try {
+            LOG_DEBUG_S << "Checking triangle: " << triangle[i]->toString() << " -- " << triangle[j]->toString() <<
+                " -- " << triangle[k]->toString();
+            QualitativeTimePointConstraint::Type ij = getBidirectionalConstraintType(triangle[i], triangle[j]);
+            QualitativeTimePointConstraint::Type ik = getBidirectionalConstraintType(triangle[i], triangle[k]);
+            QualitativeTimePointConstraint::Type kj = getBidirectionalConstraintType(triangle[k], triangle[j]);
+
+            QualitativeTimePointConstraint::Type ij_composition = QualitativeTimePointConstraint::getComposition(ik,kj);
+
+            QualitativeTimePointConstraint::Type compositionType = QualitativeTimePointConstraint::getIntersection(ij, ij_composition);
+            if(compositionType == QualitativeTimePointConstraint::Empty)
+            {
+                return false;
+            }
+
+            if(updateConstraintCache(triangle[i], triangle[j], compositionType) == QualitativeTimePointConstraint::Empty)
+            {
+                return false;
+            }
+        } catch(const std::runtime_error& e)
         {
-            std::pair<Vertex::Ptr, Vertex::Ptr> key(triangle[i], triangle[j]);
-            mCompositionConstraints[key] = QualitativeTimePointConstraint::getIntersection(ij, ij_composition);
-            LOG_DEBUG_S << "Add cache: " << triangle[i]->toString() << " -> " << triangle[j]->toString();
-            return true;
+            LOG_DEBUG_S << e.what();
         }
-    } catch(const std::runtime_error& e)
-    {
-        LOG_DEBUG_S << e.what();
-    }
-    return false;
+    } while(permutation.next());
+
+    return true;
 }
 
 bool QualitativeTemporalConstraintNetwork::isConsistent(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1)
@@ -196,13 +213,29 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getDi
     std::vector<Edge::Ptr> edgesIJ = getGraph()->getEdges(i, j);
     QualitativeTimePointConstraint::Type constraintTypeIJ = QualitativeTimePointConstraint::Universal;
 
+    // Check if there is a cached value -- then use this one
+    std::pair<Vertex::Ptr, Vertex::Ptr> key(i,j);
+    ConstraintCache::const_iterator cit = mCompositionConstraints.find(key);
+    if( cit != mCompositionConstraints.end())
+    {
+        LOG_DEBUG_S << "Return cached value for: " << i->toString() << " -- " << j->toString() << " --> " << QualitativeTimePointConstraint::TypeTxt[cit->second];
+        constraintTypeIJ = cit->second;
+    }
+
     std::vector<Edge::Ptr>::const_iterator eit = edgesIJ.begin();
     for(; eit != edgesIJ.end(); ++eit)
     {
-        QualitativeTimePointConstraint::Type constraintType = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(*eit)->getType();
+        QualitativeTimePointConstraint::Ptr constraint = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(*eit);
+        if(!constraint)
+        {
+            throw std::invalid_argument("templ::solvers::temporal::QualitativeTemporalConstraintNetwork::getDirectionalConstraintType: "
+                    " edge is not a QualitativeTimePointConstraint, but " + (*eit)->getClassName());
+        }
+        QualitativeTimePointConstraint::Type constraintType = constraint->getType();
         QualitativeTimePointConstraint::Type constraintIntersectionType = QualitativeTimePointConstraint::getIntersection(constraintTypeIJ, constraintType);
 
-        LOG_DEBUG_S << "Intersection of " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ]
+        LOG_DEBUG_S << "Intersection between: " << i->toString() << " and " << j->toString() << std::endl
+            << "    " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ]
             << " and " << QualitativeTimePointConstraint::TypeTxt[constraintType]
             << " --> " << QualitativeTimePointConstraint::TypeTxt[constraintIntersectionType];
 
@@ -230,11 +263,29 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getBi
         throw std::runtime_error("QualitativeTimePointConstraint::getBidirectionalConstraintType: IJ - JI with inconsistent constraints: '" + i->toString() + "' - '" + j->toString());
     }
 
+    LOG_INFO_S << "Checking bidirectional type for: " << i->toString() << " -- " << j->toString();
     QualitativeTimePointConstraint::Type compositionType = QualitativeTimePointConstraint::getIntersection(constraintTypeIJ, constraintTypeJI);
     LOG_DEBUG_S << "Intersection of IJ (" << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << ")"
         << " and JI' (symmetric IJ) (" << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI] << ")"
         << " --> " << QualitativeTimePointConstraint::TypeTxt[compositionType];
 
+    return compositionType;
+}
+
+
+QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::updateConstraintCache(const graph_analysis::Vertex::Ptr& v1, const graph_analysis::Vertex::Ptr& v2, QualitativeTimePointConstraint::Type constraintType)
+{
+    QualitativeTimePointConstraint::Type compositionType = constraintType;
+
+    std::pair<Vertex::Ptr, Vertex::Ptr> key(v1, v2);
+    ConstraintCache::const_iterator cit = mCompositionConstraints.find(key);
+    if(cit != mCompositionConstraints.end())
+    {
+        compositionType = QualitativeTimePointConstraint::getIntersection(compositionType, cit->second);
+        LOG_DEBUG_S << "Updating cached constraint: " << v1->toString() << " and " << v2->toString()
+            << " --> " << QualitativeTimePointConstraint::TypeTxt[compositionType];
+    }
+    mCompositionConstraints[key] = compositionType;
     return compositionType;
 }
 
