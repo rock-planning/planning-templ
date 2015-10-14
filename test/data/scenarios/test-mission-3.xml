@@ -12,6 +12,12 @@
 </resources>
 <constants>
     <location>
+        <id>lander</id>
+        <x>10</x>
+        <y>0</y>
+        <z>0</z>
+    </location>
+    <location>
         <id>l0</id>
         <x>0</x>
         <y>0</y>
@@ -47,6 +53,32 @@
         <spatial-requirement>
             <!-- where it is required -->
             <location>
+                <id>lander</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t_lander0</from>
+            <to>t_lander1</to>
+        </temporal-requirement>
+        <service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
+        </service-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement>
+        <spatial-requirement>
+            <!-- where it is required -->
+            <location>
                 <id>l0</id>
             </location>
         </spatial-requirement>
@@ -56,14 +88,14 @@
         </temporal-requirement>
         <service-requirement>
             <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
-            <!--<service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service> -->
+            <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
         </service-requirement>
-        <resource-requirement>
+        <!--<resource-requirement>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
                 <minCardinality>1</minCardinality>
             </resource>
-        </resource-requirement>
+        </resource-requirement>-->
     </requirement>
     <requirement>
         <spatial-requirement>
@@ -137,6 +169,8 @@
         <greaterThan lval="t3" rval="t2" />
         <greaterThan lval="t2" rval="t1" />
         <greaterThan lval="t1" rval="t0" />
+        <greaterThan lval="t0" rval="t_lander1" />
+        <greaterThan lval="t_lander1" rval="t_lander0" />
     </temporal-constraints>
 </constraints>
 
