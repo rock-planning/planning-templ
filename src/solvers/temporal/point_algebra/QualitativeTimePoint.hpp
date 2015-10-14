@@ -21,7 +21,6 @@ namespace point_algebra {
 class QualitativeTimePoint : public TimePoint
 {
     std::vector<TimePoint::Label> mAliases;
-    TimePoint::Label mLabel;
 
 public:
     typedef boost::shared_ptr<QualitativeTimePoint> Ptr;
@@ -31,11 +30,6 @@ public:
      * \param label (main) label for this Timepoint
      */
     QualitativeTimePoint(const TimePoint::Label& label);
-
-    /**
-     * Get label of this QualitativeTimePoint
-     */
-    const std::string& getLabel() const { return mLabel; }
 
     /**
      * Create instance of QualitativeTimePoint
@@ -68,9 +62,17 @@ public:
     bool operator!=(const QualitativeTimePoint& other) const { return ! (*this == other); }
 
     /**
+     * Get class name
+     */
+    virtual std::string getClassName() const { return "QualitativeTimePoint"; }
+
+    /**
      * Stringify object
      */
-    virtual std::string toString() const { return "QualitativeTimePoint: " + mLabel; }
+    virtual std::string toString() const { return getClassName() + ": " + mLabel; }
+
+private:
+    virtual Vertex* getClone() const { return new QualitativeTimePoint(*this); }
 };
 
 } // end namespace point_algebra

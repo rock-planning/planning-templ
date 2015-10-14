@@ -80,7 +80,24 @@ std::map< std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointCo
 QualitativeTimePointConstraint::QualitativeTimePointConstraint(Variable::Ptr source, Variable::Ptr target, point_algebra::QualitativeTimePointConstraint::Type constraintType)
     : Constraint(source, target)
     , mConstraintType(constraintType)
-{}
+{
+    Constraint::setLabel(TypeTxt[constraintType]);
+}
+
+void QualitativeTimePointConstraint::setLabel(const std::string& label)
+{
+    std::map<QualitativeTimePointConstraint::Type, std::string>::const_iterator cit = TypeTxt.begin();
+    for(; cit != TypeTxt.end(); ++cit)
+    {
+        if(cit->second == label)
+        {
+            mConstraintType = cit->first;
+            Constraint::setLabel(label);
+            return;
+        }
+    }
+    throw std::invalid_argument("templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::setLabel: Labels are limited to valid constraint values, e.g., '<' or '<=', but provided was '" + label + "'");
+}
 
 
 QualitativeTimePointConstraint::Ptr QualitativeTimePointConstraint::create(Variable::Ptr source, Variable::Ptr target, point_algebra::QualitativeTimePointConstraint::Type constraintType)

@@ -9,8 +9,8 @@ namespace point_algebra {
 
 QualitativeTimePoint::QualitativeTimePoint(const TimePoint::Label& label)
     : TimePoint(0,0, QUALITATIVE)
-    , mLabel(label)
 {
+    setLabel(label);
     // also add label as alias, since that will make comparing via set operation
     // possible
     addAlias(label);

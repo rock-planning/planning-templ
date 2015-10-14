@@ -107,3 +107,8 @@ rock_executable(templ-mission_planner
     DEPS templ
 )
 
+rock_executable(templ-tcn_reader
+    utils/TemporalConstraintNetworkMain.cpp
+    DEPS templ
+)
+

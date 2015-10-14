@@ -32,8 +32,12 @@ public:
     typedef boost::shared_ptr<QualitativeTimePointConstraint> Ptr;
 
     QualitativeTimePointConstraint(Variable::Ptr source, Variable::Ptr target, Type constraintType);
-    
+
+    virtual void setLabel(const std::string& label);
+
     virtual std::string getClassName() const { return "QualitativeTimePointConstraint"; }
+
+    virtual std::string toString() const;
 
     Type getType() const { return mConstraintType; }
 
@@ -104,10 +108,8 @@ public:
     /// {>} \cup {<} \cup {>} = {P}
     static std::map< std::pair<Type,Type>, Type > TypeAlgebra;
 
-    std::string toString() const;
-
 protected:
-    graph_analysis::Edge* doClone() { return new QualitativeTimePointConstraint(*this); }
+    virtual graph_analysis::Edge* getClone() const { return new QualitativeTimePointConstraint(*this); }
 
 private:
     Type mConstraintType;

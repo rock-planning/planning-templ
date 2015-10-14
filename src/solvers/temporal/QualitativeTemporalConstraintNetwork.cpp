@@ -1,11 +1,8 @@
 #include "QualitativeTemporalConstraintNetwork.hpp"
-#include <numeric/Combinatorics.hpp>
-
-#include <lemon/bfs.h>
-#include <lemon/dijkstra.h>
-#include <lemon/path.h>
-
 #include <base/Logging.hpp>
+#include <numeric/Combinatorics.hpp>
+#include <graph_analysis/VertexTypeManager.hpp>
+#include <graph_analysis/EdgeTypeManager.hpp>
 
 using namespace templ::solvers::temporal::point_algebra;
 using namespace graph_analysis;
@@ -16,7 +13,19 @@ namespace temporal {
 
 QualitativeTemporalConstraintNetwork::QualitativeTemporalConstraintNetwork()
     : TemporalConstraintNetwork()
-{}
+{
+    using namespace graph_analysis;
+    try {
+        VertexTypeManager* vertexTypeManager = VertexTypeManager::getInstance();
+        vertexTypeManager->registerType("QualitativeTimePoint", Vertex::Ptr(new QualitativeTimePoint("default")), true);
+
+        EdgeTypeManager* edgeTypeManager = EdgeTypeManager::getInstance();
+        edgeTypeManager->registerType("QualitativeTimePointConstraint", Edge::Ptr(new QualitativeTimePointConstraint(Variable::Ptr(), Variable::Ptr(), QualitativeTimePointConstraint::Empty)));
+    } catch(...)
+    {
+        // type already registered
+    }
+}
 
 QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getQualitativeConstraint(const TimePoint::Ptr& t1, const TimePoint::Ptr& t2)
 {
