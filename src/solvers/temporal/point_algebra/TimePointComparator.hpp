@@ -30,6 +30,12 @@ public:
     virtual ~TimePointComparator() {};
 
     /**
+     * Get the temporal constraint network
+     * \return Associated temporal constraint network
+     */
+    TemporalConstraintNetwork::Ptr getTemporalConstraintNetwork() const { return mpTemporalConstraintNetwork; }
+
+    /**
      * Check equality of two timepoints
      */
     virtual bool equals(const TimePoint::Ptr& t0, const TimePoint::Ptr& t1) const;
