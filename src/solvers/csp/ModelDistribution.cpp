@@ -523,14 +523,25 @@ void ModelDistribution::compact(std::vector<FluentTimeResource>& requirements) c
                     << fts.toString() << std::endl
                     << otherFts.toString() << std::endl;
 
+                // Compacting the resource list
                 fts.resources.insert(otherFts.resources.begin(), otherFts.resources.end());
 
-                // MaxMax -->
-                // since the max cardinality is an upper bound defined through
-                // services, we need have to use the maximum here of any
-                // available maximum cardinality since we account for the set of
-                // services
-                fts.maxCardinalities = organization_model::Algebra::max(fts.maxCardinalities, otherFts.maxCardinalities);
+                // Use the functional saturation bound on all services
+                // after compacting the resource list
+                std::set<organization_model::Service> services;
+                std::set<uint32_t>::const_iterator cit = fts.resources.begin();
+                for(; cit != fts.resources.end(); ++cit)
+                {
+                    const owlapi::model::IRI& resourceModel = mResources[*cit];
+                    using namespace owlapi;
+
+                    if( mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Service()))
+                    {
+                        organization_model::Service service(resourceModel);
+                        services.insert(service);
+                    }
+                }
+                fts.maxCardinalities = mAsk.getFunctionalSaturationBound(services);
 
                 // MaxMin --> min cardinalities are a lower bound specified explicitely
                 fts.minCardinalities = organization_model::Algebra::max(fts.minCardinalities, otherFts.minCardinalities);
