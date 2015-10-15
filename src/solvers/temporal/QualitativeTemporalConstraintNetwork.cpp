@@ -93,6 +93,7 @@ bool QualitativeTemporalConstraintNetwork::isConsistent()
     }
 
     mConsistencyChecked = false;
+    mTriangleCheckCount = 0;
     do
     {
         mUpdatedConstraints = mCurrentUpdatedConstraints;
@@ -109,10 +110,11 @@ bool QualitativeTemporalConstraintNetwork::isConsistent()
         } while(combination.next());
 
         // Mark that initial consistency has been checked, i.e., all
-        // constraints should have been updated
+        // constraints should have been computed
         mConsistencyChecked = true;
     } while(!mCurrentUpdatedConstraints.empty());
 
+    LOG_DEBUG_S << "TriangleCheckCount: " << mTriangleCheckCount;
     return true;
 }
 
@@ -162,12 +164,19 @@ bool QualitativeTemporalConstraintNetwork::isConsistent(const std::vector<Vertex
     // in this triangle, then it can be assumed to be still consistent
     //
     // Otherwise a previous run did determine inconsistency
-    if(mConsistencyChecked && !(constraintUpdated( VertexPair(vertexTriangle[0], vertexTriangle[1]) ) &&
-                constraintUpdated(VertexPair(vertexTriangle[0], vertexTriangle[2])) &&
-                constraintUpdated(VertexPair(vertexTriangle[1], vertexTriangle[2]))))
+    const Vertex::Ptr& v0 = vertexTriangle[0];
+    const Vertex::Ptr& v1 = vertexTriangle[1];
+    const Vertex::Ptr& v2 = vertexTriangle[2];
+
+    if(mConsistencyChecked && !(constraintUpdated(VertexPair(v0,v1))
+                && constraintUpdated(VertexPair(v0,v2))
+                && constraintUpdated(VertexPair(v1,v2))) )
     {
+        LOG_DEBUG_S << "pruning consistency checking, since there has been no constraint update for this triangle";
         return true;
     }
+
+    ++mTriangleCheckCount;
 
     numeric::Permutation<Vertex::Ptr> permutation(vertexTriangle);
 
@@ -302,11 +311,13 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::updat
         if(existingConstraint != compositionType)
         {
             LOG_DEBUG_S << "Updating cached constraint: " << v1->toString() << " and " << v2->toString()
-                << " --> " << QualitativeTimePointConstraint::TypeTxt[compositionType];
+                << " --> " << QualitativeTimePointConstraint::TypeTxt[compositionType] << " -- previous: " << QualitativeTimePointConstraint::TypeTxt[existingConstraint];
             mUpdatedConstraints.push_back(key);
             mCompositionConstraints[key] = compositionType;
         }
     } else {
+        LOG_DEBUG_S << "Updating cached constraint: " << v1->toString() << " and " << v2->toString()
+            << " --> " << QualitativeTimePointConstraint::TypeTxt[compositionType];
         mUpdatedConstraints.push_back(key);
         mCompositionConstraints[key] = compositionType;
     }

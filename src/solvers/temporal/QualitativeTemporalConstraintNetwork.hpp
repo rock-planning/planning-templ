@@ -94,6 +94,8 @@ private:
     std::vector<VertexPair> mCurrentUpdatedConstraints;
     std::vector<VertexPair> mUpdatedConstraints;
     bool mConsistencyChecked;
+
+    uint32_t mTriangleCheckCount;
 };
 
 } // end namespace temporal
