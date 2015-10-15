@@ -45,6 +45,10 @@ std::string RoleTimeline::toString() const
     {
         ss << fluent.toString() << std::endl;
     }
+
+    organization_model::facets::Robot robot(mRole.getModel(), mOrganizationModel);
+    ss << "    " << robot.toString() << std::endl;
+
     ss << "    travel distance (in km):         " << travelDistance()/1.0E3 << std::endl;
     ss << "    estimated time (in h):         " << duration()/3.6E3 << std::endl;
     ss << "    estimated energy cost (in kWh):  " << estimatedEnergyCost()/1.0E3 << std::endl;
