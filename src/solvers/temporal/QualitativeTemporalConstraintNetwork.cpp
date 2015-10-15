@@ -92,10 +92,11 @@ bool QualitativeTemporalConstraintNetwork::isConsistent()
             break;
     }
 
-    uint32_t compositionConstraints = 0;
+    mConsistencyChecked = false;
     do
     {
-        compositionConstraints = mCompositionConstraints.size();
+        mUpdatedConstraints = mCurrentUpdatedConstraints;
+        mCurrentUpdatedConstraints.clear();
 
         numeric::Combination<Vertex::Ptr> combination(vertices, 3, numeric::EXACT);
         do {
@@ -106,7 +107,11 @@ bool QualitativeTemporalConstraintNetwork::isConsistent()
             }
 
         } while(combination.next());
-    } while(compositionConstraints != mCompositionConstraints.size());
+
+        // Mark that initial consistency has been checked, i.e., all
+        // constraints should have been updated
+        mConsistencyChecked = true;
+    } while(!mCurrentUpdatedConstraints.empty());
 
     return true;
 }
@@ -153,6 +158,17 @@ bool QualitativeTemporalConstraintNetwork::isConsistent(const std::vector<Edge::
 
 bool QualitativeTemporalConstraintNetwork::isConsistent(const std::vector<Vertex::Ptr>& vertexTriangle)
 {
+    // When no constraint update has been performed for constraints
+    // in this triangle, then it can be assumed to be still consistent
+    //
+    // Otherwise a previous run did determine inconsistency
+    if(mConsistencyChecked && !(constraintUpdated( VertexPair(vertexTriangle[0], vertexTriangle[1]) ) &&
+                constraintUpdated(VertexPair(vertexTriangle[0], vertexTriangle[2])) &&
+                constraintUpdated(VertexPair(vertexTriangle[1], vertexTriangle[2]))))
+    {
+        return true;
+    }
+
     numeric::Permutation<Vertex::Ptr> permutation(vertexTriangle);
 
     do {
@@ -281,11 +297,19 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::updat
     ConstraintCache::const_iterator cit = mCompositionConstraints.find(key);
     if(cit != mCompositionConstraints.end())
     {
+        QualitativeTimePointConstraint::Type existingConstraint = cit->second;
         compositionType = QualitativeTimePointConstraint::getIntersection(compositionType, cit->second);
-        LOG_DEBUG_S << "Updating cached constraint: " << v1->toString() << " and " << v2->toString()
-            << " --> " << QualitativeTimePointConstraint::TypeTxt[compositionType];
+        if(existingConstraint != compositionType)
+        {
+            LOG_DEBUG_S << "Updating cached constraint: " << v1->toString() << " and " << v2->toString()
+                << " --> " << QualitativeTimePointConstraint::TypeTxt[compositionType];
+            mUpdatedConstraints.push_back(key);
+            mCompositionConstraints[key] = compositionType;
+        }
+    } else {
+        mUpdatedConstraints.push_back(key);
+        mCompositionConstraints[key] = compositionType;
     }
-    mCompositionConstraints[key] = compositionType;
     return compositionType;
 }
 

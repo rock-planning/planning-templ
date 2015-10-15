@@ -76,7 +76,8 @@ public:
     point_algebra::QualitativeTimePointConstraint::Type getBidirectionalConstraintType(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1) const;
 
 private:
-    typedef std::map< std::pair<graph_analysis::Vertex::Ptr, graph_analysis::Vertex::Ptr>, point_algebra::QualitativeTimePointConstraint::Type> ConstraintCache;
+    typedef std::pair<graph_analysis::Vertex::Ptr, graph_analysis::Vertex::Ptr> VertexPair;
+    typedef std::map< VertexPair, point_algebra::QualitativeTimePointConstraint::Type> ConstraintCache;
 
     /**
      * Check if consistency between a set of edges (multiedge) is given
@@ -87,7 +88,12 @@ private:
 
     point_algebra::QualitativeTimePointConstraint::Type updateConstraintCache(const graph_analysis::Vertex::Ptr& v1, const graph_analysis::Vertex::Ptr& v2, point_algebra::QualitativeTimePointConstraint::Type constraint);
 
+    bool constraintUpdated(const VertexPair& pair) const { return mUpdatedConstraints.end() != std::find(mUpdatedConstraints.begin(), mUpdatedConstraints.end(), pair); }
+
     ConstraintCache mCompositionConstraints;
+    std::vector<VertexPair> mCurrentUpdatedConstraints;
+    std::vector<VertexPair> mUpdatedConstraints;
+    bool mConsistencyChecked;
 };
 
 } // end namespace temporal
