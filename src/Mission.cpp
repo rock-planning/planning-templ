@@ -231,6 +231,14 @@ std::string Mission::toString() const
     std::stringstream ss;
     ss << "Mission: " << mName << std::endl;
     ss << mModelPool.toString();
+
+    ss << "    PersistenceConditions " << std::endl;
+    std::vector<solvers::temporal::PersistenceCondition::Ptr>::const_iterator pit = mPersistenceConditions.begin();
+    for(; pit != mPersistenceConditions.end(); ++pit)
+    {
+        ss << "        " << (*pit)->toString() << std::endl;
+    }
+
     return ss.str();
 }
 

@@ -58,7 +58,7 @@ bool TemporalAssertion::isReferringToSameValue(const TemporalAssertion::Ptr& oth
 
 std::string TemporalAssertion::toString() const
 {
-    return TypeTxt[mType];
+    return TypeTxt[mType] + "(" + mStateVariable.toString() + ")";
 }
 
 } // end namespace temporal

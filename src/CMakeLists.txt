@@ -36,6 +36,7 @@ rock_library(templ
         symbols/ObjectVariable.cpp
         symbols/StateVariable.cpp
         symbols/Value.cpp
+        symbols/object_variables/LocationCardinality.cpp
         utils/CartographicMapping.cpp
     HEADERS
         LocationTimepointTuple.hpp
