@@ -63,12 +63,21 @@ organization_model::ModelCombinationSet ModelDistribution::getDomain(const Fluen
         }
     }
 
+    // When retrieving combinations for services, then this is not the
+    // complete set since this might conflict with the minCardinalities
+    // constraint -- thus we need to first derive the functionalBound and then
+    // apply the minCardinalities by expanding the set of model if required
     organization_model::ModelCombinationSet combinations = mAsk.getResourceSupport(services);
     LOG_INFO_S << "Resources: " << organization_model::OrganizationModel::toString(combinations);
     combinations = mAsk.applyUpperBound(combinations, requirement.maxCardinalities);
     LOG_INFO_S << "Bounded resources (upper bound): " << organization_model::OrganizationModel::toString(combinations);
-    combinations = mAsk.applyLowerBound(combinations, requirement.minCardinalities);
-    LOG_INFO_S << "Bounded resources (lower bound): " << organization_model::OrganizationModel::toString(combinations);
+
+    // The minimum resource requirements are accounted here by enforcing the
+    // lower bound -- the given combinations are guaranteed to support the
+    // services due upperBound which is derived from the functionalSaturationBound
+    combinations = mAsk.expandToLowerBound(combinations, requirement.minCardinalities);
+    LOG_INFO_S << "Expanded resource (lower bound enforced): " << organization_model::OrganizationModel::toString(combinations);
+
     return combinations;
 }
 
@@ -435,14 +444,15 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
     std::vector<FluentTimeResource> requirements;
 
     using namespace templ::solvers::temporal;
+    point_algebra::TimePointComparator timepointComparator(mMission.getTemporalConstraintNetwork());
+
+    // Iterate over all existing persistence conditions
+    // -- pick the ones relating to location-cardinality function
     const std::vector<PersistenceCondition::Ptr>& conditions = mMission.getPersistenceConditions();
     std::vector<PersistenceCondition::Ptr>::const_iterator cit = conditions.begin();
     for(; cit != conditions.end(); ++cit)
     {
         PersistenceCondition::Ptr p = *cit;
-
-        Interval interval(p->getFromTimePoint(), p->getToTimePoint(),
-                point_algebra::TimePointComparator(mMission.getTemporalConstraintNetwork()) );
 
 
         symbols::StateVariable stateVariable = p->getStateVariable();
@@ -455,6 +465,7 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
         symbols::ObjectVariable::Ptr objectVariable = boost::dynamic_pointer_cast<symbols::ObjectVariable>(p->getValue());
         symbols::object_variables::LocationCardinality::Ptr locationCardinality = boost::dynamic_pointer_cast<symbols::object_variables::LocationCardinality>(objectVariable);
 
+        Interval interval(p->getFromTimePoint(), p->getToTimePoint(),timepointComparator);
         {
             std::vector<Interval>::const_iterator iit = std::find(mIntervals.begin(), mIntervals.end(), interval);
             if(iit == mIntervals.end())
@@ -476,15 +487,15 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
                 throw std::runtime_error("Could not find location: " + location->toString());
             }
 
+            // Map objects to numeric indices
             uint32_t timeIndex = iit - mIntervals.begin();
             FluentTimeResource ftr((int) (sit - mResources.begin())
                     , timeIndex
-                    , (int) (lit - mLocations.begin())
-                    , mModelPool);
-
+                    , (int) (lit - mLocations.begin()));
+                    //, mModelPool);
             if(mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Service()))
             {
-                // retrieve upper bount
+                // retrieve upper bound
                 ftr.maxCardinalities = mAsk.getFunctionalSaturationBound(resourceModel);
 
             } else if(mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Actor()))
@@ -495,6 +506,7 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
                 continue;
             }
 
+            ftr.maxCardinalities = organization_model::Algebra::max(ftr.maxCardinalities, ftr.minCardinalities);
             requirements.push_back(ftr);
             LOG_DEBUG_S << ftr.toString();
         }
@@ -545,6 +557,12 @@ void ModelDistribution::compact(std::vector<FluentTimeResource>& requirements) c
 
                 // MaxMin --> min cardinalities are a lower bound specified explicitely
                 fts.minCardinalities = organization_model::Algebra::max(fts.minCardinalities, otherFts.minCardinalities);
+
+                // Resource constraints might enforce a minimum cardinality that is higher than the functional saturation bound
+                // thus update the max cardinalities
+                fts.maxCardinalities = organization_model::Algebra::max(fts.minCardinalities, fts.maxCardinalities);
+
+                LOG_DEBUG_S << "Update requirement: " << fts.toString();
 
                 requirements.erase(compareIt);
             } else {
