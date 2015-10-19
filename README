@@ -1,27 +1,36 @@
-NOTE
-This directory structure follows some simple rules, to allow for generic build
-processes and simplify reuse of this project. 
+# TemPl: A temporal mission planner for reconfigurable multi-robot systems
 
-For build automation the project structure should be parsed and validated
+## Testing
 
+### Test Scenarios
 
-STRUCTURE
--- src/ 
-	Contains all header (*.h/*.hpp) and source files
--- build/
-	The target directory for the build process, temporary content
--- bindings/
-	Language bindings for this package, e.g. put into subfolders such as
-   |-- ruby/ 
-        Ruby language bindings
--- viz/
-        Source files for a vizkit plugin / widget related to this library 
--- resources/
-	General resources such as images that are needed by the program
--- configuration/
-	Configuration files for running the program
--- external/
-	When including software that needs a non standard installation process, or one that can be
-	easily embedded include the external software directly here
--- doc/
-	should contain the existing doxygen file: doxygen.conf
+The folder test/data/scenarios contains a set of missions that try to test
+different aspects of the mission planner.
+
+#### transterra-mission
+- v0.3:
+  All resources start at lander. Payload-items have to be moved to two further
+  locations using mobile systems that are moving to these locations as well
+
+## Further development
+  - payload-items have to be moved to locations, where no system is initially
+  moving towards
+    -- feature-req: iterative repair, e.g., fix by adding a transport service requirement to
+    this location if no initial solution can be found
+
+  - compute safety metric (here: redundancy level) for individual transitions
+    -- feature-req: compute metric with respect to the required functionality (along the
+    timeline)
+    -- howto: compute timeline per role --> compute sum of services --> compute
+    metric along one the timeline with respect to this sum of services
+
+  - strengthen individual transitions, i.e., improve metric by recipe
+    -- feature-req: iterative planning, e.g., fix by adding a dedicated
+    requirement (for a payload) to boost the redundancy
+    -- check what contributes most to the metric with respect
+       to the required functionality (along the timeline)
+
+  - compute plans for individual systems
+    -- feature-req: compute duration of activities, assign time bounds
+
+  - identify critical path
