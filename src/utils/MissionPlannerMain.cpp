@@ -90,6 +90,7 @@ int main(int argc, char** argv)
     namespace co = templ::symbols::constants;
 
     BaseGraph::Ptr spaceTimeGraph = BaseGraph::getInstance();
+    // Allow to find an existing tuple
     typedef std::pair< co::Location::Ptr, pa::TimePoint::Ptr> LocationTimePointPair;
     std::map< LocationTimePointPair, LocationTimepointTuple::Ptr > tupleMap;
 
@@ -212,12 +213,16 @@ int main(int argc, char** argv)
 
                 std::cout << "Location: " << location->toString() << " -- interval: " << interval.toString() << std::endl;
 
+                // create tuple if it does not exist, otherwise reuse
                 endTuple = tupleMap[ LocationTimePointPair(location, interval.getFrom()) ];
+                endTuple->addRole(role);
 
                 // Find start node: Tuple of location  and interval.getFrom()
                 if(prevIntervalEnd)
                 {
                     startTuple = tupleMap[ LocationTimePointPair(prevLocation, prevIntervalEnd) ];
+                    startTuple->addRole(role);
+
                     std::vector< WeightedEdge::Ptr > edges = spaceTimeGraph->getEdges<WeightedEdge>(startTuple, endTuple);
                     if(edges.empty())
                     {
@@ -244,12 +249,6 @@ int main(int argc, char** argv)
             }
         }
 
-        {
-            std::string filename = "/tmp/space-time-graph-with-timeline.dot";
-            graph_analysis::io::GraphIO::write(filename, spaceTimeGraph);
-            std::cout << "Written temporally expanded graph to: " << filename << std::endl;
-            std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
-        }
     }
 
     // Compute multicommodity min-cost flow problem for payloads
@@ -261,7 +260,7 @@ int main(int argc, char** argv)
         // roles
         uint32_t edgeCapacityUpperBound = 60;
 
-        std::map<Vertex::Ptr, Vertex::Ptr> commodityToSpace; 
+        std::map<Vertex::Ptr, Vertex::Ptr> commodityToSpace;
         std::map<Vertex::Ptr, Vertex::Ptr> spaceToCommodity;
 
         VertexIterator::Ptr vertexIt = spaceTimeGraph->getVertexIterator();
@@ -276,38 +275,41 @@ int main(int argc, char** argv)
             flowGraph->addVertex(multicommodityVertex);
         }
 
-        EdgeIterator::Ptr edgeIt = spaceTimeGraph->getEdgeIterator();
-        while(edgeIt->next())
         {
-            WeightedEdge::Ptr edge = boost::dynamic_pointer_cast<WeightedEdge>(edgeIt->current());
-
-            Vertex::Ptr source = edge->getSourceVertex();
-            Vertex::Ptr target = edge->getTargetVertex();
-
-            MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge(new MultiCommodityMinCostFlow::edge_t(commodities));
-            multicommodityEdge->setSourceVertex( spaceToCommodity[source] );
-            multicommodityEdge->setTargetVertex( spaceToCommodity[target] );
-           
-            double weight = edge->getWeight();
-            uint32_t bound = 0;
-            if(weight == std::numeric_limits<double>::max())
+            EdgeIterator::Ptr edgeIt = spaceTimeGraph->getEdgeIterator();
+            while(edgeIt->next())
             {
-                bound = std::numeric_limits<uint32_t>::max();
-            } else {
-                bound = static_cast<uint32_t>(weight);
-            }
+                WeightedEdge::Ptr edge = boost::dynamic_pointer_cast<WeightedEdge>(edgeIt->current());
 
-            multicommodityEdge->setCapacityUpperBound(bound);
-            for(size_t i = 0; i < commodities; ++i)
-            {
-                multicommodityEdge->setCommodityCapacityUpperBound(i, bound);
+                Vertex::Ptr source = edge->getSourceVertex();
+                Vertex::Ptr target = edge->getTargetVertex();
+
+                MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge(new MultiCommodityMinCostFlow::edge_t(commodities));
+                multicommodityEdge->setSourceVertex( spaceToCommodity[source] );
+                multicommodityEdge->setTargetVertex( spaceToCommodity[target] );
+
+                double weight = edge->getWeight();
+                uint32_t bound = 0;
+                if(weight == std::numeric_limits<double>::max())
+                {
+                    bound = std::numeric_limits<uint32_t>::max();
+                } else {
+                    bound = static_cast<uint32_t>(weight);
+                }
+
+                multicommodityEdge->setCapacityUpperBound(bound);
+                for(size_t i = 0; i < commodities; ++i)
+                {
+                    multicommodityEdge->setCommodityCapacityUpperBound(i, bound);
+                }
+
+                flowGraph->addEdge(multicommodityEdge);
             }
-            
-            flowGraph->addEdge(multicommodityEdge);
         }
 
 
-        uint32_t commodityId = 0;
+        std::vector<Role> commodityRoles;
+
         std::map<Role, RoleTimeline>::const_iterator rit = timelines.begin();
         for(; rit != timelines.end(); ++rit)
         {
@@ -325,31 +327,31 @@ int main(int argc, char** argv)
                 continue;
             }
 
+            commodityRoles.push_back(role);
+            size_t commodityId = commodityRoles.size() - 1;
+
             const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
             std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
             for(; fit != ftrs.end(); ++fit)
             {
-
                 symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
                 solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
 
-                // LocationTimePoint::Ptr 
+                // Get the tuple in the graph
                 LocationTimepointTuple::Ptr currentTuple = tupleMap[ LocationTimePointPair(location, interval.getFrom()) ];
-
+                currentTuple->addRole(role);
                 Vertex::Ptr vertex = spaceToCommodity[currentTuple];
                 assert(vertex);
-                MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex = 
+                MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex =
                     boost::dynamic_pointer_cast<MultiCommodityMinCostFlow::vertex_t>(vertex);
 
                 if(fit == ftrs.begin())
                 {
-                    multicommodityVertex->setCommoditySupply(commodityId, 1); 
+                    multicommodityVertex->setCommoditySupply(commodityId, 1);
                 } else {
-                    multicommodityVertex->setCommoditySupply(commodityId, -1); 
+                    multicommodityVertex->setCommoditySupply(commodityId, -1);
                 }
             }
-
-            ++commodityId;
 
             // First entry can be interpreted as source
             // following entries as demands
@@ -358,14 +360,50 @@ int main(int argc, char** argv)
         MultiCommodityMinCostFlow minCostFlow(flowGraph, commodities);
         uint32_t cost = minCostFlow.run();
         std::cout << "Ran flow optimization: " << cost << std::cout;
+        minCostFlow.storeResult();
+
+        std::cout << "Update after flow optimization" << std::cout;
+        {
+            // Update commodites after flow optimization
+            EdgeIterator::Ptr edgeIt = flowGraph->getEdgeIterator();
+            while(edgeIt->next())
+            {
+                MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge =
+                    boost::dynamic_pointer_cast<MultiCommodityMinCostFlow::edge_t>(edgeIt->current());
+
+                for(int i = 0; i < commodityRoles.size(); ++i)
+                {
+                    uint32_t flow = multicommodityEdge->getCommodityFlow(i);
+                    if(flow > 0)
+                    {
+
+                        const Role& role = commodityRoles[i];
+                        Vertex::Ptr sourceLocation = commodityToSpace[multicommodityEdge->getSourceVertex()];
+                        Vertex::Ptr targetLocation = commodityToSpace[multicommodityEdge->getTargetVertex()];
+                        assert(sourceLocation && targetLocation);
+
+                        boost::dynamic_pointer_cast<LocationTimepointTuple>(sourceLocation)->addRole(role);
+                        boost::dynamic_pointer_cast<LocationTimepointTuple>(targetLocation)->addRole(role);
+                    }
+                }
+            }
+        }
+
 
         {
             std::string filename = "/tmp/mission-flow-optimization.dot";
-            minCostFlow.storeResult();
             graph_analysis::io::GraphIO::write(filename, flowGraph);
             std::cout << "Written flow network: " << filename << std::endl;
             std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
         }
+
+        {
+            std::string filename = "/tmp/space-time-graph-with-timeline.dot";
+            graph_analysis::io::GraphIO::write(filename, spaceTimeGraph);
+            std::cout << "Written temporally expanded graph to: " << filename << std::endl;
+            std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
+        }
+
     }
 
 

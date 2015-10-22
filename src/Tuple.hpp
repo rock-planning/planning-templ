@@ -1,5 +1,6 @@
 #ifndef TEMPL_TUPLE_HPP
 #define TEMPL_TUPLE_HPP
+
 #include <graph_analysis/Vertex.hpp>
 
 namespace templ {
@@ -8,6 +9,7 @@ template<typename A, typename B>
 class Tuple : public graph_analysis::Vertex
 {
 public:
+    typedef boost::shared_ptr< Tuple<A,B> > Ptr;
     typedef typename boost::shared_ptr<A> APtr;
     typedef typename boost::shared_ptr<B> BPtr;
 
