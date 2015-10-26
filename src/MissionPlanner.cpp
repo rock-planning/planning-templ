@@ -23,7 +23,11 @@ MissionPlanner::MissionPlanner(const Mission& mission, const OrganizationModel::
             mission.getAvailableResources())
     , mOntologyAsk(mOrganizationModel->ontology())
     , mModelDistribution(0)
+    , mModelDistributionSearchEngine(0)
     , mRoleDistribution(0)
+    , mRoleDistributionSearchEngine(0)
+    , mSpaceTimeGraph()
+    , mFlowGraph()
 {
     mCurrentMission.setOrganizationModel(mOrganizationModel);
     mCurrentMission.prepare();
@@ -56,35 +60,51 @@ MissionPlanner::MissionPlanner(const Mission& mission, const OrganizationModel::
 MissionPlanner::~MissionPlanner()
 {
     delete mModelDistribution;
+    delete mModelDistributionSearchEngine;
+
+    delete mRoleDistribution;
+    delete mRoleDistributionSearchEngine;
 }
 
-void MissionPlanner::nextModelAssignment()
+bool MissionPlanner::nextModelAssignment()
 {
     if(!mModelDistribution)
     {
         mModelDistribution = new ModelDistribution(mCurrentMission);
+        mModelDistributionSearchEngine = new Gecode::BAB<ModelDistribution>(mModelDistribution);
     }
 
-    ModelDistribution* solvedDistribution = mModelDistribution->nextSolution();
-    delete mModelDistribution;
-    mModelDistribution = solvedDistribution;
-
-    mModelDistributionSolution = mModelDistribution->getSolution();
-    LOG_WARN_S << "Found model assignment: " << mModelDistributionSolution;
+    ModelDistribution* solvedDistribution = mModelDistributionSearchEngine->next();
+    if(solvedDistribution)
+    {
+        mModelDistributionSolution = solvedDistribution->getSolution();
+        delete solvedDistribution;
+        LOG_WARN_S << "Found model assignment: " << mModelDistributionSolution;
+        return true;
+    } else {
+        return false;
+    }
 }
 
-void MissionPlanner::nextRoleAssignment()
+bool MissionPlanner::nextRoleAssignment()
 {
-    if(!mRoleDistribution )
+    if(!mRoleDistribution)
     {
         mRoleDistribution = new RoleDistribution(mCurrentMission, mModelDistributionSolution);
+        mRoleDistributionSearchEngine = new Gecode::BAB<RoleDistribution>(mRoleDistribution);
     }
 
-    RoleDistribution* solvedDistribution = mRoleDistribution->nextSolution();
-    delete mRoleDistribution;
-    mRoleDistribution = solvedDistribution;
-    mRoleDistributionSolution = mRoleDistribution->getSolution();
-    LOG_WARN_S << "Found role assignment: " << mRoleDistributionSolution;
+    RoleDistribution* solvedDistribution = mRoleDistributionSearchEngine->next();
+    if(solvedDistribution)
+    {
+        mRoleDistributionSolution = solvedDistribution->getSolution();
+        delete solvedDistribution;
+        LOG_WARN_S << "Found role assignment: " << mRoleDistributionSolution;
+        return true;
+    } else {
+        return false;
+    }
+
 }
 
 void MissionPlanner::computeRoleTimelines()
@@ -107,8 +127,7 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
     namespace co = templ::symbols::constants;
 
     // setup for new run
-    //
-    BaseGraph::Ptr mSpaceTimeGraph = BaseGraph::getInstance();
+    mSpaceTimeGraph = BaseGraph::getInstance();
     // Allow to find an existing tuple
     mTupleMap.clear();
     // reset number of commodities
@@ -135,22 +154,22 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
         }
     }
 
-    //{
-    //    std::string filename = "/tmp/space-time-graph.dot";
-    //    graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph);
-    //    std::cout << "Written temporally expanded graph to: " << filename << std::endl;
-    //    std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
-    //}
-    //{
-    //    if( mission.getTemporalConstraintNetwork()->isConsistent())
-    //    {
-    //        std::cout << "Network is consistent" << std::endl;
-    //    }
-    //    std::string filename = "/tmp/mission-temporally-constrained-network.dot";
-    //    graph_analysis::io::GraphIO::write(filename, mission.getTemporalConstraintNetwork()->getGraph());
-    //    std::cout << "Written temporal constraint network to: " << filename << std::endl;
-    //    std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
-    //}
+    {
+        std::string filename = "/tmp/space-time-graph.dot";
+        graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph);
+        std::cout << "Written temporally expanded graph to: " << filename << std::endl;
+        std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
+    }
+    {
+        if( mCurrentMission.getTemporalConstraintNetwork()->isConsistent())
+        {
+            std::cout << "Network is consistent" << std::endl;
+        }
+        std::string filename = "/tmp/mission-temporally-constrained-network.dot";
+        graph_analysis::io::GraphIO::write(filename, mCurrentMission.getTemporalConstraintNetwork()->getGraph());
+        std::cout << "Written temporal constraint network to: " << filename << std::endl;
+        std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
+    }
 
     // Per Role --> add capacities (in terms of capability of carrying a
     // payload)
@@ -191,6 +210,8 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
         co::Location::Ptr prevLocation;
         LocationTimepointTuple::Ptr startTuple, endTuple;
 
+        LOG_WARN_S << "Process timeline: " << roleTimeline.toString();
+
         //const std::vector<symbols::constants::Location::Ptr>& locations = roleTimeline.getLocations();
         //const std::vector<solvers::temporal::Interval>& getIntervals = roleTimeline.getIntervals();
         const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
@@ -200,7 +221,7 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
             symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
             solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
 
-            LOG_DEBUG_S << "Location: " << location->toString() << " -- interval: " << interval.toString();
+            LOG_WARN_S << "Location: " << location->toString() << " -- interval: " << interval.toString();
 
             // create tuple if it does not exist, otherwise reuse
             endTuple = mTupleMap[ LocationTimePointPair(location, interval.getFrom()) ];
@@ -264,6 +285,7 @@ void MissionPlanner::computeMinCostFlow()
 
         mFlowGraph->addVertex(multicommodityVertex);
     }
+
 
     {
         EdgeIterator::Ptr edgeIt = mSpaceTimeGraph->getEdgeIterator();
@@ -347,10 +369,10 @@ void MissionPlanner::computeMinCostFlow()
 
     MultiCommodityMinCostFlow minCostFlow(mFlowGraph, mCommodities);
     uint32_t cost = minCostFlow.run();
-    std::cout << "Ran flow optimization: " << cost << std::cout;
+    LOG_DEBUG_S << "Ran flow optimization: min cost: " << cost << std::endl;
     minCostFlow.storeResult();
 
-    std::cout << "Update after flow optimization" << std::cout;
+    LOG_DEBUG_S << "Update after flow optimization" << std::endl;
     {
         // Update commodites after flow optimization
         EdgeIterator::Ptr edgeIt = mFlowGraph->getEdgeIterator();
@@ -378,38 +400,49 @@ void MissionPlanner::computeMinCostFlow()
     }
 }
 
-void MissionPlanner::save(const std::string& dir) const
+void MissionPlanner::save(const std::string& markerLabel, const std::string& dir) const
 {
     base::Time timestamp = base::Time::now();
 
-    if(mFlowGraph)
-    {
-        std::string filename = dir + "/mission-min-cost-flow-network-" + timestamp.toString();
-        graph_analysis::io::GraphIO::write(filename, mFlowGraph, graph_analysis::representation::GRAPHVIZ);
-        graph_analysis::io::GraphIO::write(filename, mFlowGraph, graph_analysis::representation::GEXF);
-        LOG_INFO_S << "Written min-cost flow network: " << filename << std::endl;
-    }
-
     if(mSpaceTimeGraph)
     {
-
-        std::string filename = dir + "/mission-space-time-network-" + timestamp.toString();
+        std::string filename = dir + "/mission-space-time-network-" + markerLabel + "-" + timestamp.toString();
         graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph, graph_analysis::representation::GRAPHVIZ);
-        graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph, graph_analysis::representation::GEXF);
-        LOG_INFO_S << "Written space time network: " << filename << std::endl;
+        //graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph, graph_analysis::representation::GEXF);
+        LOG_WARN_S << "Written space time network: " << filename << std::endl;
     }
 
-
+    if(mFlowGraph)
+    {
+        std::string filename = dir + "/mission-min-cost-flow-network-"  + markerLabel + "-"+ timestamp.toString();
+        graph_analysis::io::GraphIO::write(filename, mFlowGraph, graph_analysis::representation::GRAPHVIZ);
+        //graph_analysis::io::GraphIO::write(filename, mFlowGraph, graph_analysis::representation::GEXF);
+        LOG_WARN_S << "Written min-cost flow network: " << filename << std::endl;
+    } 
 }
 
-void MissionPlanner::execute()
+void MissionPlanner::execute(uint32_t maxIterations)
 {
-    nextModelAssignment();
-    nextRoleAssignment();
+    std::cout << "Execution of planner started" << std::endl;
+    uint32_t iteration = 0;
+    while(nextModelAssignment() && iteration < maxIterations)
+    {
+        if(nextRoleAssignment())
+        {
+            computeRoleTimelines();
+            computeTemporallyExpandedLocationNetwork();
+            computeMinCostFlow();
 
-    computeRoleTimelines();
-    computeTemporallyExpandedLocationNetwork();
-    computeMinCostFlow();
+            std::stringstream ss;
+            ss << "solution-#" << iteration;
+            save(ss.str());
+            ++iteration;
+
+        } else {
+            continue;
+        }
+    }
+    std::cout << "Solutions found: " << iteration << std::endl;
 }
 
 

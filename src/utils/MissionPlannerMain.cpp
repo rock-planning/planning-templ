@@ -23,8 +23,8 @@ int main(int argc, char** argv)
     mission.setOrganizationModel(organizationModel);
     
     MissionPlanner missionPlanner(mission, organizationModel);
-    missionPlanner.execute();
-    missionPlanner.save();
+
+    missionPlanner.execute(10);
 
     return 0;
 }

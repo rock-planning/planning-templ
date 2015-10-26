@@ -200,7 +200,7 @@ RoleDistribution::Solution RoleDistribution::getSolution() const
             Gecode::IntVar var = roleDistribution(r, i);
             if(!var.assigned())
             {
-                throw std::runtime_error("templ::solvers::csp::RoleDistribution::getSolution: value has not been assigned");
+                throw std::runtime_error("templ::solvers::csp::RoleDistribution::getSolution: value has not been assigned for role: '" + mRoles[r].toString() + "'");
             }
 
             Gecode::IntVarValues v( var );

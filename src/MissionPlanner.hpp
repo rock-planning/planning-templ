@@ -154,17 +154,17 @@ public:
 
     ~MissionPlanner();
 
-    void execute();
+    void execute(uint32_t maxIterations);
 
-    void nextModelAssignment();
-    void nextRoleAssignment();
+    bool nextModelAssignment();
+    bool nextRoleAssignment();
 
     void computeRoleTimelines();
     void computeTemporallyExpandedLocationNetwork();
     void computeMinCostFlow();
 
     // Save the intermediate results
-    void save(const std::string& dir = "/tmp") const;
+    void save(const std::string& markerLabel = "", const std::string& dir = "/tmp") const;
 
 protected:
     Mission mCurrentMission;
@@ -174,9 +174,11 @@ protected:
 
     solvers::csp::ModelDistribution* mModelDistribution;
     solvers::csp::ModelDistribution::Solution mModelDistributionSolution;
+    Gecode::BAB<solvers::csp::ModelDistribution>* mModelDistributionSearchEngine;
 
     solvers::csp::RoleDistribution* mRoleDistribution;
     solvers::csp::RoleDistribution::Solution mRoleDistributionSolution;
+    Gecode::BAB<solvers::csp::RoleDistribution>* mRoleDistributionSearchEngine;
     std::map<Role, solvers::csp::RoleTimeline> mRoleTimelines;
     uint32_t mCommodities;
 

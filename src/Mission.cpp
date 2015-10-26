@@ -17,12 +17,18 @@ Mission::Mission(const std::string& name)
     , mName(name)
 {}
 
-Mission::Mission(organization_model::OrganizationModel::Ptr om, const std::string& name)
+Mission::Mission(const organization_model::OrganizationModel::Ptr& om, const std::string& name)
     : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
     , mpOrganizationModel(om)
     , mAsk(om)
     , mName(name)
 {}
+
+void Mission::setOrganizationModel(const organization_model::OrganizationModel::Ptr& organizationModel)
+{
+    mpOrganizationModel = organizationModel;
+    mAsk = organization_model::OrganizationModelAsk(organizationModel);
+}
 
 void Mission::setAvailableResources(const organization_model::ModelPool& modelPool)
 {

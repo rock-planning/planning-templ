@@ -35,9 +35,9 @@ protected:
     Mission(const std::string& name = "");
 
 public:
-    Mission(organization_model::OrganizationModel::Ptr om, const std::string& name = "");
+    Mission(const organization_model::OrganizationModel::Ptr& om, const std::string& name = "");
 
-    void setOrganizationModel(organization_model::OrganizationModel::Ptr organizationModel) { mpOrganizationModel = organizationModel; }
+    void setOrganizationModel(const organization_model::OrganizationModel::Ptr& organizationModel);
 
     /**
      * Set name for this mission
