@@ -5,6 +5,10 @@
 #include <templ/solvers/temporal/Chronicle.hpp>
 #include <templ/Mission.hpp>
 #include <organization_model/OrganizationModelAsk.hpp>
+#include <templ/solvers/csp/ModelDistribution.hpp>
+#include <templ/solvers/csp/RoleDistribution.hpp>
+#include <templ/solvers/csp/RoleTimeline.hpp>
+#include <templ/LocationTimepointTuple.hpp>
 
 /**
  * \mainpage TemPl -- A resource planner for missions with reconfigurable multi-robot systems
@@ -145,22 +149,44 @@ typedef std::vector<Mission> CandidateMissions;
 
 class MissionPlanner
 {
-    typedef std::map<symbols::StateVariable, std::vector< std::vector<symbols::StateVariable> >  >
-        StateVariableExpansionMap;
-
-    StateVariableExpansionMap mStateVariableExpansionMap;
-
 public:
-    MissionPlanner(const Mission& mission);
+    MissionPlanner(const Mission& mission, const organization_model::OrganizationModel::Ptr& organizationModel);
 
-    CandidateMissions solve();
+    ~MissionPlanner();
+
+    void execute();
+
+    void nextModelAssignment();
+    void nextRoleAssignment();
+
+    void computeRoleTimelines();
+    void computeTemporallyExpandedLocationNetwork();
+    void computeMinCostFlow();
+
+    // Save the intermediate results
+    void save(const std::string& dir = "/tmp") const;
 
 protected:
-    solvers::temporal::Chronicle::Ptr getCandidateChronicle();
-    void computeExpansion(const symbols::StateVariable& stateVariable);
-
     Mission mCurrentMission;
+    organization_model::OrganizationModel::Ptr mOrganizationModel;
     organization_model::OrganizationModelAsk mOrganizationModelAsk;
+    owlapi::model::OWLOntologyAsk mOntologyAsk;
+
+    solvers::csp::ModelDistribution* mModelDistribution;
+    solvers::csp::ModelDistribution::Solution mModelDistributionSolution;
+
+    solvers::csp::RoleDistribution* mRoleDistribution;
+    solvers::csp::RoleDistribution::Solution mRoleDistributionSolution;
+    std::map<Role, solvers::csp::RoleTimeline> mRoleTimelines;
+    uint32_t mCommodities;
+
+    typedef std::pair< templ::symbols::constants::Location::Ptr, templ::solvers::temporal::point_algebra::TimePoint::Ptr> LocationTimePointPair;
+    std::map< LocationTimePointPair, LocationTimepointTuple::Ptr > mTupleMap;
+
+
+    graph_analysis::BaseGraph::Ptr mSpaceTimeGraph;
+    graph_analysis::BaseGraph::Ptr mFlowGraph;
+
 };
 
 } // end namespace templ

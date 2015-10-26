@@ -171,6 +171,20 @@ RoleDistribution::SolutionList RoleDistribution::solve(const Mission& _mission, 
     return solutions;
 }
 
+RoleDistribution* RoleDistribution::nextSolution()
+{
+    Gecode::BAB<RoleDistribution> searchEngine(this);
+    //Gecode::DFS<RoleDistribution> searchEngine(this);
+
+    RoleDistribution* current = searchEngine.next();
+    if(current == NULL)
+    {
+        throw std::runtime_error("templ::solvers::csp::RoleDistribution::solve: no solution found");
+    } else {
+        return current;
+    }
+}
+
 RoleDistribution::Solution RoleDistribution::getSolution() const
 {
     Solution solution;

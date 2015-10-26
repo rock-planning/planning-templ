@@ -25,6 +25,7 @@ namespace csp {
  */
 class ModelDistribution : public Gecode::Space
 {
+    friend class templ::MissionPlanner;
 public:
     typedef std::map<FluentTimeResource, organization_model::ModelPool > Solution;
     typedef std::vector<Solution> SolutionList;
@@ -71,10 +72,6 @@ private:
     std::map<uint32_t, Gecode::TupleSet> mExtensionalConstraints;
 
 private:
-    /**
-     * Get the solution of this Gecode::Space instance
-     */
-    Solution getSolution() const;
 
     // TimeInterval -- Location (StateVariable) : associated robot models
     // pair(time_interval, location) -- map_to --> service requirements
@@ -113,6 +110,10 @@ private:
      */
     void compact(std::vector<FluentTimeResource>& requirements) const;
 protected:
+    /**
+     * Get the solution of this Gecode::Space instance
+     */
+    Solution getSolution() const;
 
 public:
     ModelDistribution(const templ::Mission& mission);
@@ -131,6 +132,11 @@ public:
     virtual Gecode::Space* copy(bool share);
 
     static SolutionList solve(const templ::Mission& mission);
+
+    /**
+     * Compute the next solution
+     */
+    ModelDistribution* nextSolution();
 
     std::string toString() const;
     void print(std::ostream& os) const { os << toString() << std::endl; }

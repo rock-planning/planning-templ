@@ -62,6 +62,8 @@ public:
 
     static SolutionList solve(const Mission& mission, const ModelDistribution::Solution& modelDistribution);
 
+    RoleDistribution* nextSolution();
+
     size_t getFluentIndex(const FluentTimeResource& fluent) const;
 
     const solvers::temporal::Interval& getInterval(size_t index) const { return mIntervals.at(index); }

@@ -338,6 +338,20 @@ Gecode::Space* ModelDistribution::copy(bool share)
     return new ModelDistribution(share, *this);
 }
 
+ModelDistribution* ModelDistribution::nextSolution()
+{
+    Gecode::BAB<ModelDistribution> searchEngine(this);
+    //Gecode::DFS<ModelDistribution> searchEngine(this);
+
+    ModelDistribution* current = searchEngine.next();
+    if(current == NULL)
+    {
+        throw std::runtime_error("templ::solvers::csp::ModelDistribution::solve: no solution found");
+    } else {
+        return current;
+    }
+}
+
 std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::Mission& _mission)
 {
     SolutionList solutions;
