@@ -184,6 +184,10 @@ protected:
     std::map< LocationTimePointPair, LocationTimepointTuple::Ptr > mTupleMap;
 
 
+    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> mTimepoints;
+    solvers::temporal::point_algebra::TimePointComparator mTimePointComparator;
+    std::vector<templ::symbols::constants::Location::Ptr> mLocations;
+
     graph_analysis::BaseGraph::Ptr mSpaceTimeGraph;
     graph_analysis::BaseGraph::Ptr mFlowGraph;
 

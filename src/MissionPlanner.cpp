@@ -12,6 +12,7 @@
 
 using namespace organization_model;
 using namespace templ::solvers::csp;
+namespace pa = templ::solvers::temporal::point_algebra;
 
 namespace templ {
 
@@ -22,9 +23,34 @@ MissionPlanner::MissionPlanner(const Mission& mission, const OrganizationModel::
             mission.getAvailableResources())
     , mOntologyAsk(mOrganizationModel->ontology())
     , mModelDistribution(0)
+    , mRoleDistribution(0)
 {
     mCurrentMission.setOrganizationModel(mOrganizationModel);
     mCurrentMission.prepare();
+
+    mLocations = mCurrentMission.getLocations();
+    mTimePointComparator = mCurrentMission.getTemporalConstraintNetwork();
+    mTimepoints = mCurrentMission.getTimepoints();
+    std::sort(mTimepoints.begin(), mTimepoints.end(), [this](const pa::TimePoint::Ptr& a, const pa::TimePoint::Ptr& b)
+            {
+                if(a == b)
+                {
+                    return false;
+                }
+
+                if( mTimePointComparator.lessThan(a,b) )
+                {
+                    return true;
+                }
+                return false;
+            }
+    );
+
+    std::vector<pa::TimePoint::Ptr>::const_iterator sit = mTimepoints.begin();
+    for(; sit != mTimepoints.end(); ++sit)
+    {
+        LOG_DEBUG_S << "Timepoint: " << (*sit)->toString() << std::endl;
+    }
 }
 
 MissionPlanner::~MissionPlanner()
@@ -44,6 +70,7 @@ void MissionPlanner::nextModelAssignment()
     mModelDistribution = solvedDistribution;
 
     mModelDistributionSolution = mModelDistribution->getSolution();
+    LOG_WARN_S << "Found model assignment: " << mModelDistributionSolution;
 }
 
 void MissionPlanner::nextRoleAssignment()
@@ -57,15 +84,16 @@ void MissionPlanner::nextRoleAssignment()
     delete mRoleDistribution;
     mRoleDistribution = solvedDistribution;
     mRoleDistributionSolution = mRoleDistribution->getSolution();
+    LOG_WARN_S << "Found role assignment: " << mRoleDistributionSolution;
 }
 
 void MissionPlanner::computeRoleTimelines()
 {
     // Compute the timelines per role for one role solution
-    std::map<Role, RoleTimeline> timelines = RoleTimeline::computeTimelines(mCurrentMission, mRoleDistributionSolution);
+    mRoleTimelines = RoleTimeline::computeTimelines(mCurrentMission, mRoleDistributionSolution);
 
-    std::map<Role, RoleTimeline>::iterator it = timelines.begin();
-    for(; it != timelines.end(); ++it)
+    std::map<Role, RoleTimeline>::iterator it = mRoleTimelines.begin();
+    for(; it != mRoleTimelines.end(); ++it)
     {
         const RoleTimeline& timeline = it->second;
         LOG_DEBUG_S << timeline.toString();
@@ -78,165 +106,138 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
     namespace pa = templ::solvers::temporal::point_algebra;
     namespace co = templ::symbols::constants;
 
+    // setup for new run
+    //
     BaseGraph::Ptr mSpaceTimeGraph = BaseGraph::getInstance();
     // Allow to find an existing tuple
     mTupleMap.clear();
-
+    // reset number of commodities
     mCommodities = 0;
+
+    std::vector<co::Location::Ptr>::const_iterator lit = mLocations.begin();
+    for(; lit != mLocations.end(); ++lit)
     {
+        LocationTimepointTuple::Ptr lastTuple;
 
-        std::vector<pa::TimePoint::Ptr> timepoints = mCurrentMission.getTimepoints();
-        pa::TimePointComparator tpc(mCurrentMission.getTemporalConstraintNetwork());
-        std::sort(timepoints.begin(), timepoints.end(), [&tpc](const pa::TimePoint::Ptr& a, const pa::TimePoint::Ptr& b)
-                {
-                    if(a == b)
-                    {
-                        return false;
-                    }
-
-                    if( tpc.lessThan(a,b) )
-                    {
-                        std::cout << a->toString() << " is less than " << b->toString() << std::endl;
-                        return true;
-                    }
-                    return false;
-                }
-        );
-
-        std::vector<pa::TimePoint::Ptr>::const_iterator sit = timepoints.begin();
-        for(; sit != timepoints.end(); ++sit)
+        std::vector<pa::TimePoint::Ptr>::const_iterator tit = mTimepoints.begin();
+        for(; tit != mTimepoints.end(); ++tit)
         {
-            std::cout << "Timepoint: " << (*sit)->toString() << std::endl;
-        }
+            LocationTimepointTuple::Ptr ltTuplePtr(new LocationTimepointTuple(*lit, *tit));
+            mSpaceTimeGraph->addVertex(ltTuplePtr);
+            mTupleMap[ LocationTimePointPair(*lit, *tit) ] = ltTuplePtr;
 
-        std::vector<co::Location::Ptr> locations = mCurrentMission.getLocations();
-
-
-        std::vector<co::Location::Ptr>::const_iterator lit = locations.begin();
-        for(; lit != locations.end(); ++lit)
-        {
-            LocationTimepointTuple::Ptr lastTuple;
-
-            std::vector<pa::TimePoint::Ptr>::const_iterator tit = timepoints.begin();
-            for(; tit != timepoints.end(); ++tit)
+            if(lastTuple)
             {
-                LocationTimepointTuple::Ptr ltTuplePtr(new LocationTimepointTuple(*lit, *tit));
-                mSpaceTimeGraph->addVertex(ltTuplePtr);
-                mTupleMap[ LocationTimePointPair(*lit, *tit) ] = ltTuplePtr;
-
-                if(lastTuple)
-                {
-                    WeightedEdge::Ptr edge(new WeightedEdge(lastTuple, ltTuplePtr, std::numeric_limits<WeightedEdge::value_t>::max()));
-                    mSpaceTimeGraph->addEdge(edge);
-                }
-                lastTuple = ltTuplePtr;
+                WeightedEdge::Ptr edge(new WeightedEdge(lastTuple, ltTuplePtr, std::numeric_limits<WeightedEdge::value_t>::max()));
+                mSpaceTimeGraph->addEdge(edge);
             }
+            lastTuple = ltTuplePtr;
         }
-
-        //{
-        //    std::string filename = "/tmp/space-time-graph.dot";
-        //    graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph);
-        //    std::cout << "Written temporally expanded graph to: " << filename << std::endl;
-        //    std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
-        //}
-        //{
-        //    if( mission.getTemporalConstraintNetwork()->isConsistent())
-        //    {
-        //        std::cout << "Network is consistent" << std::endl;
-        //    }
-        //    std::string filename = "/tmp/mission-temporally-constrained-network.dot";
-        //    graph_analysis::io::GraphIO::write(filename, mission.getTemporalConstraintNetwork()->getGraph());
-        //    std::cout << "Written temporal constraint network to: " << filename << std::endl;
-        //    std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
-        //}
-
-        // Per Role --> add capacities (in terms of capability of carrying a
-        // payload)
-        std::map<Role, RoleTimeline>::const_iterator rit = mRoleTimelines.begin();
-        for(; rit != mRoleTimelines.end(); ++rit)
-        {
-            // infer connections from timeline
-            // sequentially ordered timeline
-            // locations and timeline
-            // connection from (l0, i0_end) ---> (l1, i1_start)
-            //
-            const Role& role = rit->first;
-            RoleTimeline roleTimeline = rit->second;
-            roleTimeline.sortByTime();
-
-            // Check if this item is a payload -- WARNING: this is domain specific
-            owlapi::model::IRI payloadClass = owlapi::vocabulary::OM::resolve("Payload");
-            if(payloadClass == role.getModel() || mOntologyAsk.isSubClassOf(role.getModel(), owlapi::vocabulary::OM::resolve("Payload")))
-            {
-                LOG_DEBUG_S << "Delay handling of payload";
-                ++mCommodities;
-                continue;
-            } else {
-                LOG_DEBUG_S << "HANDLING: " << role.getModel() << " since it is not a " << payloadClass;
-            }
-
-            // infer capacity from role -- when robot is mobile / has
-            // transportCapacity
-            organization_model::facets::Robot robot(role.getModel(), mOrganizationModel);
-
-            uint32_t capacity = robot.getPayloadTransportCapacity();
-            LOG_DEBUG_S << "Role: " << role.toString() << std::endl
-                << "    transport capacity: " << capacity << std::endl;
-
-
-            namespace pa = templ::solvers::temporal::point_algebra;
-            pa::TimePoint::Ptr prevIntervalEnd;
-            co::Location::Ptr prevLocation;
-            LocationTimepointTuple::Ptr startTuple, endTuple;
-
-            //const std::vector<symbols::constants::Location::Ptr>& locations = roleTimeline.getLocations();
-            //const std::vector<solvers::temporal::Interval>& getIntervals = roleTimeline.getIntervals();
-            const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
-            std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
-            for(; fit != ftrs.end(); ++fit)
-            {
-                symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
-                solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
-
-                std::cout << "Location: " << location->toString() << " -- interval: " << interval.toString() << std::endl;
-
-                // create tuple if it does not exist, otherwise reuse
-                endTuple = mTupleMap[ LocationTimePointPair(location, interval.getFrom()) ];
-                endTuple->addRole(role);
-
-                // Find start node: Tuple of location  and interval.getFrom()
-                if(prevIntervalEnd)
-                {
-                    startTuple = mTupleMap[ LocationTimePointPair(prevLocation, prevIntervalEnd) ];
-                    startTuple->addRole(role);
-
-                    std::vector< WeightedEdge::Ptr > edges = mSpaceTimeGraph->getEdges<WeightedEdge>(startTuple, endTuple);
-                    if(edges.empty())
-                    {
-                        WeightedEdge::Ptr weightedEdge(new WeightedEdge(startTuple, endTuple, capacity));
-                        mSpaceTimeGraph->addEdge(weightedEdge);
-                    } else {
-                        if(edges.size() > 1)
-                        {
-                            throw std::runtime_error("MissionPlanner: multiple capacity edges detected");
-                        }
-
-                        WeightedEdge::Ptr& existingEdge = edges[0];
-                        double existingCapacity = existingEdge->getWeight();
-                        if(existingCapacity < std::numeric_limits<WeightedEdge::value_t>::max())
-                        {
-                            capacity += existingCapacity;
-                            existingEdge->setWeight(capacity, 0);
-                        }
-                    }
-                }
-
-                prevIntervalEnd = interval.getTo();
-                prevLocation = location;
-            }
-        }
-
     }
+
+    //{
+    //    std::string filename = "/tmp/space-time-graph.dot";
+    //    graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph);
+    //    std::cout << "Written temporally expanded graph to: " << filename << std::endl;
+    //    std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
+    //}
+    //{
+    //    if( mission.getTemporalConstraintNetwork()->isConsistent())
+    //    {
+    //        std::cout << "Network is consistent" << std::endl;
+    //    }
+    //    std::string filename = "/tmp/mission-temporally-constrained-network.dot";
+    //    graph_analysis::io::GraphIO::write(filename, mission.getTemporalConstraintNetwork()->getGraph());
+    //    std::cout << "Written temporal constraint network to: " << filename << std::endl;
+    //    std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
+    //}
+
+    // Per Role --> add capacities (in terms of capability of carrying a
+    // payload)
+    std::map<Role, RoleTimeline>::const_iterator rit = mRoleTimelines.begin();
+    for(; rit != mRoleTimelines.end(); ++rit)
+    {
+        // infer connections from timeline
+        // sequentially ordered timeline
+        // locations and timeline
+        // connection from (l0, i0_end) ---> (l1, i1_start)
+        //
+        const Role& role = rit->first;
+        RoleTimeline roleTimeline = rit->second;
+        roleTimeline.sortByTime();
+
+        // Check if this item is a payload -- WARNING: this is domain specific
+        owlapi::model::IRI payloadClass = owlapi::vocabulary::OM::resolve("Payload");
+        if(payloadClass == role.getModel() || mOntologyAsk.isSubClassOf(role.getModel(), owlapi::vocabulary::OM::resolve("Payload")))
+        {
+            LOG_DEBUG_S << "Delay handling of payload";
+            ++mCommodities;
+            continue;
+        } else {
+            LOG_DEBUG_S << "HANDLING: " << role.getModel() << " since it is not a " << payloadClass;
+        }
+
+        // infer capacity from role -- when robot is mobile / has
+        // transportCapacity
+        organization_model::facets::Robot robot(role.getModel(), mOrganizationModel);
+
+        uint32_t capacity = robot.getPayloadTransportCapacity();
+        LOG_DEBUG_S << "Role: " << role.toString() << std::endl
+            << "    transport capacity: " << capacity << std::endl;
+
+
+        namespace pa = templ::solvers::temporal::point_algebra;
+        pa::TimePoint::Ptr prevIntervalEnd;
+        co::Location::Ptr prevLocation;
+        LocationTimepointTuple::Ptr startTuple, endTuple;
+
+        //const std::vector<symbols::constants::Location::Ptr>& locations = roleTimeline.getLocations();
+        //const std::vector<solvers::temporal::Interval>& getIntervals = roleTimeline.getIntervals();
+        const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
+        std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
+        for(; fit != ftrs.end(); ++fit)
+        {
+            symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
+            solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
+
+            LOG_DEBUG_S << "Location: " << location->toString() << " -- interval: " << interval.toString();
+
+            // create tuple if it does not exist, otherwise reuse
+            endTuple = mTupleMap[ LocationTimePointPair(location, interval.getFrom()) ];
+            endTuple->addRole(role);
+
+            // Find start node: Tuple of location  and interval.getFrom()
+            if(prevIntervalEnd)
+            {
+                startTuple = mTupleMap[ LocationTimePointPair(prevLocation, prevIntervalEnd) ];
+                startTuple->addRole(role);
+
+                std::vector< WeightedEdge::Ptr > edges = mSpaceTimeGraph->getEdges<WeightedEdge>(startTuple, endTuple);
+                if(edges.empty())
+                {
+                    WeightedEdge::Ptr weightedEdge(new WeightedEdge(startTuple, endTuple, capacity));
+                    mSpaceTimeGraph->addEdge(weightedEdge);
+                } else {
+                    if(edges.size() > 1)
+                    {
+                        throw std::runtime_error("MissionPlanner: multiple capacity edges detected");
+                    }
+
+                    WeightedEdge::Ptr& existingEdge = edges[0];
+                    double existingCapacity = existingEdge->getWeight();
+                    if(existingCapacity < std::numeric_limits<WeightedEdge::value_t>::max())
+                    {
+                        capacity += existingCapacity;
+                        existingEdge->setWeight(capacity, 0);
+                    }
+                }
+            }
+
+            prevIntervalEnd = interval.getTo();
+            prevLocation = location;
+        }
+    }
+
 }
 
 void MissionPlanner::computeMinCostFlow()
@@ -381,6 +382,7 @@ void MissionPlanner::save(const std::string& dir) const
 {
     base::Time timestamp = base::Time::now();
 
+    if(mFlowGraph)
     {
         std::string filename = dir + "/mission-min-cost-flow-network-" + timestamp.toString();
         graph_analysis::io::GraphIO::write(filename, mFlowGraph, graph_analysis::representation::GRAPHVIZ);
@@ -388,6 +390,7 @@ void MissionPlanner::save(const std::string& dir) const
         LOG_INFO_S << "Written min-cost flow network: " << filename << std::endl;
     }
 
+    if(mSpaceTimeGraph)
     {
 
         std::string filename = dir + "/mission-space-time-network-" + timestamp.toString();
@@ -405,7 +408,8 @@ void MissionPlanner::execute()
     nextRoleAssignment();
 
     computeRoleTimelines();
-
+    computeTemporallyExpandedLocationNetwork();
+    computeMinCostFlow();
 }
 
 
