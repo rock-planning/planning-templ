@@ -20,7 +20,7 @@ MissionPlanner::MissionPlanner(const Mission& mission, const OrganizationModel::
     : mCurrentMission(mission)
     , mOrganizationModel(organizationModel)
     , mOrganizationModelAsk(mission.getOrganizationModel(),
-            mission.getAvailableResources())
+            mission.getAvailableResources(), /*functional saturation bound*/ true)
     , mOntologyAsk(mOrganizationModel->ontology())
     , mModelDistribution(0)
     , mModelDistributionSearchEngine(0)
