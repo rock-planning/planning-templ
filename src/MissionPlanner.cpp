@@ -157,8 +157,8 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
     {
         std::string filename = "/tmp/space-time-graph.dot";
         graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph);
-        std::cout << "Written temporally expanded graph to: " << filename << std::endl;
-        std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
+        LOG_INFO_S << "Written temporally expanded graph to: " << filename;
+        LOG_INFO_S << "(e.g. view with 'xdot " << filename << "'" << ")";
     }
     {
         if( mCurrentMission.getTemporalConstraintNetwork()->isConsistent())
@@ -167,8 +167,8 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
         }
         std::string filename = "/tmp/mission-temporally-constrained-network.dot";
         graph_analysis::io::GraphIO::write(filename, mCurrentMission.getTemporalConstraintNetwork()->getGraph());
-        std::cout << "Written temporal constraint network to: " << filename << std::endl;
-        std::cout << "(e.g. view with 'xdot " << filename << "'" << ")" << std::endl;
+        LOG_DEBUG_S << "Written temporal constraint network to: " << filename;
+        LOG_DEBUG_S << "(e.g. view with 'xdot " << filename << "'" << ")";
     }
 
     // Per Role --> add capacities (in terms of capability of carrying a
