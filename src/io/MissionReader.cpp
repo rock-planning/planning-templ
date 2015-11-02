@@ -251,8 +251,12 @@ Mission MissionReader::fromFile(const std::string& url)
                         mission.addTemporalConstraint(t0, t1, temporalConstraint.type);
                     } catch(const std::invalid_argument& e)
                     {
-                        LOG_WARN_S << "Unused timepoint exists in constraints -- ignoring" << std::endl
+                        LOG_WARN_S << "Unused timepoint exists in constraints" << std::endl
                             << "    detailled error: " << e.what();
+
+                        TimePoint::Ptr t0 = mission.getOrCreateTimePoint(temporalConstraint.lval);
+                        TimePoint::Ptr t1 = mission.getOrCreateTimePoint(temporalConstraint.rval);
+                        mission.addTemporalConstraint(t0, t1, temporalConstraint.type);
                     }
                 }
             } else if(nameMatches(firstLevelChild, "constants"))
