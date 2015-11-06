@@ -1,7 +1,9 @@
 #include <boost/test/unit_test.hpp>
+#include <base/Time.hpp>
 #include <numeric/Combinatorics.hpp>
 #include <templ/solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp>
 #include <templ/solvers/temporal/point_algebra/QualitativeTimePoint.hpp>
+#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
 
 using namespace templ::solvers;
 using namespace templ::solvers::temporal;
@@ -58,26 +60,69 @@ BOOST_AUTO_TEST_CASE(qualitative_constraints)
 
 BOOST_AUTO_TEST_CASE(qualitative_timepoints)
 {
-        using namespace templ::solvers::temporal::point_algebra;
-        
-        QualitativeTimePoint tp0("tp0");
-        QualitativeTimePoint tp1("tp1");
-        QualitativeTimePoint tp2("tp2");
+    using namespace templ::solvers::temporal::point_algebra;
+    QualitativeTimePoint tp0("tp0");
+    QualitativeTimePoint tp1("tp1");
+    QualitativeTimePoint tp2("tp2");
 
-        BOOST_REQUIRE_MESSAGE(tp0 != tp1, "Timepoints tp0 and tp1 are different");
-        BOOST_REQUIRE_MESSAGE(tp0 != tp2, "Timepoints tp0 and tp2 are different");
-        BOOST_REQUIRE_MESSAGE(tp1 != tp2, "Timepoints tp1 and tp2 are different");
+    BOOST_REQUIRE_MESSAGE(tp0 != tp1, "Timepoints tp0 and tp1 are different");
+    BOOST_REQUIRE_MESSAGE(tp0 != tp2, "Timepoints tp0 and tp2 are different");
+    BOOST_REQUIRE_MESSAGE(tp1 != tp2, "Timepoints tp1 and tp2 are different");
 
-        tp1.addAlias("tp3");
-        tp2.addAlias("tp3");
+    tp1.addAlias("tp3");
+    tp2.addAlias("tp3");
 
-        BOOST_REQUIRE_MESSAGE(tp0 != tp1, "Timepoints tp0 and tp1 are different");
-        BOOST_REQUIRE_MESSAGE(tp0 != tp2, "Timepoints tp0 and tp2 are different");
-        BOOST_REQUIRE_MESSAGE(tp1 == tp2, "Timepoints tp1 and tp2 are same due to same alias 'tp3'");
+    BOOST_REQUIRE_MESSAGE(tp0 != tp1, "Timepoints tp0 and tp1 are different");
+    BOOST_REQUIRE_MESSAGE(tp0 != tp2, "Timepoints tp0 and tp2 are different");
+    BOOST_REQUIRE_MESSAGE(tp1 == tp2, "Timepoints tp1 and tp2 are same due to same alias 'tp3'");
 }
 
-BOOST_AUTO_TEST_CASE(timepoint_comparator)
+BOOST_AUTO_TEST_CASE(consistency_check_performance)
 {
+    using namespace templ::solvers::temporal::point_algebra;
+
+    TemporalConstraintNetwork::Ptr tcn(new QualitativeTemporalConstraintNetwork());
+
+    QualitativeTimePoint::Ptr lastTp;
+    int i = 0;
+    for(; i < 10; ++i)
+    {
+        std::stringstream ss;
+        ss << "t" << i;
+        QualitativeTimePoint::Ptr tp(new QualitativeTimePoint(ss.str()));
+        if(lastTp)
+        {
+            tcn->addQualitativeConstraint(lastTp, tp, QTPC::Greater);
+            tcn->addQualitativeConstraint(tp, lastTp, QTPC::Less);
+        }
+
+        lastTp = tp;
+    }
+
+    {
+        base::Time start = base::Time::now();
+        bool consistent = tcn->isConsistent();
+        base::Time stop = base::Time::now() - start;
+        BOOST_REQUIRE_MESSAGE(consistent, "Temporal constraint network with " << i << " timepoints is consistent: computing time: " << stop.toSeconds());
+    }
+}
+
+BOOST_AUTO_TEST_CASE(inconsistency)
+{
+    using namespace templ::solvers::temporal::point_algebra;
+    TemporalConstraintNetwork::Ptr tcn(new QualitativeTemporalConstraintNetwork());
+
+    QualitativeTimePoint::Ptr t0(new QualitativeTimePoint("t0"));
+    QualitativeTimePoint::Ptr t1(new QualitativeTimePoint("t1"));
+    QualitativeTimePoint::Ptr t2(new QualitativeTimePoint("t2"));
+
+    tcn->addQualitativeConstraint(t0, t1, QTPC::Greater);
+    tcn->addQualitativeConstraint(t1, t2, QTPC::Greater);
+    tcn->addQualitativeConstraint(t2, t1, QTPC::Greater);
+    
+    bool consistent = tcn->isConsistent();
+    tcn->save("/tmp/test-point_algebra-inconsistency-test");
+    BOOST_REQUIRE_MESSAGE(!consistent, "Temporal constraint network is inconsistent");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

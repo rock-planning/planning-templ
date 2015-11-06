@@ -107,6 +107,12 @@ public:
      */
     int getEdgeNumber();
 
+    /**
+     * Save to file (dot and gexf will be used) -- suffix will be automatically
+     * appended
+     */
+    virtual void save(const std::string& filename) const;
+
 };
 
 } // end namespace temporal

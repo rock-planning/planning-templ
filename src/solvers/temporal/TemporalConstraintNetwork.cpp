@@ -1,6 +1,7 @@
 #include "TemporalConstraintNetwork.hpp"
 #include <graph_analysis/WeightedEdge.hpp>
 #include <graph_analysis/algorithms/FloydWarshall.hpp>
+#include <graph_analysis/GraphIO.hpp>
 
 using namespace templ::solvers::temporal::point_algebra;
 using namespace graph_analysis;
@@ -322,6 +323,12 @@ void TemporalConstraintNetwork::upperLowerTightening()
 int TemporalConstraintNetwork::getEdgeNumber()
 {
     return mpDistanceGraph->size();
+}
+
+void TemporalConstraintNetwork::save(const std::string& filename) const
+{
+    graph_analysis::io::GraphIO::write(filename, getGraph(), graph_analysis::representation::GRAPHVIZ);
+    graph_analysis::io::GraphIO::write(filename, getGraph(), graph_analysis::representation::GEXF);
 }
 
 } // end namespace temporal
