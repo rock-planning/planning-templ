@@ -39,6 +39,8 @@ public:
 
     virtual std::string toString() const;
 
+    void setType(QualitativeTimePointConstraint::Type type);
+
     Type getType() const { return mConstraintType; }
 
     static QualitativeTimePointConstraint::Ptr create(Variable::Ptr source, Variable::Ptr target, Type constraintType);
@@ -108,11 +110,16 @@ public:
     /// {>} \cup {<} \cup {>} = {P}
     static std::map< std::pair<Type,Type>, Type > TypeAlgebra;
 
+    static bool msInitializedCompositionTable;
+    static bool msInitializedSymmetryTable;
 protected:
     virtual graph_analysis::Edge* getClone() const { return new QualitativeTimePointConstraint(*this); }
 
 private:
     Type mConstraintType;
+
+    static QualitativeTimePointConstraint::Type msCompositionTable[8][8];
+    static QualitativeTimePointConstraint::Type msSymmetryTable[8];
 };
 
 } // end namespace point_algebra

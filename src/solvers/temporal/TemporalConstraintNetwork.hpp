@@ -79,7 +79,7 @@ public:
     /**
      * \brief Compute the minimal network of a simple temporal network using the shortest-path algorithm (Floyd-Warshall)
      */
-    void minNetwork();
+    virtual void minNetwork();
 
     /**
      * \brief Check if temporal constraint network has an equal DistanceGraph

@@ -531,7 +531,7 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
                 metricDefinition = true;
             } catch(const std::exception& e)
             {
-                LOG_INFO_S << "Metric location information: " << e.what();
+                LOG_DEBUG_S << "Failed to extract metric location information: " << e.what();
             }
 
             if(!metricDefinition)

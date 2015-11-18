@@ -96,6 +96,12 @@ void Mission::prepare()
     using namespace solvers::temporal;
 
     validateAvailableResources();
+    if(mpTemporalConstraintNetwork->isConsistent())
+    {
+        mpTemporalConstraintNetwork->save("/tmp/mission-tcn-consistent");
+    } else {
+        throw std::runtime_error("templ::Mission: provided temporal constraint network is not consistent");
+    }
 
     std::vector<PersistenceCondition::Ptr>::const_iterator cit =  mPersistenceConditions.begin();
     for(;cit != mPersistenceConditions.end(); ++cit)
@@ -203,13 +209,16 @@ void Mission::addConstraint(const symbols::StateVariable& stateVariable,
         const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
         const solvers::temporal::point_algebra::TimePoint::Ptr& toTp)
 {
+    LOG_DEBUG_S << "Adding spatio-temporal constraint: " << stateVariable.toString()
+        << " " << objectVariable->toString() << "@[" << fromTp->toString() << "--" << toTp->toString() <<"]";
     using namespace solvers::temporal;
     PersistenceCondition::Ptr persistenceCondition = PersistenceCondition::getInstance(stateVariable,
             objectVariable,
             fromTp,
             toTp);
 
-    mpTemporalConstraintNetwork->addQualitativeConstraint(fromTp, toTp, pa::QualitativeTimePointConstraint::LessOrEqual);
+    LOG_DEBUG_S << "Adding implicitly defined temporal constraint for time interval";
+    mpTemporalConstraintNetwork->addQualitativeConstraint(fromTp, toTp, pa::QualitativeTimePointConstraint::Less);
     mPersistenceConditions.push_back(persistenceCondition);
 }
 
@@ -217,6 +226,7 @@ void Mission::addTemporalConstraint(const pa::TimePoint::Ptr& t1,
         const pa::TimePoint::Ptr& t2,
         pa::QualitativeTimePointConstraint::Type constraint)
 {
+    LOG_DEBUG_S << "Adding temporal constraint: " << t1->toString() << " --> " << t2->toString() << pa::QualitativeTimePointConstraint::TypeTxt[constraint];
     mpTemporalConstraintNetwork->addQualitativeConstraint(t1, t2, constraint);
 }
 

@@ -20,11 +20,18 @@ class QualitativeTemporalConstraintNetwork : public TemporalConstraintNetwork
 {
 public:
     typedef boost::shared_ptr<QualitativeTemporalConstraintNetwork> Ptr;
+    typedef std::pair<graph_analysis::Vertex::Ptr, graph_analysis::Vertex::Ptr> VertexPair;
 
     /**
      * Default constructor
      */
     QualitativeTemporalConstraintNetwork();
+
+    /**
+     * Create a complete graph, i.e., where empty edges are filled by
+     * symmetrical constraints or the universal constraint
+     */
+    QualitativeTemporalConstraintNetwork::Ptr complete();
 
     /**
      * Get the known and consolidated qualitative constraint between two timepoints
@@ -75,8 +82,14 @@ public:
      */
     point_algebra::QualitativeTimePointConstraint::Type getBidirectionalConstraintType(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1) const;
 
+    bool incrementalPathConsistency();
+
+    point_algebra::QualitativeTimePointConstraint::Type composition(const graph_analysis::Vertex::Ptr& i, const graph_analysis::Vertex::Ptr& j, const graph_analysis::Vertex::Ptr& k);
+
+    VertexPair revise(const graph_analysis::Vertex::Ptr& i, const graph_analysis::Vertex::Ptr& j, point_algebra::QualitativeTimePointConstraint::Type pathConstraintType);
+
+
 private:
-    typedef std::pair<graph_analysis::Vertex::Ptr, graph_analysis::Vertex::Ptr> VertexPair;
     typedef std::map< VertexPair, point_algebra::QualitativeTimePointConstraint::Type> ConstraintCache;
 
     /**
@@ -86,16 +99,7 @@ private:
      */
     bool isConsistent(const std::vector<graph_analysis::Edge::Ptr>& edges);
 
-    point_algebra::QualitativeTimePointConstraint::Type updateConstraintCache(const graph_analysis::Vertex::Ptr& v1, const graph_analysis::Vertex::Ptr& v2, point_algebra::QualitativeTimePointConstraint::Type constraint);
-
-    bool constraintUpdated(const VertexPair& pair) const { return mUpdatedConstraints.end() != std::find(mUpdatedConstraints.begin(), mUpdatedConstraints.end(), pair); }
-
-    ConstraintCache mCompositionConstraints;
-    std::vector<VertexPair> mCurrentUpdatedConstraints;
     std::vector<VertexPair> mUpdatedConstraints;
-    bool mConsistencyChecked;
-
-    uint32_t mTriangleCheckCount;
 };
 
 } // end namespace temporal
