@@ -166,6 +166,11 @@ public:
     // Save the intermediate results
     void save(const std::string& markerLabel = "", const std::string& dir = "/tmp") const;
 
+    // INHERENT PREDICATES
+    //
+    // Check if given role refers to mobile system
+    bool isMobile(const Role& role) const;
+
 protected:
     Mission mCurrentMission;
     organization_model::OrganizationModel::Ptr mOrganizationModel;
