@@ -16,7 +16,7 @@ Role::Role(const std::string& name, const owlapi::model::IRI& model)
 std::string Role::toString() const
 {
     std::stringstream ss;
-    ss << "Role: " << mName << " (" << mModel.toString() << ")";
+    ss << "Role: " << mName << " (" << mModel.getFragment() << ")";
     return ss.str();
 }
 
