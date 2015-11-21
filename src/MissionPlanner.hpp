@@ -9,6 +9,7 @@
 #include <templ/solvers/csp/RoleDistribution.hpp>
 #include <templ/solvers/csp/RoleTimeline.hpp>
 #include <templ/LocationTimepointTuple.hpp>
+#include <graph_analysis/algorithms/MultiCommodityMinCostFlow.hpp>
 
 /**
  * \mainpage TemPl -- A resource planner for missions with reconfigurable multi-robot systems
@@ -161,15 +162,10 @@ public:
 
     void computeRoleTimelines();
     void computeTemporallyExpandedLocationNetwork();
-    void computeMinCostFlow();
+    std::vector<graph_analysis::algorithms::ConstraintViolation> computeMinCostFlow();
 
     // Save the intermediate results
     void save(const std::string& markerLabel = "", const std::string& dir = "/tmp") const;
-
-    // INHERENT PREDICATES
-    //
-    // Check if given role refers to mobile system
-    bool isMobile(const Role& role) const;
 
 protected:
     Mission mCurrentMission;

@@ -67,6 +67,11 @@ public:
     size_t getFluentIndex(const FluentTimeResource& fluent) const;
 
     const solvers::temporal::Interval& getInterval(size_t index) const { return mIntervals.at(index); }
+
+    /**
+     * Enforce a role to be distinct for two requirements
+     */
+    void distinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& model);
 };
 
 std::ostream& operator<<(std::ostream& os, const RoleDistribution::Solution& solution);

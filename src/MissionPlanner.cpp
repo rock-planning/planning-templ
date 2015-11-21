@@ -4,7 +4,6 @@
 
 #include <graph_analysis/WeightedEdge.hpp>
 #include <graph_analysis/GraphIO.hpp>
-#include <graph_analysis/algorithms/MultiCommodityMinCostFlow.hpp>
 #include <limits>
 
 #include <owlapi/Vocabulary.hpp>
@@ -34,6 +33,7 @@ MissionPlanner::MissionPlanner(const Mission& mission, const OrganizationModel::
 
     mLocations = mCurrentMission.getLocations();
     mTimePointComparator = mCurrentMission.getTemporalConstraintNetwork();
+    mCurrentMission.getTemporalConstraintNetwork()->save("/tmp/mission-planner-0-initial-temporal-constraint-network");
     mTimepoints = mCurrentMission.getTimepoints();
     std::sort(mTimepoints.begin(), mTimepoints.end(), [this](const pa::TimePoint::Ptr& a, const pa::TimePoint::Ptr& b)
             {
@@ -44,6 +44,7 @@ MissionPlanner::MissionPlanner(const Mission& mission, const OrganizationModel::
 
                 if( mTimePointComparator.lessThan(a,b) )
                 {
+                    LOG_WARN_S << "Timepoint " << a->toString() << " is lessThan " << b->toString();
                     return true;
                 }
                 return false;
@@ -55,7 +56,6 @@ MissionPlanner::MissionPlanner(const Mission& mission, const OrganizationModel::
     {
         LOG_WARN_S << "Timepoint: " << (*sit)->toString() << std::endl;
     }
-    exit(0);
 }
 
 MissionPlanner::~MissionPlanner()
@@ -197,7 +197,8 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
         // Check if this item is a payload -- WARNING: this is domain specific
         // TODO: infer capacity from role -- when robot is mobile / has
         // transportCapacity
-        if(isMobile(role))
+        organization_model::facets::Robot robot(role.getModel(), mOrganizationModelAsk);
+        if(!robot.isMobile())
         {
             LOG_DEBUG_S << "Delay handling of immobile system: " << role.getModel();
             ++mCommodities;
@@ -206,7 +207,6 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
             LOG_DEBUG_S << "Add capacity for mobile system: " << role.getModel();
         }
 
-        organization_model::facets::Robot robot(role.getModel(), mOrganizationModel);
         uint32_t capacity = robot.getPayloadTransportCapacity();
         LOG_DEBUG_S << "Role: " << role.toString() << std::endl
             << "    transport capacity: " << capacity << std::endl;
@@ -264,7 +264,7 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
 
 }
 
-void MissionPlanner::computeMinCostFlow()
+std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::computeMinCostFlow()
 {
     using namespace graph_analysis;
     using namespace graph_analysis::algorithms;
@@ -334,7 +334,8 @@ void MissionPlanner::computeMinCostFlow()
         const Role& role = rit->first;
         const RoleTimeline& roleTimeline = rit->second;
 
-        if(isMobile(role))
+        organization_model::facets::Robot robot(role.getModel(), mOrganizationModelAsk);
+        if(!robot.isMobile())
         {
             commodityRoles.push_back(role);
             size_t commodityId = commodityRoles.size() - 1;
@@ -366,7 +367,7 @@ void MissionPlanner::computeMinCostFlow()
                     multicommodityVertex->setCommoditySupply(commodityId, -1);
                 } else { // intermediate ones
                     // set minimum flow that needs to go through this node
-                    multicommodityVertex->setMinCommodityTransFlow(commodityId, 1);
+                    multicommodityVertex->setCommodityMinTransFlow(commodityId, 1);
                 }
                 previous = vertex;
             }
@@ -375,9 +376,11 @@ void MissionPlanner::computeMinCostFlow()
     }
 
     MultiCommodityMinCostFlow minCostFlow(mFlowGraph, mCommodities);
+    graph_analysis::io::GraphIO::write("/tmp/mission-planner-min-cost-flow-init.dot", mFlowGraph);
     uint32_t cost = minCostFlow.run();
     LOG_DEBUG_S << "Ran flow optimization: min cost: " << cost << std::endl;
     minCostFlow.storeResult();
+    graph_analysis::io::GraphIO::write("/tmp/mission-planner-min-cost-flow-result.dot", mFlowGraph);
 
     LOG_DEBUG_S << "Update after flow optimization" << std::endl;
     {
@@ -405,6 +408,48 @@ void MissionPlanner::computeMinCostFlow()
             }
         }
     }
+
+    std::vector<ConstraintViolation> violations = minCostFlow.validateInflow();
+    std::vector<ConstraintViolation>::const_iterator vit = violations.begin();
+    for(; vit != violations.end(); ++vit)
+    {
+        const ConstraintViolation& violation = *vit;
+        const Role& affectedRole = commodityRoles[violation.getCommodity()];
+
+        LOG_WARN_S << "Commodity flow violation: " << violation.toString();
+        LOG_WARN_S << "Violation for " << affectedRole.toString() << " -- at: " 
+            << commodityToSpace[violation.getVertex()]->toString();
+
+        if(violation.getType() == ConstraintViolation::TransFlow)
+        {
+            LocationTimepointTuple::Ptr tuple = boost::dynamic_pointer_cast<LocationTimepointTuple>(commodityToSpace[violation.getVertex()]);
+
+            const RoleTimeline& roleTimeline = mRoleTimelines[affectedRole];
+            const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
+            std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
+            for(; fit != ftrs.end(); ++fit)
+            {
+                symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
+                solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
+
+                if(location == tuple->first() && interval.getFrom() == tuple->second())
+                {
+                    LOG_WARN_S << "Found violation in timeline: enforce distiction on timeline for: " << affectedRole.toString()
+                        << " between " << std::endl
+                        << (*fit).toString() << " and " << (*(fit+1)).toString();
+                    mRoleDistribution->distinct(*fit, *(fit+1), affectedRole.getModel());
+                    delete mRoleDistributionSearchEngine;
+                    mRoleDistributionSearchEngine = new Gecode::BAB<RoleDistribution>(mRoleDistribution);
+                }
+            }
+        }
+    }
+    for(int i = 0; i < commodityRoles.size(); ++i)
+    {
+        LOG_WARN_S << "#" << i << " --> " << commodityRoles[i].toString();
+    }
+   
+    return violations;
 }
 
 void MissionPlanner::save(const std::string& markerLabel, const std::string& dir) const
@@ -428,6 +473,7 @@ void MissionPlanner::save(const std::string& markerLabel, const std::string& dir
     }
 }
 
+//std::vector<Flaw> MissionPlanner::execute(uint32_t maxIterations)
 void MissionPlanner::execute(uint32_t maxIterations)
 {
     std::cout << "Execution of planner started" << std::endl;
@@ -438,27 +484,29 @@ void MissionPlanner::execute(uint32_t maxIterations)
         {
             computeRoleTimelines();
             computeTemporallyExpandedLocationNetwork();
-            computeMinCostFlow();
-
-            std::stringstream ss;
-            ss << "solution-#" << iteration;
-            save(ss.str());
-            ++iteration;
-
+            std::vector<graph_analysis::algorithms::ConstraintViolation> violations = computeMinCostFlow();
+            if(violations.empty())
+            {
+                std::stringstream ss;
+                ss << "solution-#" << iteration;
+                save(ss.str());
+                ++iteration;
+                break;
+            } else {
+                std::cout << "violation of constraints: " << violations.size() << std::endl;
+                //std::vector<Flaw> flaws;
+                //std::vector<ConstraintViolation>::const_iterator vit = violations.begin();
+                //for(; vit != violations.end(); ++vit)
+                //{
+                //    vit
+                //}
+                //return flaws;
+            }
         } else {
             continue;
         }
     }
     std::cout << "Solutions found: " << iteration << std::endl;
 }
-
-bool MissionPlanner::isMobile(const Role& role) const
-{
-    //TODO: truely check for mobile system
-    owlapi::model::IRI payloadClass = owlapi::vocabulary::OM::resolve("Payload");
-    return (payloadClass == role.getModel() || mOntologyAsk.isSubClassOf(role.getModel(), owlapi::vocabulary::OM::resolve("Payload")));
-}
-
-
 
 } // end namespace templ

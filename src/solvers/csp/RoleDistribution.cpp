@@ -257,6 +257,32 @@ std::ostream& operator<<(std::ostream& os, const RoleDistribution::SolutionList&
     return os;
 }
 
+void RoleDistribution::distinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& roleModel)
+{
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mRequirements.size());
+
+    for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
+    {
+        const Role& role = mRoles[roleIndex];
+        if(role.getModel() == roleModel);
+        {
+            Gecode::IntVarArgs args;
+            {
+                size_t fluent = getFluentIndex(fts0);
+                Gecode::IntVar v = roleDistribution(roleIndex, fluent);
+                args << v;
+            }
+            {
+                size_t fluent = getFluentIndex(fts1);
+                Gecode::IntVar v = roleDistribution(roleIndex, fluent);
+                args << v;
+            }
+
+            rel(*this, sum(args) <= 1);
+        }
+    }
+}
+
 } // end namespace csp
 } // end namespace solvers
 } // end namespace templ

@@ -1,5 +1,6 @@
 #include "QualitativeTimePointConstraint.hpp"
 #include <boost/assign/list_of.hpp>
+#include <base/Logging.hpp>
 
 namespace templ {
 namespace solvers {
@@ -141,12 +142,12 @@ QualitativeTimePointConstraint::Type QualitativeTimePointConstraint::getSymmetri
     {
         for(int i = 0; i < (int) TypeEndMarker; ++i)
         {
-
-            std::map<Type, Type>::const_iterator cit = SymmetricType.find((Type) type);
+            std::map<Type, Type>::const_iterator cit = SymmetricType.find((Type) i);
             if(cit == SymmetricType.end())
             {
                 throw std::runtime_error("QualitativeTimePointConstraint::getSymmetric: no symmetric type defined");
             }
+
             msSymmetryTable[i] = cit->second;
         }
 

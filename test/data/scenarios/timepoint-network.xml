@@ -1,0 +1,45 @@
+<mission>
+<name>TransTerrA</name>
+<description>    
+    All resources are available at the starting position: lander.
+    Payloads are required at two locations: b1, b2, were two mobile systems
+    are expected as well.
+
+</description>
+<resources>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+        <maxCardinality>1</maxCardinality>
+    </resource>
+</resources>
+<constants>
+    <location>
+        <id>lander</id>
+        <radius>moon</radius>
+        <latitude>-83.82009</latitude>
+        <longitude>87.53932</longitude>
+    </location>
+</constants>
+<requirements>
+</requirements>
+<constraints>
+    <temporal-constraints>
+        <greaterThan lval="t2" rval="t1" />
+        <greaterThan lval="t3" rval="t2" />
+        <greaterThan lval="t4" rval="t3" />
+        <greaterThan lval="t5" rval="t4" />
+        <greaterThan lval="t6" rval="t5" />
+        <greaterThan lval="t7" rval="t6" />
+        <greaterThan lval="t8" rval="t7" />
+        <greaterThan lval="t9" rval="t8" />
+        <greaterThan lval="t10" rval="t9" />
+        <greaterThan lval="t11" rval="t10" />
+        <greaterThan lval="t12" rval="t11" />
+        <greaterThan lval="t13" rval="t12" />
+        <greaterThan lval="t14" rval="t13" />
+    </temporal-constraints>
+</constraints>
+
+</mission>
+
+

@@ -1,7 +1,7 @@
 <mission>
 <name>TransTerrA</name>
 <description>    
-    All resources are availabe at the starting position: lander.
+    All resources are available at the starting position: lander.
     Payloads are required at two locations: b1, b2, were two mobile systems
     are expected as well.
 
@@ -9,23 +9,23 @@
 <resources>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
-        <maxCardinality>100</maxCardinality>
+        <maxCardinality>3</maxCardinality>
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#CREX</model>
-        <maxCardinality>100</maxCardinality>
+        <maxCardinality>2</maxCardinality>
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
-        <maxCardinality>100</maxCardinality>
+        <maxCardinality>3</maxCardinality>
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-        <maxCardinality>100</maxCardinality>
+        <maxCardinality>10</maxCardinality>
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#BaseCamp</model>
-        <maxCardinality>500</maxCardinality>
+        <maxCardinality>5</maxCardinality>
     </resource>
 </resources>
 <constants>
@@ -177,13 +177,35 @@
 
         <!-- what is required at this very position -->
         <service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LogisticHub</service>
             <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
             <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
         </service-requirement>
         <resource-requirement>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-                <minCardinality>5</minCardinality>
+                <minCardinality>3</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement>
+        <spatial-requirement>
+            <location>
+                <id>b1</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t4</from>
+            <to>t7</to>
+        </temporal-requirement>
+        <!--<service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</service>
+        </service-requirement>-->
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#BaseCamp</model>
+                <minCardinality>1</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>

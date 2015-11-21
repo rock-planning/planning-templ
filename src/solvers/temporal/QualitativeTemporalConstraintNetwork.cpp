@@ -98,6 +98,11 @@ QualitativeTimePointConstraint::Ptr QualitativeTemporalConstraintNetwork::addQua
         // timepoints not yet registered
     }
 
+    if(constraintType == QualitativeTimePointConstraint::Empty)
+    {
+        throw std::runtime_error("FAILURE");
+    }
+
     QualitativeTimePointConstraint::Ptr constraint = QualitativeTimePointConstraint::create(t1, t2, constraintType);
     LOG_DEBUG_S << "Adding QualitativeTimePointConstraint: " << constraint->toString();
     TemporalConstraintNetwork::addConstraint(constraint);
@@ -120,72 +125,6 @@ bool QualitativeTemporalConstraintNetwork::isConsistent()
     {
         return false;
     }
-
-    
-//    using namespace graph_analysis;
-//
-//    // Path consistency
-//    // if there is no constraint between two variables, we assume the
-//    // universal constraint
-//
-//    // Iterate over all node triples
-//    std::vector<Vertex::Ptr> vertices = getGraph()->getAllVertices();
-//    LOG_DEBUG_S << "Vertices in STN: " << vertices.size();
-//    switch(vertices.size())
-//    {
-//        case 0:
-//        case 1:
-//            return true;
-//        case 2:
-//            return isConsistent(vertices[0], vertices[1]);
-//        default:
-//            break;
-//    }
-//
-//    int iterations = 0;
-//    base::Time start = base::Time::now();
-//
-//    bool updated = false;
-//    do
-//    {
-//        updated = false;
-//        int k = 0;
-//        for(; k < vertices.size(); ++k)
-//        {
-//            for(int i = 0; i <= k - 1; ++i)
-//            {
-//                for(int j = i+1; j <= k; ++j)
-//                {
-//                    QualitativeTimePointConstraint::Type ij = getBidirectionalConstraintType(vertices[i], vertices[j]);
-//                    QualitativeTimePointConstraint::Type ik = getBidirectionalConstraintType(vertices[i], vertices[k]);
-//                    QualitativeTimePointConstraint::Type kj = getBidirectionalConstraintType(vertices[k], vertices[j]);
-//
-//                    QualitativeTimePointConstraint::Type ij_composition = QualitativeTimePointConstraint::getComposition(ik,kj);
-//
-//                    QualitativeTimePointConstraint::Type compositionType = QualitativeTimePointConstraint::getIntersection(ij, ij_composition);
-//
-//                    std::vector<Edge::Ptr> edges = getGraph()->getEdges(vertices[i], vertices[j]);
-//                    if(!edges.empty())
-//                    {
-//
-//                        QualitativeTimePointConstraint::Ptr constraint = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edges[0]);
-//                        if(constraint->getType() != compositionType)
-//                        {
-//                            constraint->setType(compositionType);
-//                            updated = true;
-//                        }
-//                    }
-//
-//                }
-//            }
-//        }
-//
-//        ++iterations;
-//    } while(updated);
-//
-//    LOG_WARN_S << "Iterations: " << iterations;
-//    LOG_WARN_S << "Time: " << (base::Time::now() - start).toSeconds();
-//    return true;
 }
 
 bool QualitativeTemporalConstraintNetwork::incrementalPathConsistency()
@@ -207,6 +146,7 @@ bool QualitativeTemporalConstraintNetwork::incrementalPathConsistency()
 
             if(k == i || k == j || i == j)
             {
+                // not a triangle thus continue
                 continue;
             }
 
@@ -226,7 +166,9 @@ bool QualitativeTemporalConstraintNetwork::incrementalPathConsistency()
                 LOG_WARN_S << "Updated constraint for " << j->toString() << " -- " << k->toString();
                 mUpdatedConstraints.push_back(jk);
             }
+            VertexPair ij = revise(i, j, composition(i,k,j));
         }
+
         LOG_WARN_S << "Incremental path consistency iteration #" << ++count;
     }
 
@@ -248,7 +190,7 @@ QualitativeTemporalConstraintNetwork::VertexPair QualitativeTemporalConstraintNe
     QualitativeTimePointConstraint::Type ij = QualitativeTemporalConstraintNetwork::getBidirectionalConstraintType(i,j);
     QualitativeTimePointConstraint::Type intersectionType = QualitativeTimePointConstraint::getIntersection(ij, pathConstraintType);
     
-    LOG_WARN_S << "Revise: " << QualitativeTimePointConstraint::TypeTxt[pathConstraintType] << ":  and bidirectional: " << QualitativeTimePointConstraint::TypeTxt[ij] << " --> " 
+    LOG_DEBUG_S << "Revise: " << QualitativeTimePointConstraint::TypeTxt[pathConstraintType] << ":  and bidirectional: " << QualitativeTimePointConstraint::TypeTxt[ij] << " --> " 
         << QualitativeTimePointConstraint::TypeTxt[intersectionType];
 
     if(intersectionType == QualitativeTimePointConstraint::Empty)
@@ -416,6 +358,10 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getDi
 
     std::vector<Edge::Ptr> edgesIJ = getGraph()->getEdges(i, j);
     QualitativeTimePointConstraint::Type constraintTypeIJ = QualitativeTimePointConstraint::Universal;
+    if(edgesIJ.empty())
+    {
+        LOG_WARN_S << "NO edge between: " << i->toString() << " and " << j->toString();
+    }
 
     std::vector<Edge::Ptr>::const_iterator eit = edgesIJ.begin();
     for(; eit != edgesIJ.end(); ++eit)
@@ -429,7 +375,7 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getDi
         QualitativeTimePointConstraint::Type constraintType = constraint->getType();
         QualitativeTimePointConstraint::Type constraintIntersectionType = QualitativeTimePointConstraint::getIntersection(constraintTypeIJ, constraintType);
 
-        LOG_DEBUG_S << "Intersection between: " << i->toString() << " and " << j->toString() << std::endl
+        LOG_DEBUG_S << "Intersection of constraints from: " << i->toString() << " to " << j->toString() << std::endl
             << "    " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ]
             << " and " << QualitativeTimePointConstraint::TypeTxt[constraintType]
             << " --> " << QualitativeTimePointConstraint::TypeTxt[constraintIntersectionType];
@@ -449,23 +395,27 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getBi
     }
 
     QualitativeTimePointConstraint::Type constraintTypeIJ = getDirectionalConstraintType(i,j);
-    QualitativeTimePointConstraint::Type constraintTypeJI = QualitativeTimePointConstraint::getSymmetric( getDirectionalConstraintType(j,i) );
+    QualitativeTimePointConstraint::Type constraintTypeJI = getDirectionalConstraintType(j,i);
 
-    if(!QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, constraintTypeJI))
+    QualitativeTimePointConstraint::Type constraintTypeJI_sym = QualitativeTimePointConstraint::getSymmetric(constraintTypeJI);
+
+    LOG_DEBUG_S << "IJ: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << " and JI" << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI] << " (JI' " << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI_sym];
+
+    if(!QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, constraintTypeJI_sym))
     {
         LOG_DEBUG_S << "IJ symmetry assumption does not hold" <<
-            " ij: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << " vs. ji " << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI];
+            " ij: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << " vs. ji' " << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI_sym];
         throw std::runtime_error("QualitativeTimePointConstraint::getBidirectionalConstraintType: IJ - JI with inconsistent constraints: '" + i->toString() + "' - '" + j->toString());
     }
 
     LOG_INFO_S << "Checking bidirectional type for: " << i->toString() << " -- " << j->toString();
-    QualitativeTimePointConstraint::Type compositionType = QualitativeTimePointConstraint::getIntersection(constraintTypeIJ, constraintTypeJI);
+    QualitativeTimePointConstraint::Type intersectionType = QualitativeTimePointConstraint::getIntersection(constraintTypeIJ, constraintTypeJI_sym);
 
     LOG_DEBUG_S << "Intersection of IJ (" << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << ")"
-        << " and JI' (symmetric IJ) (" << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI] << ")"
-        << " --> " << QualitativeTimePointConstraint::TypeTxt[compositionType];
+        << " and JI' (symmetric IJ) (" << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI_sym] << ")"
+        << " --> " << QualitativeTimePointConstraint::TypeTxt[intersectionType];
 
-    return compositionType;
+    return intersectionType;
 }
 
 } // end namespace temporal

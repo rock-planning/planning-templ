@@ -31,6 +31,9 @@ BOOST_AUTO_TEST_CASE(symmetric)
 {
     using namespace templ::solvers::temporal::point_algebra;
 
+    BOOST_REQUIRE_MESSAGE(QualitativeTimePointConstraint::getSymmetric(QTPC::Greater) == QualitativeTimePointConstraint::Less, "Greater symmetric to less");
+    BOOST_REQUIRE_MESSAGE(QualitativeTimePointConstraint::getSymmetric(QTPC::Less) == QualitativeTimePointConstraint::Greater, "Greater symmetric to less");
+
     base::Time start = base::Time::now();
     int i = 0;
     for(; i < 1000; ++i)
