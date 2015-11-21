@@ -4,6 +4,7 @@
 #include <gecode/set.hh>
 #include <gecode/search.hh>
 #include <base/Logging.hpp>
+#include <numeric/Combinatorics.hpp>
 
 namespace templ {
 namespace solvers {
@@ -257,7 +258,7 @@ std::ostream& operator<<(std::ostream& os, const RoleDistribution::SolutionList&
     return os;
 }
 
-void RoleDistribution::distinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& roleModel)
+void RoleDistribution::allDistinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& roleModel)
 {
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mRequirements.size());
 
@@ -281,6 +282,88 @@ void RoleDistribution::distinct(const FluentTimeResource& fts0, const FluentTime
             rel(*this, sum(args) <= 1);
         }
     }
+}
+
+void RoleDistribution::minDistinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& roleModel, uint32_t minDistinctRoles)
+{
+    std::vector<size_t> indices;
+    for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
+    {
+        const Role& role = mRoles[roleIndex];
+        if(role.getModel() == roleModel);
+        {
+            indices.push_back(roleIndex);
+        }
+    }
+
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mRequirements.size());
+    numeric::Combination<size_t> combinations(indices, minDistinctRoles, numeric::EXACT);
+    do {
+        std::vector<size_t> indexVector = combinations.current();
+        Gecode::IntVarArgs args;
+        for(size_t m = 0; m < minDistinctRoles; ++m)
+        {
+            size_t roleIndex = indexVector[m];
+            {
+                size_t fluent = getFluentIndex(fts0);
+                Gecode::IntVar v = roleDistribution(roleIndex, fluent);
+                args << v;
+            }
+            {
+                size_t fluent = getFluentIndex(fts1);
+                Gecode::IntVar v = roleDistribution(roleIndex, fluent);
+                args << v;
+            }
+        }
+        rel(*this, sum(args) <= minDistinctRoles);
+    } while(combinations.next());
+}
+
+void RoleDistribution::addDistinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& roleModel, uint32_t additional, const Solution& solution)
+{
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mRequirements.size());
+
+    // Adding this constraint will only work to an already once solved instance
+    // of the problem
+    std::set<Role> uniqueRoles;
+    {
+        Solution::const_iterator sit = solution.find(fts0);
+        if(sit == solution.end())
+        {
+            throw std::runtime_error("templ::solvers::csp::RoleDistribution: the given fluent-time-resource is not part of the solution");
+        }
+
+        const Role::List& roles = sit->second;
+        Role::List::const_iterator rit = roles.begin();
+        for(; rit != roles.end(); ++rit)
+        {
+            const Role& role = *rit;
+            if(role.getModel() == roleModel)
+            {
+                uniqueRoles.insert(role);
+            }
+        }
+    }
+    {
+        Solution::const_iterator sit = solution.find(fts1);
+        if(sit == solution.end())
+        {
+            throw std::runtime_error("templ::solvers::csp::RoleDistribution: the given fluent-time-resource is not part of the solution");
+        }
+
+        const Role::List& roles = sit->second;
+        Role::List::const_iterator rit = roles.begin();
+        for(; rit != roles.end(); ++rit)
+        {
+            const Role& role = *rit;
+            if(role.getModel() == roleModel)
+            {
+                uniqueRoles.insert(role);
+            }
+        }
+    }
+    size_t numberOfUniqueRoles = uniqueRoles.size();
+    RoleDistribution::minDistinct(fts0, fts1, roleModel, numberOfUniqueRoles + additional);
 }
 
 } // end namespace csp

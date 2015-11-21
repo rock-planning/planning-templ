@@ -437,7 +437,12 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
                     LOG_WARN_S << "Found violation in timeline: enforce distiction on timeline for: " << affectedRole.toString()
                         << " between " << std::endl
                         << (*fit).toString() << " and " << (*(fit+1)).toString();
-                    mRoleDistribution->distinct(*fit, *(fit+1), affectedRole.getModel());
+
+                    // delta needs to be: missing count of resource type
+                    assert(-violation.getDelta() > 0);
+                    mRoleDistribution->addDistinct(*fit, *(fit+1), affectedRole.getModel(), -violation.getDelta(), mRoleDistributionSolution);
+                    // stricter but miss more problems would be
+                    // mRoleDistribution->allDistinct(*fit, *(fit+1), affectedRole.getModel());
                     delete mRoleDistributionSearchEngine;
                     mRoleDistributionSearchEngine = new Gecode::BAB<RoleDistribution>(mRoleDistribution);
                 }

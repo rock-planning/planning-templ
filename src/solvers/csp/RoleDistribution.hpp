@@ -25,7 +25,7 @@ class RoleDistribution : public Gecode::Space
     // per requirement/role: sum of same type roles <= model bound for fts
     //
     // model-based first stage guarantees conflict free solution on type basis
-   
+
     Role::List mRoles;
     FluentTimeResource::List mRequirements;
 
@@ -40,7 +40,7 @@ public:
     /**
      * Default constructor
      */
-    RoleDistribution(const Mission& mission, const ModelDistribution::Solution& modelDistribution); 
+    RoleDistribution(const Mission& mission, const ModelDistribution::Solution& modelDistribution);
 
     /**
      * Search support
@@ -69,9 +69,16 @@ public:
     const solvers::temporal::Interval& getInterval(size_t index) const { return mIntervals.at(index); }
 
     /**
-     * Enforce a role to be distinct for two requirements
+     * Enforce all model instances to be distinct for two requirements
      */
-    void distinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& model);
+    void allDistinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& model);
+    void minDistinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& model, uint32_t minDistinctRoles);
+
+    /**
+     * Add an additional level of distinction for this type of role based on an
+     * existing solution
+     */
+    void addDistinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& model, uint32_t additional, const Solution& solution);
 };
 
 std::ostream& operator<<(std::ostream& os, const RoleDistribution::Solution& solution);
