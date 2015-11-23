@@ -360,7 +360,7 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getDi
     QualitativeTimePointConstraint::Type constraintTypeIJ = QualitativeTimePointConstraint::Universal;
     if(edgesIJ.empty())
     {
-        LOG_WARN_S << "NO edge between: " << i->toString() << " and " << j->toString();
+        LOG_DEBUG_S << "No edge between: " << i->toString() << " and " << j->toString();
     }
 
     std::vector<Edge::Ptr>::const_iterator eit = edgesIJ.begin();

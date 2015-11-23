@@ -184,7 +184,7 @@
         <resource-requirement>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-                <minCardinality>5</minCardinality>
+                <minCardinality>3</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>
@@ -232,7 +232,7 @@
         <resource-requirement>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-                <minCardinality>3</minCardinality>
+                <minCardinality>6</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>

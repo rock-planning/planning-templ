@@ -570,7 +570,11 @@ void ModelDistribution::compact(std::vector<FluentTimeResource>& requirements) c
                 fts.maxCardinalities = mAsk.getFunctionalSaturationBound(services);
 
                 // MaxMin --> min cardinalities are a lower bound specified explicitely
+                LOG_DEBUG_S << "Update Requirements: min: " << fts.minCardinalities.toString();
+                LOG_DEBUG_S << "Update Requirements: otherMin: " << otherFts.minCardinalities.toString();
+
                 fts.minCardinalities = organization_model::Algebra::max(fts.minCardinalities, otherFts.minCardinalities);
+                LOG_DEBUG_S << "Result min: " << fts.minCardinalities.toString();
 
                 // Resource constraints might enforce a minimum cardinality that is higher than the functional saturation bound
                 // thus update the max cardinalities
@@ -660,6 +664,40 @@ std::ostream& operator<<(std::ostream& os, const ModelDistribution::SolutionList
     }
     os << "END SolutionList" << std::endl;
     return os;
+}
+
+void ModelDistribution::addFunctionRequirement(const FluentTimeResource& fts, owlapi::model::IRI& function)
+{
+    size_t index = 0;
+    owlapi::model::IRIList::const_iterator cit = mResources.begin();
+    for(; cit != mResources.end(); ++cit, ++index)
+    {
+        if(*cit == function)
+        {
+            break;
+        }
+    }
+    if(index >= mResources.size())
+    {
+        if( mAsk.ontology().isSubClassOf(function, owlapi::vocabulary::OM::Service()) )
+        {
+            LOG_WARN_S << "AUTO ADDED '" << function << "' to required resources";
+            mResources.push_back(function);
+        } else {
+            throw std::invalid_argument("templ::solvers::csp::ModelDistribution: could not find the resource index for: '" + function.toString() + "' -- which is not a service class");
+        }
+    } 
+    LOG_WARN_S << "Using index: " << index;
+
+    std::vector<FluentTimeResource>::iterator fit = std::find(mResourceRequirements.begin(), mResourceRequirements.end(), fts);
+    if(fit == mResourceRequirements.end())
+    {
+        throw std::invalid_argument("templ::solvers::csp::ModelDistribution: could not find the fluent time resource");
+    }
+    LOG_WARN_S << "Before Fluent: " << fit->toString();
+    // insert the resource requirement
+    fit->resources.insert(index);
+    LOG_WARN_S << "After: Fluent: " << fit->toString();
 }
 
 } // end namespace csp

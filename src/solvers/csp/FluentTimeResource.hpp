@@ -11,6 +11,8 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
+    class ModelDistribution;
+
 struct FluentTimeResource
 {
     std::set<uint32_t> resources;
@@ -41,6 +43,8 @@ struct FluentTimeResource
      */
     static std::vector< std::vector<FluentTimeResource> > getConcurrent(const std::vector<FluentTimeResource>& requirements,
             const std::vector<solvers::temporal::Interval>& intervals);
+
+    solvers::temporal::Interval getInterval(const ModelDistribution* modelDistribution) const;
 };
 
 } // end namespace csp

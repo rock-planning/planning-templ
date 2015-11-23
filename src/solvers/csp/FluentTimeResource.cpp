@@ -1,4 +1,5 @@
 #include "FluentTimeResource.hpp"
+#include <templ/solvers/csp/ModelDistribution.hpp>
 
 #include <base/Logging.hpp>
 
@@ -105,6 +106,12 @@ std::vector< std::vector<FluentTimeResource> > FluentTimeResource::getConcurrent
 
     return concurrentFts;
 }
+
+solvers::temporal::Interval FluentTimeResource::getInterval(const ModelDistribution* m) const
+{
+    return m->getIntervals().at(time);
+}
+
 } // end namespace csp
 } // end namespace solvers
 } // end namespace templ

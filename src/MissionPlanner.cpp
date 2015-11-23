@@ -69,6 +69,7 @@ MissionPlanner::~MissionPlanner()
 
 bool MissionPlanner::nextModelAssignment()
 {
+    std::cout << "Next model assignment" << std::endl;
     if(!mModelDistribution)
     {
         mModelDistribution = new ModelDistribution(mCurrentMission);
@@ -436,15 +437,23 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
                 {
                     LOG_WARN_S << "Found violation in timeline: enforce distiction on timeline for: " << affectedRole.toString()
                         << " between " << std::endl
-                        << (*fit).toString() << " and " << (*(fit+1)).toString();
+                        << (*fit).toString() << " and " << (*(fit+1)).toString() << std::endl
+                        << (*fit).getInterval(mModelDistribution).toString() << std::endl
+                        << (*(fit+1)).getInterval(mModelDistribution).toString() << std::endl
+                        << " timeline: " << std::endl
+                        << roleTimeline.toString();
 
-                    // delta needs to be: missing count of resource type
-                    assert(-violation.getDelta() > 0);
-                    mRoleDistribution->addDistinct(*fit, *(fit+1), affectedRole.getModel(), -violation.getDelta(), mRoleDistributionSolution);
-                    // stricter but miss more problems would be
-                    // mRoleDistribution->allDistinct(*fit, *(fit+1), affectedRole.getModel());
-                    delete mRoleDistributionSearchEngine;
-                    mRoleDistributionSearchEngine = new Gecode::BAB<RoleDistribution>(mRoleDistribution);
+                    {
+                        Resolver::Ptr functionalityRequest(new FunctionalityRequest(*fit, owlapi::vocabulary::OM::resolve("TransportService")));
+                        mResolvers.push_back(functionalityRequest);
+
+                        // delta needs to be: missing count of resource type
+                        assert(-violation.getDelta() > 0);
+                    //    mRoleDistribution->addDistinct(*fit, *(fit+1), affectedRole.getModel(), -violation.getDelta(), mRoleDistributionSolution);
+                        Resolver::Ptr roleAddDistinction(new RoleAddDistinction(*fit,*(fit+1), affectedRole.getModel(), -violation.getDelta(), mRoleDistributionSolution));
+                        mResolvers.push_back(roleAddDistinction);
+
+                    }
                 }
             }
         }
@@ -465,7 +474,7 @@ void MissionPlanner::save(const std::string& markerLabel, const std::string& dir
     {
         std::string filename = dir + "/mission-space-time-network-" + markerLabel + "-" + timestamp.toString();
         graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph, graph_analysis::representation::GRAPHVIZ);
-        //graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph, graph_analysis::representation::GEXF);
+        graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph, graph_analysis::representation::GEXF);
         LOG_WARN_S << "Written space time network: " << filename << std::endl;
     }
 
@@ -473,7 +482,7 @@ void MissionPlanner::save(const std::string& markerLabel, const std::string& dir
     {
         std::string filename = dir + "/mission-min-cost-flow-network-"  + markerLabel + "-"+ timestamp.toString();
         graph_analysis::io::GraphIO::write(filename, mFlowGraph, graph_analysis::representation::GRAPHVIZ);
-        //graph_analysis::io::GraphIO::write(filename, mFlowGraph, graph_analysis::representation::GEXF);
+        graph_analysis::io::GraphIO::write(filename, mFlowGraph, graph_analysis::representation::GEXF);
         LOG_WARN_S << "Written min-cost flow network: " << filename << std::endl;
     }
 }
@@ -483,7 +492,8 @@ void MissionPlanner::execute(uint32_t maxIterations)
 {
     std::cout << "Execution of planner started" << std::endl;
     uint32_t iteration = 0;
-    while(nextModelAssignment() && iteration < maxIterations)
+    bool modelAssignment = nextModelAssignment();
+    while(modelAssignment && iteration < maxIterations)
     {
         if(nextRoleAssignment())
         {
@@ -497,19 +507,38 @@ void MissionPlanner::execute(uint32_t maxIterations)
                 save(ss.str());
                 ++iteration;
                 break;
-            } else {
-                std::cout << "violation of constraints: " << violations.size() << std::endl;
-                //std::vector<Flaw> flaws;
-                //std::vector<ConstraintViolation>::const_iterator vit = violations.begin();
-                //for(; vit != violations.end(); ++vit)
-                //{
-                //    vit
-                //}
-                //return flaws;
+            } else if(!mResolvers.empty())
+            {
+                std::cout << "Trying to apply resolver: " << std::endl;
+                Resolver::Ptr resolver = mResolvers.back();
+                mResolvers.erase(mResolvers.end()-1);
+                if(resolver->getType() == Resolver::ROLE_DISTRIBUTION)
+                {
+                    std::cout << "Applied role distribution solver" << std::endl;
+                    resolver->apply(this);
+                    continue;
+                }
             }
         } else {
-            continue;
+            std::cout << "No role assignment found" << std::endl;
+           if(!mResolvers.empty())
+           {
+               std::cout << "Trying to apply resolver: " << std::endl;
+               Resolver::Ptr resolver = mResolvers.back();
+               mResolvers.erase(mResolvers.end()-1);
+               if(resolver->getType() == Resolver::MODEL_DISTRIBUTION)
+               {
+                   std::cout << "Applied model distribution solver" << std::endl;
+                   resolver->apply(this);
+                   continue;
+               }
+            }
         }
+        modelAssignment = nextModelAssignment();
+    } 
+    if(!modelAssignment)
+    {
+        std::cout << "No model assignment found" << std::endl;
     }
     std::cout << "Solutions found: " << iteration << std::endl;
 }

@@ -13,6 +13,7 @@ rock_library(templ
         solvers/Variable.cpp
         solvers/csp/ConstraintMatrix.cpp
         solvers/csp/ModelDistribution.cpp
+        solvers/csp/Resolver.cpp
         solvers/csp/RoleDistribution.cpp
         solvers/csp/RoleTimeline.cpp
         solvers/csp/FluentTimeResource.cpp
@@ -54,6 +55,7 @@ rock_library(templ
         solvers/csp/ConstraintMatrix.hpp
         solvers/csp/FluentTimeResource.hpp
         solvers/csp/ModelDistribution.hpp
+        solvers/csp/Resolver.hpp
         solvers/csp/RoleDistribution.hpp
         solvers/csp/RoleTimeline.hpp
         solvers/temporal/Bounds.hpp

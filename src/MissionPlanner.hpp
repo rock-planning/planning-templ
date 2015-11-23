@@ -2,12 +2,14 @@
 #define TEMPL_MISSION_PLANNER_HPP
 
 #include <vector>
+#include <stack>
 #include <templ/solvers/temporal/Chronicle.hpp>
 #include <templ/Mission.hpp>
 #include <organization_model/OrganizationModelAsk.hpp>
 #include <templ/solvers/csp/ModelDistribution.hpp>
 #include <templ/solvers/csp/RoleDistribution.hpp>
 #include <templ/solvers/csp/RoleTimeline.hpp>
+#include <templ/solvers/csp/Resolver.hpp>
 #include <templ/LocationTimepointTuple.hpp>
 #include <graph_analysis/algorithms/MultiCommodityMinCostFlow.hpp>
 
@@ -150,6 +152,10 @@ typedef std::vector<Mission> CandidateMissions;
 
 class MissionPlanner
 {
+    friend class templ::solvers::csp::Resolver;
+    friend class templ::solvers::csp::RoleAddDistinction;
+    friend class templ::solvers::csp::FunctionalityRequest;
+
 public:
     MissionPlanner(const Mission& mission, const organization_model::OrganizationModel::Ptr& organizationModel);
 
@@ -193,6 +199,9 @@ protected:
 
     graph_analysis::BaseGraph::Ptr mSpaceTimeGraph;
     graph_analysis::BaseGraph::Ptr mFlowGraph;
+
+    // Current set of resolver that can be applied to fix the plan at this stage
+    std::vector<solvers::csp::Resolver::Ptr> mResolvers;
 
 };
 

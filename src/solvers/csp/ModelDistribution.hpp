@@ -30,6 +30,7 @@ public:
     typedef std::map<FluentTimeResource, organization_model::ModelPool > Solution;
     typedef std::vector<Solution> SolutionList;
 
+    const std::vector<solvers::temporal::Interval>& getIntervals() const { return mIntervals; }
 private:
     /// The mission to plan for
     Mission mMission;
@@ -140,6 +141,8 @@ public:
 
     std::string toString() const;
     void print(std::ostream& os) const { os << toString() << std::endl; }
+
+    void addFunctionRequirement(const FluentTimeResource& fts, owlapi::model::IRI& function);
 };
 
 std::ostream& operator<<(std::ostream& os, const ModelDistribution::Solution& solution);
