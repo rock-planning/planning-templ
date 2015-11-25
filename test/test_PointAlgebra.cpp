@@ -82,7 +82,6 @@ BOOST_AUTO_TEST_CASE(bidirectional_constraint_type)
 
             lastTp = tp;
         }
-        tcn = tcn->complete();
     }
 
     base::Time start = base::Time::now();
@@ -192,17 +191,10 @@ BOOST_AUTO_TEST_CASE(complete)
 
     {
         base::Time start = base::Time::now();
-        tcn = tcn->complete();
-        base::Time stop = base::Time::now() - start;
-        BOOST_TEST_MESSAGE("Temporal constraint network with " << i << " timepoints completed - computing time: " << stop.toSeconds());
-    }
-    {
-        base::Time start = base::Time::now();
         bool consistent = tcn->isConsistent();
         base::Time stop = base::Time::now() - start;
         BOOST_REQUIRE_MESSAGE(consistent, "1. Temporal constraint network is consistent: time " << stop.toSeconds() );
     }
-
     {
         base::Time start = base::Time::now();
         bool consistent = tcn->isConsistent();
@@ -244,8 +236,6 @@ BOOST_AUTO_TEST_CASE(consistency_check_performance)
         lastTp = tp;
     }
 
-    tcn = tcn->complete();
-
     {
         base::Time start = base::Time::now();
         bool consistent = tcn->isConsistent();
@@ -268,7 +258,7 @@ BOOST_AUTO_TEST_CASE(inconsistency_0)
     tcn->addQualitativeConstraint(t2, t1, QTPC::Greater);
     
     bool consistent = tcn->isConsistent();
-    tcn->save("/tmp/test-point_algebra-inconsistency-test");
+    tcn->save("/tmp/templ-test-point_algebra-inconsistency_0-test");
     BOOST_REQUIRE_MESSAGE(!consistent, "Temporal constraint network is inconsistent");
 }
 
@@ -299,7 +289,6 @@ BOOST_AUTO_TEST_CASE(inconsistency_1)
 
     tcn->save("/tmp/test-point_algebra-consistency-test-pre");
 
-    tcn = tcn->complete();
 
     bool consistent = tcn->isConsistent();
     BOOST_REQUIRE_MESSAGE(!consistent, "Temporal constraint network is inconsistent");

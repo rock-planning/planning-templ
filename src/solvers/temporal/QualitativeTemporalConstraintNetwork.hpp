@@ -28,12 +28,6 @@ public:
     QualitativeTemporalConstraintNetwork();
 
     /**
-     * Create a complete graph, i.e., where empty edges are filled by
-     * symmetrical constraints or the universal constraint
-     */
-    QualitativeTemporalConstraintNetwork::Ptr complete();
-
-    /**
      * Get the known and consolidated qualitative constraint between two timepoints
      * \return consolidated timepoint constraint
      */

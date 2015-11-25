@@ -1,10 +1,12 @@
 #include "ConstraintNetwork.hpp"
 
+using namespace graph_analysis;
+
 namespace templ {
 namespace solvers {
 
 ConstraintNetwork::ConstraintNetwork()
-    : mGraph(new graph_analysis::lemon::DirectedGraph())
+    : mGraph(BaseGraph::getInstance(BaseGraph::BOOST_DIRECTED_GRAPH))
 {}
 
 void ConstraintNetwork::addVariable(Variable::Ptr variable)
