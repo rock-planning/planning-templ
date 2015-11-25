@@ -22,7 +22,7 @@ protected:
     graph_analysis::BaseGraph::Ptr mpDistanceGraph;
 
 public:
-    typedef boost::shared_ptr<TemporalConstraintNetwork> Ptr;
+    typedef shared_ptr<TemporalConstraintNetwork> Ptr;
 
     TemporalConstraintNetwork();
 

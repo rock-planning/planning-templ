@@ -12,7 +12,7 @@ TemporalAssertion::TemporalAssertion(const symbols::StateVariable& stateVariable
     , mStateVariable(stateVariable)
 {}
 
-std::map<TemporalAssertion::Type, std::string> TemporalAssertion::TypeTxt = boost::assign::map_list_of
+std::map<TemporalAssertion::Type, std::string> TemporalAssertion::TypeTxt = ::boost::assign::map_list_of
     (UNKNOWN, "UNKNOWN")
     (EVENT, "EVENT")
     (PERSISTENCE_CONDITION, "PERSISTENCE_CONDITION")
@@ -24,12 +24,12 @@ bool TemporalAssertion::isDisjointFrom(const TemporalAssertion::Ptr& other, cons
     {
         case EVENT:
         {
-            Event::Ptr event = boost::dynamic_pointer_cast<Event>(other);
+            Event::Ptr event = dynamic_pointer_cast<Event>(other);
             return disjointFrom(event, comparator);
         }
         case PERSISTENCE_CONDITION:
         {
-            PersistenceCondition::Ptr pc = boost::dynamic_pointer_cast<PersistenceCondition>(other);
+            PersistenceCondition::Ptr pc = dynamic_pointer_cast<PersistenceCondition>(other);
             return disjointFrom(pc, comparator);
         }
         default:
@@ -43,12 +43,12 @@ bool TemporalAssertion::isReferringToSameValue(const TemporalAssertion::Ptr& oth
     {
         case EVENT:
         {
-            Event::Ptr event = boost::dynamic_pointer_cast<Event>(other);
+            Event::Ptr event = dynamic_pointer_cast<Event>(other);
             return refersToSameValue(event, comparator);
         }
         case PERSISTENCE_CONDITION:
         {
-            PersistenceCondition::Ptr pc = boost::dynamic_pointer_cast<PersistenceCondition>(other);
+            PersistenceCondition::Ptr pc = dynamic_pointer_cast<PersistenceCondition>(other);
             return refersToSameValue(pc, comparator);
         }
         default:

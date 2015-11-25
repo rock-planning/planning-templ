@@ -120,7 +120,7 @@ solvers::temporal::point_algebra::TimePoint::Ptr Mission::getTimePoint(const std
     graph_analysis::VertexIterator::Ptr it = mpTemporalConstraintNetwork->getVariableIterator();
     while(it->next())
     {
-        QualitativeTimePoint::Ptr t = boost::dynamic_pointer_cast<QualitativeTimePoint>(it->current());
+        QualitativeTimePoint::Ptr t = dynamic_pointer_cast<QualitativeTimePoint>(it->current());
         if(t && t->getLabel() == name)
         {
             return t;
@@ -233,10 +233,10 @@ void Mission::addTemporalConstraint(const pa::TimePoint::Ptr& t1,
 void Mission::addConstraint(const solvers::Constraint::Ptr& constraint)
 {
     using namespace solvers::temporal::point_algebra;
-    QualitativeTimePointConstraint::Ptr timeConstraint = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(constraint);
+    QualitativeTimePointConstraint::Ptr timeConstraint = dynamic_pointer_cast<QualitativeTimePointConstraint>(constraint);
     if(timeConstraint)
     {
-        mpTemporalConstraintNetwork->addConstraint(boost::dynamic_pointer_cast<solvers::Constraint>(timeConstraint));
+        mpTemporalConstraintNetwork->addConstraint(dynamic_pointer_cast<solvers::Constraint>(timeConstraint));
     } else {
         mConstraints.push_back(constraint);
     }
@@ -282,7 +282,7 @@ std::vector<symbols::constants::Location::Ptr> Mission::getLocations() const
         const Constant::Ptr& constant = *cit;
         if(constant->getConstantType() == Constant::LOCATION)
         {
-            locations.push_back( boost::dynamic_pointer_cast<constants::Location>(constant) );
+            locations.push_back( dynamic_pointer_cast<constants::Location>(constant) );
         }
     }
     return locations;
@@ -298,7 +298,7 @@ std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> Mission::getTimepo
     while(vertexIt->next())
     {
         solvers::temporal::point_algebra::TimePoint::Ptr tp =
-            boost::dynamic_pointer_cast<solvers::temporal::point_algebra::TimePoint>(vertexIt->current());
+            dynamic_pointer_cast<solvers::temporal::point_algebra::TimePoint>(vertexIt->current());
         timepoints.push_back(tp);
     }
     return timepoints;

@@ -12,7 +12,7 @@ namespace templ {
 class LocationTimepointTuple : public Tuple<templ::symbols::constants::Location, templ::solvers::temporal::point_algebra::TimePoint>
 {
 public:
-    typedef boost::shared_ptr<LocationTimepointTuple> Ptr;
+    typedef shared_ptr<LocationTimepointTuple> Ptr;
     typedef Tuple<templ::symbols::constants::Location, templ::solvers::temporal::point_algebra::TimePoint> BaseClass;
 
     LocationTimepointTuple(const templ::symbols::constants::Location::Ptr& location,

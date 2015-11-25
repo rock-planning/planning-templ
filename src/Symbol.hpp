@@ -4,14 +4,14 @@
 #include <map>
 #include <string>
 #include <utility>
-#include <boost/shared_ptr.hpp>
+#include <templ/SharedPtr.hpp>
 
 namespace templ {
 
 class Symbol : public std::pair<std::string, std::string>
 {
 public:
-    typedef boost::shared_ptr<Symbol> Ptr;
+    typedef shared_ptr<Symbol> Ptr;
 
     enum Type { UNKNOWN, STATE_VARIABLE, OBJECT_VARIABLE, CONSTANT, TEMPORAL_VARIABLE, VALUE };
     static std::map<Type, std::string> TypeTxt;

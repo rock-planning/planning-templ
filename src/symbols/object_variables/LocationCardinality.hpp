@@ -16,7 +16,7 @@ class LocationCardinality : public ObjectVariable
     owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType mCardinalityRestrictionType;
 
 public:
-    typedef boost::shared_ptr<LocationCardinality> Ptr;
+    typedef shared_ptr<LocationCardinality> Ptr;
 
     LocationCardinality(const constants::Location::Ptr location,
             uint32_t cardinality = 1,

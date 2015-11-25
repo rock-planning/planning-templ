@@ -49,7 +49,7 @@ void TemporalConstraintNetwork::stp()
     while (edgeIt->next())
     {
         // for each edge of the temp.const.network, check each interval and find the min lower bound and the max upper bound
-        edge = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
+        edge = dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
         max = 0; min = std::numeric_limits<double>::infinity();
         std::vector<Bounds> v = edge->getIntervals();
         std::vector<Bounds>::iterator it = v.begin();
@@ -87,7 +87,7 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::intersection(graph_ana
     // iterate through the simple temporal constraint network
     while (edgeIt1->next())
     {
-        edge1 = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt1->current() );
+        edge1 = dynamic_pointer_cast<IntervalConstraint>( edgeIt1->current() );
         source = edge1 -> getSourceTimePoint();
         target = edge1 -> getTargetTimePoint();
         std::vector<Bounds> x = edge1->getIntervals();
@@ -98,7 +98,7 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::intersection(graph_ana
         {
             // if we find two edges (one from each graph) which have the same source and target variables
             // then we look at their upper and lower bounds
-            edge0 = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt0->current() );
+            edge0 = dynamic_pointer_cast<IntervalConstraint>( edgeIt0->current() );
             if (target == edge0->getTargetTimePoint() && source == edge0->getSourceTimePoint())
             {
 
@@ -182,7 +182,7 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::toWeightedGraph()
 
     while (edgeIt->next())
     {
-        IntervalConstraint::Ptr edge0 = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
+        IntervalConstraint::Ptr edge0 = dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
 
         std::vector<Bounds> v = edge0->getIntervals();
         std::vector<Bounds>::iterator it = v.begin();
@@ -215,7 +215,7 @@ void TemporalConstraintNetwork::minNetwork()
     BaseGraph::Ptr oldGraph = mpDistanceGraph->copy();
     algorithms::DistanceMatrix distanceMatrix = algorithms::FloydWarshall::allShortestPaths(graph, [](Edge::Ptr e) -> double
                 {
-                    return boost::dynamic_pointer_cast<WeightedEdge>(e)->getWeight();
+                    return dynamic_pointer_cast<WeightedEdge>(e)->getWeight();
                 });
     EdgeIterator::Ptr edgeIt = oldGraph->getEdgeIterator();
 
@@ -223,7 +223,7 @@ void TemporalConstraintNetwork::minNetwork()
     TimePoint::Ptr v1,v2;
     while (edgeIt->next())
     {
-        IntervalConstraint::Ptr edge = boost::dynamic_pointer_cast<IntervalConstraint>(edgeIt->current());
+        IntervalConstraint::Ptr edge = dynamic_pointer_cast<IntervalConstraint>(edgeIt->current());
         v1 = edge->getSourceTimePoint();
         v2 = edge->getTargetTimePoint();
 
@@ -254,8 +254,8 @@ bool TemporalConstraintNetwork::equals(const graph_analysis::BaseGraph::Ptr& oth
             {
                 // check each two edges if they have the same source;target;uppper and lower bounds
                 // if not; then the graphs are not the same
-                IntervalConstraint::Ptr i1 = boost::dynamic_pointer_cast<IntervalConstraint>(edgeIt1->current());
-                IntervalConstraint::Ptr i2 = boost::dynamic_pointer_cast<IntervalConstraint>(edgeIt2->current());
+                IntervalConstraint::Ptr i1 = dynamic_pointer_cast<IntervalConstraint>(edgeIt1->current());
+                IntervalConstraint::Ptr i2 = dynamic_pointer_cast<IntervalConstraint>(edgeIt2->current());
                 if (i1->getSourceTimePoint() == i2->getSourceTimePoint() && i1->getTargetTimePoint() == i2->getTargetTimePoint())
                 {
                     ok = true;
@@ -309,7 +309,7 @@ void TemporalConstraintNetwork::upperLowerTightening()
         EdgeIterator::Ptr edgeIt = oldGraph->getEdgeIterator();
         while (edgeIt->next())
         {
-            IntervalConstraint::Ptr intervalConstraint = boost::dynamic_pointer_cast<IntervalConstraint>(edgeIt->current());
+            IntervalConstraint::Ptr intervalConstraint = dynamic_pointer_cast<IntervalConstraint>(edgeIt->current());
             tcn.addIntervalConstraint(intervalConstraint);
         }
 

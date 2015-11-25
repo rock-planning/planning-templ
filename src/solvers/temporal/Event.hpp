@@ -25,14 +25,14 @@ protected:
     // Time constant or time variable
     point_algebra::TimePoint::Ptr mpTimepoint;
 
-    bool refersToSameValue(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const;
-    bool refersToSameValue(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const;
+    bool refersToSameValue(const shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const;
+    bool refersToSameValue(const shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const;
 
-    bool disjointFrom(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const;
-    bool disjointFrom(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const;
+    bool disjointFrom(const shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const;
+    bool disjointFrom(const shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const;
 
 public:
-    typedef boost::shared_ptr<Event> Ptr;
+    typedef shared_ptr<Event> Ptr;
 
     static Event::Ptr getInstance(const symbols::StateVariable& stateVariable,
             const Symbol::Ptr& from,

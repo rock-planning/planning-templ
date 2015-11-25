@@ -26,14 +26,14 @@ class PersistenceCondition : public TemporalAssertion
     point_algebra::TimePoint::Ptr mpFromTimepoint;
     point_algebra::TimePoint::Ptr mpToTimepoint;
 
-    bool refersToSameValue(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const;
-    bool refersToSameValue(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const;
+    bool refersToSameValue(const shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const;
+    bool refersToSameValue(const shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const;
 
-    bool disjointFrom(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const;
-    bool disjointFrom(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const;
+    bool disjointFrom(const shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const;
+    bool disjointFrom(const shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const;
 
 public:
-    typedef boost::shared_ptr<PersistenceCondition> Ptr;
+    typedef shared_ptr<PersistenceCondition> Ptr;
 
     PersistenceCondition(const symbols::StateVariable& stateVariable,
             const Symbol::Ptr& value,

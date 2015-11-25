@@ -4,7 +4,7 @@
 #include <templ/solvers/Variable.hpp>
 #include <graph_analysis/Edge.hpp>
 
-#define T_CONSTRAINT(x) boost::dynamic_pointer_cast<templ::solvers::Constraint>(x)
+#define T_CONSTRAINT(x) dynamic_pointer_cast<templ::solvers::Constraint>(x)
 
 namespace templ {
 namespace solvers {
@@ -15,7 +15,7 @@ namespace solvers {
 class Constraint : public graph_analysis::Edge
 {
 public:
-    typedef boost::shared_ptr<Constraint> Ptr;
+    typedef shared_ptr<Constraint> Ptr;
 
     /**
      * Default constructor for a constraint
@@ -39,12 +39,12 @@ public:
     /**
      * Get the source vertex/variable of this constraint
      */
-    Variable::Ptr getSourceVariable() { return boost::dynamic_pointer_cast<Variable>( getSourceVertex()); }
+    Variable::Ptr getSourceVariable() { return dynamic_pointer_cast<Variable>( getSourceVertex()); }
 
     /**
      * Get the target vertex/variable of this constraint
      */
-    Variable::Ptr getTargetVariable() { return boost::dynamic_pointer_cast<Variable>( getTargetVertex()); }
+    Variable::Ptr getTargetVariable() { return dynamic_pointer_cast<Variable>( getTargetVertex()); }
 
 protected:
     /// Make sure cloning works for this constraint

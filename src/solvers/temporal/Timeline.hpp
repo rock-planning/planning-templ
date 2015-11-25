@@ -60,9 +60,9 @@ public:
     const symbols::StateVariable& getStateVariable() const { return mStateVariable; }
 
     template<typename T>
-    std::vector< boost::shared_ptr<T> > getTypeInstances(Symbol::Type type) const
+    std::vector< shared_ptr<T> > getTypeInstances(Symbol::Type type) const
     {
-        std::vector< boost::shared_ptr<T> > list;
+        std::vector< shared_ptr<T> > list;
 
         TemporalAssertionList::const_iterator cit = mTemporalAssertions.begin();
         for(; cit != mTemporalAssertions.end(); ++cit)
@@ -72,26 +72,26 @@ public:
             {
                 case TemporalAssertion::EVENT:
                 {
-                    Event::Ptr event = boost::dynamic_pointer_cast<Event>(assertion);
+                    Event::Ptr event = dynamic_pointer_cast<Event>(assertion);
                     Symbol::Ptr from = event->getFromValue();
                     Symbol::Ptr to = event->getToValue();
                     if(from->getType() == type)
                     {
-                        list.push_back(boost::dynamic_pointer_cast<T>(from));
+                        list.push_back(dynamic_pointer_cast<T>(from));
                     }
                     if(to->getType() == type)
                     {
-                        list.push_back(boost::dynamic_pointer_cast<T>(to));
+                        list.push_back(dynamic_pointer_cast<T>(to));
                     }
                     break;
                 }
                 case TemporalAssertion::PERSISTENCE_CONDITION:
                 {
-                    PersistenceCondition::Ptr persistenceCondition = boost::dynamic_pointer_cast<PersistenceCondition>(assertion);
+                    PersistenceCondition::Ptr persistenceCondition = dynamic_pointer_cast<PersistenceCondition>(assertion);
                     Symbol::Ptr value = persistenceCondition->getValue();
                     if(value->getType() == type)
                     {
-                        list.push_back(boost::dynamic_pointer_cast<T>(value));
+                        list.push_back(dynamic_pointer_cast<T>(value));
                     }
                     break;
                 }

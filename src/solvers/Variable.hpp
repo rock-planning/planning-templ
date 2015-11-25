@@ -2,8 +2,9 @@
 #define TEMPL_SOLVERS_VARIABLE_HPP
 
 #include <graph_analysis/Vertex.hpp>
+#include <templ/SharedPtr.hpp>
 
-#define T_VAR(x) boost::dynamic_pointer_cast< templ::solvers::Variable>(x)
+#define T_VAR(x) dynamic_pointer_cast< templ::solvers::Variable>(x)
 
 namespace templ {
 namespace solvers {
@@ -16,7 +17,7 @@ class Variable : public graph_analysis::Vertex
 public:
     virtual ~Variable() {}
 
-    typedef boost::shared_ptr<Variable> Ptr;
+    typedef shared_ptr<Variable> Ptr;
 
     /**
      * Get classname

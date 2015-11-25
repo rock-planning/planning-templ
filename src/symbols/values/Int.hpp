@@ -13,7 +13,7 @@ class Int : public Value
     int32_t mInt;
 
 public:
-    typedef boost::shared_ptr<Int> Ptr;
+    typedef shared_ptr<Int> Ptr;
 
     Int(int32_t value)
         : Value(INT)
@@ -24,7 +24,7 @@ public:
 
     bool equals(const Symbol::Ptr& other) const
     { 
-        Int::Ptr value = boost::dynamic_pointer_cast<Int>(other);
+        Int::Ptr value = dynamic_pointer_cast<Int>(other);
         if(!value)
         {
             throw std::invalid_argument("templ::values::Int: other is not an instance of Int: cannot compare");

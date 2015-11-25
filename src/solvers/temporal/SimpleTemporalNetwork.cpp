@@ -52,7 +52,7 @@ bool SimpleTemporalNetwork::hasNegativeCycle()
         bool throwOnNegativeCycle = true;
         algorithms::DistanceMatrix distanceMatrix = algorithms::FloydWarshall::allShortestPaths(mpDistanceGraph, [](Edge::Ptr e) -> double
                 {
-                    return boost::dynamic_pointer_cast<WeightedEdge>(e)->getWeight();
+                    return dynamic_pointer_cast<WeightedEdge>(e)->getWeight();
                 }, throwOnNegativeCycle);
 
         return false;
@@ -78,11 +78,11 @@ graph_analysis::BaseGraph::Ptr SimpleTemporalNetwork::propagate()
     EdgeIterator::Ptr edgeIt = mpDistanceGraph->getEdgeIterator();
     while(edgeIt->next())
     {
-        WeightedEdge::Ptr edge = boost::dynamic_pointer_cast<WeightedEdge>( edgeIt->current() );
+        WeightedEdge::Ptr edge = dynamic_pointer_cast<WeightedEdge>( edgeIt->current() );
         double weight = edge->getWeight();
 
-        TimePoint::Ptr sourceTp = boost::dynamic_pointer_cast<TimePoint>(edge->getSourceVertex());
-        TimePoint::Ptr targetTp = boost::dynamic_pointer_cast<TimePoint>(edge->getTargetVertex());
+        TimePoint::Ptr sourceTp = dynamic_pointer_cast<TimePoint>(edge->getSourceVertex());
+        TimePoint::Ptr targetTp = dynamic_pointer_cast<TimePoint>(edge->getTargetVertex());
 
         // Update
         //    |------- 38 ----->

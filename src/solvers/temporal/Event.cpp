@@ -25,22 +25,22 @@ Event::Ptr Event::getInstance(const symbols::StateVariable& stateVariable,
 }
 
 
-bool Event::refersToSameValue(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const
+bool Event::refersToSameValue(const shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const
 {
     return mpFromValue->equals(other->mpFromValue) && mpToValue->equals(other->mpToValue);
 }
 
-bool Event::refersToSameValue(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const
+bool Event::refersToSameValue(const shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const
 {
     return other->refersToSameValue( Event::Ptr(new Event(*this)), comparator);
 }
 
-bool Event::disjointFrom(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const
+bool Event::disjointFrom(const shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const
 {
     return !comparator.equals(mpTimepoint, other->mpTimepoint);
 }
 
-bool Event::disjointFrom(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const
+bool Event::disjointFrom(const shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const
 {
     return other->disjointFrom( Event::Ptr( new Event(*this)), comparator);
 }

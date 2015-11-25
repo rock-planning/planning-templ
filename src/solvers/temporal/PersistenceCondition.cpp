@@ -40,20 +40,20 @@ bool PersistenceCondition::refersToSameValue(const Event::Ptr& other, const poin
     }
 }
 
-bool PersistenceCondition::refersToSameValue(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const
+bool PersistenceCondition::refersToSameValue(const shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const
 {
     return mpValue->equals(other->mpValue);
 }
 
 
-bool PersistenceCondition::disjointFrom(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const
+bool PersistenceCondition::disjointFrom(const shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const
 {
     // Checks if timepoint of event is outside of the define interval of the
     // persistence condition
     return comparator.lessThan(other->mpTimepoint, mpFromTimepoint) || comparator.greaterThan(other->mpTimepoint, mpToTimepoint);
 }
 
-bool PersistenceCondition::disjointFrom(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const
+bool PersistenceCondition::disjointFrom(const shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const
 {
     return !comparator.hasIntervalOverlap(mpFromTimepoint, mpToTimepoint, other->mpFromTimepoint, other->mpToTimepoint);
 }

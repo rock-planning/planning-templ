@@ -282,7 +282,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
     VertexIterator::Ptr vertexIt = mSpaceTimeGraph->getVertexIterator();
     while(vertexIt->next())
     {
-        LocationTimepointTuple::Ptr tuple = boost::dynamic_pointer_cast<LocationTimepointTuple>(vertexIt->current());
+        LocationTimepointTuple::Ptr tuple = dynamic_pointer_cast<LocationTimepointTuple>(vertexIt->current());
 
         MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex(new MultiCommodityMinCostFlow::vertex_t(mCommodities));
         commodityToSpace[multicommodityVertex] = tuple;
@@ -298,7 +298,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
         EdgeIterator::Ptr edgeIt = mSpaceTimeGraph->getEdgeIterator();
         while(edgeIt->next())
         {
-            WeightedEdge::Ptr edge = boost::dynamic_pointer_cast<WeightedEdge>(edgeIt->current());
+            WeightedEdge::Ptr edge = dynamic_pointer_cast<WeightedEdge>(edgeIt->current());
 
             Vertex::Ptr source = edge->getSourceVertex();
             Vertex::Ptr target = edge->getTargetVertex();
@@ -355,7 +355,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
                 Vertex::Ptr vertex = spaceToCommodity[currentTuple];
                 assert(vertex);
                 MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex =
-                    boost::dynamic_pointer_cast<MultiCommodityMinCostFlow::vertex_t>(vertex);
+                    dynamic_pointer_cast<MultiCommodityMinCostFlow::vertex_t>(vertex);
 
                 // - first entry (start point): can be interpreted as source
                 // - intermediate entries (transflow) as lower flow bound
@@ -390,7 +390,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
         while(edgeIt->next())
         {
             MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge =
-                boost::dynamic_pointer_cast<MultiCommodityMinCostFlow::edge_t>(edgeIt->current());
+                dynamic_pointer_cast<MultiCommodityMinCostFlow::edge_t>(edgeIt->current());
 
             for(int i = 0; i < commodityRoles.size(); ++i)
             {
@@ -403,8 +403,8 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
                     Vertex::Ptr targetLocation = commodityToSpace[multicommodityEdge->getTargetVertex()];
                     assert(sourceLocation && targetLocation);
 
-                    boost::dynamic_pointer_cast<LocationTimepointTuple>(sourceLocation)->addRole(role);
-                    boost::dynamic_pointer_cast<LocationTimepointTuple>(targetLocation)->addRole(role);
+                    dynamic_pointer_cast<LocationTimepointTuple>(sourceLocation)->addRole(role);
+                    dynamic_pointer_cast<LocationTimepointTuple>(targetLocation)->addRole(role);
                 }
             }
         }
@@ -423,7 +423,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
 
         if(violation.getType() == ConstraintViolation::TransFlow)
         {
-            LocationTimepointTuple::Ptr tuple = boost::dynamic_pointer_cast<LocationTimepointTuple>(commodityToSpace[violation.getVertex()]);
+            LocationTimepointTuple::Ptr tuple = dynamic_pointer_cast<LocationTimepointTuple>(commodityToSpace[violation.getVertex()]);
 
             const RoleTimeline& roleTimeline = mRoleTimelines[affectedRole];
             const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();

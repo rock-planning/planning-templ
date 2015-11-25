@@ -4,6 +4,7 @@
 #include <numeric/Combinatorics.hpp>
 #include <graph_analysis/VertexTypeManager.hpp>
 #include <graph_analysis/EdgeTypeManager.hpp>
+#include <templ/SharedPtr.hpp>
 
 using namespace templ::solvers::temporal::point_algebra;
 using namespace graph_analysis;
@@ -82,7 +83,7 @@ QualitativeTimePointConstraint::Ptr QualitativeTemporalConstraintNetwork::addQua
             std::vector<Edge::Ptr>::const_iterator eit = edgesIJ.begin();
             for(; eit != edgesIJ.end(); ++eit)
             {
-                QualitativeTimePointConstraint::Ptr constraint = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(*eit);
+                QualitativeTimePointConstraint::Ptr constraint = dynamic_pointer_cast<QualitativeTimePointConstraint>(*eit);
                 QualitativeTimePointConstraint::Type existingType;
                 if(constraint)
                 {
@@ -206,10 +207,10 @@ QualitativeTemporalConstraintNetwork::VertexPair QualitativeTemporalConstraintNe
     std::vector<Edge::Ptr> edges = getGraph()->getEdges(i, j);
     if(!edges.empty())
     {
-        QualitativeTimePointConstraint::Ptr constraint = boost::dynamic_pointer_cast<QualitativeTimePointConstraint>(edges[0]);
+        QualitativeTimePointConstraint::Ptr constraint = dynamic_pointer_cast<QualitativeTimePointConstraint>(edges[0]);
         constraint->setType(intersectionType);
     } else {
-        addQualitativeConstraint(boost::dynamic_pointer_cast<TimePoint>(i), boost::dynamic_pointer_cast<TimePoint>(j), intersectionType);
+        addQualitativeConstraint(dynamic_pointer_cast<TimePoint>(i), dynamic_pointer_cast<TimePoint>(j), intersectionType);
     }
 
     return VertexPair(i,j);
@@ -375,6 +376,7 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getDi
         QualitativeTimePointConstraint::Type constraintType = constraint->getType();
         QualitativeTimePointConstraint::Type constraintIntersectionType = QualitativeTimePointConstraint::getIntersection(constraintTypeIJ, constraintType);
 
+    QualitativeTimePointConstraint::Ptr constraint = dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesIJ[0]);
         LOG_DEBUG_S << "Intersection of constraints from: " << i->toString() << " to " << j->toString() << std::endl
             << "    " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ]
             << " and " << QualitativeTimePointConstraint::TypeTxt[constraintType]

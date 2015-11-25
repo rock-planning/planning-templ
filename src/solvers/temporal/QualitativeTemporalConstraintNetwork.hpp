@@ -19,7 +19,7 @@ namespace temporal {
 class QualitativeTemporalConstraintNetwork : public TemporalConstraintNetwork
 {
 public:
-    typedef boost::shared_ptr<QualitativeTemporalConstraintNetwork> Ptr;
+    typedef shared_ptr<QualitativeTemporalConstraintNetwork> Ptr;
     typedef std::pair<graph_analysis::Vertex::Ptr, graph_analysis::Vertex::Ptr> VertexPair;
 
     /**

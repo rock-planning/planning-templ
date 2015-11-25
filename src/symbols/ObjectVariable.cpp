@@ -23,7 +23,7 @@ bool ObjectVariable::equals(const Symbol::Ptr& symbol) const
 {
     if(symbol->getType() == Symbol::OBJECT_VARIABLE)
     {
-        ObjectVariable::Ptr other = boost::dynamic_pointer_cast<ObjectVariable>(symbol);
+        ObjectVariable::Ptr other = dynamic_pointer_cast<ObjectVariable>(symbol);
         return getInstanceName() == other->getInstanceName() &&
             getType() == other->getType();
     }

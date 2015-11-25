@@ -11,7 +11,7 @@ namespace symbols {
 class ObjectVariable : public Symbol
 {
 public:
-    typedef boost::shared_ptr<ObjectVariable> Ptr;
+    typedef shared_ptr<ObjectVariable> Ptr;
 
     enum Type { UNKNOWN, LOCATION_CARDINALITY };
     static std::map<Type, std::string> TypeTxt;

@@ -23,7 +23,7 @@ class QualitativeTimePoint : public TimePoint
     std::vector<TimePoint::Label> mAliases;
 
 public:
-    typedef boost::shared_ptr<QualitativeTimePoint> Ptr;
+    typedef shared_ptr<QualitativeTimePoint> Ptr;
 
     /**
      * Default constructor

@@ -5,7 +5,7 @@
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
 #include <templ/solvers/temporal/Bounds.hpp>
 
-#define T_INTERVALCONSTRAINT(x) boost::dynamic_pointer_cast<templ::solvers::IntervalConstraint>(x)
+#define T_INTERVALCONSTRAINT(x) dynamic_pointer_cast<templ::solvers::IntervalConstraint>(x)
 
 namespace templ {
 namespace solvers {
@@ -22,7 +22,7 @@ private:
 
 public:
 
-    typedef boost::shared_ptr<IntervalConstraint> Ptr;
+    typedef shared_ptr<IntervalConstraint> Ptr;
 
     /**
      * Default constructor for an interval constraint
@@ -46,12 +46,12 @@ public:
     /**
      * Get the source vertex/TimePoint of this interval constraint
      */
-    point_algebra::TimePoint::Ptr getSourceTimePoint() { return boost::dynamic_pointer_cast<point_algebra::TimePoint>( getSourceVertex()); }
+    point_algebra::TimePoint::Ptr getSourceTimePoint() { return dynamic_pointer_cast<point_algebra::TimePoint>( getSourceVertex()); }
 
     /**
      * Get the target vertex/TimePoint of this interval constraint
      */
-    point_algebra::TimePoint::Ptr getTargetTimePoint() { return boost::dynamic_pointer_cast<point_algebra::TimePoint>( getTargetVertex()); }
+    point_algebra::TimePoint::Ptr getTargetTimePoint() { return dynamic_pointer_cast<point_algebra::TimePoint>( getTargetVertex()); }
 
     // add a new interval
     void addInterval(Bounds newInterval) { intervals.push_back(newInterval); }

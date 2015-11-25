@@ -5,6 +5,7 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <base/Logging.hpp>
+#include <templ/SharedPtr.hpp>
 #include <templ/symbols/constants/Location.hpp>
 #include <templ/utils/CartographicMapping.hpp>
 
@@ -202,7 +203,7 @@ Mission MissionReader::fromFile(const std::string& url)
 
                     std::string locationId = requirement.spatial.location.id;
                     symbols::Constant::Ptr constant = mission.getConstant(locationId, symbols::Constant::LOCATION);
-                    symbols::constants::Location::Ptr location = boost::dynamic_pointer_cast<symbols::constants::Location>(constant);
+                    symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(constant);
                     assert(location);
 
                     using namespace solvers::temporal::point_algebra;
@@ -300,14 +301,14 @@ std::pair<owlapi::model::IRI, size_t> MissionReader::parseResource(xmlDocPtr doc
         std::string maxCardinalityTxt = getSubNodeContent(doc, current, "maxCardinality");
 
         owlapi::model::IRI modelIRI(model);
-        int32_t cardinality = boost::lexical_cast<int32_t>(maxCardinalityTxt);
+        int32_t cardinality = ::boost::lexical_cast<int32_t>(maxCardinalityTxt);
         if(cardinality < 0)
         {
             throw std::invalid_argument("templ::MissionReader::parseResource: invalid value in mission specification --"
                     " maxCardinality for '" + model + "' was '" + maxCardinalityTxt + "' but expected a value >= 0");
         }
 
-        uint32_t maxCardinality = boost::lexical_cast<uint32_t>(maxCardinalityTxt);
+        uint32_t maxCardinality = ::boost::lexical_cast<uint32_t>(maxCardinalityTxt);
         return std::pair<owlapi::model::IRI, size_t>(modelIRI, maxCardinality);
     }
     throw std::invalid_argument("templ::io::MissionReader::parseResource: expected tag 'resource' found '" + std::string((const char*) current->name) + "'");
@@ -399,7 +400,7 @@ organization_model::ModelPool MissionReader::parseResourceRequirement(xmlDocPtr 
             std::string model = getSubNodeContent(doc, current, "model");
             std::string minCardinalityTxt = getSubNodeContent(doc, current, "minCardinality");
 
-            uint32_t minCardinality = boost::lexical_cast<uint32_t>(minCardinalityTxt);
+            uint32_t minCardinality = ::boost::lexical_cast<uint32_t>(minCardinalityTxt);
             modelPool[ owlapi::model::IRI(model) ] = minCardinality;
         }
         current = current->next;
@@ -525,9 +526,9 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
             base::Point position;
             bool metricDefinition = false;
             try {
-                position.x() = boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "x") );
-                position.y() = boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "y") );
-                position.z() = boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "z") );
+                position.x() = ::boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "x") );
+                position.y() = ::boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "y") );
+                position.z() = ::boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "z") );
                 metricDefinition = true;
             } catch(const std::exception& e)
             {
@@ -538,8 +539,8 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
             {
                 try {
 
-                    double latitude = boost::lexical_cast<double>( getSubNodeContent(doc, current, "latitude") );
-                    double longitude = boost::lexical_cast<double>( getSubNodeContent(doc, current, "longitude") );
+                    double latitude = ::boost::lexical_cast<double>( getSubNodeContent(doc, current, "latitude") );
+                    double longitude = ::boost::lexical_cast<double>( getSubNodeContent(doc, current, "longitude") );
                     std::string radius = getSubNodeContent(doc, current, "radius");
                     utils::CartographicMapping mapping(radius);
                     base::Point point(latitude, longitude, 0.0);

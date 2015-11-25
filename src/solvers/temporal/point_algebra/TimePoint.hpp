@@ -18,7 +18,7 @@ class TimePoint : public Variable
 public:
     enum Type { UNKNOWN, QUANTITATIVE, QUALITATIVE };
 
-    typedef boost::shared_ptr<TimePoint> Ptr;
+    typedef shared_ptr<TimePoint> Ptr;
     typedef std::string Label;
     typedef std::vector<Label> LabelList;
 

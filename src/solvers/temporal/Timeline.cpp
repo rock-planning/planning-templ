@@ -28,7 +28,7 @@ void Timeline::addTemporalAssertion(TemporalAssertion::Ptr assertion)
     {
         case TemporalAssertion::EVENT:
         {
-            Event::Ptr event = boost::dynamic_pointer_cast<Event>(assertion);
+            Event::Ptr event = dynamic_pointer_cast<Event>(assertion);
             try {
                 mConstraintNetwork->addVariable(event->getTimePoint());
             } catch(const std::runtime_error& e)
@@ -39,7 +39,7 @@ void Timeline::addTemporalAssertion(TemporalAssertion::Ptr assertion)
         }
         case TemporalAssertion::PERSISTENCE_CONDITION:
         {
-            PersistenceCondition::Ptr persistenceCondition = boost::dynamic_pointer_cast<PersistenceCondition>(assertion);
+            PersistenceCondition::Ptr persistenceCondition = dynamic_pointer_cast<PersistenceCondition>(assertion);
             point_algebra::TimePoint::Ptr fromTime = persistenceCondition->getFromTimePoint();
             point_algebra::TimePoint::Ptr toTime = persistenceCondition->getToTimePoint();
             try {
@@ -65,7 +65,7 @@ void Timeline::addTemporalAssertion(TemporalAssertion::Ptr assertion)
 
 void Timeline::addConstraint(Constraint::Ptr constraint)
 {
-    point_algebra::QualitativeTimePointConstraint::Ptr timepointConstraint = boost::dynamic_pointer_cast<point_algebra::QualitativeTimePointConstraint>(constraint);
+    point_algebra::QualitativeTimePointConstraint::Ptr timepointConstraint = dynamic_pointer_cast<point_algebra::QualitativeTimePointConstraint>(constraint);
     if(timepointConstraint)
     {
         mConstraintNetwork->addConstraint(timepointConstraint);
@@ -123,14 +123,14 @@ point_algebra::TimePointList Timeline::getTimePoints() const
         {
             case TemporalAssertion::EVENT:
             {
-                Event::Ptr event = boost::dynamic_pointer_cast<Event>(assertion);
+                Event::Ptr event = dynamic_pointer_cast<Event>(assertion);
                 TimePoint::Ptr timepoint = event->getTimePoint();
                 timepoints.push_back(timepoint);
                 break;
             }
             case TemporalAssertion::PERSISTENCE_CONDITION:
             {
-                PersistenceCondition::Ptr persistenceCondition = boost::dynamic_pointer_cast<PersistenceCondition>(assertion);
+                PersistenceCondition::Ptr persistenceCondition = dynamic_pointer_cast<PersistenceCondition>(assertion);
                 TimePoint::Ptr fromTime = persistenceCondition->getFromTimePoint();
                 timepoints.push_back(fromTime);
 

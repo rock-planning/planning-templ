@@ -6,6 +6,7 @@
 #include <gecode/gist.hh>
 #include <organization_model/Algebra.hpp>
 #include <owlapi/Vocabulary.hpp>
+#include <templ/SharedPtr.hpp>
 #include <templ/symbols/object_variables/LocationCardinality.hpp>
 #include <templ/solvers/csp/ConstraintMatrix.hpp>
 
@@ -476,8 +477,8 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
         }
 
         owlapi::model::IRI resourceModel(stateVariable.getResource());
-        symbols::ObjectVariable::Ptr objectVariable = boost::dynamic_pointer_cast<symbols::ObjectVariable>(p->getValue());
-        symbols::object_variables::LocationCardinality::Ptr locationCardinality = boost::dynamic_pointer_cast<symbols::object_variables::LocationCardinality>(objectVariable);
+        symbols::ObjectVariable::Ptr objectVariable = dynamic_pointer_cast<symbols::ObjectVariable>(p->getValue());
+        symbols::object_variables::LocationCardinality::Ptr locationCardinality = dynamic_pointer_cast<symbols::object_variables::LocationCardinality>(objectVariable);
 
         Interval interval(p->getFromTimePoint(), p->getToTimePoint(),timepointComparator);
         {

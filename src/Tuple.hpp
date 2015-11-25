@@ -9,9 +9,9 @@ template<typename A, typename B>
 class Tuple : public graph_analysis::Vertex
 {
 public:
-    typedef boost::shared_ptr< Tuple<A,B> > Ptr;
-    typedef typename boost::shared_ptr<A> APtr;
-    typedef typename boost::shared_ptr<B> BPtr;
+    typedef shared_ptr< Tuple<A,B> > Ptr;
+    typedef shared_ptr<A> APtr;
+    typedef shared_ptr<B> BPtr;
 
     Tuple(const APtr& a, const BPtr& b)
         : mpA(a)

@@ -16,7 +16,7 @@ namespace csp {
 class Resolver
 {
 public:
-    typedef boost::shared_ptr<Resolver> Ptr;
+    typedef shared_ptr<Resolver> Ptr;
 
     enum Type { UNKNOWN, MODEL_DISTRIBUTION, ROLE_DISTRIBUTION };
 

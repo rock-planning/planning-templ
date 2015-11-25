@@ -19,7 +19,7 @@ LocationCardinality::~LocationCardinality() {}
 
 bool LocationCardinality::equals(const Symbol::Ptr& symbol) const
 {
-    LocationCardinality::Ptr other = boost::dynamic_pointer_cast<LocationCardinality>(symbol);
+    LocationCardinality::Ptr other = dynamic_pointer_cast<LocationCardinality>(symbol);
     if(other)
     {
         return mLocation == other->mLocation && 

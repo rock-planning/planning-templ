@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <map>
-#include <boost/shared_ptr.hpp>
 #include <templ/symbols/StateVariable.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 
@@ -38,16 +37,16 @@ protected:
      */
     TemporalAssertion(const symbols::StateVariable& stateVariable, Type type);
 
-    virtual bool refersToSameValue(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
+    virtual bool refersToSameValue(const shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
 
-    virtual bool refersToSameValue(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
+    virtual bool refersToSameValue(const shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::refersToSameValue: not implemented"); }
 
-    virtual bool disjointFrom(const boost::shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
-    virtual bool disjointFrom(const boost::shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
+    virtual bool disjointFrom(const shared_ptr<Event>& other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
+    virtual bool disjointFrom(const shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const { throw std::runtime_error("templ::TemporalAssertion::disjointFrom: not implemented"); }
 
 
 public:
-    typedef boost::shared_ptr<TemporalAssertion> Ptr;
+    typedef shared_ptr<TemporalAssertion> Ptr;
 
     virtual ~TemporalAssertion() {}
 

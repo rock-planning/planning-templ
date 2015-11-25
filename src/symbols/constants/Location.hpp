@@ -13,7 +13,7 @@ class Location : public Constant
     base::Point mPosition;
 
 public:
-    typedef boost::shared_ptr<Location> Ptr;
+    typedef shared_ptr<Location> Ptr;
 
     Location(const std::string& name, const base::Point& position = base::Point())
         : Constant(name, Constant::LOCATION)

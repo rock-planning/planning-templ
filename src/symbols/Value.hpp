@@ -24,7 +24,7 @@ public:
     typedef std::string ValueTypeName;
     static std::map<Type, ValueTypeName> TypeTxt;
 
-    typedef boost::shared_ptr<Value> Ptr;
+    typedef shared_ptr<Value> Ptr;
 
     virtual bool equals(const Symbol::Ptr& other) const { throw std::runtime_error("templ::Value::equals not implemented"); }
 

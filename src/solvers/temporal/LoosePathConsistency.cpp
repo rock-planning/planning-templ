@@ -1,6 +1,7 @@
 #include "LoosePathConsistency.hpp"
 #include <graph_analysis/BaseGraph.hpp> 
 #include <graph_analysis/GraphIO.hpp>
+#include <templ/SharedPtr.hpp>
 
 namespace templ {
 namespace solvers {
@@ -64,7 +65,8 @@ std::vector<Bounds> LoosePathConsistency::intersection(const std::vector<Bounds>
                 edge0:  [a-----------b]
                 => add:    [x----y]
             */
-                if (!checkInterval(result,Bounds(ita->getLowerBound(),ita->getUpperBound())) &&                 ita->getLowerBound() < ita->getUpperBound()) 
+                if (!checkInterval(result,Bounds(ita->getLowerBound(),ita->getUpperBound())) &&
+                            ita->getLowerBound() < ita->getUpperBound())
                 {
                     result.push_back(Bounds(ita->getLowerBound(),ita->getUpperBound()));
                 }
@@ -178,7 +180,7 @@ TemporalConstraintNetwork LoosePathConsistency::intersectionNetwork(TemporalCons
     // vertex from the distance graph
     while (edgeIt->next())
     {
-        IntervalConstraint::Ptr edge = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
+        IntervalConstraint::Ptr edge = dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
         graph_analysis::BaseGraph::Ptr graph2 = t.getDistanceGraph();
         graph_analysis::VertexIterator::Ptr vit = graph2->getVertexIterator();
         std::vector<Bounds> final,temp;
@@ -187,7 +189,7 @@ TemporalConstraintNetwork LoosePathConsistency::intersectionNetwork(TemporalCons
         while (vit->next())
         {
             cnt = 0;
-            point_algebra::TimePoint::Ptr vertex = boost::dynamic_pointer_cast<point_algebra::TimePoint>                    (vit->current() );
+            point_algebra::TimePoint::Ptr vertex = dynamic_pointer_cast<point_algebra::TimePoint>                    (vit->current() );
             // check if the vertex is not the source or target of our current edge
             if (vertex != edge->getSourceTimePoint() && vertex != edge->getTargetTimePoint())
             {
@@ -206,7 +208,7 @@ TemporalConstraintNetwork LoosePathConsistency::intersectionNetwork(TemporalCons
                 x = graph->graph_analysis::BaseGraph::getEdges(vertex,edge->getSourceTimePoint());
                 if (x.size()==1) 
                 {
-                    i1 = boost::dynamic_pointer_cast<IntervalConstraint>(*x.begin());
+                    i1 = dynamic_pointer_cast<IntervalConstraint>(*x.begin());
                     a = reverseIntervals(i1->getIntervals());
                     ++cnt;
                 }
@@ -222,7 +224,7 @@ TemporalConstraintNetwork LoosePathConsistency::intersectionNetwork(TemporalCons
                 y = graph->graph_analysis::BaseGraph::getEdges(edge->getSourceTimePoint(),vertex);
                 if (y.size()==1) 
                 {
-                    i1 = boost::dynamic_pointer_cast<IntervalConstraint>(*y.begin());
+                    i1 = dynamic_pointer_cast<IntervalConstraint>(*y.begin());
                     a = i1->getIntervals();
                     ++cnt;
                 }
@@ -238,7 +240,7 @@ TemporalConstraintNetwork LoosePathConsistency::intersectionNetwork(TemporalCons
                 z = graph->graph_analysis::BaseGraph::getEdges(vertex,edge->getTargetTimePoint());
                 if (z.size()==1) 
                 {
-                    i2 = boost::dynamic_pointer_cast<IntervalConstraint>(*z.begin());
+                    i2 = dynamic_pointer_cast<IntervalConstraint>(*z.begin());
                     b = i2->getIntervals();
                     ++cnt;
                 }
@@ -254,7 +256,7 @@ TemporalConstraintNetwork LoosePathConsistency::intersectionNetwork(TemporalCons
                 p = graph->graph_analysis::BaseGraph::getEdges(edge->getTargetTimePoint(),vertex);
                 if (p.size()==1)
                 {
-                    i2 = boost::dynamic_pointer_cast<IntervalConstraint>(*p.begin());
+                    i2 = dynamic_pointer_cast<IntervalConstraint>(*p.begin());
                     b = reverseIntervals(i2->getIntervals());
                     ++cnt;
                 }
@@ -298,14 +300,14 @@ TemporalConstraintNetwork LoosePathConsistency::looseNetwork(TemporalConstraintN
     // and add the result into the final network (tcn)
     while (edgeIt->next())
     {
-        IntervalConstraint::Ptr edge = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
+        IntervalConstraint::Ptr edge = dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
         std::vector<Bounds> final,temp1,temp2;
         temp1 = edge->getIntervals();
 
         std::vector<graph_analysis::Edge::Ptr> x;
         x = graph2->graph_analysis::BaseGraph::getEdges(edge->getSourceTimePoint(),edge->getTargetTimePoint());
         
-        IntervalConstraint::Ptr i = boost::dynamic_pointer_cast<IntervalConstraint>(*x.begin());
+        IntervalConstraint::Ptr i = dynamic_pointer_cast<IntervalConstraint>(*x.begin());
         temp2 = i->getIntervals();
 
         final = looseIntersection(temp1,temp2); 
@@ -330,7 +332,7 @@ bool LoosePathConsistency::checkConsistency(TemporalConstraintNetwork n)
     graph_analysis::EdgeIterator::Ptr edgeIt = (n.getDistanceGraph())->getEdgeIterator();
     while (edgeIt->next())
     {
-        IntervalConstraint::Ptr edge = boost::dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
+        IntervalConstraint::Ptr edge = dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
         std::vector<Bounds> temp = edge->getIntervals();
         if (temp.size()==0)
         {

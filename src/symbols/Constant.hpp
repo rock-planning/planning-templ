@@ -16,7 +16,7 @@ namespace symbols {
 class Constant : public Symbol
 {
 public:
-    typedef boost::shared_ptr<Constant> Ptr;
+    typedef shared_ptr<Constant> Ptr;
 
     enum Type { UNKNOWN, LOCATION };
     static std::map<Type, std::string> TypeTxt;

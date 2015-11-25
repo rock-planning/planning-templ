@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(io_non_overlapping_intervals)
     VertexIterator::Ptr vertexIt = tpc->getGraph()->getVertexIterator();
     while(vertexIt->next())
     {
-        point_algebra::TimePoint::Ptr tp = boost::dynamic_pointer_cast<point_algebra::TimePoint>(vertexIt->current());
+        point_algebra::TimePoint::Ptr tp = dynamic_pointer_cast<point_algebra::TimePoint>(vertexIt->current());
         BOOST_REQUIRE_MESSAGE(tp, "Timepoint: " << tp->toString() << " found");
         timepoints[tp->getLabel()] = tp;
     }

@@ -29,7 +29,7 @@ public:
     ///
     enum Type { Empty, Greater, Less, Equal, Distinct, GreaterOrEqual, LessOrEqual, Universal, TypeEndMarker };
 
-    typedef boost::shared_ptr<QualitativeTimePointConstraint> Ptr;
+    typedef shared_ptr<QualitativeTimePointConstraint> Ptr;
 
     QualitativeTimePointConstraint(Variable::Ptr source, Variable::Ptr target, Type constraintType);
 
