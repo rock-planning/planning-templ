@@ -41,13 +41,7 @@ MissionPlanner::MissionPlanner(const Mission& mission, const OrganizationModel::
                 {
                     return false;
                 }
-
-                if( mTimePointComparator.lessThan(a,b) )
-                {
-                    LOG_WARN_S << "Timepoint " << a->toString() << " is lessThan " << b->toString();
-                    return true;
-                }
-                return false;
+                return mTimePointComparator.lessThan(a,b);
             }
     );
 
