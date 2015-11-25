@@ -2,10 +2,12 @@
 #include <templ/Mission.hpp>
 #include <templ/solvers/csp/ModelDistribution.hpp>
 #include <templ/solvers/csp/RoleDistribution.hpp>
+#include <organization_model/vocabularies/OM.hpp>
 
 #include "../test_utils.hpp"
 
 using namespace templ;
+using namespace organization_model;
 
 BOOST_AUTO_TEST_SUITE(csp)
 
@@ -22,7 +24,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
 
     organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
                 getRootDir() + "test/data/om-schema-v0.8.owl");
-    owlapi::model::IRI location_image_provider = owlapi::vocabulary::OM::resolve("ImageProvider");
+    owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
     point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
@@ -52,31 +54,31 @@ BOOST_AUTO_TEST_CASE(mission_0)
     using namespace solvers;
     {
         organization_model::ModelPool modelPool;
-        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
         mission.setAvailableResources(modelPool);
         solvers::csp::ModelDistribution::solve(mission);
     }
 
     {
         organization_model::ModelPool modelPool;
-        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
         mission.setAvailableResources(modelPool);
         solvers::csp::ModelDistribution::solve(mission);
     }
 
     {
         organization_model::ModelPool modelPool;
-        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
-        modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 2;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
+        modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
         mission.setAvailableResources(modelPool);
         solvers::csp::ModelDistribution::solve(mission);
     }
 
     {
         organization_model::ModelPool modelPool;
-        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
-        modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 2;
-        modelPool[ owlapi::vocabulary::OM::resolve("Payload") ] = 10;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
+        modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
+        modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
         mission.setAvailableResources(modelPool);
         solvers::csp::ModelDistribution::solve(mission);
     }
@@ -95,7 +97,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
 
     organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
                 getRootDir() + "test/data/om-schema-v0.8.owl");
-    owlapi::model::IRI location_image_provider = owlapi::vocabulary::OM::resolve("ImageProvider");
+    owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
     point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
@@ -127,7 +129,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     using namespace solvers;
     {
         organization_model::ModelPool modelPool;
-        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
         mission.setAvailableResources(modelPool);
         BOOST_REQUIRE_THROW(solvers::csp::ModelDistribution::solve(mission), std::runtime_error);
     }
@@ -135,7 +137,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     using namespace solvers;
     {
         organization_model::ModelPool modelPool;
-        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 10;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 10;
         mission.setAvailableResources(modelPool);
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
@@ -148,8 +150,8 @@ BOOST_AUTO_TEST_CASE(mission_1)
     using namespace solvers;
     {
         organization_model::ModelPool modelPool;
-        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
-        modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 1;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
+        modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
         mission.setAvailableResources(modelPool);
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
@@ -162,9 +164,9 @@ BOOST_AUTO_TEST_CASE(mission_1)
     using namespace solvers;
     {
         organization_model::ModelPool modelPool;
-        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
-        modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 3;
-        modelPool[ owlapi::vocabulary::OM::resolve("Payload") ] = 10;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
+        modelPool[ vocabulary::OM::resolve("CREX") ] = 3;
+        modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
         mission.setAvailableResources(modelPool);
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
@@ -177,12 +179,12 @@ BOOST_AUTO_TEST_CASE(mission_1)
     using namespace solvers;
     {
         organization_model::ModelPool modelPool;
-        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 2;
-        modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 3;
-        modelPool[ owlapi::vocabulary::OM::resolve("Payload") ] = 10;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
+        modelPool[ vocabulary::OM::resolve("CREX") ] = 3;
+        modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
         mission.setAvailableResources(modelPool);
 
-        owlapi::model::IRI emi_power_provider = owlapi::vocabulary::OM::resolve("EmiPowerProvider");
+        owlapi::model::IRI emi_power_provider = vocabulary::OM::resolve("EmiPowerProvider");
         mission.addResourceLocationCardinalityConstraint(loc1, t2, t3, emi_power_provider);
             
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
@@ -208,7 +210,7 @@ BOOST_AUTO_TEST_CASE(mission_tt)
 
     organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
                 getRootDir() + "test/data/om-schema-v0.8.owl");
-    owlapi::model::IRI location_image_provider = owlapi::vocabulary::OM::resolve("ImageProvider");
+    owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
     point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
@@ -237,8 +239,8 @@ BOOST_AUTO_TEST_CASE(mission_tt)
     using namespace solvers;
     {
         organization_model::ModelPool modelPool;
-        modelPool[ owlapi::vocabulary::OM::resolve("CREX") ] = 2;
-        modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
+        modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
         mission.setAvailableResources(modelPool);
 
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);

@@ -83,10 +83,15 @@ private:
 
     // Get the minimum requirements as set of ModelCombinations
     // \return ModelCombinations that fulfill the requirement
-    organization_model::ModelCombinationSet getDomain(const FluentTimeResource& requirement) const;
+    organization_model::ModelPoolSet getDomain(const FluentTimeResource& requirement) const;
 
-    std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelCombinationSet& set) const;
-    std::vector<uint32_t> toCSP(const organization_model::ModelCombination& combination) const;
+    std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelPoolSet& set) const;
+    std::vector<uint32_t> toCSP(const organization_model::ModelPool& combination) const;
+
+    /**
+     * Get the index of the system model in the csp representation
+     * \return index of model
+     */
     uint32_t systemModelToCSP(const owlapi::model::IRI& model) const;
 
     /**
@@ -94,7 +99,7 @@ private:
      * extensional constraints out of the combination set
      * \return TupleSet
      */
-    void appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelCombinationSet& combinations) const;
+    void appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPoolSet& combinations) const;
 
     size_t getFluentIndex(const FluentTimeResource& fluent) const;
     size_t getResourceModelIndex(const owlapi::model::IRI& model) const;

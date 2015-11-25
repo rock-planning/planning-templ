@@ -8,11 +8,12 @@
 #include <templ/MissionPlanner.hpp>
 #include "test_utils.hpp"
 
-#include <owlapi/Vocabulary.hpp>
+#include <organization_model/vocabularies/OM.hpp>
 
 using namespace templ;
 using namespace templ::symbols;
 using namespace templ::solvers::temporal;
+using namespace organization_model;
 
 namespace pa = templ::solvers::temporal::point_algebra;
 
@@ -75,7 +76,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
 
     organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
                 getRootDir() + "test/data/om-schema-v0.8.owl");
-    owlapi::model::IRI location_image_provider = owlapi::vocabulary::OM::resolve("LocationImageProvider");
+    owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("LocationImageProvider");
 
     using namespace solvers::temporal;
     point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
@@ -96,7 +97,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     mission.addConstraint(t1_t2_constraint);
 
     organization_model::ModelPool modelPool;
-    modelPool[ owlapi::vocabulary::OM::resolve("Sherpa") ] = 1;
+    modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
     mission.setAvailableResources(modelPool);
 
     //MissionPlanner missionPlanner(mission);

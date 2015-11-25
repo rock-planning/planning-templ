@@ -6,7 +6,7 @@
 #include <graph_analysis/GraphIO.hpp>
 #include <limits>
 
-#include <owlapi/Vocabulary.hpp>
+#include <organization_model/vocabularies/OM.hpp>
 #include <organization_model/facets/Robot.hpp>
 
 using namespace organization_model;
@@ -438,7 +438,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
                         << roleTimeline.toString();
 
                     {
-                        Resolver::Ptr functionalityRequest(new FunctionalityRequest(*fit, owlapi::vocabulary::OM::resolve("TransportService")));
+                        Resolver::Ptr functionalityRequest(new FunctionalityRequest(*fit, vocabulary::OM::resolve("TransportService")));
                         mResolvers.push_back(functionalityRequest);
 
                         // delta needs to be: missing count of resource type

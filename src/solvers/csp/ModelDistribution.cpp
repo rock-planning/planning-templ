@@ -5,7 +5,7 @@
 
 #include <gecode/gist.hh>
 #include <organization_model/Algebra.hpp>
-#include <owlapi/Vocabulary.hpp>
+#include <organization_model/vocabularies/OM.hpp>
 #include <templ/SharedPtr.hpp>
 #include <templ/symbols/object_variables/LocationCardinality.hpp>
 #include <templ/solvers/csp/ConstraintMatrix.hpp>
@@ -42,25 +42,25 @@ ModelDistribution::Solution ModelDistribution::getSolution() const
     return solution;
 }
 
-organization_model::ModelCombinationSet ModelDistribution::getDomain(const FluentTimeResource& requirement) const
+organization_model::ModelPoolSet ModelDistribution::getDomain(const FluentTimeResource& requirement) const
 {
     // The domain definition accounts for service requirements as well as explicitly stated
     // resource model requirements
     //
     // It construct a model combination set, i.e., extensional constraints from
     // where solutions can be picked
-    std::set<organization_model::Service> services;
+    std::set<organization_model::Functionality> functionalities;
     std::set<uint32_t>::const_iterator cit = requirement.resources.begin();
     for(; cit != requirement.resources.end(); ++cit)
     {
         const owlapi::model::IRI& resourceModel = mResources[*cit];
-        using namespace owlapi;
 
-        if( mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Service()))
+        using namespace organization_model;
+        if( mAsk.ontology().isSubClassOf(resourceModel, vocabulary::OM::Functionality()))
         {
-            organization_model::Service service(resourceModel);
-            services.insert(service);
-            LOG_INFO_S << "Add service requirement: " << service.getModel().toString();
+            organization_model::Functionality functionality(resourceModel);
+            functionalities.insert(functionality);
+            LOG_INFO_S << "Add functionality requirement: " << functionality.toString();
         }
     }
 
@@ -68,25 +68,24 @@ organization_model::ModelCombinationSet ModelDistribution::getDomain(const Fluen
     // complete set since this might conflict with the minCardinalities
     // constraint -- thus we need to first derive the functionalBound and then
     // apply the minCardinalities by expanding the set of model if required
-    organization_model::ModelCombinationSet combinations = mAsk.getResourceSupport(services);
-    LOG_INFO_S << "Resources: " << organization_model::OrganizationModel::toString(combinations);
+    organization_model::ModelPoolSet combinations = mAsk.getResourceSupport(functionalities);
+    LOG_INFO_S << "Resources: " << organization_model::ModelPool::toString(combinations);
     combinations = mAsk.applyUpperBound(combinations, requirement.maxCardinalities);
-    LOG_INFO_S << "Bounded resources (upper bound): " << organization_model::OrganizationModel::toString(combinations);
+    LOG_INFO_S << "Bounded resources (upper bound): " << organization_model::ModelPool::toString(combinations);
 
     // The minimum resource requirements are accounted here by enforcing the
     // lower bound -- the given combinations are guaranteed to support the
     // services due upperBound which is derived from the functionalSaturationBound
     combinations = mAsk.expandToLowerBound(combinations, requirement.minCardinalities);
-    LOG_INFO_S << "Expanded resource (lower bound enforced): " << organization_model::OrganizationModel::toString(combinations);
+    LOG_INFO_S << "Expanded resource (lower bound enforced): " << organization_model::ModelPool::toString(combinations);
 
     return combinations;
 }
 
-
-std::set< std::vector<uint32_t> > ModelDistribution::toCSP(const organization_model::ModelCombinationSet& combinations) const
+std::set< std::vector<uint32_t> > ModelDistribution::toCSP(const organization_model::ModelPoolSet& combinations) const
 {
     std::set< std::vector<uint32_t> > csp_combinations;
-    organization_model::ModelCombinationSet::const_iterator cit = combinations.begin();
+    organization_model::ModelPoolSet::const_iterator cit = combinations.begin();
     for(; cit != combinations.end(); ++cit)
     {
         csp_combinations.insert( toCSP(*cit) );
@@ -94,22 +93,17 @@ std::set< std::vector<uint32_t> > ModelDistribution::toCSP(const organization_mo
     return csp_combinations;
 }
 
-std::vector<uint32_t> ModelDistribution::toCSP(const organization_model::ModelCombination& combination) const
+std::vector<uint32_t> ModelDistribution::toCSP(const organization_model::ModelPool& combination) const
 {
     // return index of model and count per model
-    std::vector<uint32_t> csp_combination;
-    for(size_t i = 0; i < mModelPool.size(); ++i)
-    {
-        csp_combination.push_back(0);
-    }
+    std::vector<uint32_t> csp_combination(mModelPool.size(),0);
 
-    organization_model::ModelCombination::const_iterator cit = combination.begin();
+    organization_model::ModelPool::const_iterator cit = combination.begin();
     for(; cit != combination.end(); ++cit)
     {
-        uint32_t index = systemModelToCSP(*cit);
-        csp_combination[index]++;
+        uint32_t index = systemModelToCSP(cit->first);
+        csp_combination.at(index) = cit->second;
     }
-    LOG_INFO_S << "TO CSP: of " << combination << " returns size: " << csp_combination.size();
     return csp_combination;
 }
 
@@ -244,13 +238,8 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
 
                 // Extensional constraints, i.e. specifying the allowed
                 // combinations
-                organization_model::ModelCombinationSet allowedCombinations = getDomain(fts);
-
+                organization_model::ModelPoolSet allowedCombinations = getDomain(fts);
                 appendToTupleSet(mExtensionalConstraints[requirementIndex], allowedCombinations);
-
-                //tupleSet.finalize();
-                //LOG_DEBUG_S << "TupleSet: " << tupleSet.size();
-        //        extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
 
                 // there can be no empty assignment for a service
                 rel(*this, sum( resourceDistribution.row(requirementIndex) ) > 0);
@@ -388,7 +377,7 @@ std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::M
     return solutions;
 }
 
-void ModelDistribution::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelCombinationSet& combinations) const
+void ModelDistribution::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPoolSet& combinations) const
 {
     std::set< std::vector<uint32_t> > csp = toCSP( combinations );
     std::set< std::vector<uint32_t> >::const_iterator cit = csp.begin();
@@ -508,12 +497,12 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
                     , timeIndex
                     , (int) (lit - mLocations.begin()));
                     //, mModelPool);
-            if(mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Service()))
+            if(mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
             {
                 // retrieve upper bound
                 ftr.maxCardinalities = mAsk.getFunctionalSaturationBound(resourceModel);
 
-            } else if(mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Actor()))
+            } else if(mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Actor()))
             {
                 ftr.minCardinalities[ resourceModel ] = locationCardinality->getCardinality();
             } else {
@@ -553,22 +542,22 @@ void ModelDistribution::compact(std::vector<FluentTimeResource>& requirements) c
                 // Compacting the resource list
                 fts.resources.insert(otherFts.resources.begin(), otherFts.resources.end());
 
-                // Use the functional saturation bound on all services
+                // Use the functional saturation bound on all functionalities
                 // after compacting the resource list
-                std::set<organization_model::Service> services;
+                std::set<organization_model::Functionality> functionalities;
                 std::set<uint32_t>::const_iterator cit = fts.resources.begin();
                 for(; cit != fts.resources.end(); ++cit)
                 {
                     const owlapi::model::IRI& resourceModel = mResources[*cit];
                     using namespace owlapi;
 
-                    if( mAsk.ontology().isSubClassOf(resourceModel, owlapi::vocabulary::OM::Service()))
+                    if( mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
                     {
-                        organization_model::Service service(resourceModel);
-                        services.insert(service);
+                        organization_model::Functionality functionality(resourceModel);
+                        functionalities.insert(functionality);
                     }
                 }
-                fts.maxCardinalities = mAsk.getFunctionalSaturationBound(services);
+                fts.maxCardinalities = mAsk.getFunctionalSaturationBound(functionalities);
 
                 // MaxMin --> min cardinalities are a lower bound specified explicitely
                 LOG_DEBUG_S << "Update Requirements: min: " << fts.minCardinalities.toString();
@@ -680,7 +669,7 @@ void ModelDistribution::addFunctionRequirement(const FluentTimeResource& fts, ow
     }
     if(index >= mResources.size())
     {
-        if( mAsk.ontology().isSubClassOf(function, owlapi::vocabulary::OM::Service()) )
+        if( mAsk.ontology().isSubClassOf(function, organization_model::vocabulary::OM::Functionality()) )
         {
             LOG_WARN_S << "AUTO ADDED '" << function << "' to required resources";
             mResources.push_back(function);
