@@ -98,6 +98,60 @@ bool QualitativeTemporalConstraintNetwork::isConsistent()
     }
 }
 
+bool QualitativeTemporalConstraintNetwork::one3()
+{
+    std::vector<Vertex::Ptr> allVertices = getGraph()->getAllVertices();
+    if(allVertices.size() < 1)
+    {
+        return true;
+    }
+
+    for(int i = 0; i < allVertices.size(); ++i)
+    {
+        std::vector<Vertex::Ptr> vertices = allVertices;
+        Vertex::Ptr s = vertices[i];
+        vertices.erase(vertices.begin());
+
+        while(!vertices.empty())
+        {
+            Vertex::Ptr v = *vertices.begin();
+            vertices.erase(vertices.begin());
+
+            std::vector<Vertex::Ptr>::const_iterator cit = vertices.begin();
+            for(; cit != vertices.end(); ++cit)
+            {
+                Vertex::Ptr t = *cit;
+
+                QualitativeTimePointConstraint::Type st = QualitativeTemporalConstraintNetwork::getDirectionalConstraintType(s,t);
+                QualitativeTimePointConstraint::Type sv = QualitativeTemporalConstraintNetwork::getDirectionalConstraintType(s,v);
+                assert(v);
+                assert(t);
+                QualitativeTimePointConstraint::Type vt = QualitativeTemporalConstraintNetwork::getDirectionalConstraintType(v,t);
+
+                QualitativeTimePointConstraint::Type compositionType = QualitativeTimePointConstraint::getComposition(sv,vt);
+                QualitativeTimePointConstraint::Type intersectionType = QualitativeTimePointConstraint::getIntersection(st, compositionType);
+
+                if(intersectionType != st)
+                {
+                    std::vector<Edge::Ptr> edges = getGraph()->getEdges(s, t);
+                    if(edges.empty())
+                    {
+                        addQualitativeConstraint(dynamic_pointer_cast<TimePoint>(s), dynamic_pointer_cast<TimePoint>(t), intersectionType);
+                    } else {
+                        QualitativeTimePointConstraint::Ptr constraint = dynamic_pointer_cast<QualitativeTimePointConstraint>(edges[0]);
+                        constraint->setType(intersectionType);
+                    }
+                    vertices.push_back(t);
+                } else if(intersectionType == QualitativeTimePointConstraint::Empty)
+                {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
 bool QualitativeTemporalConstraintNetwork::incrementalPathConsistency()
 {
     size_t count = 0;
