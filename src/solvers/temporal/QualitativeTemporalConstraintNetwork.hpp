@@ -1,6 +1,7 @@
 #ifndef TEMPL_SOLVERS_TEMPORAL_QUALITATIVE_TEMPORAL_CONSTRAINT_NETWORK
 #define TEMPL_SOLVERS_TEMPORAL_QUALITATIVE_TEMPORAL_CONSTRAINT_NETWORK
 
+#include <set>
 #include <templ/solvers/temporal/TemporalConstraintNetwork.hpp>
 #include <templ/solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp>
 
@@ -93,7 +94,7 @@ private:
      */
     bool isConsistent(const std::vector<graph_analysis::Edge::Ptr>& edges);
 
-    std::vector<VertexPair> mUpdatedConstraints;
+    std::set<VertexPair> mUpdatedConstraints;
 };
 
 } // end namespace temporal

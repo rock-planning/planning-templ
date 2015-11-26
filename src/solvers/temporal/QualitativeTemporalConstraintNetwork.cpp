@@ -77,7 +77,7 @@ QualitativeTimePointConstraint::Ptr QualitativeTemporalConstraintNetwork::addQua
     QualitativeTimePointConstraint::Ptr constraint = QualitativeTimePointConstraint::create(t1, t2, constraintType);
     //LOG_DEBUG_S << "Adding QualitativeTimePointConstraint: " << constraint->toString();
     TemporalConstraintNetwork::addConstraint(constraint);
-    mUpdatedConstraints.push_back(VertexPair(t1,t2));
+    mUpdatedConstraints.insert(VertexPair(t1,t2));
 
     return constraint;
 }
@@ -105,42 +105,36 @@ bool QualitativeTemporalConstraintNetwork::incrementalPathConsistency()
     LOG_DEBUG_S << "Incremental path consistency: updated constraints #" << mUpdatedConstraints.size();
     while(!mUpdatedConstraints.empty())
     {
-        VertexPair pair = mUpdatedConstraints.back();
-        mUpdatedConstraints.pop_back();
+
+        VertexPair pair = *mUpdatedConstraints.begin();
+        mUpdatedConstraints.erase(mUpdatedConstraints.begin());
+
+        const Vertex::Ptr& i = pair.first;
+        const Vertex::Ptr& j = pair.second;
 
         std::vector<Vertex::Ptr>::const_iterator cit = vertices.begin();
         for(; cit != vertices.end(); ++cit)
         {
             const Vertex::Ptr& k = *cit;
-            const Vertex::Ptr& i = pair.first;
-            const Vertex::Ptr& j = pair.second;
 
-            if(k == i || k == j || i == j)
+            if(k == i || k == j )
             {
                 // not a triangle thus continue
                 continue;
             }
 
-            LOG_WARN_S << "Checking for: " << k->toString() << "-" << i->toString() << "-" << j->toString();
-
-
             VertexPair ik = revise(i, k, composition(i,j,k));
             if(ik != VertexPair())
             {
-                LOG_WARN_S << "Updated constraint for " << i->toString() << " -- " << k->toString();
-                mUpdatedConstraints.push_back(ik);
+                mUpdatedConstraints.insert(ik);
             }
 
             VertexPair jk = revise(j, k, composition(j,i,k));
             if(jk != VertexPair())
             {
-                LOG_WARN_S << "Updated constraint for " << j->toString() << " -- " << k->toString();
-                mUpdatedConstraints.push_back(jk);
+                mUpdatedConstraints.insert(jk);
             }
-            VertexPair ij = revise(i, j, composition(i,k,j));
         }
-
-        LOG_WARN_S << "Incremental path consistency iteration #" << ++count;
     }
 
     return true;
@@ -158,7 +152,7 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::compo
 
 QualitativeTemporalConstraintNetwork::VertexPair QualitativeTemporalConstraintNetwork::revise(const Vertex::Ptr& i, const Vertex::Ptr& j, QualitativeTimePointConstraint::Type pathConstraintType)
 {
-    QualitativeTimePointConstraint::Type ij = QualitativeTemporalConstraintNetwork::getBidirectionalConstraintType(i,j);
+    QualitativeTimePointConstraint::Type ij = QualitativeTemporalConstraintNetwork::getDirectionalConstraintType(i,j);
     QualitativeTimePointConstraint::Type intersectionType = QualitativeTimePointConstraint::getIntersection(ij, pathConstraintType);
     
     //LOG_DEBUG_S << "Revise: " << QualitativeTimePointConstraint::TypeTxt[pathConstraintType] << ":  and bidirectional: " << QualitativeTimePointConstraint::TypeTxt[ij] << " --> " 
@@ -175,12 +169,12 @@ QualitativeTemporalConstraintNetwork::VertexPair QualitativeTemporalConstraintNe
     }
 
     std::vector<Edge::Ptr> edges = getGraph()->getEdges(i, j);
-    if(!edges.empty())
+    if(edges.empty())
     {
+        addQualitativeConstraint(dynamic_pointer_cast<TimePoint>(i), dynamic_pointer_cast<TimePoint>(j), intersectionType);
+    } else {
         QualitativeTimePointConstraint::Ptr constraint = dynamic_pointer_cast<QualitativeTimePointConstraint>(edges[0]);
         constraint->setType(intersectionType);
-    } else {
-        addQualitativeConstraint(dynamic_pointer_cast<TimePoint>(i), dynamic_pointer_cast<TimePoint>(j), intersectionType);
     }
 
     return VertexPair(i,j);
