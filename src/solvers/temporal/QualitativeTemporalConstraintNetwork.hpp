@@ -76,10 +76,6 @@ public:
      */
     point_algebra::QualitativeTimePointConstraint::Type getBidirectionalConstraintType(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1) const;
 
-    // Implementation of the 'one3' algorithm according to 
-    // "Approximation Algorithms for Temporal Reasoning" by Peter van Beek, 1989
-    bool one3();
-
     bool incrementalPathConsistency();
 
     point_algebra::QualitativeTimePointConstraint::Type composition(const graph_analysis::Vertex::Ptr& i, const graph_analysis::Vertex::Ptr& j, const graph_analysis::Vertex::Ptr& k);
