@@ -1,7 +1,7 @@
 #ifndef TEMPL_SOLVERS_CSP_RESOLVER_HPP
 #define TEMPL_SOLVERS_CSP_RESOLVER_HPP
 
-#include <boost/shared_ptr.hpp>
+#include <templ/SharedPtr.hpp>
 #include <templ/solvers/csp/FluentTimeResource.hpp>
 #include <templ/solvers/csp/RoleDistribution.hpp>
 #include <templ/solvers/csp/ModelDistribution.hpp>
