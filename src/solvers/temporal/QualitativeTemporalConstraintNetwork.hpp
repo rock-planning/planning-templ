@@ -24,6 +24,24 @@ public:
     typedef std::pair<graph_analysis::Vertex::Ptr, graph_analysis::Vertex::Ptr> VertexPair;
 
     /**
+     * Constraint validation for a triangle relation
+     * s - o
+     *  \ /
+     *   t
+     */
+    struct ConstraintValidationResult
+    {
+        point_algebra::QualitativeTimePointConstraint::Ptr constraint_st;
+
+        point_algebra::QualitativeTimePointConstraint::Type st;
+        point_algebra::QualitativeTimePointConstraint::Type so;
+        point_algebra::QualitativeTimePointConstraint::Type ot;
+
+        point_algebra::QualitativeTimePointConstraint::Type st_composition;
+        point_algebra::QualitativeTimePointConstraint::Type st_final;
+    };
+
+    /**
      * Default constructor
      */
     QualitativeTemporalConstraintNetwork();
@@ -33,6 +51,8 @@ public:
      * \return consolidated timepoint constraint
      */
     point_algebra::QualitativeTimePointConstraint::Type getQualitativeConstraint(const point_algebra::TimePoint::Ptr& t1, const point_algebra::TimePoint::Ptr& t2);
+
+    point_algebra::QualitativeTimePointConstraint::Ptr getDirectionalConstraint(const graph_analysis::Vertex::Ptr& t1, const graph_analysis::Vertex::Ptr& t2);
 
     /**
      * Add timepoint constraint to the constraint network
@@ -67,7 +87,7 @@ public:
      * \return composition constraint
      * \throw if the constraints between the two vertices are not consistent
      */
-    point_algebra::QualitativeTimePointConstraint::Type getDirectionalConstraintType(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1) const;
+    point_algebra::QualitativeTimePointConstraint::Type getDirectionalConstraintType(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1);
 
     /**
      * Get the consistent constraint between two vertices accouting for all
@@ -75,13 +95,32 @@ public:
      * \return composition constraint
      * \throw if the constraints between the two vertices are not consistent
      */
-    point_algebra::QualitativeTimePointConstraint::Type getBidirectionalConstraintType(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1) const;
+    point_algebra::QualitativeTimePointConstraint::Type getBidirectionalConstraintType(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1);
+
+    /**
+     * Get the consistent constraint between two vertices accouting for all
+     * edges between those two vertices (will enforce symmetry)
+     * \return constraint
+     */
+    point_algebra::QualitativeTimePointConstraint::Ptr getBidirectionalConstraint(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1);
 
     bool incrementalPathConsistency();
+    bool pathConsistency_BeekManak();
 
     point_algebra::QualitativeTimePointConstraint::Type composition(const graph_analysis::Vertex::Ptr& i, const graph_analysis::Vertex::Ptr& j, const graph_analysis::Vertex::Ptr& k);
 
     VertexPair revise(const graph_analysis::Vertex::Ptr& i, const graph_analysis::Vertex::Ptr& j, point_algebra::QualitativeTimePointConstraint::Type pathConstraintType);
+
+    void setConstraintType(const graph_analysis::Vertex::Ptr& i, const graph_analysis::Vertex::Ptr& j, point_algebra::QualitativeTimePointConstraint::Type type);
+
+    /**
+     * Compute the constraint types for a triangle s-o-t, whereas the following
+     * will be computed
+     \f[
+         res : c_{st} \cap c_{so} \cdot c_{ok}
+     \]f
+     */
+    ConstraintValidationResult getConstraintType(const graph_analysis::Vertex::Ptr& s, const graph_analysis::Vertex::Ptr& o, const graph_analysis::Vertex::Ptr& t);
 
 
 private:
