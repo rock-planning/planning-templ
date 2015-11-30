@@ -1,6 +1,7 @@
 rock_testsuite(test_suite suite.cpp
     #test_Scheduling.cpp
     solvers/test_CSP.cpp
+    solvers/test_TemporalCSP.cpp
     test_CartographicMapping.cpp
     test_LoosePathConsistency.cpp
     test_Planning.cpp

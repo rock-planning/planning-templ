@@ -17,6 +17,7 @@ rock_library(templ
         solvers/csp/RoleDistribution.cpp
         solvers/csp/RoleTimeline.cpp
         solvers/csp/FluentTimeResource.cpp
+        solvers/csp/TemporalCSP.cpp
         solvers/temporal/Bounds.cpp
         solvers/temporal/Chronicle.cpp
         solvers/temporal/Event.cpp
@@ -58,6 +59,7 @@ rock_library(templ
         solvers/csp/Resolver.hpp
         solvers/csp/RoleDistribution.hpp
         solvers/csp/RoleTimeline.hpp
+        solvers/csp/TemporalCSP.hpp
         solvers/temporal/Bounds.hpp
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
