@@ -81,6 +81,10 @@ TemporalCSP::TemporalCSP(const QualitativeTemporalConstraintNetwork::Ptr& tcn)
                 case QualitativeTimePointConstraint::Universal:
                     // this is the default
                     break;
+                case QualitativeTimePointConstraint::Distinct:
+                default:
+                    break;
+
             }
             Gecode::IntVar var_sym = temporalConstraints(j,i);
             //LOG_WARN_S << "POST_SYMMETRIC";
