@@ -386,7 +386,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
             MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge =
                 dynamic_pointer_cast<MultiCommodityMinCostFlow::edge_t>(edgeIt->current());
 
-            for(int i = 0; i < commodityRoles.size(); ++i)
+            for(size_t i = 0; i < commodityRoles.size(); ++i)
             {
                 uint32_t flow = multicommodityEdge->getCommodityFlow(i);
                 if(flow > 0)
@@ -452,7 +452,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
             }
         }
     }
-    for(int i = 0; i < commodityRoles.size(); ++i)
+    for(size_t i = 0; i < commodityRoles.size(); ++i)
     {
         LOG_WARN_S << "#" << i << " --> " << commodityRoles[i].toString();
     }
