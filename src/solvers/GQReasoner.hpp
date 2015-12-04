@@ -1,11 +1,11 @@
 #ifndef TEMPL_SOLVERS_GQ_REASONER_HPP
 #define TEMPL_SOLVERS_GQ_REASONER_HPP
 
-#include <graph_analysis/DirectedGraphInterface.hpp>
-#include <gqr/gqr_wrap.h>
+#include <graph_analysis/BaseGraph.hpp>
+//#include <gqr/gqr_wrap.h>
 #include <gqr/libgqr.h>
-#include <gqr/RestartsFramework.h>
-#include <gqr/gqrtl/RestartingDFS.h>
+//#include <gqr/RestartsFramework.h>
+//#include <gqr/gqrtl/RestartingDFS.h>
 
 namespace templ {
 namespace solvers {
@@ -13,12 +13,12 @@ namespace solvers {
 class GQReasoner
 {
 public:
-    GQReasoner(const std::string& calculus, const graph_analysis::DirectedGraphInterface::Ptr& graph);
+    GQReasoner(const std::string& calculus, const graph_analysis::BaseGraph::Ptr& graph, const graph_analysis::Edge::Ptr& defaultEdge);
     virtual ~GQReasoner();
 
-    graph_analysis::DirectedGraphInterface::Ptr getPrimarySolution();
+    graph_analysis::BaseGraph::Ptr getPrimarySolution();
 
-    graph_analysis::DirectedGraphInterface::Ptr getNextSolution();
+    graph_analysis::BaseGraph::Ptr getNextSolution();
 
 protected:
     void init(const std::string& calculus);
@@ -41,7 +41,7 @@ private:
 
     void relabel(int i, int j, const std::string& label);
 
-    graph_analysis::DirectedGraphInterface::Ptr mpDigraph;
+    graph_analysis::BaseGraph::Ptr mpGraph;
     static std::string msDataPath;
     Calculus* mpCalculus;
     gqrtl::CalculusOperations<gqrtl::Relation8>* mpCalculus8r;
@@ -72,6 +72,8 @@ private:
     DFSearch16r* mpSearch16r;
     DFSearch32r* mpSearch32r;
 
+    /// The default edge type
+    graph_analysis::Edge::Ptr mpDefaultConstraintType;
 };
 
 } // end namespace solvers

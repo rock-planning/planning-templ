@@ -20,6 +20,11 @@ public:
     /**
      * Default constructor for a constraint
      */
+    Constraint() {};
+
+    /**
+     * Constructor for a constraint using source and target
+     */
     Constraint(Variable::Ptr source, Variable::Ptr target);
 
     virtual ~Constraint() {}

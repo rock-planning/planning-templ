@@ -97,6 +97,13 @@ std::map< std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointCo
     ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Universal), QualitativeTimePointConstraint::Universal)
     ;
 
+QualitativeTimePointConstraint::QualitativeTimePointConstraint()
+    : Constraint()
+    , mConstraintType(Empty)
+{
+    Constraint::setLabel(TypeTxt[mConstraintType]);
+}
+
 QualitativeTimePointConstraint::QualitativeTimePointConstraint(Variable::Ptr source, Variable::Ptr target, point_algebra::QualitativeTimePointConstraint::Type constraintType)
     : Constraint(source, target)
     , mConstraintType(constraintType)

@@ -57,6 +57,11 @@ public:
      * Get the underlying graph of this constraint network
      */
     graph_analysis::BaseGraph::Ptr getGraph() const { return mGraph; }
+
+    /**
+     * Set the underlying graph of this constraint network
+     */
+    graph_analysis::BaseGraph::Ptr setGraph(const graph_analysis::BaseGraph::Ptr& graph) { return mGraph = graph; }
 };
 
 

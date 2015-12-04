@@ -11,6 +11,7 @@
 
 #include <utilmm/configfile/pkgconfig.hh>
 #include <templ/solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp>
+#include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 
 using namespace templ;
 using namespace templ::solvers::csp;
@@ -260,12 +261,12 @@ BOOST_AUTO_TEST_CASE(gqr_reasoner)
 
     QualitativeTimePoint::Ptr lastTp;
     int i = 0;
-    for(; i < 6; ++i)
+    for(; i < 15; ++i)
     {
         std::stringstream ss;
         ss << "t" << i;
         QualitativeTimePoint::Ptr tp(new QualitativeTimePoint(ss.str()));
-        if(lastTp && i%2 == 0)
+        if(lastTp && i < 14)
         {
             tcn->addQualitativeConstraint(lastTp, tp, QTPC::Less);
             tcn->addQualitativeConstraint(tp, lastTp, QTPC::Greater);
@@ -276,7 +277,7 @@ BOOST_AUTO_TEST_CASE(gqr_reasoner)
 
     using namespace graph_analysis;
     using namespace templ::solvers;
-    GQReasoner paReasoner("point", dynamic_pointer_cast<DirectedGraphInterface>(tcn->getGraph()));
+    GQReasoner paReasoner("point", tcn->getGraph(), QTPC::Ptr(new QTPC()) );
 
     {
         EdgeIterator::Ptr edgeIt = tcn->getGraph()->getEdgeIterator();
@@ -289,7 +290,7 @@ BOOST_AUTO_TEST_CASE(gqr_reasoner)
         }
     }
 
-    DirectedGraphInterface::Ptr primarySolution = paReasoner.getPrimarySolution();
+    BaseGraph::Ptr primarySolution = paReasoner.getPrimarySolution();
 
     {
         BOOST_REQUIRE_MESSAGE(primarySolution, "Found primary solution size: " << primarySolution->size());
@@ -303,9 +304,37 @@ BOOST_AUTO_TEST_CASE(gqr_reasoner)
         }
     }
 
+    tcn->setGraph(primarySolution);
+    BOOST_REQUIRE_MESSAGE( tcn->isConsistent(), "Primary solution consistency checked with PA incremental algo");
+
+    point_algebra::TimePointComparator tpc(tcn);
+
+    VertexIterator::Ptr vertexOutIt = tcn->getGraph()->getVertexIterator();
+    while(vertexOutIt->next())
+    {
+        TimePoint::Ptr o_vertex = dynamic_pointer_cast<TimePoint>(vertexOutIt->current());
+
+        VertexIterator::Ptr vertexInIt = tcn->getGraph()->getVertexIterator();
+        while(vertexInIt->next())
+        {
+            TimePoint::Ptr i_vertex = dynamic_pointer_cast<TimePoint>(vertexInIt->current());
+
+            if(tpc.equals(i_vertex, o_vertex))
+            {
+                BOOST_TEST_MESSAGE("Equal: " << i_vertex->toString() << " == " << o_vertex->toString());
+            } else if(tpc.lessThan(i_vertex, o_vertex))
+            {
+                BOOST_TEST_MESSAGE("LessThan: " << i_vertex->toString() << " < " << o_vertex->toString());
+            } else if(tpc.greaterThan(i_vertex, o_vertex))
+            {
+                BOOST_TEST_MESSAGE("GreaterThan: " << i_vertex->toString() << " > " << o_vertex->toString());
+            }
+        }
+    }
+
     while(true)
     {
-        DirectedGraphInterface::Ptr nextSolution = paReasoner.getNextSolution();
+        BaseGraph::Ptr nextSolution = paReasoner.getNextSolution();
         if(!nextSolution)
         {
             BOOST_TEST_MESSAGE("Found no solution");

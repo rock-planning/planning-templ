@@ -9,8 +9,8 @@ namespace solvers {
 
 std::string GQReasoner::msDataPath = "";
 
-GQReasoner::GQReasoner(const std::string& calculus, const graph_analysis::DirectedGraphInterface::Ptr& graph)
-    : mpDigraph( dynamic_pointer_cast<graph_analysis::DirectedGraphInterface>(graph->clone()))
+GQReasoner::GQReasoner(const std::string& calculus, const graph_analysis::BaseGraph::Ptr& graph, const Edge::Ptr& edge)
+    : mpGraph(graph->clone())
     , mpCalculus(0)
     , mpCalculus8r(0)
     , mpCalculus16r(0)
@@ -24,6 +24,7 @@ GQReasoner::GQReasoner(const std::string& calculus, const graph_analysis::Direct
     , mpSearch8r(0)
     , mpSearch16r(0)
     , mpSearch32r(0)
+    , mpDefaultConstraintType(edge)
 {
     if(msDataPath.empty())
     {
@@ -77,19 +78,19 @@ void GQReasoner::init(const std::string& calculus)
         LOG_DEBUG_S << "Initialize CalculusOp for <= 8 relations";
         mpCalculusOp8r = new CalculusOp8r_t(*mpCalculus8r);
         LOG_DEBUG_S << "Initialize CSP for <= 8 relations";
-        mpCSP8r = new CSP8r_t(mpDigraph->order(), *mpCalculusOp8r, "calculus_8r");
+        mpCSP8r = new CSP8r_t(mpGraph->order(), *mpCalculusOp8r, "calculus_8r");
     } else if(mpCalculus16r)
     {
         LOG_DEBUG_S << "Initialize CalculusOp for <= 16 relations";
         mpCalculusOp16r = new CalculusOp16r_t(*mpCalculus16r);
         LOG_DEBUG_S << "Initialize CSP for <= 16 relations";
-        mpCSP16r = new CSP16r_t(mpDigraph->order(), *mpCalculusOp16r, "calculus_16r");
+        mpCSP16r = new CSP16r_t(mpGraph->order(), *mpCalculusOp16r, "calculus_16r");
     } else if(mpCalculus32r)
     {
         LOG_DEBUG_S << "Initialize CalculusOp for <= 32 relations";
         mpCalculusOp32r = new CalculusOp32r_t(*mpCalculus32r);
         LOG_DEBUG_S << "Initialize CSP for <= 32 relations";
-        mpCSP32r = new CSP32r_t(mpDigraph->order(), *mpCalculusOp32r, "calculus_32r");
+        mpCSP32r = new CSP32r_t(mpGraph->order(), *mpCalculusOp32r, "calculus_32r");
     }
 }
 
@@ -97,7 +98,7 @@ void GQReasoner::translateGraph()
 {
     LOG_DEBUG_S << "Translating graph";
     using namespace graph_analysis;
-    EdgeIterator::Ptr edgeIt = mpDigraph->getEdgeIterator();
+    EdgeIterator::Ptr edgeIt = mpGraph->getEdgeIterator();
     while(edgeIt->next())
     {
         // hook: using getConstraintLabel from existing edge
@@ -109,25 +110,25 @@ void GQReasoner::translateGraph()
 
         if(mpCalculus8r)
         {
-            GraphElementId sourceId = constraint->getSourceVertex()->getId(mpDigraph->getId());
-            GraphElementId targetId = constraint->getTargetVertex()->getId(mpDigraph->getId());
+            GraphElementId sourceId = constraint->getSourceVertex()->getId(mpGraph->getId());
+            GraphElementId targetId = constraint->getTargetVertex()->getId(mpGraph->getId());
             LOG_DEBUG_S << "Set constraint '" << constraint->toString() << "' to relation: '" << relation << "' -- (" << sourceId << " --> " << targetId << ")";
             mpCSP8r->setConstraint(sourceId, targetId, relation);
         } else if(mpCalculus16r)
         {
-            mpCSP16r->setConstraint(constraint->getSourceVertex()->getId(mpDigraph->getId()),
-                constraint->getTargetVertex()->getId(mpDigraph->getId()),relation);
+            mpCSP16r->setConstraint(constraint->getSourceVertex()->getId(mpGraph->getId()),
+                constraint->getTargetVertex()->getId(mpGraph->getId()),relation);
         } else if(mpCalculus32r)
         {
-            mpCSP32r->setConstraint(constraint->getSourceVertex()->getId(mpDigraph->getId()),
-                constraint->getTargetVertex()->getId(mpDigraph->getId()),relation);
+            mpCSP32r->setConstraint(constraint->getSourceVertex()->getId(mpGraph->getId()),
+                constraint->getTargetVertex()->getId(mpGraph->getId()),relation);
         }
     }
     
     LOG_DEBUG_S << "Translating graph completed";
 }
 
-DirectedGraphInterface::Ptr GQReasoner::getPrimarySolution()
+BaseGraph::Ptr GQReasoner::getPrimarySolution()
 {
     if(mpCSP8r)
     {
@@ -136,7 +137,7 @@ DirectedGraphInterface::Ptr GQReasoner::getPrimarySolution()
         CSP8r_t* csp = mpSearch8r->run();
         if(!csp)
         {
-            return DirectedGraphInterface::Ptr();
+            return BaseGraph::Ptr();
         }
 
         for (size_t i = 0; i < csp->getSize(); ++i)
@@ -162,7 +163,7 @@ DirectedGraphInterface::Ptr GQReasoner::getPrimarySolution()
         CSP16r_t* csp = mpSearch16r->run();
         if(!csp)
         {
-            return DirectedGraphInterface::Ptr();
+            return BaseGraph::Ptr();
         }
 
         for (size_t i = 0; i < csp->getSize(); ++i)
@@ -182,7 +183,7 @@ DirectedGraphInterface::Ptr GQReasoner::getPrimarySolution()
         CSP32r_t* csp = mpSearch32r->run();
         if(!csp)
         {
-            return DirectedGraphInterface::Ptr();
+            return BaseGraph::Ptr();
         }
 
         for (size_t i = 0; i < csp->getSize(); ++i)
@@ -197,11 +198,11 @@ DirectedGraphInterface::Ptr GQReasoner::getPrimarySolution()
         }
     }
 
-    return mpDigraph;
+    return mpGraph;
 
 }
 
-graph_analysis::DirectedGraphInterface::Ptr GQReasoner::getNextSolution()
+graph_analysis::BaseGraph::Ptr GQReasoner::getNextSolution()
 {
     if(mpCSP8r)
     {
@@ -213,7 +214,7 @@ graph_analysis::DirectedGraphInterface::Ptr GQReasoner::getNextSolution()
         CSP8r_t* csp = mpSearch8r->next();
         if(!csp)
         {
-            return DirectedGraphInterface::Ptr();
+            return BaseGraph::Ptr();
         }
 
         for (size_t i = 0; i < csp->getSize(); i++)
@@ -241,7 +242,7 @@ graph_analysis::DirectedGraphInterface::Ptr GQReasoner::getNextSolution()
         CSP16r_t* csp = mpSearch16r->next();
         if(!csp)
         {
-            return DirectedGraphInterface::Ptr();
+            return BaseGraph::Ptr();
         }
 
         for (size_t i = 0; i < csp->getSize(); i++)
@@ -265,7 +266,7 @@ graph_analysis::DirectedGraphInterface::Ptr GQReasoner::getNextSolution()
         CSP32r_t* csp = mpSearch32r->next();
         if(!csp)
         {
-            return DirectedGraphInterface::Ptr();
+            return BaseGraph::Ptr();
         }
         for (size_t i = 0; i < csp->getSize(); i++)
         {
@@ -280,7 +281,7 @@ graph_analysis::DirectedGraphInterface::Ptr GQReasoner::getNextSolution()
         delete csp;
     }
 
-    return mpDigraph;
+    return mpGraph;
 }
 
 void GQReasoner::groundCalculus()
@@ -308,13 +309,16 @@ void GQReasoner::groundCalculus()
 
 Edge::Ptr GQReasoner::getEdge(int i, int j) const
 {
-    Vertex::Ptr vertex_i = mpDigraph->getVertex(i);
-    Vertex::Ptr vertex_j = mpDigraph->getVertex(j);
+    Vertex::Ptr vertex_i = mpGraph->getVertex(i);
+    Vertex::Ptr vertex_j = mpGraph->getVertex(j);
     
-    std::vector<Edge::Ptr> edges = mpDigraph->getEdges(vertex_i, vertex_j);
+    std::vector<Edge::Ptr> edges = mpGraph->getEdges(vertex_i, vertex_j);
     if(edges.empty())
     {
-        return Edge::Ptr(new Edge(vertex_i, vertex_j, "self-edge"));
+        Edge::Ptr edge = mpDefaultConstraintType->clone();
+        edge->setSourceVertex(vertex_i);
+        edge->setTargetVertex(vertex_j);
+        return edge;
     }
     return edges[0];
 }
@@ -323,16 +327,16 @@ void GQReasoner::relabel(int i, int j, const std::string& label)
 {
     Edge::Ptr edge = getEdge(i,j);
     try {
-        mpDigraph->removeEdge(edge);
-        LOG_DEBUG_S << "Removed edge: '" << edge->toString() << "' from graph: " << mpDigraph->getId();
+        mpGraph->removeEdge(edge);
+        LOG_DEBUG_S << "Removed edge: '" << edge->toString() << "' from graph: " << mpGraph->getId();
     } catch(...)
     {
         // ignore if not present -- then it needs to be added
     }
     Edge::Ptr relabeledEdge = edge->clone();
     relabeledEdge->setLabel(label);
-    mpDigraph->addEdge(relabeledEdge);
-    LOG_DEBUG_S << "Added edge: '" << relabeledEdge->getSourceVertex()->toString() << " --> " << relabeledEdge->getTargetVertex()->toString() << " " << relabeledEdge->toString() << "' to graph: " << mpDigraph->getId();
+    mpGraph->addEdge(relabeledEdge);
+    LOG_DEBUG_S << "Added edge: '" << relabeledEdge->getSourceVertex()->toString() << " --> " << relabeledEdge->getTargetVertex()->toString() << " " << relabeledEdge->toString() << "' to graph: " << mpGraph->getId();
 }
 
 

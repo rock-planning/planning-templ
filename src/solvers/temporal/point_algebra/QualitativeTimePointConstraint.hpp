@@ -31,6 +31,11 @@ public:
 
     typedef shared_ptr<QualitativeTimePointConstraint> Ptr;
 
+    /**
+     * Default constructor
+     */
+    QualitativeTimePointConstraint();
+
     QualitativeTimePointConstraint(Variable::Ptr source, Variable::Ptr target, Type constraintType);
 
     virtual void setLabel(const std::string& label);

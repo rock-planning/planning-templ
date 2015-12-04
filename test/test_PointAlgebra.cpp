@@ -222,7 +222,7 @@ BOOST_AUTO_TEST_CASE(consistency_check_performance)
 
     QualitativeTimePoint::Ptr lastTp;
     int i = 0;
-    for(; i < 50; ++i)
+    for(; i < 100; ++i)
     {
         std::stringstream ss;
         ss << "t" << i;
