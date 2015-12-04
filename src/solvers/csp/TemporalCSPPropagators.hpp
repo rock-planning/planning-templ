@@ -2,6 +2,7 @@
 #define TEMPL_SOLVERS_CSP_TEMPORAL_CSP_PROPAGATORS_HPP
 
 #include <gecode/int.hh>
+#include <base/Logging.hpp>
 
 namespace Gecode {
 

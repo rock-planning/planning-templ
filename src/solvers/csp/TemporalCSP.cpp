@@ -25,12 +25,17 @@ TemporalCSP::TemporalCSP(const QualitativeTemporalConstraintNetwork::Ptr& tcn)
     LOG_WARN_S << "INIT";
 
     std::vector<Vertex::Ptr> vertices = tcn->getGraph()->getAllVertices();
+    std::map<Vertex::Ptr, size_t> vertexToIndex;
+
     Gecode::Matrix<Gecode::IntVarArray> temporalConstraints(mTemporalRelations, vertices.size(), vertices.size());
 
     std::vector<size_t> indices;
     size_t i = 0;
     for(; i < vertices.size(); ++i)
     {
+        Vertex::Ptr i_vertex = vertices[i];
+        vertexToIndex[i_vertex] = i;
+
         indices.push_back(i);
         for(size_t j = 0; j < vertices.size(); ++j)
         {
@@ -39,9 +44,11 @@ TemporalCSP::TemporalCSP(const QualitativeTemporalConstraintNetwork::Ptr& tcn)
                 continue;
             }
 
-            point_algebra::QualitativeTimePointConstraint::Ptr constraint = tcn->getBidirectionalConstraint(vertices[i], vertices[j]);
-            point_algebra::QualitativeTimePointConstraint::Type type = constraint->getType();
+            Vertex::Ptr j_vertex = vertices[j];
+            vertexToIndex[j_vertex] = j;
 
+            point_algebra::QualitativeTimePointConstraint::Ptr constraint = tcn->getBidirectionalConstraint(i_vertex, j_vertex);
+            point_algebra::QualitativeTimePointConstraint::Type type = constraint->getType();
 
             Gecode::IntVar var = temporalConstraints(i,j);
             // -1 -> LESS
@@ -76,14 +83,64 @@ TemporalCSP::TemporalCSP(const QualitativeTemporalConstraintNetwork::Ptr& tcn)
                     break;
             }
             Gecode::IntVar var_sym = temporalConstraints(j,i);
-            LOG_WARN_S << "POST_SYMMETRIC";
+            //LOG_WARN_S << "POST_SYMMETRIC";
             // symmetric constraint
             pa_symmetric(*this, var, var_sym);
-            LOG_WARN_S << "DONE_SYMMETRIC";
+            //LOG_WARN_S << "DONE_SYMMETRIC";
         }
     }
 
     LOG_WARN_S << "START TRIANGLES";
+    ///std::vector<Edge::Ptr> edges = tcn->getGraph()->getAllEdges();
+    ///std::vector<Edge::Ptr>::const_iterator oit = edges.begin();
+    ///for(; oit != edges.end(); ++oit)
+    ///{
+    ///    const Edge::Ptr& oEdge = *oit;
+    ///    std::vector<Edge::Ptr>::const_iterator iit = edges.begin();
+    ///    for(; iit != edges.end(); ++iit)
+    ///    {
+    ///        const Edge::Ptr& iEdge = *iit;
+    ///        bool oSourceEqualsISource = oEdge->getSourceVertex() == iEdge->getSourceVertex();
+    ///        bool oSourceEqualsITarget = oEdge->getSourceVertex() == iEdge->getTargetVertex();
+    ///        bool oTargetEqualsISource = oEdge->getTargetVertex() == iEdge->getSourceVertex();
+    ///        bool oTargetEqualsITarget = oEdge->getTargetVertex() == iEdge->getTargetVertex();
+    ///        if((oSourceEqualsISource || oSourceEqualsITarget) && (oTargetEqualsISource || oTargetEqualsISource))
+    ///        {
+    ///            continue; // bidirectional edge
+    ///        } if((oSourceEqualsISource || oSourceEqualsITarget) || (oTargetEqualsISource || oTargetEqualsISource))
+    ///        {
+    ///            size_t i,j,k;
+    ///            // triangle found
+    ///            if(oSourceEqualsISource)
+    ///            {
+    ///                i = vertexToIndex[oEdge->getSourceVertex()];
+    ///                j = vertexToIndex[oEdge->getTargetVertex()];
+    ///                k = vertexToIndex[iEdge->getTargetVertex()];
+    ///            } else if(oTargetEqualsITarget) {
+    ///                i = vertexToIndex[iEdge->getSourceVertex()];
+    ///                j = vertexToIndex[oEdge->getSourceVertex()];
+    ///                k = vertexToIndex[iEdge->getTargetVertex()];
+    ///            } else if (oSourceEqualsITarget)
+    ///            {
+    ///                i = vertexToIndex[iEdge->getSourceVertex()];
+    ///                j = vertexToIndex[iEdge->getTargetVertex()];
+    ///                k = vertexToIndex[oEdge->getTargetVertex()];
+    ///            } else if(oTargetEqualsISource)
+    ///            {
+    ///                i = vertexToIndex[oEdge->getSourceVertex()];
+    ///                j = vertexToIndex[oEdge->getTargetVertex()];
+    ///                k = vertexToIndex[iEdge->getTargetVertex()];
+    ///            }
+
+    ///            Gecode::IntVar var_ik = temporalConstraints(i,k);
+    ///            Gecode::IntVar var_ij = temporalConstraints(i,j);
+    ///            Gecode::IntVar var_jk = temporalConstraints(j,k);
+    ///            path_consistent(*this, var_ik, var_ij, var_jk);
+    ///        }
+
+    ///    }
+    ///}
+
     numeric::Combination<size_t> triangles(indices, 3, numeric::EXACT);
     do {
         std::vector<size_t> triangle = triangles.current();
@@ -113,6 +170,7 @@ Gecode::Space* TemporalCSP::copy(bool share)
 
 TemporalCSP::SolutionList TemporalCSP::solve(const QualitativeTemporalConstraintNetwork::Ptr& tcn)
 {
+    return SolutionList();
 }
 
 TemporalCSP* TemporalCSP::nextSolution()
