@@ -682,7 +682,7 @@ void ModelDistribution::addFunctionRequirement(const FluentTimeResource& fts, ow
     std::vector<FluentTimeResource>::iterator fit = std::find(mResourceRequirements.begin(), mResourceRequirements.end(), fts);
     if(fit == mResourceRequirements.end())
     {
-        throw std::invalid_argument("templ::solvers::csp::ModelDistribution: could not find the fluent time resource");
+        throw std::invalid_argument("templ::solvers::csp::ModelDistribution: could not find the fluent time resource: '" + fts.toString() + "'");
     }
     LOG_WARN_S << "Before Fluent: " << fit->toString();
     // insert the resource requirement

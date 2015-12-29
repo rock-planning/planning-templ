@@ -7,23 +7,52 @@
 namespace templ {
 namespace utils {
 
+/**
+ * \class CartographicMapping
+ * \brief  Allow to map cartesian coordinates to latitude/longitude coordinates
+ * \details This mapping utility class relies on the cartopgraphic mapping library proj4
+ * The configuration for the moon is:
+ \verbatim
+     +proj=merc +ellps=shpere +a=1737.1E03 +b=1737.1E03 +units=m
+ \endverbatim
+ * \see https://github.com/OSGeo/proj.4
+ * \see https://trac.osgeo.org/proj/
+ */
 class CartographicMapping
 {
 public:
-    static const int RADIUS_MOON_IN_M; 
+    // Static constant of the radius of the moon
+    static const int RADIUS_MOON_IN_M;
 
+    /// Type of planet
     enum Type { UNKNOWN, EARTH, MOON };
     static std::map<Type, std::string> TypeTxt;
 
+    /**
+     * Constructor from name
+     * \param radius by name, i.e. one of EARTH or MOON
+     */
     CartographicMapping(const std::string& radiusTypeName);
 
+    /**
+     * Constructor from given type
+     */
     CartographicMapping(Type type);
 
+    /**
+     * Convert a latitude/longitude given coordinate to a metric coordinate
+     * \return metric coordinate (units: m)
+     */
     base::Point latitudeLongitudeToMetric(const base::Point& point) const;
 
+    /**
+     * Get the radius type by name
+     * \return Type of radius
+     */
     static Type getTypeByName(const std::string& name);
 
 private:
+    /// Cartographic mapping for which planet type
     Type mType;
 };
 

@@ -3,6 +3,7 @@
 #include <templ/solvers/temporal/TemporalConstraintNetwork.hpp>
 #include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
 
+/// Dumping a temporal constraint network
 int main(int argc, char** argv)
 {
     if(argc != 2)
