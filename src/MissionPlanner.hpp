@@ -3,15 +3,17 @@
 
 #include <vector>
 #include <stack>
+#include <graph_analysis/algorithms/MultiCommodityMinCostFlow.hpp>
+#include <organization_model/OrganizationModelAsk.hpp>
+
 #include <templ/solvers/temporal/Chronicle.hpp>
 #include <templ/Mission.hpp>
-#include <organization_model/OrganizationModelAsk.hpp>
+#include <templ/solvers/GQReasoner.hpp>
 #include <templ/solvers/csp/ModelDistribution.hpp>
 #include <templ/solvers/csp/RoleDistribution.hpp>
 #include <templ/solvers/csp/RoleTimeline.hpp>
 #include <templ/solvers/csp/Resolver.hpp>
 #include <templ/LocationTimepointTuple.hpp>
-#include <graph_analysis/algorithms/MultiCommodityMinCostFlow.hpp>
 
 /**
  * \mainpage TemPl -- A resource planner for missions with reconfigurable multi-robot systems
@@ -150,6 +152,14 @@ namespace templ {
 
 typedef std::vector<Mission> CandidateMissions;
 
+/**
+ * \class MissionPlanner
+ * \brief The mission planning core
+ * \details Planning is divided into multiple steps
+ * 1. model assignment
+ * 2. role assignment
+ * 3. solving the multi-commodity min cost flow 
+ */
 class MissionPlanner
 {
     friend class templ::solvers::csp::Resolver;
@@ -161,9 +171,29 @@ public:
 
     ~MissionPlanner();
 
+    /**
+     * \brief Prepare the use of the currently active temporal constraint network
+     * (without timeline gaps)
+     */
+    void prepareTemporalConstraintNetwork();
+
+    /**
+     * Execute planning with up to a given number of solutions
+     */
     void execute(uint32_t maxIterations);
 
+    /**
+     * Get the next fully instanciated temporal constraint network
+     */
+    bool nextTemporalConstraintNetwork();
+
+    /**
+     *
+     */
     bool nextModelAssignment();
+    /**
+     *
+     */
     bool nextRoleAssignment();
 
     void computeRoleTimelines();
@@ -189,11 +219,14 @@ protected:
     std::map<Role, solvers::csp::RoleTimeline> mRoleTimelines;
     uint32_t mCommodities;
 
+    solvers::GQReasoner* mpGQReasoner;
+
     typedef std::pair< templ::symbols::constants::Location::Ptr, templ::solvers::temporal::point_algebra::TimePoint::Ptr> LocationTimePointPair;
     std::map< LocationTimePointPair, LocationTimepointTuple::Ptr > mTupleMap;
 
 
     std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> mTimepoints;
+    solvers::temporal::TemporalConstraintNetwork::Ptr mTemporalConstraintNetwork;
     solvers::temporal::point_algebra::TimePointComparator mTimePointComparator;
     std::vector<templ::symbols::constants::Location::Ptr> mLocations;
 

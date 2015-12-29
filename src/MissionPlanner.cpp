@@ -9,6 +9,8 @@
 #include <organization_model/vocabularies/OM.hpp>
 #include <organization_model/facets/Robot.hpp>
 
+#include <templ/solvers/GQReasoner.hpp>
+
 using namespace organization_model;
 using namespace templ::solvers::csp;
 namespace pa = templ::solvers::temporal::point_algebra;
@@ -21,6 +23,7 @@ MissionPlanner::MissionPlanner(const Mission& mission, const OrganizationModel::
     , mOrganizationModelAsk(mission.getOrganizationModel(),
             mission.getAvailableResources(), /*functional saturation bound*/ true)
     , mOntologyAsk(mOrganizationModel->ontology())
+    , mpGQReasoner(0)
     , mModelDistribution(0)
     , mModelDistributionSearchEngine(0)
     , mRoleDistribution(0)
@@ -32,9 +35,28 @@ MissionPlanner::MissionPlanner(const Mission& mission, const OrganizationModel::
     mCurrentMission.prepare();
 
     mLocations = mCurrentMission.getLocations();
-    mTimePointComparator = mCurrentMission.getTemporalConstraintNetwork();
-    mCurrentMission.getTemporalConstraintNetwork()->save("/tmp/mission-planner-0-initial-temporal-constraint-network");
     mTimepoints = mCurrentMission.getTimepoints();
+
+    // the potentially incomplete temporal constraint network
+    mTemporalConstraintNetwork = mCurrentMission.getTemporalConstraintNetwork();
+
+}
+
+MissionPlanner::~MissionPlanner()
+{
+    delete mpGQReasoner;
+
+    delete mModelDistribution;
+    delete mModelDistributionSearchEngine;
+
+    delete mRoleDistribution;
+    delete mRoleDistributionSearchEngine;
+}
+
+void MissionPlanner::prepareTemporalConstraintNetwork()
+{
+    mTimePointComparator = mTemporalConstraintNetwork;
+    mTemporalConstraintNetwork->save("/tmp/mission-planner-0-initial-temporal-constraint-network");
     std::sort(mTimepoints.begin(), mTimepoints.end(), [this](const pa::TimePoint::Ptr& a, const pa::TimePoint::Ptr& b)
             {
                 if(a == b)
@@ -52,13 +74,29 @@ MissionPlanner::MissionPlanner(const Mission& mission, const OrganizationModel::
     }
 }
 
-MissionPlanner::~MissionPlanner()
+bool MissionPlanner::nextTemporalConstraintNetwork()
 {
-    delete mModelDistribution;
-    delete mModelDistributionSearchEngine;
+    std::cout << "Next temporal constraint network" << std::endl;
+    graph_analysis::BaseGraph::Ptr solution;
+    if(!mpGQReasoner)
+    {
+        mpGQReasoner = new templ::solvers::GQReasoner("point", mTemporalConstraintNetwork->getGraph(), pa::QualitativeTimePointConstraint::Ptr(new pa::QualitativeTimePointConstraint));
+        std::cout << "CHECK PRIMARY SOLUTION" << std::endl;
+        solution = mpGQReasoner->getPrimarySolution();
+        std::cout << "HAS PRIMARY SOLUTION" << std::endl;
+    } else {
+        std::cout << "CHECK NEXT SOLUTION" << std::endl;
+        solution = mpGQReasoner->getNextSolution();
+    }
 
-    delete mRoleDistribution;
-    delete mRoleDistributionSearchEngine;
+    if(!solution)
+    {
+        return false;
+    } else {
+        mTemporalConstraintNetwork->setGraph(solution);
+        prepareTemporalConstraintNetwork();
+        return true;
+    }
 }
 
 bool MissionPlanner::nextModelAssignment()
@@ -412,7 +450,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
         const Role& affectedRole = commodityRoles[violation.getCommodity()];
 
         LOG_WARN_S << "Commodity flow violation: " << violation.toString();
-        LOG_WARN_S << "Violation for " << affectedRole.toString() << " -- at: " 
+        LOG_WARN_S << "Violation for " << affectedRole.toString() << " -- at: "
             << commodityToSpace[violation.getVertex()]->toString();
 
         if(violation.getType() == ConstraintViolation::TransFlow)
@@ -456,7 +494,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
     {
         LOG_WARN_S << "#" << i << " --> " << commodityRoles[i].toString();
     }
-   
+
     return violations;
 }
 
@@ -486,53 +524,57 @@ void MissionPlanner::execute(uint32_t maxIterations)
 {
     std::cout << "Execution of planner started" << std::endl;
     uint32_t iteration = 0;
-    bool modelAssignment = nextModelAssignment();
-    while(modelAssignment && iteration < maxIterations)
+    while(nextTemporalConstraintNetwork())
     {
-        if(nextRoleAssignment())
+        bool modelAssignment = nextModelAssignment();
+        while(modelAssignment && iteration < maxIterations)
         {
-            computeRoleTimelines();
-            computeTemporallyExpandedLocationNetwork();
-            std::vector<graph_analysis::algorithms::ConstraintViolation> violations = computeMinCostFlow();
-            if(violations.empty())
+            if(nextRoleAssignment())
             {
-                std::stringstream ss;
-                ss << "solution-#" << iteration;
-                save(ss.str());
-                ++iteration;
-                break;
-            } else if(!mResolvers.empty())
-            {
-                std::cout << "Trying to apply resolver: " << std::endl;
-                Resolver::Ptr resolver = mResolvers.back();
-                mResolvers.erase(mResolvers.end()-1);
-                if(resolver->getType() == Resolver::ROLE_DISTRIBUTION)
+                computeRoleTimelines();
+                computeTemporallyExpandedLocationNetwork();
+                std::vector<graph_analysis::algorithms::ConstraintViolation> violations = computeMinCostFlow();
+                if(violations.empty())
                 {
-                    std::cout << "Applied role distribution solver" << std::endl;
-                    resolver->apply(this);
-                    continue;
+                    std::stringstream ss;
+                    ss << "solution-#" << iteration;
+                    save(ss.str());
+                    ++iteration;
+                    break;
+                } else if(!mResolvers.empty())
+                {
+                    std::cout << "Trying to apply resolver: " << std::endl;
+                    Resolver::Ptr resolver = mResolvers.back();
+                    mResolvers.erase(mResolvers.end()-1);
+                    if(resolver->getType() == Resolver::ROLE_DISTRIBUTION)
+                    {
+                        std::cout << "Applied role distribution solver" << std::endl;
+                        resolver->apply(this);
+                        continue;
+                    }
+                }
+            } else {
+                std::cout << "No role assignment found" << std::endl;
+               if(!mResolvers.empty())
+               {
+                   std::cout << "Trying to apply resolver: " << std::endl;
+                   Resolver::Ptr resolver = mResolvers.back();
+                   mResolvers.erase(mResolvers.end()-1);
+                   if(resolver->getType() == Resolver::MODEL_DISTRIBUTION)
+                   {
+                       std::cout << "Applied model distribution solver" << std::endl;
+                       resolver->apply(this);
+                       continue;
+                   }
                 }
             }
-        } else {
-            std::cout << "No role assignment found" << std::endl;
-           if(!mResolvers.empty())
-           {
-               std::cout << "Trying to apply resolver: " << std::endl;
-               Resolver::Ptr resolver = mResolvers.back();
-               mResolvers.erase(mResolvers.end()-1);
-               if(resolver->getType() == Resolver::MODEL_DISTRIBUTION)
-               {
-                   std::cout << "Applied model distribution solver" << std::endl;
-                   resolver->apply(this);
-                   continue;
-               }
-            }
+            modelAssignment = nextModelAssignment();
         }
-        modelAssignment = nextModelAssignment();
-    } 
-    if(!modelAssignment)
-    {
-        std::cout << "No model assignment found" << std::endl;
+        if(!modelAssignment)
+        {
+            std::cout << "No model assignment found" << std::endl;
+            std::cout << "Trying another temporal constraint network" << std::endl;
+        }
     }
     std::cout << "Solutions found: " << iteration << std::endl;
 }
