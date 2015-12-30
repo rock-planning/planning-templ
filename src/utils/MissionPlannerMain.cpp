@@ -5,10 +5,16 @@ using namespace templ;
 
 int main(int argc, char** argv)
 {
-    if(argc != 3)
+    if(argc < 3)
     {
-        printf("usage: %s <mission> <organization-model>\n", argv[0]);
+        printf("usage: %s <mission> <organization-model> [<min-number-of-solutions>]\n", argv[0]);
         exit(-1);
+    }
+
+    int minimumNumberOfSolutions = 1;
+    if(argc == 4)
+    {
+        minimumNumberOfSolutions = atoi(argv[3]);
     }
 
     std::string missionFilename = argv[1];
@@ -24,7 +30,7 @@ int main(int argc, char** argv)
     
     MissionPlanner missionPlanner(mission, organizationModel);
 
-    missionPlanner.execute(10);
+    missionPlanner.execute(minimumNumberOfSolutions);
 
     return 0;
 }
