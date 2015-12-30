@@ -55,8 +55,9 @@ MissionPlanner::~MissionPlanner()
 
 void MissionPlanner::prepareTemporalConstraintNetwork()
 {
-    mTimePointComparator = mTemporalConstraintNetwork;
     mTemporalConstraintNetwork->save("/tmp/mission-planner-0-initial-temporal-constraint-network");
+
+    mTimePointComparator = mTemporalConstraintNetwork;
     std::sort(mTimepoints.begin(), mTimepoints.end(), [this](const pa::TimePoint::Ptr& a, const pa::TimePoint::Ptr& b)
             {
                 if(a == b)
@@ -87,13 +88,18 @@ bool MissionPlanner::nextTemporalConstraintNetwork()
     } else {
         std::cout << "CHECK NEXT SOLUTION" << std::endl;
         solution = mpGQReasoner->getNextSolution();
+
+        std::cout << " gqr solution network: " << std::endl
+            << mpGQReasoner->getCurrentSolutionString() << std::endl;
     }
 
     if(!solution)
     {
+        std::cout << "NO solution" << std::endl;
         return false;
     } else {
         mTemporalConstraintNetwork->setGraph(solution);
+        std::cout << "prepare next" << std::endl;
         prepareTemporalConstraintNetwork();
         return true;
     }
@@ -524,7 +530,7 @@ void MissionPlanner::execute(uint32_t maxIterations)
 {
     std::cout << "Execution of planner started" << std::endl;
     uint32_t iteration = 0;
-    while(nextTemporalConstraintNetwork())
+    while(nextTemporalConstraintNetwork() && iteration < maxIterations)
     {
         bool modelAssignment = nextModelAssignment();
         while(modelAssignment && iteration < maxIterations)
@@ -539,6 +545,7 @@ void MissionPlanner::execute(uint32_t maxIterations)
                     std::stringstream ss;
                     ss << "solution-#" << iteration;
                     save(ss.str());
+                    std::cout << "Found solution #" << iteration << std::endl;
                     ++iteration;
                     break;
                 } else if(!mResolvers.empty())

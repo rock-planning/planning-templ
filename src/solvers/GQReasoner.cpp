@@ -10,7 +10,7 @@ namespace solvers {
 std::string GQReasoner::msDataPath = "";
 
 GQReasoner::GQReasoner(const std::string& calculus, const graph_analysis::BaseGraph::Ptr& graph, const Edge::Ptr& edge)
-    : mpGraph(graph->clone())
+    : mpGraph(graph->cloneEdges())
     , mpCalculus(0)
     , mpCalculus8r(0)
     , mpCalculus16r(0)
@@ -96,15 +96,23 @@ void GQReasoner::init(const std::string& calculus)
 
 void GQReasoner::translateGraph()
 {
-    LOG_DEBUG_S << "Translating graph";
+    LOG_DEBUG_S << "Translating graph: size: " << mpGraph->size() << ", order: " << mpGraph->order();
     using namespace graph_analysis;
     EdgeIterator::Ptr edgeIt = mpGraph->getEdgeIterator();
     while(edgeIt->next())
     {
         // hook: using getConstraintLabel from existing edge
         Edge::Ptr constraint = edgeIt->current();
-        std::string constraintLabel = getConstraintLabel(constraint);
-        LOG_DEBUG_S << "Encode relation for " << constraintLabel;
+
+        std::string constraintLabel = this->getConstraintLabel(constraint);
+        if(constraintLabel == "P")
+        {
+            LOG_DEBUG_S << "Skipping encoding for P relation on : '" << constraint->toString() << "'";
+            continue;
+        }
+
+        LOG_WARN_S << "Encode relation for constraint: '" << constraint->toString() << "'";
+
         assert(mpCalculus);
         Relation relation = mpCalculus->encodeRelation(constraintLabel.c_str());
 
@@ -130,6 +138,7 @@ void GQReasoner::translateGraph()
 
 BaseGraph::Ptr GQReasoner::getPrimarySolution()
 {
+    std::stringstream ss;
     if(mpCSP8r)
     {
         delete mpSearch8r;
@@ -154,6 +163,7 @@ BaseGraph::Ptr GQReasoner::getPrimarySolution()
                 std::string label = relationString.substr(2, relationStringSize -4);
 
                 relabel(i,j, label);
+                ss << i << " " << j << " " << label << std::endl;
             }
         }
     } else if(mpCSP16r)
@@ -198,12 +208,14 @@ BaseGraph::Ptr GQReasoner::getPrimarySolution()
         }
     }
 
+    mCurrentSolution  = ss.str();
     return mpGraph;
 
 }
 
 graph_analysis::BaseGraph::Ptr GQReasoner::getNextSolution()
 {
+    std::stringstream ss;
     if(mpCSP8r)
     {
         if(!mpSearch8r)
@@ -229,6 +241,7 @@ graph_analysis::BaseGraph::Ptr GQReasoner::getNextSolution()
                 // remove brackets an spaces ( < ) --> <
                 std::string label = relationString.substr(2, relationStringSize -4);
                 relabel(i,j, label);
+                ss << i << " " << j << " " << label << std::endl;
             }
         }
         delete csp;
@@ -281,6 +294,7 @@ graph_analysis::BaseGraph::Ptr GQReasoner::getNextSolution()
         delete csp;
     }
 
+    mCurrentSolution = ss.str();
     return mpGraph;
 }
 

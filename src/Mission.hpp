@@ -13,6 +13,7 @@
 #include <templ/Role.hpp>
 #include <templ/symbols/ObjectVariable.hpp>
 #include <templ/symbols/constants/Location.hpp>
+#include <templ/solvers/GQReasoner.hpp>
 
 namespace templ {
 

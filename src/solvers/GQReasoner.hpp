@@ -20,6 +20,11 @@ public:
 
     graph_analysis::BaseGraph::Ptr getNextSolution();
 
+    /**
+     * Get the current solution as string representation
+     */
+    std::string getCurrentSolutionString() const { return mCurrentSolution; }
+
 protected:
     void init(const std::string& calculus);
 
@@ -32,7 +37,7 @@ protected:
      * Return the constraint label of this edge -- if not overloaded will just
      * return the label of the edge
      */
-    virtual std::string getConstraintLabel(const graph_analysis::Edge::Ptr& e) const { return e->getLabel(); }
+    virtual std::string getConstraintLabel(const graph_analysis::Edge::Ptr& e) const { assert(e); return e->getLabel(); }
 
 private:
     void groundCalculus();
@@ -74,6 +79,8 @@ private:
 
     /// The default edge type
     graph_analysis::Edge::Ptr mpDefaultConstraintType;
+    /// Current solution after relabeling
+    std::string mCurrentSolution;
 };
 
 } // end namespace solvers

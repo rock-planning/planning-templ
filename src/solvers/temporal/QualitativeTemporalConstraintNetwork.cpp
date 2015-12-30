@@ -91,8 +91,8 @@ void QualitativeTemporalConstraintNetwork::removeQualitativeConstraint(const poi
 bool QualitativeTemporalConstraintNetwork::isConsistent()
 {
     try {
-        //return incrementalPathConsistency();
-        return pathConsistency_BeekManak();
+        return incrementalPathConsistency();
+        //return pathConsistency_BeekManak();
     } catch(const std::runtime_error& e)
     {
         return false;
