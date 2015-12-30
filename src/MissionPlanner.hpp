@@ -4,6 +4,7 @@
 #include <vector>
 #include <stack>
 #include <graph_analysis/algorithms/MultiCommodityMinCostFlow.hpp>
+#include <graph_analysis/algorithms/DFS.hpp>
 #include <organization_model/OrganizationModelAsk.hpp>
 
 #include <templ/solvers/temporal/Chronicle.hpp>
@@ -202,6 +203,9 @@ public:
 
     // Save the intermediate results
     void save(const std::string& markerLabel = "", const std::string& dir = "/tmp") const;
+
+    // Render a plan
+    void renderPlan(const std::string& markerLabel = "", const std::string& dir = "/tmp") const;
 
 protected:
     Mission mCurrentMission;

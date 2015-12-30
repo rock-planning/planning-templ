@@ -1,6 +1,7 @@
 #ifndef TEMPL_TUPLE_HPP
 #define TEMPL_TUPLE_HPP
 
+#include <templ/SharedPtr.hpp>
 #include <graph_analysis/Vertex.hpp>
 
 namespace templ {

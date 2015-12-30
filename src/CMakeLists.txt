@@ -4,6 +4,7 @@ rock_library(templ
     SOURCES 
         Mission.cpp
         MissionPlanner.cpp
+        PathConstructor.cpp
         Role.cpp
         Symbol.cpp
         io/MissionReader.cpp
@@ -45,6 +46,7 @@ rock_library(templ
         LocationTimepointTuple.hpp
         Mission.hpp
         MissionPlanner.hpp
+        PathConstructor.hpp
         Role.hpp
         Symbol.hpp
         Timepoint.hpp

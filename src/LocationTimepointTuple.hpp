@@ -22,6 +22,8 @@ public:
 
     void addRole(const Role& role) { mRoles.insert(role); }
 
+    bool hasRole(const Role& role) const { return mRoles.end() != mRoles.find(role); }
+
     const std::set<Role>& getRoles() const { return mRoles; }
     std::string getClassName() const { return "LocationTimepointTuple"; }
 
