@@ -94,6 +94,19 @@ std::map<Role,RoleTimeline> RoleTimeline::computeTimelines(const Mission& missio
     return timelines;
 }
 
+std::string RoleTimeline::toString(const std::map<Role, RoleTimeline>& timelines, uint32_t indent)
+{
+    std::stringstream ss;
+    std::string hspace(indent,' ');
+    std::map<Role, RoleTimeline>::const_iterator it = timelines.begin();
+    for(; it != timelines.end(); ++it)
+    {
+        const RoleTimeline& timeline = it->second;
+        ss << hspace << timeline.toString();
+    }
+    return ss.str();
+}
+
 double RoleTimeline::travelDistance() const
 {
     using namespace ::templ::symbols;

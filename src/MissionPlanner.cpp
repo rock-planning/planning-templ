@@ -62,21 +62,8 @@ void MissionPlanner::prepareTemporalConstraintNetwork()
     mTemporalConstraintNetwork->save("/tmp/mission-planner-0-initial-temporal-constraint-network");
 
     mTimePointComparator = mTemporalConstraintNetwork;
-    std::sort(mTimepoints.begin(), mTimepoints.end(), [this](const pa::TimePoint::Ptr& a, const pa::TimePoint::Ptr& b)
-            {
-                if(a == b)
-                {
-                    return false;
-                }
-                return mTimePointComparator.lessThan(a,b);
-            }
-    );
-
-    std::vector<pa::TimePoint::Ptr>::const_iterator sit = mTimepoints.begin();
-    for(; sit != mTimepoints.end(); ++sit)
-    {
-        LOG_WARN_S << "Timepoint: " << (*sit)->toString() << std::endl;
-    }
+    mTimePointComparator.sort(mTimepoints);
+    LOG_INFO_S << pa::TimePoint::toString(mTimepoints);
 }
 
 bool MissionPlanner::nextTemporalConstraintNetwork()

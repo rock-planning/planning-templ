@@ -53,7 +53,9 @@ public:
     uint64_t getLowerBound() const { return mLowerBound; }
     uint64_t getUpperBound() const { return mUpperBound; }
 
-    virtual std::string toString() const;
+    virtual std::string toString(uint32_t indent = 0) const;
+
+    static std::string toString(const std::vector<TimePoint::Ptr>& timepoints, uint32_t indent = 0);
 
     /**
      * Check that lower bound is less or equal to upper bound

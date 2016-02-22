@@ -36,6 +36,12 @@ public:
     TemporalConstraintNetwork::Ptr getTemporalConstraintNetwork() const { return mpTemporalConstraintNetwork; }
 
     /**
+     * Sort a list of timepoints based on this timepoint comparator (using the
+     * lessThan function
+     */
+    void sort(std::vector<point_algebra::TimePoint::Ptr>& timepoints) const;
+
+    /**
      * Check equality of two timepoints
      */
     virtual bool equals(const TimePoint::Ptr& t0, const TimePoint::Ptr& t1) const;

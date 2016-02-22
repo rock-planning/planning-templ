@@ -72,10 +72,26 @@ TimePoint::Ptr TimePoint::create(uint64_t lowerBound, uint64_t upperBound)
     return TimePoint::Ptr( new TimePoint(lowerBound, upperBound) );
 }
 
-std::string TimePoint::toString() const
+std::string TimePoint::toString(uint32_t indent) const
 {
     std::stringstream ss;
-    ss << "Timepoint: [" << mLowerBound << "," << mUpperBound << "]";
+    std::string hspace(indent,' ');
+    ss << hspace << "Timepoint: [" << mLowerBound << "," << mUpperBound << "]";
+    return ss.str();
+}
+
+std::string TimePoint::toString(const std::vector<TimePoint::Ptr>& timepoints, uint32_t indent)
+{
+    std::stringstream ss;
+    std::string hspace(indent,' ');
+
+    std::vector<TimePoint::Ptr>::const_iterator cit = timepoints.begin();
+    ss << hspace << "Timepoints: [" << std::endl;
+    for(; cit != timepoints.end(); ++cit)
+    {
+        ss << hspace << "    " << (*cit)->toString() << std::endl;
+    }
+    ss << hspace << "]";
     return ss.str();
 }
 

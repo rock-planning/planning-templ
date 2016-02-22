@@ -1,5 +1,6 @@
 #include "TimePointComparator.hpp"
 #include <base/Logging.hpp>
+#include <algorithm>
 
 namespace templ {
 namespace solvers {
@@ -13,6 +14,19 @@ TimePointComparator::TimePointComparator(const TemporalConstraintNetwork::Ptr& t
     {
         throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator: given constraint network is not consistent -- cannot construct comparator");
     }
+}
+
+void TimePointComparator::sort(std::vector<point_algebra::TimePoint::Ptr>& timepoints) const
+{
+    std::sort(timepoints.begin(), timepoints.end(), [this](const point_algebra::TimePoint::Ptr& a, const point_algebra::TimePoint::Ptr& b)
+            {
+                if(a == b)
+                {
+                    return false;
+                }
+                return this->lessThan(a,b);
+            }
+    );
 }
 
 bool TimePointComparator::equals(const TimePoint::Ptr& t0, const TimePoint::Ptr& t1) const

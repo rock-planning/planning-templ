@@ -41,6 +41,12 @@ public:
 
     static std::map<Role,RoleTimeline> computeTimelines(const Mission& mission, const RoleDistribution::Solution& solution);
 
+    /**
+     * Convert a role->timeline map to a string representation
+     * \return timeline representation
+     */
+    static std::string toString(const std::map<Role, RoleTimeline>& timelines, uint32_t indent = 0);
+
     double travelDistance() const;
 
     double estimatedEnergyCost() const;
