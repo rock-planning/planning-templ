@@ -26,7 +26,7 @@ public:
     virtual std::string toString() const { return first()->toString() + "-" + second()->toString(); }
 
 protected:
-    Vertex* getClone() const { return new Tuple(*this); }
+    graph_analysis::Vertex* getClone() const { return new Tuple(*this); }
 
     APtr mpA;
     BPtr mpB;

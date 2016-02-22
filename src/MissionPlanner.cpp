@@ -32,7 +32,7 @@ MissionPlanner::MissionPlanner(const Mission& mission, const OrganizationModel::
     , mModelDistributionSearchEngine(0)
     , mRoleDistribution(0)
     , mRoleDistributionSearchEngine(0)
-    , mSpaceTimeGraph()
+    , mpSpaceTimeNetwork(0)
     , mFlowGraph()
 {
     mCurrentMission.setOrganizationModel(mOrganizationModel);
@@ -68,29 +68,24 @@ void MissionPlanner::prepareTemporalConstraintNetwork()
 
 bool MissionPlanner::nextTemporalConstraintNetwork()
 {
-    std::cout << "Next temporal constraint network" << std::endl;
     graph_analysis::BaseGraph::Ptr solution;
     if(!mpGQReasoner)
     {
         mpGQReasoner = new templ::solvers::GQReasoner("point", mTemporalConstraintNetwork->getGraph(), pa::QualitativeTimePointConstraint::Ptr(new pa::QualitativeTimePointConstraint));
-        std::cout << "CHECK PRIMARY SOLUTION" << std::endl;
         solution = mpGQReasoner->getPrimarySolution();
-        std::cout << "HAS PRIMARY SOLUTION" << std::endl;
     } else {
-        std::cout << "CHECK NEXT SOLUTION" << std::endl;
         solution = mpGQReasoner->getNextSolution();
 
-        std::cout << " gqr solution network: " << std::endl
+        LOG_DEBUG_S << " gqr solution network: " << std::endl
             << mpGQReasoner->getCurrentSolutionString() << std::endl;
     }
 
     if(!solution)
     {
-        std::cout << "NO solution" << std::endl;
+        LOG_DEBUG_S << "No solution exists for temporal constraint network";
         return false;
     } else {
         mTemporalConstraintNetwork->setGraph(solution);
-        std::cout << "prepare next" << std::endl;
         prepareTemporalConstraintNetwork();
         return true;
     }
@@ -142,13 +137,7 @@ void MissionPlanner::computeRoleTimelines()
 {
     // Compute the timelines per role for one role solution
     mRoleTimelines = RoleTimeline::computeTimelines(mCurrentMission, mRoleDistributionSolution);
-
-    std::map<Role, RoleTimeline>::iterator it = mRoleTimelines.begin();
-    for(; it != mRoleTimelines.end(); ++it)
-    {
-        const RoleTimeline& timeline = it->second;
-        LOG_DEBUG_S << timeline.toString();
-    }
+    LOG_DEBUG_S << RoleTimeline::toString(mRoleTimelines);
 }
 
 void MissionPlanner::computeTemporallyExpandedLocationNetwork()
@@ -157,43 +146,37 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
     namespace pa = templ::solvers::temporal::point_algebra;
     namespace co = templ::symbols::constants;
 
-    // setup for new run
-    mSpaceTimeGraph = BaseGraph::getInstance();
-    // Allow to find an existing tuple
-    mTupleMap.clear();
-    // reset number of commodities
-    mCommodities = 0;
-
-    // Construction of the basic time-expanded network
-    //
-    // (t0,l0)    (t0,l1)
-    //    |          |
-    // (t1,l0)    (t1,l1)
-    //
-    std::vector<co::Location::Ptr>::const_iterator lit = mLocations.begin();
-    for(; lit != mLocations.end(); ++lit)
+    if(mpSpaceTimeNetwork)
     {
-        LocationTimepointTuple::Ptr previousTuple;
-
-        std::vector<pa::TimePoint::Ptr>::const_iterator tit = mTimepoints.begin();
-        for(; tit != mTimepoints.end(); ++tit)
-        {
-            LocationTimepointTuple::Ptr ltTuplePtr(new LocationTimepointTuple(*lit, *tit));
-            mSpaceTimeGraph->addVertex(ltTuplePtr);
-            mTupleMap[ LocationTimePointPair(*lit, *tit) ] = ltTuplePtr;
-
-            if(previousTuple)
-            {
-                WeightedEdge::Ptr edge(new WeightedEdge(previousTuple, ltTuplePtr, std::numeric_limits<WeightedEdge::value_t>::max()));
-                mSpaceTimeGraph->addEdge(edge);
-            }
-            previousTuple = ltTuplePtr;
-        }
+        delete mpSpaceTimeNetwork;
     }
+
+    mpSpaceTimeNetwork = new TemporallyExpandedNetwork<co::Location>(mLocations, mTimepoints);
+
+    //std::vector<co::Location::Ptr>::const_iterator lit = mLocations.begin();
+    //for(; lit != mLocations.end(); ++lit)
+    //{
+    //    LocationTimepointTuple::Ptr previousTuple;
+
+    //    std::vector<pa::TimePoint::Ptr>::const_iterator tit = mTimepoints.begin();
+    //    for(; tit != mTimepoints.end(); ++tit)
+    //    {
+    //        LocationTimepointTuple::Ptr ltTuplePtr(new LocationTimepointTuple(*lit, *tit));
+    //        mSpaceTimeGraph->addVertex(ltTuplePtr);
+    //        mTupleMap[ LocationTimePointPair(*lit, *tit) ] = ltTuplePtr;
+
+    //        if(previousTuple)
+    //        {
+    //            WeightedEdge::Ptr edge(new WeightedEdge(previousTuple, ltTuplePtr, std::numeric_limits<WeightedEdge::value_t>::max()));
+    //            mSpaceTimeGraph->addEdge(edge);
+    //        }
+    //        previousTuple = ltTuplePtr;
+    //    }
+    //}
 
     {
         std::string filename = "/tmp/mission-planning--0-space-time-graph-basic_construct.dot";
-        graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph);
+        graph_analysis::io::GraphIO::write(filename, mpSpaceTimeNetwork->getGraph());
         LOG_INFO_S << "Written temporally expanded graph to: " << filename;
         LOG_INFO_S << "(e.g. view with 'xdot " << filename << "'" << ")";
     }
@@ -208,6 +191,9 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
         LOG_DEBUG_S << "(e.g. view with 'xdot " << filename << "'" << ")";
     }
 
+
+    // reset number of commodities
+    mCommodities = 0;
     // -----------------------------------------
     // Add capacity-weighted edges to the graph
     // -----------------------------------------
@@ -244,7 +230,7 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
         namespace pa = templ::solvers::temporal::point_algebra;
         pa::TimePoint::Ptr prevIntervalEnd;
         co::Location::Ptr prevLocation;
-        LocationTimepointTuple::Ptr startTuple, endTuple;
+        SpaceTimeNetwork::tuple_t::Ptr startTuple, endTuple;
 
         LOG_INFO_S << "Process (time-sorted) timeline: " << roleTimeline.toString();
         //const std::vector<symbols::constants::Location::Ptr>& locations = roleTimeline.getLocations();
@@ -259,20 +245,20 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
             LOG_WARN_S << "Location: " << location->toString() << " -- interval: " << interval.toString();
 
             // create tuple if it does not exist, otherwise reuse
-            endTuple = mTupleMap[ LocationTimePointPair(location, interval.getFrom()) ];
+            endTuple = mpSpaceTimeNetwork->tupleByKeys(location, interval.getFrom());
             endTuple->addRole(role);
 
             // Find start node: Tuple of location and interval.getFrom()
             if(prevIntervalEnd)
             {
-                startTuple = mTupleMap[ LocationTimePointPair(prevLocation, prevIntervalEnd) ];
+                startTuple = mpSpaceTimeNetwork->tupleByKeys(prevLocation, prevIntervalEnd);
                 startTuple->addRole(role);
 
-                std::vector< WeightedEdge::Ptr > edges = mSpaceTimeGraph->getEdges<WeightedEdge>(startTuple, endTuple);
+                std::vector< WeightedEdge::Ptr > edges = mpSpaceTimeNetwork->getGraph()->getEdges<WeightedEdge>(startTuple, endTuple);
                 if(edges.empty())
                 {
                     WeightedEdge::Ptr weightedEdge(new WeightedEdge(startTuple, endTuple, capacity));
-                    mSpaceTimeGraph->addEdge(weightedEdge);
+                    mpSpaceTimeNetwork->getGraph()->addEdge(weightedEdge);
                 } else if(edges.size() > 1)
                 {
                     throw std::runtime_error("MissionPlanner: multiple capacity edges detected");
@@ -314,7 +300,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
     // Translating the graph into the mincommodity representation
     {
         // vertices
-        VertexIterator::Ptr vertexIt = mSpaceTimeGraph->getVertexIterator();
+        VertexIterator::Ptr vertexIt = mpSpaceTimeNetwork->getGraph()->getVertexIterator();
         while(vertexIt->next())
         {
             LocationTimepointTuple::Ptr tuple = dynamic_pointer_cast<LocationTimepointTuple>(vertexIt->current());
@@ -329,7 +315,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
         // edges
         // Iterator of the existing edges of the transport network
         // and set the commodities
-        EdgeIterator::Ptr edgeIt = mSpaceTimeGraph->getEdgeIterator();
+        EdgeIterator::Ptr edgeIt = mpSpaceTimeNetwork->getGraph()->getEdgeIterator();
         while(edgeIt->next())
         {
             WeightedEdge::Ptr edge = dynamic_pointer_cast<WeightedEdge>(edgeIt->current());
@@ -386,7 +372,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
                     solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
 
                     // Get the tuple in the graph
-                    LocationTimepointTuple::Ptr currentTuple = mTupleMap[ LocationTimePointPair(location, interval.getFrom()) ];
+                    SpaceTimeNetwork::tuple_t::Ptr currentTuple = mpSpaceTimeNetwork->tupleByKeys(location, interval.getFrom());
                     currentTuple->addRole(role);
                     Vertex::Ptr vertex = spaceToCommodity[currentTuple];
                     assert(vertex);
@@ -518,11 +504,11 @@ void MissionPlanner::save(const std::string& markerLabel, const std::string& dir
 {
     base::Time timestamp = base::Time::now();
 
-    if(mSpaceTimeGraph)
+    if(mpSpaceTimeNetwork)
     {
         std::string filename = dir + "/mission-space-time-network-" + markerLabel + "-" + timestamp.toString();
-        graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph, graph_analysis::representation::GRAPHVIZ);
-        graph_analysis::io::GraphIO::write(filename, mSpaceTimeGraph, graph_analysis::representation::GEXF);
+        graph_analysis::io::GraphIO::write(filename, mpSpaceTimeNetwork->getGraph(), graph_analysis::representation::GRAPHVIZ);
+        graph_analysis::io::GraphIO::write(filename, mpSpaceTimeNetwork->getGraph(), graph_analysis::representation::GEXF);
         LOG_WARN_S << "Written space time network: " << filename << std::endl;
     }
 
@@ -550,20 +536,21 @@ void MissionPlanner::renderPlan(const std::string& markerLabel, const std::strin
         const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
         symbols::constants::Location::Ptr location = roleTimeline.getLocation(ftrs.front());
         solvers::temporal::Interval interval = roleTimeline.getInterval(ftrs.front());
-        LocationTimePointPair ltPair(location, interval.getFrom());
-        std::map< LocationTimePointPair, LocationTimepointTuple::Ptr >::const_iterator cit = mTupleMap.find(ltPair);
-        if(cit == mTupleMap.end())
+        
+        SpaceTimeNetwork::tuple_t::Ptr startTuple;
+        try {
+            startTuple = mpSpaceTimeNetwork->tupleByKeys(location, interval.getFrom());
+        } catch(const std::invalid_argument& e)
         {
             throw std::runtime_error("templ::MissionPlanner::renderPlan: failed to find initial tuple for role " + role.toString());
         }
-        LocationTimepointTuple::Ptr startTuple = cit->second;
 
         // use mSpaceTimeGraph, which contains information on role for each edge
         // after update from the flow graph
         // foreach role -- find starting point and follow path
         PathConstructor::Ptr pathConstructor(new PathConstructor(role));
         boost::function1<bool, graph_analysis::Edge::Ptr> skipper = boost::bind(&PathConstructor::invalidTransition, pathConstructor,_1);
-        DFS dfs(mSpaceTimeGraph, pathConstructor, skipper); 
+        DFS dfs(mpSpaceTimeNetwork->getGraph(), pathConstructor, skipper); 
         dfs.run(startTuple);
 
         std::vector<graph_analysis::Vertex::Ptr> path = pathConstructor->getPath();

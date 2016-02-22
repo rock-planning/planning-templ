@@ -15,6 +15,8 @@
 #include <templ/solvers/csp/RoleTimeline.hpp>
 #include <templ/solvers/csp/Resolver.hpp>
 #include <templ/LocationTimepointTuple.hpp>
+#include <templ/TemporallyExpandedNetwork.hpp>
+
 
 /**
  * \mainpage TemPl -- A resource planner for missions with reconfigurable multi-robot systems
@@ -225,8 +227,8 @@ protected:
 
     solvers::GQReasoner* mpGQReasoner;
 
-    typedef std::pair< templ::symbols::constants::Location::Ptr, templ::solvers::temporal::point_algebra::TimePoint::Ptr> LocationTimePointPair;
-    std::map< LocationTimePointPair, LocationTimepointTuple::Ptr > mTupleMap;
+    //typedef std::pair< templ::symbols::constants::Location::Ptr, templ::solvers::temporal::point_algebra::TimePoint::Ptr> LocationTimePointPair;
+    //std::map< LocationTimePointPair, LocationTimepointTuple::Ptr > mTupleMap;
 
 
     std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> mTimepoints;
@@ -234,7 +236,10 @@ protected:
     solvers::temporal::point_algebra::TimePointComparator mTimePointComparator;
     std::vector<templ::symbols::constants::Location::Ptr> mLocations;
 
-    graph_analysis::BaseGraph::Ptr mSpaceTimeGraph;
+    typedef TemporallyExpandedNetwork<templ::symbols::constants::Location> SpaceTimeNetwork;
+    SpaceTimeNetwork* mpSpaceTimeNetwork;
+
+    //graph_analysis::BaseGraph::Ptr mSpaceTimeGraph;
     graph_analysis::BaseGraph::Ptr mFlowGraph;
 
     // Current set of resolver that can be applied to fix the plan at this stage

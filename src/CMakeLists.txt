@@ -43,11 +43,11 @@ rock_library(templ
         symbols/object_variables/LocationCardinality.cpp
         utils/CartographicMapping.cpp
     HEADERS
-        LocationTimepointTuple.hpp
         Mission.hpp
         MissionPlanner.hpp
         PathConstructor.hpp
         Role.hpp
+        RoleInfoTuple.hpp
         Symbol.hpp
         Timepoint.hpp
         Tuple.hpp
@@ -55,6 +55,7 @@ rock_library(templ
         io/MissionReader.hpp
         solvers/Constraint.hpp
         solvers/ConstraintNetwork.hpp
+        solvers/GQReasoner.hpp
         solvers/Variable.hpp
         solvers/csp/ConstraintMatrix.hpp
         solvers/csp/FluentTimeResource.hpp
@@ -63,7 +64,6 @@ rock_library(templ
         solvers/csp/RoleDistribution.hpp
         solvers/csp/RoleTimeline.hpp
         solvers/csp/TemporalCSP.hpp
-        solvers/GQReasoner.hpp
         solvers/temporal/Bounds.hpp
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
