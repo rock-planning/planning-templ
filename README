@@ -34,3 +34,10 @@ different aspects of the mission planner.
     -- feature-req: compute duration of activities, assign time bounds
 
   - identify critical path
+
+## Usage
+
+$ ./build/src/templ-mission_planner
+usage: ./build/src/templ-mission_planner <mission> <organization-model> [<min-number-of-solutions>]
+
+$./build/src/templ-mission_planner test/data/scenarios/transterra-mission-0.5.xml test/data/om-schema-v0.13.owl 1
