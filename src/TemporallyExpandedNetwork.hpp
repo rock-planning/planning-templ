@@ -77,6 +77,11 @@ public:
 
     const graph_analysis::BaseGraph::Ptr& getGraph() const { return mpGraph; }
 
+    void addTuple(const typename D0::Ptr& value, const typename D1::Ptr& timepoint, const typename tuple_t::Ptr& tuple)
+    {
+        mTupleMap[ ValueTimePair(value, timepoint) ] = tuple;
+    }
+
     /**
      * Retrieve a tuple (actually a graph vertex) by the given key tuple
      */

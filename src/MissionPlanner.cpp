@@ -4,6 +4,7 @@
 
 #include <graph_analysis/WeightedEdge.hpp>
 #include <graph_analysis/GraphIO.hpp>
+#include <graph_analysis/SharedPtr.hpp>
 #include <limits>
 
 #include <organization_model/vocabularies/OM.hpp>
@@ -153,27 +154,6 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
 
     mpSpaceTimeNetwork = new TemporallyExpandedNetwork<co::Location>(mLocations, mTimepoints);
 
-    //std::vector<co::Location::Ptr>::const_iterator lit = mLocations.begin();
-    //for(; lit != mLocations.end(); ++lit)
-    //{
-    //    LocationTimepointTuple::Ptr previousTuple;
-
-    //    std::vector<pa::TimePoint::Ptr>::const_iterator tit = mTimepoints.begin();
-    //    for(; tit != mTimepoints.end(); ++tit)
-    //    {
-    //        LocationTimepointTuple::Ptr ltTuplePtr(new LocationTimepointTuple(*lit, *tit));
-    //        mSpaceTimeGraph->addVertex(ltTuplePtr);
-    //        mTupleMap[ LocationTimePointPair(*lit, *tit) ] = ltTuplePtr;
-
-    //        if(previousTuple)
-    //        {
-    //            WeightedEdge::Ptr edge(new WeightedEdge(previousTuple, ltTuplePtr, std::numeric_limits<WeightedEdge::value_t>::max()));
-    //            mSpaceTimeGraph->addEdge(edge);
-    //        }
-    //        previousTuple = ltTuplePtr;
-    //    }
-    //}
-
     {
         std::string filename = "/tmp/mission-planning--0-space-time-graph-basic_construct.dot";
         graph_analysis::io::GraphIO::write(filename, mpSpaceTimeNetwork->getGraph());
@@ -193,6 +173,9 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
 
 
     // reset number of commodities
+    // where a commodity represent a resource that need to be routed along the
+    // transport network
+    // here: commodity == immobile robotic agent
     mCommodities = 0;
     // -----------------------------------------
     // Add capacity-weighted edges to the graph
@@ -210,8 +193,9 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
         RoleTimeline roleTimeline = rit->second;
         roleTimeline.sortByTime();
 
-        // Check if this item is a payload -- WARNING: this is domain specific
-        // TODO: infer capacity from role -- when robot is mobile / has
+        // Check if this item is mobile, i.e. change change the location 
+        // WARNING: this is domain specific
+        //
         // transportCapacity
         organization_model::facets::Robot robot(role.getModel(), mOrganizationModelAsk);
         if(!robot.isMobile())
@@ -233,8 +217,6 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
         SpaceTimeNetwork::tuple_t::Ptr startTuple, endTuple;
 
         LOG_INFO_S << "Process (time-sorted) timeline: " << roleTimeline.toString();
-        //const std::vector<symbols::constants::Location::Ptr>& locations = roleTimeline.getLocations();
-        //const std::vector<solvers::temporal::Interval>& getIntervals = roleTimeline.getIntervals();
         const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
         std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
         for(; fit != ftrs.end(); ++fit)
@@ -244,7 +226,7 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
 
             LOG_WARN_S << "Location: " << location->toString() << " -- interval: " << interval.toString();
 
-            // create tuple if it does not exist, otherwise reuse
+            // create tuple if it does not exist?
             endTuple = mpSpaceTimeNetwork->tupleByKeys(location, interval.getFrom());
             endTuple->addRole(role);
 
@@ -268,7 +250,7 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
                     if(existingCapacity < std::numeric_limits<WeightedEdge::value_t>::max())
                     {
                         capacity += existingCapacity;
-                        existingEdge->setWeight(capacity, 0 /*overall capacity*/);
+                        existingEdge->setWeight(capacity, 0 /*index of 'overall capacity'*/);
                     }
                 }
             }
@@ -277,7 +259,6 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
             prevLocation = location;
         }
     }
-
 }
 
 std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::computeMinCostFlow()
@@ -286,6 +267,9 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
     using namespace graph_analysis::algorithms;
 
     mFlowGraph = BaseGraph::getInstance();
+
+    graph_analysis::BipartiteGraph bipartiteGraph(mFlowGraph, mpSpaceTimeNetwork->getGraph());
+
     // uint32_t commodities --> see above: counted from existing immobile roles
 
     // Linking to graphs -- TODO: support bipartite graph in graph_analysis
@@ -303,13 +287,17 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
         VertexIterator::Ptr vertexIt = mpSpaceTimeNetwork->getGraph()->getVertexIterator();
         while(vertexIt->next())
         {
-            LocationTimepointTuple::Ptr tuple = dynamic_pointer_cast<LocationTimepointTuple>(vertexIt->current());
-
             MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex(new MultiCommodityMinCostFlow::vertex_t(mCommodities));
-            commodityToSpace[multicommodityVertex] = tuple;
-            spaceToCommodity[tuple] = multicommodityVertex;
+            bipartiteGraph.addMapping(multicommodityVertex, vertexIt->current());
 
-            mFlowGraph->addVertex(multicommodityVertex);
+            //LocationTimepointTuple::Ptr tuple = dynamic_pointer_cast<LocationTimepointTuple>(vertexIt->current());
+
+            //MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex(new MultiCommodityMinCostFlow::vertex_t(mCommodities));
+
+            //commodityToSpace[multicommodityVertex] = tuple;
+            //spaceToCommodity[tuple] = multicommodityVertex;
+
+            //mFlowGraph->addVertex(multicommodityVertex);
         }
 
         // edges
@@ -324,8 +312,12 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
             Vertex::Ptr target = edge->getTargetVertex();
 
             MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge(new MultiCommodityMinCostFlow::edge_t(mCommodities));
-            multicommodityEdge->setSourceVertex( spaceToCommodity[source] );
-            multicommodityEdge->setTargetVertex( spaceToCommodity[target] );
+            Vertex::Ptr mcSource = bipartiteGraph.getUniquePartner(source);
+            multicommodityEdge->setSourceVertex(mcSource);
+            LOG_WARN_S << "SOURCE: " << mcSource->toString();
+            Vertex::Ptr mcTarget = bipartiteGraph.getUniquePartner(target);
+            multicommodityEdge->setTargetVertex(mcTarget);
+            LOG_WARN_S << "Target: " << mcTarget->toString();
 
             double weight = edge->getWeight();
             uint32_t bound = 0;
@@ -341,6 +333,8 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
             {
                 multicommodityEdge->setCommodityCapacityUpperBound(i, bound);
             }
+
+            LOG_WARN_S << "Adding edge: " << multicommodityEdge->toString();
 
             mFlowGraph->addEdge(multicommodityEdge);
         }
@@ -374,7 +368,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
                     // Get the tuple in the graph
                     SpaceTimeNetwork::tuple_t::Ptr currentTuple = mpSpaceTimeNetwork->tupleByKeys(location, interval.getFrom());
                     currentTuple->addRole(role);
-                    Vertex::Ptr vertex = spaceToCommodity[currentTuple];
+                    Vertex::Ptr vertex = bipartiteGraph.getUniquePartner(currentTuple);
                     assert(vertex);
                     MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex =
                         dynamic_pointer_cast<MultiCommodityMinCostFlow::vertex_t>(vertex);
@@ -427,12 +421,13 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
 
                     const Role& role = commodityRoles[i];
                     // Update vertices of mSpaceTimeGraph 
-                    Vertex::Ptr sourceLocation = commodityToSpace[multicommodityEdge->getSourceVertex()];
-                    Vertex::Ptr targetLocation = commodityToSpace[multicommodityEdge->getTargetVertex()];
+                    Vertex::Ptr sourceLocation = bipartiteGraph.getUniquePartner(multicommodityEdge->getSourceVertex());
+                    Vertex::Ptr targetLocation = bipartiteGraph.getUniquePartner(multicommodityEdge->getTargetVertex());
                     assert(sourceLocation && targetLocation);
 
-                    dynamic_pointer_cast<LocationTimepointTuple>(sourceLocation)->addRole(role);
-                    dynamic_pointer_cast<LocationTimepointTuple>(targetLocation)->addRole(role);
+
+                    dynamic_pointer_cast<SpaceTimeNetwork::tuple_t>(sourceLocation)->addRole(role);
+                    dynamic_pointer_cast<SpaceTimeNetwork::tuple_t>(targetLocation)->addRole(role);
                 }
             }
         }
@@ -449,13 +444,13 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
 
         LOG_WARN_S << "Commodity flow violation: " << violation.toString();
         LOG_WARN_S << "Violation for " << affectedRole.toString() << " -- at: "
-            << commodityToSpace[violation.getVertex()]->toString();
+            << bipartiteGraph.getUniquePartner(violation.getVertex())->toString();
 
         // Check for violation types in order to add a suitable resolver
         if(violation.getType() == ConstraintViolation::TransFlow)
         {
-            // Map violation back to LocationTimepointTuple
-            LocationTimepointTuple::Ptr tuple = dynamic_pointer_cast<LocationTimepointTuple>(commodityToSpace[violation.getVertex()]);
+            // Map violation back to SpaceTimeNetwork tuple
+            SpaceTimeNetwork::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTimeNetwork::tuple_t>( bipartiteGraph.getUniquePartner(violation.getVertex()) );
 
             const RoleTimeline& roleTimeline = mRoleTimelines[affectedRole];
             const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();

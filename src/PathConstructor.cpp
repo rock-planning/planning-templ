@@ -1,5 +1,5 @@
 #include "PathConstructor.hpp"
-#include <templ/LocationTimepointTuple.hpp>
+#include <templ/RoleInfoTuple.hpp>
 
 namespace templ {
 
@@ -12,9 +12,9 @@ PathConstructor::~PathConstructor() {}
 
 bool PathConstructor::invalidTransition(graph_analysis::Edge::Ptr edge)
 {
-    LocationTimepointTuple::Ptr targetTuple = dynamic_pointer_cast<LocationTimepointTuple>(edge->getTargetVertex());
+    RoleInfo::Ptr targetTuple = dynamic_pointer_cast<RoleInfo>(edge->getTargetVertex());
 
-    return !targetTuple->hasRole(mRole);
+    return targetTuple && !targetTuple->hasRole(mRole);
 }
 
 

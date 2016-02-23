@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <stack>
+#include <graph_analysis/BipartiteGraph.hpp>
 #include <graph_analysis/algorithms/MultiCommodityMinCostFlow.hpp>
 #include <graph_analysis/algorithms/DFS.hpp>
 #include <organization_model/OrganizationModelAsk.hpp>
