@@ -60,7 +60,9 @@ MissionPlanner::~MissionPlanner()
 
 void MissionPlanner::prepareTemporalConstraintNetwork()
 {
-    mTemporalConstraintNetwork->save("/tmp/mission-planner-0-initial-temporal-constraint-network");
+
+    std::string filename = mLogging.filename("mission-planner-0-initial-temporal-constraint-network");
+    mTemporalConstraintNetwork->save(filename);
 
     mTimePointComparator = mTemporalConstraintNetwork;
     mTimePointComparator.sort(mTimepoints);
@@ -155,7 +157,7 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
     mpSpaceTimeNetwork = new TemporallyExpandedNetwork<co::Location>(mLocations, mTimepoints);
 
     {
-        std::string filename = "/tmp/mission-planning--0-space-time-graph-basic_construct.dot";
+        std::string filename = mLogging.filename("computeTemporallyExpandedNetwork-0-space-time-graph-basic_construct.dot");
         graph_analysis::io::GraphIO::write(filename, mpSpaceTimeNetwork->getGraph());
         LOG_INFO_S << "Written temporally expanded graph to: " << filename;
         LOG_INFO_S << "(e.g. view with 'xdot " << filename << "'" << ")";
@@ -165,7 +167,7 @@ void MissionPlanner::computeTemporallyExpandedLocationNetwork()
         {
             std::cout << "Network is consistent" << std::endl;
         }
-        std::string filename = "/tmp/mission-planning--1-temporally-constrained-network.dot";
+        std::string filename = mLogging.filename("computeTemporallyExpandedNetwork-1-temporally-constrained-network.dot");
         graph_analysis::io::GraphIO::write(filename, mCurrentMission.getTemporalConstraintNetwork()->getGraph());
         LOG_DEBUG_S << "Written temporal constraint network to: " << filename;
         LOG_DEBUG_S << "(e.g. view with 'xdot " << filename << "'" << ")";
@@ -289,15 +291,6 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
         {
             MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex(new MultiCommodityMinCostFlow::vertex_t(mCommodities));
             bipartiteGraph.addMapping(multicommodityVertex, vertexIt->current());
-
-            //LocationTimepointTuple::Ptr tuple = dynamic_pointer_cast<LocationTimepointTuple>(vertexIt->current());
-
-            //MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex(new MultiCommodityMinCostFlow::vertex_t(mCommodities));
-
-            //commodityToSpace[multicommodityVertex] = tuple;
-            //spaceToCommodity[tuple] = multicommodityVertex;
-
-            //mFlowGraph->addVertex(multicommodityVertex);
         }
 
         // edges
@@ -497,11 +490,15 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
 
 void MissionPlanner::save(const std::string& markerLabel, const std::string& dir) const
 {
-    base::Time timestamp = base::Time::now();
-
     if(mpSpaceTimeNetwork)
     {
-        std::string filename = dir + "/mission-space-time-network-" + markerLabel + "-" + timestamp.toString();
+        std::string filename = "mission-space-time-network-" + markerLabel;
+        if(dir.empty())
+        {
+            filename = mLogging.filename(filename);
+        } else {
+            filename = dir + "/" + filename;
+        }
         graph_analysis::io::GraphIO::write(filename, mpSpaceTimeNetwork->getGraph(), graph_analysis::representation::GRAPHVIZ);
         graph_analysis::io::GraphIO::write(filename, mpSpaceTimeNetwork->getGraph(), graph_analysis::representation::GEXF);
         LOG_WARN_S << "Written space time network: " << filename << std::endl;
@@ -509,7 +506,14 @@ void MissionPlanner::save(const std::string& markerLabel, const std::string& dir
 
     if(mFlowGraph)
     {
-        std::string filename = dir + "/mission-min-cost-flow-network-"  + markerLabel + "-"+ timestamp.toString();
+        std::string filename = "mission-min-cost-flow-network-"  + markerLabel;
+        if(dir.empty())
+        {
+            filename = mLogging.filename(filename);
+        } else {
+            filename = dir + "/" + filename;
+        }
+
         graph_analysis::io::GraphIO::write(filename, mFlowGraph, graph_analysis::representation::GRAPHVIZ);
         graph_analysis::io::GraphIO::write(filename, mFlowGraph, graph_analysis::representation::GEXF);
         LOG_WARN_S << "Written min-cost flow network: " << filename << std::endl;
@@ -583,6 +587,7 @@ void MissionPlanner::execute(uint32_t maxIterations)
                     renderPlan(ss.str());
                     std::cout << "Found solution #" << iteration << std::endl;
                     ++iteration;
+                    mLogging.incrementSessionId();
                     break;
                 } else if(!mResolvers.empty())
                 {

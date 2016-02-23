@@ -2,6 +2,7 @@ find_package(Boost REQUIRED system filesystem)
 
 rock_library(templ
     SOURCES 
+        Logging.cpp
         Mission.cpp
         MissionPlanner.cpp
         PathConstructor.cpp
@@ -43,6 +44,7 @@ rock_library(templ
         symbols/object_variables/LocationCardinality.cpp
         utils/CartographicMapping.cpp
     HEADERS
+        Logging.hpp
         Mission.hpp
         MissionPlanner.hpp
         PathConstructor.hpp

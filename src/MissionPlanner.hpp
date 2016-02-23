@@ -15,8 +15,8 @@
 #include <templ/solvers/csp/RoleDistribution.hpp>
 #include <templ/solvers/csp/RoleTimeline.hpp>
 #include <templ/solvers/csp/Resolver.hpp>
-#include <templ/LocationTimepointTuple.hpp>
 #include <templ/TemporallyExpandedNetwork.hpp>
+#include <templ/Logging.hpp>
 
 
 /**
@@ -205,10 +205,10 @@ public:
     std::vector<graph_analysis::algorithms::ConstraintViolation> computeMinCostFlow();
 
     // Save the intermediate results
-    void save(const std::string& markerLabel = "", const std::string& dir = "/tmp") const;
+    void save(const std::string& markerLabel = "", const std::string& dir = "") const;
 
     // Render a plan
-    void renderPlan(const std::string& markerLabel = "", const std::string& dir = "/tmp") const;
+    void renderPlan(const std::string& markerLabel = "", const std::string& dir = "") const;
 
 protected:
     Mission mCurrentMission;
@@ -245,6 +245,8 @@ protected:
 
     // Current set of resolver that can be applied to fix the plan at this stage
     std::vector<solvers::csp::Resolver::Ptr> mResolvers;
+
+    Logging mLogging;
 
 };
 

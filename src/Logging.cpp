@@ -1,0 +1,33 @@
+#include "Logging.hpp"
+#include <sstream>
+#include <boost/filesystem.hpp>
+#include <base/Logging.hpp>
+
+namespace templ {
+
+Logging::Logging(const base::Time& time, const std::string& baseDirectory, bool useSessions)
+    : mTime(time)
+    , mBaseDirectory(baseDirectory)
+    , mUseSessions(useSessions)
+    , mSessionId(0)
+{
+}
+
+std::string Logging::filename(const std::string& filename) const
+{
+    std::stringstream ss;
+    ss << mBaseDirectory << "/" << mTime.toString(base::Time::Seconds) << "-templ/";
+    if(mUseSessions)
+    {
+        ss << "/" << mSessionId;
+    }
+    if(boost::filesystem::create_directories( boost::filesystem::path(ss.str())) )
+    {
+        LOG_DEBUG_S << "Created directory: '" << ss.str() << "'";
+    }
+
+    ss << "/" << filename;
+    return ss.str();
+}
+
+} // end namespace templ
