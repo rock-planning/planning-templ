@@ -13,6 +13,13 @@ class MissionPlanner;
 namespace solvers {
 namespace csp {
 
+/**
+ * \class Resolver
+ * \brief A resolver can be applied to a planning problem in order to further
+ * constrain or relax the problem
+ * 
+ * It applies either to model or to the role distribution
+ */
 class Resolver
 {
 public:
@@ -34,6 +41,11 @@ private:
     Type mType;
 };
 
+/**
+ * \class RoleAddDistinction
+ * \brief This resolver allows to increase the distinction between to fluent
+ * time resources for a given resource model
+ */
 class RoleAddDistinction : public Resolver
 {
 public:
@@ -55,6 +67,11 @@ private:
     RoleDistribution::Solution mSolution;
 };
 
+/**
+ * \class FunctionalityRequest \brief This resolver applies to the model
+ * distribution and allows to request certain functionality as part of a domain
+ * specific solution
+ */
 class FunctionalityRequest : public Resolver
 {
 public:

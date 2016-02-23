@@ -471,7 +471,6 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
 
                         // delta needs to be: missing count of resource type
                         assert(-violation.getDelta() > 0);
-                    //    mRoleDistribution->addDistinct(*fit, *(fit+1), affectedRole.getModel(), -violation.getDelta(), mRoleDistributionSolution);
                         Resolver::Ptr roleAddDistinction(new RoleAddDistinction(*fit,*(fit+1), affectedRole.getModel(), -violation.getDelta(), mRoleDistributionSolution));
                         mResolvers.push_back(roleAddDistinction);
 

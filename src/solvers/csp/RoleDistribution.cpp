@@ -290,33 +290,29 @@ void RoleDistribution::minDistinct(const FluentTimeResource& fts0, const FluentT
     for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
     {
         const Role& role = mRoles[roleIndex];
-        if(role.getModel() == roleModel);
+        if(role.getModel() == roleModel)
         {
             indices.push_back(roleIndex);
         }
     }
 
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mRequirements.size());
-    numeric::Combination<size_t> combinations(indices, minDistinctRoles, numeric::EXACT);
-    do {
-        std::vector<size_t> indexVector = combinations.current();
-        Gecode::IntVarArgs args;
-        for(size_t m = 0; m < minDistinctRoles; ++m)
-        {
-            size_t roleIndex = indexVector[m];
-            {
-                size_t fluent = getFluentIndex(fts0);
-                Gecode::IntVar v = roleDistribution(roleIndex, fluent);
-                args << v;
-            }
-            {
-                size_t fluent = getFluentIndex(fts1);
-                Gecode::IntVar v = roleDistribution(roleIndex, fluent);
-                args << v;
-            }
-        }
-        rel(*this, sum(args) <= minDistinctRoles);
-    } while(combinations.next());
+     Gecode::IntVarArgs args;
+     for(size_t m = 0; m < indices.size(); ++m)
+     {
+         size_t roleIndex = indices[m];
+         size_t fluent0 = getFluentIndex(fts0);
+         Gecode::IntVar v0 = roleDistribution(roleIndex, fluent0);
+
+         size_t fluent1 = getFluentIndex(fts1);
+         Gecode::IntVar v1 = roleDistribution(roleIndex, fluent1);
+
+         // Check if a role is part of the fulfillment of both requirements
+         // if so -- sum equals to 0 thus there is no distinction
+         Gecode::IntVar rolePresentInBoth = Gecode::expr(*this, abs(v0 - v1));
+         args << rolePresentInBoth;
+     }
+     rel(*this, sum(args) >= minDistinctRoles);
 }
 
 void RoleDistribution::addDistinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& roleModel, uint32_t additional, const Solution& solution)

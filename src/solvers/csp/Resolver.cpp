@@ -24,8 +24,7 @@ RoleAddDistinction::RoleAddDistinction(const FluentTimeResource& fts0,
 
 void RoleAddDistinction::apply(MissionPlanner* missionPlanner)
 {
-    //missionPlanner->mRoleDistribution->addDistinct(mFts0, mFts1, mModel, mAdd, mSolution);
-    missionPlanner->mRoleDistribution->allDistinct(mFts0, mFts1, mModel);
+    missionPlanner->mRoleDistribution->addDistinct(mFts0, mFts1, mModel, mAdd, mSolution);
     delete missionPlanner->mRoleDistributionSearchEngine;
     missionPlanner->mRoleDistributionSearchEngine = new Gecode::BAB<RoleDistribution>(missionPlanner->mRoleDistribution);
 }
