@@ -28,11 +28,11 @@ MissionPlanner::MissionPlanner(const Mission& mission, const OrganizationModel::
     , mOrganizationModelAsk(mission.getOrganizationModel(),
             mission.getAvailableResources(), /*functional saturation bound*/ true)
     , mOntologyAsk(mOrganizationModel->ontology())
-    , mpGQReasoner(0)
     , mModelDistribution(0)
     , mModelDistributionSearchEngine(0)
     , mRoleDistribution(0)
     , mRoleDistributionSearchEngine(0)
+    , mpGQReasoner(0)
     , mpSpaceTimeNetwork(0)
     , mFlowGraph()
 {
@@ -274,15 +274,9 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
 
     // uint32_t commodities --> see above: counted from existing immobile roles
 
-    // Linking to graphs -- TODO: support bipartite graph in graph_analysis
-    // Map a commodity flow vertex onto the space-time tuple
-    std::map<Vertex::Ptr, Vertex::Ptr> commodityToSpace;
-    // Reverse mapping of the space time tuple to the multicommodity vertex
-    std::map<Vertex::Ptr, Vertex::Ptr> spaceToCommodity;
-
     // Creating the flow graph including the mapping
     // to the space-time graph
-    //
+
     // Translating the graph into the mincommodity representation
     {
         // vertices
@@ -304,13 +298,10 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
             Vertex::Ptr source = edge->getSourceVertex();
             Vertex::Ptr target = edge->getTargetVertex();
 
+            // Create an edge in the multicommodity representation that correspond to the space time graph
             MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge(new MultiCommodityMinCostFlow::edge_t(mCommodities));
-            Vertex::Ptr mcSource = bipartiteGraph.getUniquePartner(source);
-            multicommodityEdge->setSourceVertex(mcSource);
-            LOG_WARN_S << "SOURCE: " << mcSource->toString();
-            Vertex::Ptr mcTarget = bipartiteGraph.getUniquePartner(target);
-            multicommodityEdge->setTargetVertex(mcTarget);
-            LOG_WARN_S << "Target: " << mcTarget->toString();
+            multicommodityEdge->setSourceVertex( bipartiteGraph.getUniquePartner(source) );
+            multicommodityEdge->setTargetVertex( bipartiteGraph.getUniquePartner(target) );
 
             double weight = edge->getWeight();
             uint32_t bound = 0;
@@ -321,14 +312,12 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
                 bound = static_cast<uint32_t>(weight);
             }
 
+            // Upper bound is the maximum edge capacity for a commodity
             multicommodityEdge->setCapacityUpperBound(bound);
             for(size_t i = 0; i < mCommodities; ++i)
             {
                 multicommodityEdge->setCommodityCapacityUpperBound(i, bound);
             }
-
-            LOG_WARN_S << "Adding edge: " << multicommodityEdge->toString();
-
             mFlowGraph->addEdge(multicommodityEdge);
         }
     }
@@ -345,22 +334,27 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
             const RoleTimeline& roleTimeline = rit->second;
 
             organization_model::facets::Robot robot(role.getModel(), mOrganizationModelAsk);
-            if(!robot.isMobile())
+            if(!robot.isMobile()) // only immobile systems are relevant
             {
+                // Allow to later map roles back from index
                 commodityRoles.push_back(role);
                 size_t commodityId = commodityRoles.size() - 1;
 
+                // Retrieve the sorted list of FluentTimeResources
                 const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
                 std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
                 Vertex::Ptr previous;
                 for(; fit != ftrs.end(); ++fit)
                 {
+                    // Map back space and time to human-readable information
                     symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
                     solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
 
-                    // Get the tuple in the graph
+                    // Get the tuple in the graph and augment with role
+                    // information
                     SpaceTimeNetwork::tuple_t::Ptr currentTuple = mpSpaceTimeNetwork->tupleByKeys(location, interval.getFrom());
                     currentTuple->addRole(role);
+
                     Vertex::Ptr vertex = bipartiteGraph.getUniquePartner(currentTuple);
                     assert(vertex);
                     MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex =
@@ -387,15 +381,22 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
     } // end scope handling immobile units
 
     MultiCommodityMinCostFlow minCostFlow(mFlowGraph, mCommodities);
-    graph_analysis::io::GraphIO::write("/tmp/mission-planner-min-cost-flow-init.dot", mFlowGraph);
+    {
+        std::string filename  = mLogging.filename("mission-planner-min-cost-flow-init.dot");
+        graph_analysis::io::GraphIO::write(filename, mFlowGraph);
+    }
     uint32_t cost = minCostFlow.run();
     LOG_DEBUG_S << "Ran flow optimization: min cost: " << cost << std::endl;
     minCostFlow.storeResult();
-    graph_analysis::io::GraphIO::write("/tmp/mission-planner-min-cost-flow-result.dot", mFlowGraph);
+
+    {
+        std::string filename  = mLogging.filename("mission-planner-min-cost-flow-result.dot");
+        graph_analysis::io::GraphIO::write(filename, mFlowGraph);
+    }
 
     LOG_DEBUG_S << "Update after flow optimization" << std::endl;
-    // Update the mSpaceTimeGraph using the reverse mapping and adding
-    // the corresponding (and new roles) roles
+    // Update the mSpaceTimeNetwork using the reverse mapping and adding
+    // the corresponding (and new) roles
     // TODO: check if this should not be updated at a later state, e.g. after
     // violation processing
     {
@@ -411,20 +412,18 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
                 uint32_t flow = multicommodityEdge->getCommodityFlow(i);
                 if(flow > 0)
                 {
-
                     const Role& role = commodityRoles[i];
-                    // Update vertices of mSpaceTimeGraph 
+                    // Update vertices of mSpaceTimeNetwork
                     Vertex::Ptr sourceLocation = bipartiteGraph.getUniquePartner(multicommodityEdge->getSourceVertex());
                     Vertex::Ptr targetLocation = bipartiteGraph.getUniquePartner(multicommodityEdge->getTargetVertex());
                     assert(sourceLocation && targetLocation);
-
 
                     dynamic_pointer_cast<SpaceTimeNetwork::tuple_t>(sourceLocation)->addRole(role);
                     dynamic_pointer_cast<SpaceTimeNetwork::tuple_t>(targetLocation)->addRole(role);
                 }
             }
         }
-    } // end updating the mSpaceTimeGraph
+    } // end updating the mSpaceTimeNetwork
 
     // Check on violations of the current network
     std::vector<ConstraintViolation> violations = minCostFlow.validateInflow();
@@ -442,7 +441,7 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
         // Check for violation types in order to add a suitable resolver
         if(violation.getType() == ConstraintViolation::TransFlow)
         {
-            // Map violation back to SpaceTimeNetwork tuple
+            // Map violation from multicommodity vertex back to SpaceTimeNetwork tuple
             SpaceTimeNetwork::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTimeNetwork::tuple_t>( bipartiteGraph.getUniquePartner(violation.getVertex()) );
 
             const RoleTimeline& roleTimeline = mRoleTimelines[affectedRole];
