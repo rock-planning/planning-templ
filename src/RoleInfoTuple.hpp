@@ -51,12 +51,11 @@ public:
 
     std::string getClassName() const { return "RoleInfoTuple"; }
 
-    std::string toString(uint32_t indent = 0) const
+    std::string toString() const
     {
         std::stringstream ss;
-        std::string hspace(indent, ' ');
-        ss << hspace << BaseClass::first()->toString() + "-" << BaseClass::second()->toString() << std::endl;
-        ss << RoleInfo::toString(indent);
+        ss << BaseClass::first()->toString() + "-" << BaseClass::second()->toString() << std::endl;
+        ss << RoleInfo::toString();
 
         return ss.str();
     }
