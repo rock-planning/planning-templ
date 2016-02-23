@@ -62,7 +62,7 @@ void GQReasoner::init(const std::string& calculus)
         msDataPath = pkg.get("sharedir") + "/data";
     } catch(...)
     {
-        std::runtime_error("templ::solvers::GQReasoner::init: GQR is not properly installed or your PKG_CONFIG_PATH is not propery set -- check 'pkg-config gqr'");
+        throw std::runtime_error("templ::solvers::GQReasoner::init: GQR is not properly installed or your PKG_CONFIG_PATH is not properly set -- check 'pkg-config gqr'");
     }
 
     std::string calculusPath = msDataPath + "/" + calculus  + ".spec";
