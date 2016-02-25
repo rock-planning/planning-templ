@@ -26,6 +26,8 @@ public:
     static std::string toString(const std::vector<Role>& roles);
 
     bool operator<(const Role& other) const { return mName < other.mName; }
+    bool operator==(const Role& other) const { return mName == other.mName && mModel == other.mModel; }
+    bool operator!=(const Role& other) const { return ! (*this == other); }
 };
 
 } // end namespace templ
