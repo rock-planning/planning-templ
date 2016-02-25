@@ -17,6 +17,7 @@
 #include <templ/solvers/csp/Resolver.hpp>
 #include <templ/TemporallyExpandedNetwork.hpp>
 #include <templ/Logging.hpp>
+#include <templ/Plan.hpp>
 
 
 /**
@@ -183,8 +184,9 @@ public:
 
     /**
      * Execute planning with up to a given number of solutions
+     * \return list of solution plans
      */
-    void execute(uint32_t maxIterations);
+    std::vector<Plan> execute(uint32_t maxIterations);
 
     /**
      * Get the next fully instanciated temporal constraint network
@@ -207,8 +209,12 @@ public:
     // Save the intermediate results
     void save(const std::string& markerLabel = "", const std::string& dir = "") const;
 
-    // Render a plan
-    void renderPlan(const std::string& markerLabel = "", const std::string& dir = "") const;
+    /**
+     * \brief Render a plan from the current solution
+     * \throw std::runtime_error if an initial tuple could not be found
+     * \throw std::invalid_argument if rendering of plan failed
+     */
+    Plan renderPlan(const std::string& markerLabel = "") const;
 
 protected:
     Mission mCurrentMission;

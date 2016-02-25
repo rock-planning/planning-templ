@@ -12,6 +12,7 @@
 
 #include <templ/solvers/GQReasoner.hpp>
 #include <templ/PathConstructor.hpp>
+#include <templ/Plan.hpp>
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 #include <sstream>
@@ -518,10 +519,10 @@ void MissionPlanner::save(const std::string& markerLabel, const std::string& dir
     }
 }
 
-void MissionPlanner::renderPlan(const std::string& markerLabel, const std::string& dir) const
+Plan MissionPlanner::renderPlan(const std::string& markerLabel) const
 {
-    LOG_WARN_S << "Render plan: " << markerLabel;
-    using namespace graph_analysis::algorithms;
+    Plan plan(markerLabel);
+
     std::map<Role, RoleTimeline>::const_iterator it = mRoleTimelines.begin();
     for(; it != mRoleTimelines.end(); ++it)
     {
@@ -542,7 +543,8 @@ void MissionPlanner::renderPlan(const std::string& markerLabel, const std::strin
             throw std::runtime_error("templ::MissionPlanner::renderPlan: failed to find initial tuple for role " + role.toString());
         }
 
-        // use mSpaceTimeGraph, which contains information on role for each edge
+        using namespace graph_analysis::algorithms;
+        // use SpaceTimeNetwork, which contains information on role for each edge
         // after update from the flow graph
         // foreach role -- find starting point and follow path
         PathConstructor::Ptr pathConstructor(new PathConstructor(role));
@@ -550,21 +552,15 @@ void MissionPlanner::renderPlan(const std::string& markerLabel, const std::strin
         DFS dfs(mpSpaceTimeNetwork->getGraph(), pathConstructor, skipper); 
         dfs.run(startTuple);
 
-        std::vector<graph_analysis::Vertex::Ptr> path = pathConstructor->getPath();
-        std::vector<graph_analysis::Vertex::Ptr>::const_iterator pathIt = path.begin();
-        std::stringstream ss;
-        ss << "Path of role: '" << role.toString() << "'" << std::endl;
-        for(; pathIt != path.end(); ++pathIt)
-        {
-            ss << "    " << (*pathIt)->toString() << std::endl;
-        }
-        LOG_WARN_S << ss.str();
+        plan.add(role, pathConstructor->getPath());
     }
+    LOG_WARN_S << "Rendered plan: " << plan.toString();
+    return plan;
 }
 
-//std::vector<Flaw> MissionPlanner::execute(uint32_t maxIterations)
-void MissionPlanner::execute(uint32_t maxIterations)
+std::vector<Plan> MissionPlanner::execute(uint32_t maxIterations)
 {
+    std::vector<Plan> plans;
     std::cout << "Execution of planner started" << std::endl;
     uint32_t iteration = 0;
     while(nextTemporalConstraintNetwork() && iteration < maxIterations)
@@ -582,7 +578,7 @@ void MissionPlanner::execute(uint32_t maxIterations)
                     std::stringstream ss;
                     ss << "solution-#" << iteration;
                     save(ss.str());
-                    renderPlan(ss.str());
+                    plans.push_back( renderPlan() );
                     std::cout << "Found solution #" << iteration << std::endl;
                     ++iteration;
                     mLogging.incrementSessionId();
@@ -601,28 +597,35 @@ void MissionPlanner::execute(uint32_t maxIterations)
                 }
             } else {
                 std::cout << "No role assignment found" << std::endl;
-               if(!mResolvers.empty())
-               {
-                   std::cout << "Trying to apply resolver: " << std::endl;
-                   Resolver::Ptr resolver = mResolvers.back();
-                   mResolvers.erase(mResolvers.end()-1);
-                   if(resolver->getType() == Resolver::MODEL_DISTRIBUTION)
-                   {
-                       std::cout << "Applied model distribution solver" << std::endl;
-                       resolver->apply(this);
-                       continue;
-                   }
-                }
+                if(!mResolvers.empty())
+                {
+                    std::cout << "Trying to apply resolver: " << std::endl;
+                    Resolver::Ptr resolver = mResolvers.back();
+                    mResolvers.erase(mResolvers.end()-1);
+                    if(resolver->getType() == Resolver::MODEL_DISTRIBUTION)
+                    {
+                        std::cout << "Applied model distribution solver" << std::endl;
+                        resolver->apply(this);
+                        continue;
+                    }
+                 }
             }
             modelAssignment = nextModelAssignment();
         }
         if(!modelAssignment)
         {
-            std::cout << "No model assignment found" << std::endl;
-            std::cout << "Trying another temporal constraint network" << std::endl;
+            LOG_WARN_S << "No model assignment found --trying another temporal constraint network";
         }
     }
-    std::cout << "Solutions found: " << iteration << std::endl;
+    // Disable sessions to log into base dir
+    mLogging.disableSessions();
+    std::string filename = mLogging.filename("plans.log");
+    Plan::save(plans, filename);
+
+    filename = mLogging.filename("actionplans.log");
+    Plan::saveAsActionPlan(plans, mCurrentMission, filename);
+
+    return plans;
 }
 
 } // end namespace templ

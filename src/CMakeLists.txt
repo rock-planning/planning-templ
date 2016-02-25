@@ -2,10 +2,12 @@ find_package(Boost REQUIRED system filesystem)
 
 rock_library(templ
     SOURCES 
+        CapacityLink.cpp
         Logging.cpp
         Mission.cpp
         MissionPlanner.cpp
         PathConstructor.cpp
+        Plan.cpp
         Role.cpp
         Symbol.cpp
         io/MissionReader.cpp
@@ -44,10 +46,12 @@ rock_library(templ
         symbols/object_variables/LocationCardinality.cpp
         utils/CartographicMapping.cpp
     HEADERS
+        CapacityLink.hpp
         Logging.hpp
         Mission.hpp
         MissionPlanner.hpp
         PathConstructor.hpp
+        Plan.hpp
         Role.hpp
         RoleInfoTuple.hpp
         Symbol.hpp

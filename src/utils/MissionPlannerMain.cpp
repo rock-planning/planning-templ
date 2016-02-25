@@ -30,7 +30,8 @@ int main(int argc, char** argv)
     
     MissionPlanner missionPlanner(mission, organizationModel);
 
-    missionPlanner.execute(minimumNumberOfSolutions);
+    std::vector<Plan> solutions = missionPlanner.execute(minimumNumberOfSolutions);
+    std::cout << "The following solutions have been found: " << Plan::toString(solutions) << std::endl;
 
     return 0;
 }
