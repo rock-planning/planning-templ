@@ -72,10 +72,16 @@ TimePoint::Ptr TimePoint::create(uint64_t lowerBound, uint64_t upperBound)
     return TimePoint::Ptr( new TimePoint(lowerBound, upperBound) );
 }
 
+std::string TimePoint::toString() const
+{
+    return toString(0);
+}
+
 std::string TimePoint::toString(uint32_t indent) const
 {
     std::stringstream ss;
     std::string hspace(indent,' ');
+    std::string label = getLabel();
     ss << hspace << "Timepoint: [" << mLowerBound << "," << mUpperBound << "]";
     return ss.str();
 }

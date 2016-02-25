@@ -69,7 +69,7 @@ public:
     /**
      * Stringify object
      */
-    virtual std::string toString() const { return getClassName() + ": " + mLabel; }
+    virtual std::string toString(uint32_t indent) const { return std::string(indent,' ') + getClassName() + ": " + mLabel; }
 
 private:
     virtual Vertex* getClone() const { return new QualitativeTimePoint(*this); }
