@@ -172,6 +172,8 @@ class MissionPlanner
     friend class templ::solvers::csp::FunctionalityRequest;
 
 public:
+    typedef TemporallyExpandedNetwork<templ::symbols::constants::Location> SpaceTimeNetwork;
+
     MissionPlanner(const Mission& mission, const organization_model::OrganizationModel::Ptr& organizationModel);
 
     ~MissionPlanner();
@@ -217,14 +219,25 @@ public:
     Plan renderPlan(const std::string& markerLabel = "") const;
 
 protected:
+    std::vector<templ::solvers::csp::FluentTimeResource>::const_iterator getFluent(const templ::solvers::csp::RoleTimeline& roleTimeline, const SpaceTimeNetwork::tuple_t::Ptr& tuple);
+
+    void constrainMission(const symbols::constants::Location::Ptr& mLocation,
+            const solvers::temporal::Interval& mInterval,
+            const owlapi::model::IRI& mModel);
+
     Mission mCurrentMission;
+    std::vector<Mission> mConstrainedMissions;
+
     organization_model::OrganizationModel::Ptr mOrganizationModel;
     organization_model::OrganizationModelAsk mOrganizationModelAsk;
     owlapi::model::OWLOntologyAsk mOntologyAsk;
 
     solvers::csp::ModelDistribution* mModelDistribution;
+    std::vector<solvers::csp::ModelDistribution*> mModelDistributions;
+    /// set of distribution where search can be continued
     solvers::csp::ModelDistribution::Solution mModelDistributionSolution;
     Gecode::BAB<solvers::csp::ModelDistribution>* mModelDistributionSearchEngine;
+    std::vector< Gecode::BAB<solvers::csp::ModelDistribution>* > mModelDistributionSearchStates;
 
     solvers::csp::RoleDistribution* mRoleDistribution;
     solvers::csp::RoleDistribution::Solution mRoleDistributionSolution;
@@ -243,7 +256,6 @@ protected:
     solvers::temporal::point_algebra::TimePointComparator mTimePointComparator;
     std::vector<templ::symbols::constants::Location::Ptr> mLocations;
 
-    typedef TemporallyExpandedNetwork<templ::symbols::constants::Location> SpaceTimeNetwork;
     SpaceTimeNetwork* mpSpaceTimeNetwork;
 
     //graph_analysis::BaseGraph::Ptr mSpaceTimeGraph;

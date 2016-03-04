@@ -97,11 +97,30 @@ bool MissionPlanner::nextTemporalConstraintNetwork()
 
 bool MissionPlanner::nextModelAssignment()
 {
-    std::cout << "Next model assignment" << std::endl;
+    // trigger new role distribution computation
+    delete mRoleDistribution;
+    mRoleDistribution = NULL;
+
+    std::cout << "Model stack: " << mModelDistributions.size() << std::endl;
+
     if(!mModelDistribution)
     {
-        mModelDistribution = new ModelDistribution(mCurrentMission);
-        mModelDistributionSearchEngine = new Gecode::BAB<ModelDistribution>(mModelDistribution);
+        if(!mModelDistributions.empty())
+        {
+            std::cout << "RESET TO OLD MISSION" << std::endl;
+            mCurrentMission = mConstrainedMissions.back();
+            mConstrainedMissions.pop_back(); 
+
+            mModelDistribution = mModelDistributions.back();
+            mModelDistributions.pop_back();
+
+            mModelDistributionSearchEngine = mModelDistributionSearchStates.back();
+            mModelDistributionSearchStates.pop_back();
+        } else {
+            std::cout << "RESET TO NEW MISSION" << std::endl;
+            mModelDistribution = new ModelDistribution(mCurrentMission);
+            mModelDistributionSearchEngine = new Gecode::BAB<ModelDistribution>(mModelDistribution);
+        }
     }
 
     ModelDistribution* solvedDistribution = mModelDistributionSearchEngine->next();
@@ -112,7 +131,12 @@ bool MissionPlanner::nextModelAssignment()
         LOG_WARN_S << "Found model assignment: " << mModelDistributionSolution;
         return true;
     } else {
-        return false;
+        delete mModelDistributionSearchEngine;
+        mModelDistributionSearchEngine = NULL;
+        delete mModelDistribution;
+        mModelDistribution = NULL;
+
+        return mModelDistributionSearchStates.empty();
     }
 }
 
@@ -120,7 +144,9 @@ bool MissionPlanner::nextRoleAssignment()
 {
     if(!mRoleDistribution)
     {
+        std::cout << "NEW ROLE ASSIGNMENT" << std::endl;
         mRoleDistribution = new RoleDistribution(mCurrentMission, mModelDistributionSolution);
+        delete mRoleDistributionSearchEngine;
         mRoleDistributionSearchEngine = new Gecode::BAB<RoleDistribution>(mRoleDistribution);
     }
 
@@ -132,6 +158,7 @@ bool MissionPlanner::nextRoleAssignment()
         LOG_WARN_S << "Found role assignment: " << mRoleDistributionSolution;
         return true;
     } else {
+        LOG_WARN_S << "NO NEXT ROLE_ASSIGNMENT";
         return false;
     }
 
@@ -428,55 +455,102 @@ std::vector<graph_analysis::algorithms::ConstraintViolation> MissionPlanner::com
 
     // Check on violations of the current network
     std::vector<ConstraintViolation> violations = minCostFlow.validateInflow();
+    LOG_WARN_S << "FOUND " << violations.size() << " violation of the commodity flow";
+    // Check for violation types in order to add a suitable resolver
+    mResolvers.clear();
     std::vector<ConstraintViolation>::const_iterator vit = violations.begin();
     for(; vit != violations.end(); ++vit)
     {
         const ConstraintViolation& violation = *vit;
         // Role that is involved into this violation
         const Role& affectedRole = commodityRoles[violation.getCommodity()];
+        // Map violation from multicommodity vertex back to SpaceTimeNetwork tuple
+        Vertex::Ptr spaceTimePartnerVertex = bipartiteGraph.getUniquePartner(violation.getVertex());
+        SpaceTimeNetwork::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTimeNetwork::tuple_t>(spaceTimePartnerVertex);
+
+        SpaceTimeNetwork::value_t::Ptr location = dynamic_pointer_cast<SpaceTimeNetwork::value_t>(tuple->first());
 
         LOG_WARN_S << "Commodity flow violation: " << violation.toString();
         LOG_WARN_S << "Violation for " << affectedRole.toString() << " -- at: "
-            << bipartiteGraph.getUniquePartner(violation.getVertex())->toString();
+            << spaceTimePartnerVertex->toString();
 
-        // Check for violation types in order to add a suitable resolver
-        if(violation.getType() == ConstraintViolation::TransFlow)
+        const RoleTimeline& roleTimeline = mRoleTimelines[affectedRole];
+        std::vector<FluentTimeResource>::const_iterator fit;
+        try {
+             fit = getFluent(roleTimeline, tuple);
+        } catch(const std::invalid_argument& e)
         {
-            // Map violation from multicommodity vertex back to SpaceTimeNetwork tuple
-            SpaceTimeNetwork::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTimeNetwork::tuple_t>( bipartiteGraph.getUniquePartner(violation.getVertex()) );
+            // no fix possible
+            LOG_WARN_S << "NO FIX POSSIBLE";
+            return violations;
+        }
 
-            const RoleTimeline& roleTimeline = mRoleTimelines[affectedRole];
-            const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
-            std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
-            for(; fit != ftrs.end(); ++fit)
+        switch(violation.getType())
+        {
+            // In the case of transflow we add a triebreaker between the current
+            // and the subsequent requirement
+            case ConstraintViolation::TransFlow:
             {
-                symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
-                solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
+                FluentTimeResource ftr = *fit;
+                FluentTimeResource ftr_subsequent = *(fit+1);
 
-                if(location == tuple->first() && interval.getFrom() == tuple->second())
+                std::cout << "Transflow violation in timeline: enforce distiction on timeline for: " << affectedRole.toString()
+                    << " between " << std::endl
+                    << ftr.toString() << " and " << ftr_subsequent.toString() << std::endl
+                    << ftr.getInterval(mModelDistribution).toString() << std::endl
+                    << ftr_subsequent.getInterval(mModelDistribution).toString() << std::endl
+                    << " timeline: " << std::endl
+                    << roleTimeline.toString()
+                    << std::endl;
+
+                organization_model::facets::Robot robot(affectedRole.getModel(), mOrganizationModelAsk);
+                if(!robot.isMobile())
                 {
-                    LOG_WARN_S << "Found violation in timeline: enforce distiction on timeline for: " << affectedRole.toString()
-                        << " between " << std::endl
-                        << (*fit).toString() << " and " << (*(fit+1)).toString() << std::endl
-                        << (*fit).getInterval(mModelDistribution).toString() << std::endl
-                        << (*(fit+1)).getInterval(mModelDistribution).toString() << std::endl
-                        << " timeline: " << std::endl
-                        << roleTimeline.toString();
-
-                    {
-                        // More transport availability needed
-                        // TODO: quantify request, e.g. for 1 more Payload
-                        Resolver::Ptr functionalityRequest(new FunctionalityRequest(*fit, vocabulary::OM::resolve("TransportService")));
-                        mResolvers.push_back(functionalityRequest);
-
-                        // delta needs to be: missing count of resource type
-                        assert(-violation.getDelta() > 0);
-                        Resolver::Ptr roleAddDistinction(new RoleAddDistinction(*fit,*(fit+1), affectedRole.getModel(), -violation.getDelta(), mRoleDistributionSolution));
-                        mResolvers.push_back(roleAddDistinction);
-
-                    }
+                    // More transport availability needed
+                    // TODO: quantify request, e.g. for 1 more Payload
+                    Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mModelDistribution), vocabulary::OM::resolve("TransportService")));
+                    mResolvers.push_back(functionalityRequest);
                 }
+
+                 // delta needs to be: missing count of resource type
+                 assert(-violation.getDelta() > 0);
+                 Resolver::Ptr roleAddDistinction(new RoleAddDistinction(ftr, ftr_subsequent, affectedRole.getModel(), abs( violation.getDelta() ), mRoleDistributionSolution));
+                 mResolvers.push_back(roleAddDistinction);
+
+                break;
             }
+            // In the case of minflow we add a triebreaker between the current
+            // and the previous requirement
+            case ConstraintViolation::MinFlow:
+            {
+                FluentTimeResource ftr = *fit;
+                FluentTimeResource ftr_previous = *(fit-1);
+
+                std::cout << "Minflow violation in timeline: enforce distiction on timeline for: " << affectedRole.toString()
+                    << " between " << std::endl
+                    << ftr_previous.toString() << " and " << ftr.toString() << std::endl
+                    << ftr_previous.getInterval(mModelDistribution).toString() << std::endl
+                    << ftr.getInterval(mModelDistribution).toString() << std::endl
+                    << " timeline: " << std::endl
+                    << roleTimeline.toString()
+                    << std::endl;
+
+                organization_model::facets::Robot robot(affectedRole.getModel(), mOrganizationModelAsk);
+                if(!robot.isMobile())
+                {
+                    std::cout << "Robot is not mobile thus requesting a TransportService" << std::endl;
+                   // More transport availability needed
+                   // TODO: quantify request, e.g. for 1 more Payload
+                   Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mModelDistribution), vocabulary::OM::resolve("TransportService")));
+                   mResolvers.push_back(functionalityRequest);
+                }
+
+                // delta needs to be: missing count of resource type
+                assert(-violation.getDelta() > 0);
+                Resolver::Ptr roleAddDistinction(new RoleAddDistinction(ftr_previous, ftr, affectedRole.getModel(), abs( violation.getDelta() ), mRoleDistributionSolution));
+                mResolvers.push_back(roleAddDistinction);
+            }
+            break;
         }
     }
     for(size_t i = 0; i < commodityRoles.size(); ++i)
@@ -565,13 +639,16 @@ std::vector<Plan> MissionPlanner::execute(uint32_t maxIterations)
     uint32_t iteration = 0;
     while(nextTemporalConstraintNetwork() && iteration < maxIterations)
     {
+        std::cout << "EVAL NEXT MODEL ASSIGNMENT -- TOP" << std::endl;
         bool modelAssignment = nextModelAssignment();
         while(modelAssignment && iteration < maxIterations)
         {
+            std::cout << "EVAL NEXT ROLE ASSIGNMENT" << std::endl;
             if(nextRoleAssignment())
             {
                 computeRoleTimelines();
                 computeTemporallyExpandedLocationNetwork();
+                // will modify the resolvers
                 std::vector<graph_analysis::algorithms::ConstraintViolation> violations = computeMinCostFlow();
                 if(violations.empty())
                 {
@@ -592,12 +669,17 @@ std::vector<Plan> MissionPlanner::execute(uint32_t maxIterations)
                     {
                         std::cout << "Applied role distribution solver" << std::endl;
                         resolver->apply(this);
+                        std::cout << "Press enter to continue" << std::endl;
+                        std::string enter;
+                        std::cin >> enter;
                         continue;
+                    } else {
+                        throw std::runtime_error("INVALID ASSUMPTION last one is not role distribution solver");
                     }
                 }
             } else {
                 std::cout << "No role assignment found" << std::endl;
-                if(!mResolvers.empty())
+                while(!mResolvers.empty())
                 {
                     std::cout << "Trying to apply resolver: " << std::endl;
                     Resolver::Ptr resolver = mResolvers.back();
@@ -605,16 +687,29 @@ std::vector<Plan> MissionPlanner::execute(uint32_t maxIterations)
                     if(resolver->getType() == Resolver::MODEL_DISTRIBUTION)
                     {
                         std::cout << "Applied model distribution solver" << std::endl;
-                        resolver->apply(this);
-                        continue;
+                        try {
+                            resolver->apply(this);
+                        } catch(const std::exception& e)
+                        {
+                            std::cout << "Failed to apply resolver " << e.what();
+                            if(!mResolvers.empty())
+                            {
+                                std::cout << "Trying next" << std::endl;
+                            } else {
+                                std::cout << "No remaining resolver";
+                            }
+                        }
+                    } else {
+                        // ignore
                     }
                  }
             }
+            std::cout << "EVAL NEXT MODEL ASSIGNMENT -- BOTTOM" << std::endl;
             modelAssignment = nextModelAssignment();
         }
         if(!modelAssignment)
         {
-            LOG_WARN_S << "No model assignment found --trying another temporal constraint network";
+            std::cout << "No model assignment found --trying another temporal constraint network" << std::endl;
         }
     }
     // Disable sessions to log into base dir
@@ -626,6 +721,53 @@ std::vector<Plan> MissionPlanner::execute(uint32_t maxIterations)
     Plan::saveAsActionPlan(plans, mCurrentMission, filename);
 
     return plans;
+}
+
+std::vector<FluentTimeResource>::const_iterator MissionPlanner::getFluent(const RoleTimeline& roleTimeline, const SpaceTimeNetwork::tuple_t::Ptr& tuple)
+{
+    LOG_WARN_S << "Find tuple: " << tuple->toString() << " in timeline " << roleTimeline.toString();
+
+    const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
+    std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
+    for(; fit != ftrs.end(); ++fit)
+    {
+        symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
+        solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
+
+        if(location == tuple->first() && interval.getFrom() == tuple->second())
+        {
+            return fit;
+        }
+    }
+    throw std::invalid_argument("MissionPlanner::getFluent: could not retrieve corresponding fluent in timeline: '" 
+            + roleTimeline.toString() + "' from tuple '" + tuple->toString());
+}
+
+void MissionPlanner::constrainMission(const symbols::constants::Location::Ptr& location,
+        const solvers::temporal::Interval& interval,
+        const owlapi::model::IRI& model)
+{
+    std::cout << "CONSTRAINING MISSION AT:" <<
+        location->toString() << "[" << interval.toString() << " with model: " << model.toString()
+        << std::endl;
+
+    LOG_WARN_S << "STORE CURRENT MISSION";
+    Mission mission = mCurrentMission;
+    mConstrainedMissions.push_back(mission);
+
+    LOG_WARN_S << "add resource constraint";
+    mCurrentMission.addResourceLocationCardinalityConstraint(location,
+            interval.getFrom(), interval.getTo(),
+            model);
+
+    mModelDistributions.push_back(mModelDistribution);
+    std::cout << "Model stack: " << mModelDistributions.size() << std::endl;
+    mModelDistributionSearchStates.push_back(mModelDistributionSearchEngine);
+
+    std::cout << "New model distribution" << std::endl;
+    mModelDistribution = new ModelDistribution(mCurrentMission);
+    mModelDistributionSearchEngine = new Gecode::BAB<solvers::csp::ModelDistribution>(mModelDistribution);
+
 }
 
 } // end namespace templ
