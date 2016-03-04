@@ -78,7 +78,7 @@ public:
 
     virtual std::string toString() const;
 
-private:
+protected:
     Type mType;
     symbols::StateVariable mStateVariable;
 };

@@ -134,6 +134,12 @@ public:
 protected:
     std::vector<solvers::Constraint::Ptr> getConstraints() const { return mConstraints; }
 
+    /**
+     * Add a constant
+     * \param constant Ptr object of this constant
+     * \throw std::invalid_argument if the constant is already registered (but
+     * has a different pointer)
+     */
     void addConstant(const symbols::Constant::Ptr& constant);
 
     void validateAvailableResources() const;

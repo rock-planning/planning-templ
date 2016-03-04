@@ -68,6 +68,20 @@ std::string PersistenceCondition::toString() const
     return ss;
 }
 
+bool PersistenceCondition::operator==(const PersistenceCondition& other) const
+{
+    //LOG_DEBUG_S << "type: " << (mType == other.mType) << std::endl
+    //    << "state: " << (mStateVariable == other.mStateVariable) << std::endl
+    //    << "value: " << mpValue->toString() << " vs. " << other.mpValue->toString() << ":" << (mpValue == other.mpValue) << std::endl
+    //    << "from: " << (mpFromTimepoint == other.mpFromTimepoint) << std::endl
+    //    << "to: " << (mpToTimepoint == other.mpToTimepoint) << std::endl;
+    return mType == other.mType &&
+        mStateVariable == other.mStateVariable &&
+        *mpValue == *other.mpValue &&
+        (mpFromTimepoint == other.mpFromTimepoint) &&
+        (mpToTimepoint == other.mpToTimepoint);
+}
+
 } // end namespace temporal
 } // end namespace solvers
 } // end namespace templ

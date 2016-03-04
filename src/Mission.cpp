@@ -188,13 +188,10 @@ void Mission::addResourceLocationCardinalityConstraint(
     //            vocabulary::OM::Actor().toString());
     //}
 
-    mRequestedResources.insert(resourceModel);
-
     using namespace ::templ::symbols;
     // Make sure constant is known
     addConstant(location);
     ObjectVariable::Ptr locationCardinality(new object_variables::LocationCardinality(location, cardinality, type));
-    mObjectVariables.insert(locationCardinality);
 
     // the combination of resource, location and cardinality represents a state variable
     // which needs to be translated into resource based state variables
@@ -202,6 +199,10 @@ void Mission::addResourceLocationCardinalityConstraint(
             resourceModel.toString());
 
     addConstraint(rloc, locationCardinality, fromTp, toTp);
+
+
+    mRequestedResources.insert(resourceModel);
+    mObjectVariables.insert(locationCardinality);
 }
 
 void Mission::addConstraint(const symbols::StateVariable& stateVariable,
@@ -209,17 +210,29 @@ void Mission::addConstraint(const symbols::StateVariable& stateVariable,
         const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
         const solvers::temporal::point_algebra::TimePoint::Ptr& toTp)
 {
-    LOG_DEBUG_S << "Adding spatio-temporal constraint: " << stateVariable.toString()
-        << " " << objectVariable->toString() << "@[" << fromTp->toString() << "--" << toTp->toString() <<"]";
     using namespace solvers::temporal;
     PersistenceCondition::Ptr persistenceCondition = PersistenceCondition::getInstance(stateVariable,
             objectVariable,
             fromTp,
             toTp);
 
+    std::vector<solvers::temporal::PersistenceCondition::Ptr>::const_iterator pit = std::find_if(mPersistenceConditions.begin(), mPersistenceConditions.end(), [persistenceCondition](const PersistenceCondition::Ptr& p)
+            {
+                return *persistenceCondition == *p;
+            });
+
+    if(pit == mPersistenceConditions.end())
+    {
+        LOG_DEBUG_S << "Adding spatio-temporal constraint: " << stateVariable.toString()
+            << " " << objectVariable->toString() << "@[" << fromTp->toString() << "--" << toTp->toString() <<"]" << std::endl;
+        mPersistenceConditions.push_back(persistenceCondition);
+    } else {
+        throw std::invalid_argument("templ::Mission::addConstraint: trying to re-add constraint or"
+                "trying to add redundant constraint: '" + persistenceCondition->toString() + "'");
+    }
+
     LOG_DEBUG_S << "Adding implicitly defined temporal constraint for time interval";
     mpTemporalConstraintNetwork->addQualitativeConstraint(fromTp, toTp, pa::QualitativeTimePointConstraint::Less);
-    mPersistenceConditions.push_back(persistenceCondition);
 }
 
 void Mission::addTemporalConstraint(const pa::TimePoint::Ptr& t1,
@@ -306,7 +319,26 @@ std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> Mission::getTimepo
 
 void Mission::addConstant(const symbols::Constant::Ptr& constant)
 {
-    mConstants.insert(constant);
+    using namespace symbols;
+    std::set<Constant::Ptr>::const_iterator cit = std::find_if(mConstants.begin(), mConstants.end(), [constant](const symbols::Constant::Ptr& c)
+            {
+                return *constant == *c;
+            });
+    if(cit == mConstants.end())
+    {
+        mConstants.insert(constant);
+    } else {
+        if(*cit == constant)
+        {
+            // We found the constant -- nothing to do since it has already been
+            // added
+        } else {
+            // We found the constant -- but pointers are different
+            // This will lead to inconsitencies, so throw
+            throw std::invalid_argument("templ::Mission::addConstant: constant '" +
+                constant->toString() + "' already registered, but different pointer objects");
+        }
+    }
 }
 
 const symbols::Constant::Ptr& Mission::getConstant(const std::string& id, symbols::Constant::Type type)

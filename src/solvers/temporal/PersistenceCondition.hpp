@@ -51,6 +51,8 @@ public:
     point_algebra::TimePoint::Ptr getToTimePoint() const { return mpToTimepoint; }
 
     virtual std::string toString() const;
+
+    virtual bool operator==(const PersistenceCondition& other) const;
 };
 
 } // end namespace temporal
