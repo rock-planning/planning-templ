@@ -82,10 +82,10 @@ symbols::ObjectVariable::Ptr Mission::getOrCreateObjectVariable(const std::strin
     using namespace ::templ::symbols;
 
     ObjectVariable::Ptr variable;
-    try {                                                                                
+    try {
          variable = getObjectVariable(name, type);
-    } catch(const std::invalid_argument& e)                                              
-    {                                                                                    
+    } catch(const std::invalid_argument& e)
+    {
         variable = ObjectVariable::getInstance(name, type);
     }
     return variable;
@@ -183,7 +183,7 @@ void Mission::addResourceLocationCardinalityConstraint(
     //    type = vocabulary::OM::Actor();
     //} else {
     //    throw std::invalid_argument("templ::Mission::addConstraint: unsupported resource type for '" +
-    //            resourceModel.toString() + "' -- supported are: " + 
+    //            resourceModel.toString() + "' -- supported are: " +
     //            vocabulary::OM::Service().toString() + ", and " +
     //            vocabulary::OM::Actor().toString());
     //}
