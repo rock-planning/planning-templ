@@ -687,6 +687,7 @@ void ModelDistribution::addFunctionRequirement(const FluentTimeResource& fts, ow
     LOG_WARN_S << "Before Fluent: " << fit->toString();
     // insert the resource requirement
     fit->resources.insert(index);
+    fit->maxCardinalities = organization_model::Algebra::max(fit->maxCardinalities, mAsk.getFunctionalSaturationBound(function) );
     LOG_WARN_S << "After: Fluent: " << fit->toString();
 }
 
