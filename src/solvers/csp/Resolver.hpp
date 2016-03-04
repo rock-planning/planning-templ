@@ -75,7 +75,8 @@ private:
 class FunctionalityRequest : public Resolver
 {
 public:
-    FunctionalityRequest(const FluentTimeResource& fts,
+    FunctionalityRequest(const symbols::constants::Location::Ptr& location,
+            const solvers::temporal::Interval& interval,
             const owlapi::model::IRI& model);
 
     virtual ~FunctionalityRequest() {}
@@ -83,7 +84,8 @@ public:
     void apply(MissionPlanner* missionPlanner);
 
 private:
-    FluentTimeResource mFts;
+    symbols::constants::Location::Ptr mLocation;
+    solvers::temporal::Interval mInterval;
     owlapi::model::IRI mModel;
 
 };

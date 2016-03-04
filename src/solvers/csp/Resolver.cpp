@@ -29,18 +29,18 @@ void RoleAddDistinction::apply(MissionPlanner* missionPlanner)
     missionPlanner->mRoleDistributionSearchEngine = new Gecode::BAB<RoleDistribution>(missionPlanner->mRoleDistribution);
 }
 
-FunctionalityRequest::FunctionalityRequest(const FluentTimeResource& fts,
+FunctionalityRequest::FunctionalityRequest(const symbols::constants::Location::Ptr& location,
+        const solvers::temporal::Interval& interval,
         const owlapi::model::IRI& model)
     : Resolver(MODEL_DISTRIBUTION)
-    , mFts(fts)
+    , mLocation(location)
+    , mInterval(interval)
     , mModel(model)
 {}
 
 void FunctionalityRequest::apply(MissionPlanner* missionPlanner)
 {
-    missionPlanner->mModelDistribution->addFunctionRequirement(mFts, mModel);
-    delete missionPlanner->mModelDistributionSearchEngine;
-    missionPlanner->mModelDistributionSearchEngine = new Gecode::BAB<ModelDistribution>(missionPlanner->mModelDistribution);
+    missionPlanner->constrainMission(mLocation, mInterval, mModel);
 }
 
 } // end namespace csp
