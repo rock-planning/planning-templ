@@ -277,8 +277,6 @@ BOOST_AUTO_TEST_CASE(gqr_reasoner)
 
     using namespace graph_analysis;
     using namespace templ::solvers;
-    GQReasoner paReasoner("point", tcn->getGraph(), QTPC::Ptr(new QTPC()) );
-
     {
         EdgeIterator::Ptr edgeIt = tcn->getGraph()->getEdgeIterator();
         while(edgeIt->next())
@@ -290,8 +288,8 @@ BOOST_AUTO_TEST_CASE(gqr_reasoner)
         }
     }
 
+    GQReasoner paReasoner("point", tcn->getGraph(), QTPC::Ptr(new QTPC()) );
     BaseGraph::Ptr primarySolution = paReasoner.getPrimarySolution();
-
     {
         BOOST_REQUIRE_MESSAGE(primarySolution, "Found primary solution size: " << primarySolution->size());
         EdgeIterator::Ptr edgeIt = primarySolution->getEdgeIterator();
