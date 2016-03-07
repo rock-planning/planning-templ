@@ -41,6 +41,12 @@ bool TimePointComparator::greaterThan(const TimePoint::Ptr& t0, const TimePoint:
         throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: cannot compare different types of TimePoints");
     }
 
+    // same timepoints
+    if(equals(t0,t1))
+    {
+        return false;
+    }
+
     if(t0->getType() == TimePoint::QUANTITATIVE)
     {
         return t0->getLowerBound() > t1->getUpperBound();

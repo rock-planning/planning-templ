@@ -77,9 +77,9 @@ bool PersistenceCondition::operator==(const PersistenceCondition& other) const
     //    << "to: " << (mpToTimepoint == other.mpToTimepoint) << std::endl;
     return mType == other.mType &&
         mStateVariable == other.mStateVariable &&
-        *mpValue == *other.mpValue &&
-        (mpFromTimepoint == other.mpFromTimepoint) &&
-        (mpToTimepoint == other.mpToTimepoint);
+        mpValue->equals(other.mpValue) &&
+        mpFromTimepoint->equals(other.mpFromTimepoint) &&
+        mpToTimepoint->equals(other.mpToTimepoint);
 }
 
 } // end namespace temporal

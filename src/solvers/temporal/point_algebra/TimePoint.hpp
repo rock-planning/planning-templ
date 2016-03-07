@@ -44,7 +44,7 @@ public:
 
     virtual bool equals(TimePoint::Ptr other) const;
 
-    bool operator==(const TimePoint& other) const { return mLowerBound == other.mLowerBound && mUpperBound == other.mUpperBound; }
+    virtual bool operator==(const TimePoint& other) const { return mLowerBound == other.mLowerBound && mUpperBound == other.mUpperBound; }
     bool operator<(const TimePoint& other) const;
 
     void setLowerBound(uint64_t bound) { mLowerBound = bound; }

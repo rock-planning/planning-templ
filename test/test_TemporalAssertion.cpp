@@ -121,6 +121,20 @@ BOOST_AUTO_TEST_CASE(persistence_condition)
         BOOST_REQUIRE_MESSAGE(!assertion0->isDisjointFrom(assertion2, comparator), "Overlapping persistence conditions are not disjoint");
     }
 
+    {
+        ObjectVariable::Ptr objectVariable0(new ObjectVariable("l0"));
+        ObjectVariable::Ptr objectVariable0Dup(new ObjectVariable("l0"));
+        ObjectVariable::Ptr objectVariable1(new ObjectVariable("l1"));
+        point_algebra::TimePoint::Ptr fromT(new point_algebra::QualitativeTimePoint("t2"));
+        point_algebra::TimePoint::Ptr toT(new point_algebra::QualitativeTimePoint("t3"));
+
+        PersistenceCondition::Ptr pc0(new PersistenceCondition(stateVariable, objectVariable0, fromT, toT));
+        PersistenceCondition::Ptr pc0Dup(new PersistenceCondition(stateVariable, objectVariable0Dup, fromT, toT));
+        PersistenceCondition::Ptr pc1(new PersistenceCondition(stateVariable, objectVariable1, fromT, toT));
+        //BOOST_REQUIRE_MESSAGE(pc0->equals(pc0Dup), pc0->toString() << " equals " << pc0Dup->String());
+        //BOOST_REQUIRE_MESSAGE(!pc0->equals(pc1), pc0->toString() << " equals " << pc1->String());
+    }
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()
