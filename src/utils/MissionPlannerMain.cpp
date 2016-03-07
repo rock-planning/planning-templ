@@ -15,6 +15,7 @@ int main(int argc, char** argv)
     if(argc == 4)
     {
         minimumNumberOfSolutions = atoi(argv[3]);
+        std::cout << "Minimum number of requested solutions: " << minimumNumberOfSolutions << std::endl;
     }
 
     std::string missionFilename = argv[1];
