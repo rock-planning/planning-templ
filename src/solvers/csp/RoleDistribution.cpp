@@ -326,7 +326,8 @@ void RoleDistribution::addDistinct(const FluentTimeResource& fts0, const FluentT
         Solution::const_iterator sit = solution.find(fts0);
         if(sit == solution.end())
         {
-            throw std::runtime_error("templ::solvers::csp::RoleDistribution: the given fluent-time-resource is not part of the solution");
+            throw std::runtime_error("templ::solvers::csp::RoleDistribution: the given fluent-time-resource is not part of the solution: "
+                    + fts0.toString());
         }
 
         const Role::List& roles = sit->second;
@@ -344,7 +345,8 @@ void RoleDistribution::addDistinct(const FluentTimeResource& fts0, const FluentT
         Solution::const_iterator sit = solution.find(fts1);
         if(sit == solution.end())
         {
-            throw std::runtime_error("templ::solvers::csp::RoleDistribution: the given fluent-time-resource is not part of the solution");
+            throw std::runtime_error("templ::solvers::csp::RoleDistribution: the given fluent-time-resource is not part of the solution"
+                    + fts1.toString());
         }
 
         const Role::List& roles = sit->second;
@@ -359,6 +361,7 @@ void RoleDistribution::addDistinct(const FluentTimeResource& fts0, const FluentT
         }
     }
     size_t numberOfUniqueRoles = uniqueRoles.size();
+    LOG_INFO_S << "Previous number of unique roles: " << numberOfUniqueRoles << " -- should be increased with " << additional;
     RoleDistribution::minDistinct(fts0, fts1, roleModel, numberOfUniqueRoles + additional);
 }
 
