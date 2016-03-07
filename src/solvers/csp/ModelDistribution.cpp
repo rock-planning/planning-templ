@@ -319,7 +319,6 @@ ModelDistribution::ModelDistribution(bool share, ModelDistribution& other)
     , mResourceRequirements(other.mResourceRequirements)
     , mAvailableModels(other.mAvailableModels)
 {
-    LOG_DEBUG_S << "Copy construct";
     mModelUsage.update(*this, share, other.mModelUsage);
 }
 
@@ -497,6 +496,7 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
                     , timeIndex
                     , (int) (lit - mLocations.begin()));
                     //, mModelPool);
+
             if(mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
             {
                 // retrieve upper bound
@@ -671,24 +671,24 @@ void ModelDistribution::addFunctionRequirement(const FluentTimeResource& fts, ow
     {
         if( mAsk.ontology().isSubClassOf(function, organization_model::vocabulary::OM::Functionality()) )
         {
-            LOG_WARN_S << "AUTO ADDED '" << function << "' to required resources";
+            LOG_INFO_S << "AUTO ADDED '" << function << "' to required resources";
             mResources.push_back(function);
         } else {
             throw std::invalid_argument("templ::solvers::csp::ModelDistribution: could not find the resource index for: '" + function.toString() + "' -- which is not a service class");
         }
-    } 
-    LOG_WARN_S << "Using index: " << index;
+    }
+    LOG_DEBUG_S << "Using index: " << index;
 
     std::vector<FluentTimeResource>::iterator fit = std::find(mResourceRequirements.begin(), mResourceRequirements.end(), fts);
     if(fit == mResourceRequirements.end())
     {
         throw std::invalid_argument("templ::solvers::csp::ModelDistribution: could not find the fluent time resource: '" + fts.toString() + "'");
     }
-    LOG_WARN_S << "Before Fluent: " << fit->toString();
+    LOG_DEBUG_S << "Fluent before adding function requirement: " << fit->toString();
     // insert the resource requirement
     fit->resources.insert(index);
     fit->maxCardinalities = organization_model::Algebra::max(fit->maxCardinalities, mAsk.getFunctionalSaturationBound(function) );
-    LOG_WARN_S << "After: Fluent: " << fit->toString();
+    LOG_DEBUG_S << "Fluent after adding function requirement: " << fit->toString();
 }
 
 } // end namespace csp
