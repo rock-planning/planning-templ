@@ -145,6 +145,7 @@ std::string MissionReader::getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, con
 Mission MissionReader::fromFile(const std::string& url)
 {
     Mission mission;
+    mission.setScenarioFile(url);
 
     /*
      * this initialize the library and check potential ABI mismatches
