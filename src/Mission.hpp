@@ -21,6 +21,7 @@ typedef uint32_t Duration;
 typedef std::string ServiceLocation;
 
 class MissionPlanner;
+class Logging;
 
 namespace io {
     class MissionReader;
@@ -29,11 +30,9 @@ namespace io {
 class Mission
 {
     friend class MissionPlanner;
+    friend class Logging;
     friend class io::MissionReader;
     solvers::temporal::TemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
-
-protected:
-    Mission(const std::string& name = "");
 
 public:
     Mission(const organization_model::OrganizationModel::Ptr& om, const std::string& name = "");
@@ -131,7 +130,11 @@ public:
 
     std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> getTimepoints() const;
 
+    void save(const std::string& filename) const { throw std::runtime_error("Mission::save: not implemented"); }
+
 protected:
+    Mission(const std::string& name = "");
+
     std::vector<solvers::Constraint::Ptr> getConstraints() const { return mConstraints; }
 
     /**
@@ -143,6 +146,17 @@ protected:
     void addConstant(const symbols::Constant::Ptr& constant);
 
     void validateAvailableResources() const;
+
+    /**
+     * The path to the scenario file that was used to load this mission file
+     * (if loaded) -- will be empty if was not loaded from a file
+     */
+    const std::string& getScenarioFile() const { return mScenarioFile; }
+
+    /**
+     * Set the path to the scenario file that was used to load this mission file
+     */
+    void setScenarioFile(const std::string& filename) { mScenarioFile = filename; }
 
 private:
     organization_model::OrganizationModel::Ptr mpOrganizationModel;
@@ -165,6 +179,8 @@ private:
 
     std::set<symbols::ObjectVariable::Ptr> mObjectVariables;
     std::set<symbols::Constant::Ptr> mConstants;
+
+    std::string mScenarioFile;
 };
 
 } // end namespace templ

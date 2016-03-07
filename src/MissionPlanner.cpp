@@ -720,6 +720,8 @@ std::vector<Plan> MissionPlanner::execute(uint32_t maxIterations)
     filename = mLogging.filename("actionplans.log");
     Plan::saveAsActionPlan(plans, mCurrentMission, filename);
 
+    mLogging.saveInputData(mCurrentMission);
+
     return plans;
 }
 
