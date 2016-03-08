@@ -136,7 +136,7 @@ bool MissionPlanner::nextModelAssignment()
         delete mModelDistribution;
         mModelDistribution = NULL;
 
-        return mModelDistributionSearchStates.empty();
+        return false;
     }
 }
 
@@ -669,9 +669,6 @@ std::vector<Plan> MissionPlanner::execute(uint32_t maxIterations)
                     {
                         std::cout << "Applied role distribution solver" << std::endl;
                         resolver->apply(this);
-                        std::cout << "Press enter to continue" << std::endl;
-                        std::string enter;
-                        std::cin >> enter;
                         continue;
                     } else {
                         throw std::runtime_error("INVALID ASSUMPTION last one is not role distribution solver");
