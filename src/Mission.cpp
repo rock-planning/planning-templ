@@ -227,6 +227,7 @@ void Mission::addConstraint(const symbols::StateVariable& stateVariable,
             << " " << objectVariable->toString() << "@[" << fromTp->toString() << "--" << toTp->toString() <<"]" << std::endl;
         mPersistenceConditions.push_back(persistenceCondition);
     } else {
+        LOG_DEBUG_S << "Already existing: " << (*pit)->toString();
         throw std::invalid_argument("templ::Mission::addConstraint: trying to re-add constraint or"
                 "trying to add redundant constraint: '" + persistenceCondition->toString() + "'");
     }
