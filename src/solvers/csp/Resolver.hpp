@@ -8,7 +8,7 @@
 
 namespace templ {
 
-class MissionPlanner;
+class PlanningState;
 
 namespace solvers {
 namespace csp {
@@ -35,7 +35,7 @@ public:
     /**
      * Allow to modifiy the internal state of the mission planner
      */
-    virtual void apply(MissionPlanner* missionPlanner) { throw std::runtime_error("templ::solvers::csp::Resolver not implemented"); }
+    virtual void apply(PlanningState* planningState) { throw std::runtime_error("templ::solvers::csp::Resolver::apply not implemented"); }
 
 private:
     Type mType;
@@ -57,7 +57,7 @@ public:
     
     virtual ~RoleAddDistinction(){}
 
-    void apply(MissionPlanner* missionPlanner);
+    void apply(PlanningState* planningState);
 
 private:
     FluentTimeResource mFts0;
@@ -81,7 +81,7 @@ public:
 
     virtual ~FunctionalityRequest() {}
 
-    void apply(MissionPlanner* missionPlanner);
+    void apply(PlanningState* planningState);
 
 private:
     symbols::constants::Location::Ptr mLocation;

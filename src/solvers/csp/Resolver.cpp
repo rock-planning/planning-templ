@@ -1,5 +1,5 @@
 #include "Resolver.hpp"
-#include <templ/MissionPlanner.hpp>
+#include <templ/PlanningState.hpp>
 
 namespace templ {
 namespace solvers {
@@ -22,11 +22,13 @@ RoleAddDistinction::RoleAddDistinction(const FluentTimeResource& fts0,
     , mSolution(solution)
 {}
 
-void RoleAddDistinction::apply(MissionPlanner* missionPlanner)
+void RoleAddDistinction::apply(PlanningState* planningState)
 {
-    missionPlanner->mRoleDistribution->addDistinct(mFts0, mFts1, mModel, mAdd, mSolution);
-    delete missionPlanner->mRoleDistributionSearchEngine;
-    missionPlanner->mRoleDistributionSearchEngine = new Gecode::BAB<RoleDistribution>(missionPlanner->mRoleDistribution);
+    // Provide a deep copy
+    RoleDistribution* rd = new RoleDistribution(true, *planningState->getRoleDistribution());
+    rd->addDistinct(mFts0, mFts1, mModel, mAdd, mSolution);
+    planningState->setRoleDistribution(rd);
+    planningState->setRoleDistributionSearchEngine(new Gecode::BAB<RoleDistribution>(rd));
 }
 
 FunctionalityRequest::FunctionalityRequest(const symbols::constants::Location::Ptr& location,
@@ -38,9 +40,11 @@ FunctionalityRequest::FunctionalityRequest(const symbols::constants::Location::P
     , mModel(model)
 {}
 
-void FunctionalityRequest::apply(MissionPlanner* missionPlanner)
+void FunctionalityRequest::apply(PlanningState* state)
 {
-    missionPlanner->constrainMission(mLocation, mInterval, mModel);
+    state->constrainMission(mLocation, mInterval, mModel);
+    // enforce triggering a new model distribution due to new constraints
+    state->cleanup(PlanningState::MODEL);
 }
 
 } // end namespace csp
