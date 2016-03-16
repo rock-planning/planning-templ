@@ -2,6 +2,7 @@
 #include <graph_analysis/WeightedEdge.hpp>
 #include <graph_analysis/algorithms/FloydWarshall.hpp>
 #include <graph_analysis/GraphIO.hpp>
+#include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 
 using namespace templ::solvers::temporal::point_algebra;
 using namespace graph_analysis;
@@ -329,6 +330,16 @@ void TemporalConstraintNetwork::save(const std::string& filename) const
 {
     graph_analysis::io::GraphIO::write(filename, getGraph(), graph_analysis::representation::GRAPHVIZ);
     graph_analysis::io::GraphIO::write(filename, getGraph(), graph_analysis::representation::GEXF);
+}
+
+
+void TemporalConstraintNetwork::sort(std::vector<point_algebra::TimePoint::Ptr>& timepoints) const
+{
+    // allow using of shared pointer like normal pointers, when auto-deleting is not
+    // desirable
+    TemporalConstraintNetwork::Ptr tcn(const_cast<TemporalConstraintNetwork*>(this), [](TemporalConstraintNetwork*){});
+    TimePointComparator comparator(tcn);
+    comparator.sort(timepoints);
 }
 
 } // end namespace temporal

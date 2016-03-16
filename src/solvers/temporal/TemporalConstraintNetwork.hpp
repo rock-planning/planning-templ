@@ -113,6 +113,11 @@ public:
      */
     virtual void save(const std::string& filename) const;
 
+    /**
+     * Sort a list of timepoints based on the constraint network
+     */
+    void sort(std::vector<point_algebra::TimePoint::Ptr>& timepoints) const;
+
 };
 
 } // end namespace temporal
