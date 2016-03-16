@@ -8,6 +8,8 @@ rock_library(templ
         MissionPlanner.cpp
         PathConstructor.cpp
         Plan.cpp
+        PlanningState.cpp
+        PlanSpaceVisitor.cpp
         Role.cpp
         Symbol.cpp
         io/MissionReader.cpp
@@ -52,6 +54,8 @@ rock_library(templ
         MissionPlanner.hpp
         PathConstructor.hpp
         Plan.hpp
+        PlanningState.hpp
+        PlanSpaceVisitor.hpp
         Role.hpp
         RoleInfoTuple.hpp
         Symbol.hpp
