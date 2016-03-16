@@ -40,7 +40,7 @@ bool PersistenceCondition::refersToSameValue(const Event::Ptr& other, const poin
     }
 }
 
-bool PersistenceCondition::refersToSameValue(const shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator& comparator) const
+bool PersistenceCondition::refersToSameValue(const shared_ptr<PersistenceCondition>& other, const point_algebra::TimePointComparator&) const
 {
     return mpValue->equals(other->mpValue);
 }
