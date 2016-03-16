@@ -37,9 +37,18 @@ public:
         : mValues(values)
         , mTimepoints(timepoints)
     {
+        if(mValues.empty())
+        {
+            throw std::invalid_argument("templ::TemporallyExpandedNetwork: cannot construct network"
+                    " since value list is empty");
+        }
+        if(mTimepoints.empty())
+        {
+            throw std::invalid_argument("templ::TemporallyExpandedNetwork: cannot construct network"
+                    " since timepoint list is empty");
+        }
         initialize();
     }
-
 
     // Construction of the basic time-expanded network
     //
