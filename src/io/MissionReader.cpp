@@ -247,19 +247,9 @@ Mission MissionReader::fromFile(const std::string& url)
                     TemporalConstraint temporalConstraint = *cit;
 
                     using namespace solvers::temporal::point_algebra;
-                    try {
-                        TimePoint::Ptr t0 = mission.getTimePoint(temporalConstraint.lval);
-                        TimePoint::Ptr t1 = mission.getTimePoint(temporalConstraint.rval);
-                        mission.addTemporalConstraint(t0, t1, temporalConstraint.type);
-                    } catch(const std::invalid_argument& e)
-                    {
-                        LOG_WARN_S << "Unused timepoint exists in constraints" << std::endl
-                            << "    detailled error: " << e.what();
-
-                        TimePoint::Ptr t0 = mission.getOrCreateTimePoint(temporalConstraint.lval);
-                        TimePoint::Ptr t1 = mission.getOrCreateTimePoint(temporalConstraint.rval);
-                        mission.addTemporalConstraint(t0, t1, temporalConstraint.type);
-                    }
+                    TimePoint::Ptr t0 = mission.getOrCreateTimePoint(temporalConstraint.lval);
+                    TimePoint::Ptr t1 = mission.getOrCreateTimePoint(temporalConstraint.rval);
+                    mission.addTemporalConstraint(t0, t1, temporalConstraint.type);
                 }
             } else if(nameMatches(firstLevelChild, "constants"))
             {
