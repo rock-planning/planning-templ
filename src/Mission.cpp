@@ -17,14 +17,37 @@ Mission::Mission(const std::string& name)
     , mName(name)
 {}
 
-Mission::Mission(const organization_model::OrganizationModel::Ptr& om, const std::string& name)
+Mission::Mission(organization_model::OrganizationModel::Ptr om, const std::string& name)
     : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
     , mpOrganizationModel(om)
     , mAsk(om)
     , mName(name)
 {}
 
-void Mission::setOrganizationModel(const organization_model::OrganizationModel::Ptr& organizationModel)
+Mission::Mission(const Mission& other)
+    : mpTemporalConstraintNetwork()
+    , mpOrganizationModel(other.mpOrganizationModel)
+    , mAsk(other.mAsk)
+    , mName(other.mName)
+    , mModelPool(other.mModelPool)
+    , mRoles(other.mRoles)
+    , mModels(other.mModels)
+    , mPersistenceConditions(other.mPersistenceConditions)
+    , mConstraints(other.mConstraints)
+    , mRequestedResources(other.mRequestedResources)
+    , mTimeIntervals(other.mTimeIntervals)
+    , mObjectVariables(other.mObjectVariables)
+    , mConstants(other.mConstants)
+    , mScenarioFile(other.mScenarioFile)
+{
+    if(other.mpTemporalConstraintNetwork)
+    {
+        solvers::ConstraintNetwork::Ptr constraintNetwork = other.mpTemporalConstraintNetwork->clone();
+        mpTemporalConstraintNetwork = dynamic_pointer_cast<solvers::temporal::QualitativeTemporalConstraintNetwork>(constraintNetwork);
+    }
+}
+
+void Mission::setOrganizationModel(organization_model::OrganizationModel::Ptr organizationModel)
 {
     mpOrganizationModel = organizationModel;
     mAsk = organization_model::OrganizationModelAsk(organizationModel);
@@ -96,10 +119,8 @@ void Mission::prepare()
     using namespace solvers::temporal;
 
     validateAvailableResources();
-    if(mpTemporalConstraintNetwork->isConsistent())
+    if(!mpTemporalConstraintNetwork->isConsistent())
     {
-        mpTemporalConstraintNetwork->save("/tmp/mission-tcn-consistent");
-    } else {
         throw std::runtime_error("templ::Mission: provided temporal constraint network is not consistent");
     }
 
@@ -164,12 +185,14 @@ void Mission::addResourceLocationCardinalityConstraint(
             owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType type
 )
 {
+    LOG_WARN_S << "TRYING TO ADD CARDINALITY CONSTRAINT to mission: " << mName;
     using namespace owlapi;
 
     if(!mpOrganizationModel)
     {
         throw std::runtime_error("templ::Mission::addConstraint: mission has not been initialized with organization model");
     }
+    LOG_WARN_S << "HAS ORGA MODEL";
 
     //// Retrieve the type of the resource model
     //owlapi::model::IRI type;
@@ -198,6 +221,7 @@ void Mission::addResourceLocationCardinalityConstraint(
     symbols::StateVariable rloc(ObjectVariable::TypeTxt[ObjectVariable::LOCATION_CARDINALITY],
             resourceModel.toString());
 
+    LOG_WARN_S << "ADD CONSTRAINT";
     addConstraint(rloc, locationCardinality, fromTp, toTp);
 
 
@@ -216,6 +240,7 @@ void Mission::addConstraint(const symbols::StateVariable& stateVariable,
             fromTp,
             toTp);
 
+    LOG_WARN_S << "ADD CONSTRAINT FIND EXISTING";
     std::vector<solvers::temporal::PersistenceCondition::Ptr>::const_iterator pit = std::find_if(mPersistenceConditions.begin(), mPersistenceConditions.end(), [persistenceCondition](const PersistenceCondition::Ptr& p)
             {
                 return *persistenceCondition == *p;

@@ -5,21 +5,33 @@ using namespace graph_analysis;
 namespace templ {
 namespace solvers {
 
-ConstraintNetwork::ConstraintNetwork()
-    : mGraph(BaseGraph::getInstance(BaseGraph::BOOST_DIRECTED_GRAPH))
+ConstraintNetwork::ConstraintNetwork(graph_analysis::BaseGraph::ImplementationType type)
+    : mGraph(BaseGraph::getInstance(type))
 {}
 
-void ConstraintNetwork::addVariable(Variable::Ptr variable)
+ConstraintNetwork::ConstraintNetwork(const ConstraintNetwork& other)
+    : mGraph(other.mGraph->cloneEdges())
+{
+}
+
+ConstraintNetwork::~ConstraintNetwork() {}
+
+ConstraintNetwork::Ptr ConstraintNetwork::clone() const
+{
+    return ConstraintNetwork::Ptr( getClone() );
+}
+
+void ConstraintNetwork::addVariable(const Variable::Ptr& variable)
 {
     mGraph->addVertex(variable);
 }
 
-void ConstraintNetwork::addConstraint(Constraint::Ptr constraint)
+void ConstraintNetwork::addConstraint(const Constraint::Ptr& constraint)
 {
     mGraph->addEdge(constraint);
 }
 
-void ConstraintNetwork::removeConstraint(Constraint::Ptr constraint)
+void ConstraintNetwork::removeConstraint(const Constraint::Ptr& constraint)
 {
     mGraph->removeEdge(constraint);
 }

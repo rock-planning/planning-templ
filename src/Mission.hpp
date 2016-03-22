@@ -32,12 +32,15 @@ class Mission
     friend class MissionPlanner;
     friend class Logging;
     friend class io::MissionReader;
+    friend class PlanningState;
     solvers::temporal::TemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
 
 public:
-    Mission(const organization_model::OrganizationModel::Ptr& om, const std::string& name = "");
+    Mission(organization_model::OrganizationModel::Ptr om, const std::string& name = "");
 
-    void setOrganizationModel(const organization_model::OrganizationModel::Ptr& organizationModel);
+    Mission(const Mission& other);
+
+    void setOrganizationModel(organization_model::OrganizationModel::Ptr organizationModel);
 
     /**
      * Set name for this mission
@@ -162,9 +165,11 @@ private:
     organization_model::OrganizationModel::Ptr mpOrganizationModel;
     organization_model::OrganizationModelAsk mAsk;
     std::string mName;
+    // The set of available resources
     organization_model::ModelPool mModelPool;
     // Set of roles that exists within this mission
     Role::List mRoles;
+    // The list of involved models
     owlapi::model::IRIList mModels;
 
     std::vector<solvers::temporal::PersistenceCondition::Ptr> mPersistenceConditions;

@@ -1,7 +1,7 @@
 #ifndef TEMPL_SOLVERS_CONSTRAINT_NETWORK_HPP
 #define TEMPL_SOLVERS_CONSTRAINT_NETWORK_HPP
 
-#include <graph_analysis/lemon/Graph.hpp>
+#include <graph_analysis/BaseGraph.hpp>
 #include <templ/solvers/Constraint.hpp>
 #include <templ/solvers/Variable.hpp>
 
@@ -20,26 +20,43 @@ protected:
     graph_analysis::BaseGraph::Ptr mGraph;
 
 public:
-    ConstraintNetwork();
+    typedef shared_ptr<ConstraintNetwork> Ptr;
 
-    virtual ~ConstraintNetwork() {}
+    /**
+     * Default constructor
+     * (setting the type of the underlying base graph)
+     */
+    ConstraintNetwork(graph_analysis::BaseGraph::ImplementationType type = graph_analysis::BaseGraph::BOOST_DIRECTED_GRAPH);
+
+    virtual ~ConstraintNetwork();
+
+    /**
+     * Copy constructor for a ConstraintNetwork
+     * (requires to clone the underling base graph)
+     */
+    ConstraintNetwork(const ConstraintNetwork& network);
+
+    /**
+     * Create a clone (deep copy) of this constraint network
+     */
+    ConstraintNetwork::Ptr clone() const;
 
     /**
      * Add a variable to the constraint network
      */
-    virtual void addVariable(Variable::Ptr variable);
+    virtual void addVariable(const Variable::Ptr& variable);
 
     /**
      * Add a constraint to the network
      * \throws if constraints does not relate to two
      * exisiting Variables in this network
      */
-    virtual void addConstraint(Constraint::Ptr constraint);
+    virtual void addConstraint(const Constraint::Ptr& constraint);
 
     /**
      * Remove a constraint
      */
-    virtual void removeConstraint(Constraint::Ptr constraint);
+    virtual void removeConstraint(const Constraint::Ptr& constraint);
 
     /**
      * Get the variable iterator for this constraint network
@@ -62,6 +79,10 @@ public:
      * Set the underlying graph of this constraint network
      */
     graph_analysis::BaseGraph::Ptr setGraph(const graph_analysis::BaseGraph::Ptr& graph) { return mGraph = graph; }
+
+protected:
+    virtual ConstraintNetwork* getClone() const { return new ConstraintNetwork(*this); }
+
 };
 
 

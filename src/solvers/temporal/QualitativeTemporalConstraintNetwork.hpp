@@ -122,6 +122,8 @@ public:
      */
     ConstraintValidationResult getConstraintType(const graph_analysis::Vertex::Ptr& s, const graph_analysis::Vertex::Ptr& o, const graph_analysis::Vertex::Ptr& t);
 
+protected:
+    virtual ConstraintNetwork* getClone() const { return new QualitativeTemporalConstraintNetwork(*this); }
 
 private:
     typedef std::map< VertexPair, point_algebra::QualitativeTimePointConstraint::Type> ConstraintCache;

@@ -3,6 +3,7 @@
 #include <graph_analysis/algorithms/FloydWarshall.hpp>
 #include <graph_analysis/GraphIO.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
+#include <limits>
 
 using namespace templ::solvers::temporal::point_algebra;
 using namespace graph_analysis;
@@ -13,13 +14,16 @@ namespace solvers {
 namespace temporal {
 
 TemporalConstraintNetwork::TemporalConstraintNetwork()
-    : mpDistanceGraph( new graph_analysis::lemon::DirectedGraph() )
-{
-}
+    : mpDistanceGraph( BaseGraph::getInstance() )
+{}
 
 TemporalConstraintNetwork::~TemporalConstraintNetwork()
-{
-}
+{}
+
+TemporalConstraintNetwork::TemporalConstraintNetwork(const TemporalConstraintNetwork& other)
+    : ConstraintNetwork(other)
+    , mpDistanceGraph(other.mpDistanceGraph->cloneEdges())
+{}
 
 
 /**
@@ -177,7 +181,7 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::intersection(graph_ana
 **/
 graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::toWeightedGraph()
 {
-    BaseGraph::Ptr graph(new graph_analysis::lemon::DirectedGraph());
+    BaseGraph::Ptr graph = BaseGraph::getInstance();
     BaseGraph::Ptr tcn = mpDistanceGraph->copy();
     EdgeIterator::Ptr edgeIt = tcn->getEdgeIterator();
 

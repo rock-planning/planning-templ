@@ -19,25 +19,26 @@ namespace temporal {
 class TemporalConstraintNetwork : public ConstraintNetwork
 {
 protected:
+    // graph to compute distance between vertices
     graph_analysis::BaseGraph::Ptr mpDistanceGraph;
 
 public:
     typedef shared_ptr<TemporalConstraintNetwork> Ptr;
 
     TemporalConstraintNetwork();
-
     virtual ~TemporalConstraintNetwork();
+    TemporalConstraintNetwork(const TemporalConstraintNetwork& other);
 
     /**
      * Add timepoint constraint to the constraint network
      * \return Added constraint
      */
-    virtual point_algebra::QualitativeTimePointConstraint::Ptr addQualitativeConstraint(const point_algebra::TimePoint::Ptr& t1, const point_algebra::TimePoint::Ptr& t2, point_algebra::QualitativeTimePointConstraint::Type constraint) { throw std::runtime_error("templ::solvers::temporal::TemporalConstraintNetwork::addQualitativeConstraint is not implemented"); }
+    virtual point_algebra::QualitativeTimePointConstraint::Ptr addQualitativeConstraint(const point_algebra::TimePoint::Ptr&, const point_algebra::TimePoint::Ptr&, point_algebra::QualitativeTimePointConstraint::Type) { throw std::runtime_error("templ::solvers::temporal::TemporalConstraintNetwork::addQualitativeConstraint is not implemented"); }
 
     /**
      * Remove a constraint from the constraint network
      */
-    virtual void removeQualitativeConstraint(const point_algebra::QualitativeTimePointConstraint::Ptr& constraint) { throw std::runtime_error("templ::solvers::temporal::TemporalConstraintNetwork::removeQualitativeConstraint is not implemented"); }
+    virtual void removeQualitativeConstraint(const point_algebra::QualitativeTimePointConstraint::Ptr&) { throw std::runtime_error("templ::solvers::temporal::TemporalConstraintNetwork::removeQualitativeConstraint is not implemented"); }
     /**
      * Get the known and consolidated constraint between two timepoints
      * \return consolidated timepoint constraint
@@ -117,6 +118,9 @@ public:
      * Sort a list of timepoints based on the constraint network
      */
     void sort(std::vector<point_algebra::TimePoint::Ptr>& timepoints) const;
+
+protected:
+    virtual ConstraintNetwork* getClone() const { return new TemporalConstraintNetwork(*this); }
 
 };
 
