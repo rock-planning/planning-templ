@@ -103,9 +103,33 @@ RoleDistribution::RoleDistribution(const Mission& mission, const ModelDistributi
         }
     }
 
-    branch(*this, mRoleUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());
-    branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_SPLIT_MIN());
-    branch(*this, mRoleUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_SPLIT_MIN());
+    // Avoid computation of solutions that are redunant
+    // Gecode documentation says however in 8.10.2 that "Symmetry breaking by
+    // LDSB is not guaranteed to be complete. That is, a search may still return
+    // two distinct solutions that are symmetric."
+    //
+    Gecode::Symmetries symmetries;
+    // define interchangeable columns for roles of the same model type
+    owlapi::model::IRIList::const_iterator ait = mAvailableModels.begin();
+    for(; ait != mAvailableModels.end(); ++ait)
+    {
+        const owlapi::model::IRI& currentModel = *ait;
+        LOG_INFO_S << "Starting symmetry column for model: " << currentModel.toString();
+        Gecode::IntVarArgs sameModelColumns;
+        for(int c = 0; c < roleDistribution.width(); ++c)
+        {
+            if( mRoles[c].getModel() == currentModel)
+            {
+                LOG_INFO_S << "Adding column of " << mRoles[c].toString() << " for symmetry";
+                sameModelColumns << roleDistribution.col(c);
+            }
+        }
+        symmetries << VariableSequenceSymmetry(sameModelColumns, roleDistribution.height());
+    }
+
+    branch(*this, mRoleUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_MIN(), symmetries);
+    branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN(), symmetries);
+    branch(*this, mRoleUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_MIN(), symmetries);
 }
 
 RoleDistribution::RoleDistribution(bool share, RoleDistribution& other)
