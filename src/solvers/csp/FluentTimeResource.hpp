@@ -4,7 +4,10 @@
 #include <set>
 #include <vector>
 #include <cstdint>
+#include <owlapi/model/OWLOntologyAsk.hpp>
 #include <organization_model/ModelPool.hpp>
+#include <organization_model/vocabularies/OM.hpp>
+#include <organization_model/Functionality.hpp>
 #include <templ/solvers/temporal/Interval.hpp>
 
 namespace templ {
@@ -45,6 +48,16 @@ struct FluentTimeResource
             const std::vector<solvers::temporal::Interval>& intervals);
 
     solvers::temporal::Interval getInterval(const ModelDistribution* modelDistribution) const;
+
+    /**
+     * Get the set of functionalities this FluentTimeResource requires
+     * \param ontology The ontology to map the resources
+     * \param mappedResources A list of resources, where this FluentTimeResource
+     * uses the index to refer to this resource -- allows to remap from index to
+     * model
+     */
+    std::set<organization_model::Functionality> getFunctionalities(const owlapi::model::OWLOntologyAsk& ontologyAsk, const owlapi::model::IRIList& mappedResources) const;
+
 };
 
 } // end namespace csp

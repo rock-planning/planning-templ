@@ -47,22 +47,11 @@ organization_model::ModelPoolSet ModelDistribution::getDomain(const FluentTimeRe
     // The domain definition accounts for service requirements as well as explicitly stated
     // resource model requirements
     //
-    // It construct a model combination set, i.e., extensional constraints from
+    // It constructs a model combination set, i.e., extensional constraints from
     // where solutions can be picked
-    std::set<organization_model::Functionality> functionalities;
-    std::set<uint32_t>::const_iterator cit = requirement.resources.begin();
-    for(; cit != requirement.resources.end(); ++cit)
-    {
-        const owlapi::model::IRI& resourceModel = mResources[*cit];
-
-        using namespace organization_model;
-        if( mAsk.ontology().isSubClassOf(resourceModel, vocabulary::OM::Functionality()))
-        {
-            organization_model::Functionality functionality(resourceModel);
-            functionalities.insert(functionality);
-            LOG_INFO_S << "Add functionality requirement: " << functionality.toString();
-        }
-    }
+    //
+    // Collect functionality requirements
+    std::set<organization_model::Functionality> functionalities = requirement.getFunctionalities(mAsk.ontology(), mResources);
 
     // When retrieving combinations for services, then this is not the
     // complete set since this might conflict with the minCardinalities

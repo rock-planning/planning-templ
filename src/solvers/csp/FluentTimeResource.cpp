@@ -112,6 +112,26 @@ solvers::temporal::Interval FluentTimeResource::getInterval(const ModelDistribut
     return m->getIntervals().at(time);
 }
 
+std::set<organization_model::Functionality> FluentTimeResource::getFunctionalities(const owlapi::model::OWLOntologyAsk& ontologyAsk, const owlapi::model::IRIList& mappedResources) const
+{
+    std::set<organization_model::Functionality> functionalities;
+
+    std::set<uint32_t>::const_iterator cit = resources.begin();
+    for(; cit != resources.end(); ++cit)
+    {
+        const owlapi::model::IRI& resourceModel = mappedResources[*cit];
+
+        using namespace organization_model;
+        if( ontologyAsk.isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
+        {
+            organization_model::Functionality functionality(resourceModel);
+            functionalities.insert(functionality);
+            LOG_INFO_S << "Add functionality requirement: " << functionality.toString();
+        }
+    }
+    return functionalities;
+}
+
 } // end namespace csp
 } // end namespace solvers
 } // end namespace templ
