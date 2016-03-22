@@ -2,6 +2,7 @@
 #include <graph_analysis/BaseGraph.hpp> 
 #include <graph_analysis/GraphIO.hpp>
 #include <templ/SharedPtr.hpp>
+#include <limits>
 
 namespace templ {
 namespace solvers {
