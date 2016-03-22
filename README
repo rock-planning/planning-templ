@@ -1,5 +1,14 @@
 # TemPl: A temporal mission planner for reconfigurable multi-robot systems
 
+## Changelog
+
+  - introduced symmetry breaking to role distribution:
+    - limit on occurrences of individuals, i.e. how to deal with combination vs. permutation
+     - compare role distribution solutions: how to limit --> use symmetry breaking
+       - Lightweight Dynamic Symmetry Breaking (http://www.cmears.id.au/symmetry/)
+        - see Chapter 8.10 in Gecode Modelling and Programming
+v0.2 Prototype with basic layout of planning algorithm and (coarsely implemented) backtracking
+
 ## Testing
 
 ### Test Scenarios
