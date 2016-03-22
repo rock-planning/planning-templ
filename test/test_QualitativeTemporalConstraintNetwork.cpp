@@ -7,7 +7,7 @@ using namespace templ::solvers::temporal;
 
 BOOST_AUTO_TEST_SUITE(qualitative_temporal_constraint_network)
 
-BOOST_AUTO_TEST_CASE(timepoint_comparision)
+BOOST_AUTO_TEST_CASE(timepoint_comparison)
 {
     {
         QualitativeTemporalConstraintNetwork::Ptr qtcn(new QualitativeTemporalConstraintNetwork());

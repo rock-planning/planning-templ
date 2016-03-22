@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
     // --> mission should contain sychronization points
 
     organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
-                getRootDir() + "test/data/om-schema-v0.8.owl");
+                getRootDir() + "test/data/om-schema-latest.owl");
     owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
@@ -96,7 +96,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     // --> mission should contain sychronization points
 
     organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
-                getRootDir() + "test/data/om-schema-v0.8.owl");
+                getRootDir() + "test/data/om-schema-latest.owl");
     owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE(mission_tt)
     // --> mission should contain sychronization points
 
     organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
-                getRootDir() + "test/data/om-schema-v0.8.owl");
+                getRootDir() + "test/data/om-schema-latest.owl");
     owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
