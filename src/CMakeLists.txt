@@ -41,6 +41,8 @@ rock_library(templ
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.cpp
         solvers/temporal/point_algebra/TimePoint.cpp
         solvers/temporal/point_algebra/TimePointComparator.cpp
+        solvers/transshipment/MinCostFlow.cpp
+        solvers/transshipment/TransportNetwork.cpp
         symbols/Constant.cpp
         symbols/ObjectVariable.cpp
         symbols/StateVariable.cpp
@@ -93,6 +95,8 @@ rock_library(templ
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp
         solvers/temporal/point_algebra/TimePoint.hpp
         solvers/temporal/point_algebra/TimePointComparator.hpp
+        solvers/transshipment/MinCostFlow.hpp
+        solvers/transshipment/TransportNetwork.hpp
         symbols/Constant.hpp
         symbols/ObjectVariable.hpp
         symbols/StateVariable.hpp
