@@ -39,6 +39,11 @@ public:
 
     std::string toString() const;
 
+    /**
+     * Compute the timelines for all roles from a given solution
+     * The resulting timelines are already sorted according to time
+     * \return map of roles to timelines
+     */
     static std::map<Role,RoleTimeline> computeTimelines(const Mission& mission, const RoleDistribution::Solution& solution);
 
     /**

@@ -55,7 +55,6 @@ std::string RoleTimeline::toString() const
     return ss.str();
 }
 
-
 std::map<Role,RoleTimeline> RoleTimeline::computeTimelines(const Mission& mission, const RoleDistribution::Solution& roleSolution)
 {
     std::map<Role,RoleTimeline> timelines;
