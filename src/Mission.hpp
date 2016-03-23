@@ -14,6 +14,7 @@
 #include <templ/symbols/ObjectVariable.hpp>
 #include <templ/symbols/constants/Location.hpp>
 #include <templ/solvers/GQReasoner.hpp>
+#include <templ/Logger.hpp>
 
 namespace templ {
 
@@ -21,7 +22,6 @@ typedef uint32_t Duration;
 typedef std::string ServiceLocation;
 
 class MissionPlanner;
-class Logging;
 
 namespace io {
     class MissionReader;
@@ -30,7 +30,6 @@ namespace io {
 class Mission
 {
     friend class MissionPlanner;
-    friend class Logging;
     friend class io::MissionReader;
     friend class PlanningState;
     solvers::temporal::TemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
@@ -141,10 +140,16 @@ public:
      */
     const organization_model::OrganizationModelAsk& getOrganizationModelAsk() const { return mAsk; }
 
-    const Logging& getLoggingSession() const { return mLogging; }
+    /**
+     * Set the logger that is associated with this mission object
+     */
+    void setLogger(const Logger::Ptr& logger) { mpLogger = logger; }
 
-protected:
-    Mission(const std::string& name = "");
+    /**
+     * Get the logger that is associated with this mission
+     * \return logger
+     */
+    Logger::Ptr getLogger() const { return mpLogger; }
 
     std::vector<solvers::Constraint::Ptr> getConstraints() const { return mConstraints; }
 
@@ -194,6 +199,7 @@ private:
     std::set<symbols::Constant::Ptr> mConstants;
 
     std::string mScenarioFile;
+    Logger::Ptr mpLogger;
 };
 
 } // end namespace templ

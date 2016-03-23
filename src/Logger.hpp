@@ -1,16 +1,20 @@
-#ifndef TEMPL_LOGGING_HPP
-#define TEMPL_LOGGING_HPP
+#ifndef TEMPL_LOGGER_HPP
+#define TEMPL_LOGGER_HPP
 
 #include <string>
-#include <templ/Mission.hpp>
 #include <base/Time.hpp>
+#include <templ/SharedPtr.hpp>
 
 namespace templ {
 
-class Logging
+class Mission;
+
+class Logger
 {
 public:
-    Logging(const base::Time& time = base::Time::now()
+    typedef shared_ptr<Logger> Ptr;
+
+    Logger(const base::Time& time = base::Time::now()
             , const std::string& baseDirectory = "/tmp"
             , bool useSessions = true);
 
@@ -52,4 +56,4 @@ private:
 };
 
 } // end namespace templ
-#endif // TEMPL_LOGGING_HPP
+#endif // TEMPL_LOGGER_HPP

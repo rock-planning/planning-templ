@@ -3,7 +3,7 @@ find_package(Boost REQUIRED system filesystem)
 rock_library(templ
     SOURCES 
         CapacityLink.cpp
-        Logging.cpp
+        Logger.cpp
         Mission.cpp
         MissionPlanner.cpp
         PathConstructor.cpp
@@ -49,7 +49,7 @@ rock_library(templ
         utils/CartographicMapping.cpp
     HEADERS
         CapacityLink.hpp
-        Logging.hpp
+        Logger.hpp
         Mission.hpp
         MissionPlanner.hpp
         PathConstructor.hpp

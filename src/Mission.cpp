@@ -15,6 +15,7 @@ Mission::Mission(const std::string& name)
     , mpOrganizationModel(new organization_model::OrganizationModel())
     , mAsk(mpOrganizationModel)
     , mName(name)
+    , mpLogger(new Logger())
 {}
 
 Mission::Mission(organization_model::OrganizationModel::Ptr om, const std::string& name)
@@ -22,6 +23,7 @@ Mission::Mission(organization_model::OrganizationModel::Ptr om, const std::strin
     , mpOrganizationModel(om)
     , mAsk(om)
     , mName(name)
+    , mpLogger(new Logger())
 {}
 
 Mission::Mission(const Mission& other)
@@ -39,6 +41,7 @@ Mission::Mission(const Mission& other)
     , mObjectVariables(other.mObjectVariables)
     , mConstants(other.mConstants)
     , mScenarioFile(other.mScenarioFile)
+    , mpLogger(other.mpLogger)
 {
     if(other.mpTemporalConstraintNetwork)
     {
@@ -82,6 +85,10 @@ void Mission::refresh()
             mRoles.push_back(role);
         }
     }
+
+    // Update the ask object based on the model pool and applying the functional
+    // saturation bound
+    mAsk = organization_model::OrganizationModelAsk(mpOrganizationModel, mModelPool, true /*functional saturation bound*/);
 }
 
 symbols::ObjectVariable::Ptr Mission::getObjectVariable(const std::string& name, symbols::ObjectVariable::Type type) const
@@ -114,7 +121,7 @@ symbols::ObjectVariable::Ptr Mission::getOrCreateObjectVariable(const std::strin
     return variable;
 }
 
-void Mission::prepare()
+void Mission::prepareTimeIntervals()
 {
     using namespace solvers::temporal;
 
@@ -124,13 +131,20 @@ void Mission::prepare()
         throw std::runtime_error("templ::Mission: provided temporal constraint network is not consistent");
     }
 
+    mTimeIntervals.clear();
     std::vector<PersistenceCondition::Ptr>::const_iterator cit =  mPersistenceConditions.begin();
     for(;cit != mPersistenceConditions.end(); ++cit)
     {
         PersistenceCondition::Ptr pc = *cit;
         Interval interval(pc->getFromTimePoint(), pc->getToTimePoint(), point_algebra::TimePointComparator(mpTemporalConstraintNetwork));
 
-        mTimeIntervals.insert(interval);
+        std::vector<Interval>::const_iterator tit = std::find(mTimeIntervals.begin(), mTimeIntervals.end(), interval);
+        if(tit == mTimeIntervals.end())
+        {
+            mTimeIntervals.push_back(interval);
+        } else {
+            LOG_DEBUG_S << "TimeInterval: " << tit->toString() << " already in list";
+        }
     }
 }
 
@@ -185,32 +199,12 @@ void Mission::addResourceLocationCardinalityConstraint(
             owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType type
 )
 {
-    LOG_WARN_S << "TRYING TO ADD CARDINALITY CONSTRAINT to mission: " << mName;
-    using namespace owlapi;
-
     if(!mpOrganizationModel)
     {
         throw std::runtime_error("templ::Mission::addConstraint: mission has not been initialized with organization model");
     }
-    LOG_WARN_S << "HAS ORGA MODEL";
 
-    //// Retrieve the type of the resource model
-    //owlapi::model::IRI type;
-    //if(mAsk.ontology().isSubClassOf(resourceModel, vocabulary::OM::Service()) )
-    //{
-    //    mInvolvedServices.insert(resourceModel);
-    //    type = vocabulary::OM::Service();
-    //} else if(mAsk.ontology().isSubClassOf(resourceModel, vocabulary::OM::Actor()) )
-    //{
-    //    mInvolvedActors.insert(resourceModel);
-    //    type = vocabulary::OM::Actor();
-    //} else {
-    //    throw std::invalid_argument("templ::Mission::addConstraint: unsupported resource type for '" +
-    //            resourceModel.toString() + "' -- supported are: " +
-    //            vocabulary::OM::Service().toString() + ", and " +
-    //            vocabulary::OM::Actor().toString());
-    //}
-
+    using namespace owlapi;
     using namespace ::templ::symbols;
     // Make sure constant is known
     addConstant(location);
@@ -221,11 +215,16 @@ void Mission::addResourceLocationCardinalityConstraint(
     symbols::StateVariable rloc(ObjectVariable::TypeTxt[ObjectVariable::LOCATION_CARDINALITY],
             resourceModel.toString());
 
-    LOG_WARN_S << "ADD CONSTRAINT";
     addConstraint(rloc, locationCardinality, fromTp, toTp);
 
+    owlapi::model::IRIList::const_iterator rit =  std::find(mRequestedResources.begin(),
+            mRequestedResources.end(),
+            resourceModel);
+    if(rit == mRequestedResources.end())
+    {
+        mRequestedResources.push_back(resourceModel);
+    }
 
-    mRequestedResources.insert(resourceModel);
     mObjectVariables.insert(locationCardinality);
 }
 
@@ -240,7 +239,6 @@ void Mission::addConstraint(const symbols::StateVariable& stateVariable,
             fromTp,
             toTp);
 
-    LOG_WARN_S << "ADD CONSTRAINT FIND EXISTING";
     std::vector<solvers::temporal::PersistenceCondition::Ptr>::const_iterator pit = std::find_if(mPersistenceConditions.begin(), mPersistenceConditions.end(), [persistenceCondition](const PersistenceCondition::Ptr& p)
             {
                 return *persistenceCondition == *p;
@@ -305,7 +303,7 @@ void Mission::validateAvailableResources() const
             return;
     }
 
-    throw std::runtime_error("templ::Mission: mission has no available resources specified (not present or max cardinalities sum up to 0) -- \ndefined "
+    throw std::runtime_error("templ::Mission: mission has no available resources specified (not present or max cardinalities sum up to 0) -- \ndefined : model pool is "
             + mModelPool.toString());
 }
 
