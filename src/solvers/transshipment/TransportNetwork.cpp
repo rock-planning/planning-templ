@@ -2,7 +2,7 @@
 #include <organization_model/facets/Robot.hpp>
 #include <graph_analysis/GraphIO.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
-#include <templ/Logging.hpp>
+#include <templ/Logger.hpp>
 #include <base/Logging.hpp>
 
 namespace pa = templ::solvers::temporal::point_algebra;
@@ -22,7 +22,7 @@ TransportNetwork::TransportNetwork(const Mission& mission,
 {
     if(!mission.getTemporalConstraintNetwork()->isConsistent())
     {
-        std::string filename = mMission.getLoggingSession().filename("transport-network-temporally-constrained-network.dot");
+        std::string filename = mMission.getLogger()->filename("transport-network-temporally-constrained-network.dot");
         graph_analysis::io::GraphIO::write(filename, mMission.getTemporalConstraintNetwork()->getGraph());
         LOG_DEBUG_S << "Written temporal constraint network to: " << filename;
         LOG_DEBUG_S << "(e.g. view with 'xdot " << filename << "'" << ")";
@@ -37,7 +37,7 @@ TransportNetwork::TransportNetwork(const Mission& mission,
 
 void TransportNetwork::save()
 {
-    std::string filename = mMission.getLoggingSession().filename("transport-network.dot");
+    std::string filename = mMission.getLogger()->filename("transport-network.dot");
     graph_analysis::io::GraphIO::write(filename, mSpaceTimeNetwork.getGraph());
     LOG_DEBUG_S << "Written transport network to: " << filename;
     LOG_DEBUG_S << "(e.g. view with 'xdot " << filename << "'" << ")";

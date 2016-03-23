@@ -135,6 +135,14 @@ public:
 
     void save(const std::string& filename) const { throw std::runtime_error("Mission::save: not implemented"); }
 
+    /**
+     * Get access to the OrganizationModelAsk object to query information from
+     * the associated organization model
+     */
+    const organization_model::OrganizationModelAsk& getOrganizationModelAsk() const { return mAsk; }
+
+    const Logging& getLoggingSession() const { return mLogging; }
+
 protected:
     Mission(const std::string& name = "");
 

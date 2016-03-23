@@ -1,11 +1,12 @@
 #include "MinCostFlow.hpp"
+#include <base/Logging.hpp>
 #include <graph_analysis/BipartiteGraph.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
+#include <graph_analysis/GraphIO.hpp>
 #include <organization_model/facets/Robot.hpp>
 #include <templ/solvers/csp/FluentTimeResource.hpp>
-#include <base/Logging.hpp>
-#include <graph_analysis/GraphIO.hpp>
-#include <templ/Logging.hpp>
+#include <templ/SpaceTimeNetwork.hpp>
+#include <templ/Logger.hpp>
 
 using namespace graph_analysis;
 using namespace graph_analysis::algorithms;
@@ -19,7 +20,7 @@ MinCostFlow::MinCostFlow(const Mission& mission,
         SpaceTimeNetwork* spaceTimeNetwork)
     : mMission(mission)
     , mTimelines(timelines)
-    , mpSpaceTimeNetwork(spaceTimeNetwork)
+    , mSpaceTimeNetwork(mission.getLocations(), mission.getTimepoints())
 {
 
     std::map<Role, csp::RoleTimeline>::const_iterator rit = mTimelines.begin();
@@ -41,7 +42,7 @@ BaseGraph::Ptr MinCostFlow::createFlowGraph(uint32_t commodities)
 
    // Create the vertices of the flow, that can be mapped back to the space time
    // network using the bipartiteGraph structure
-   VertexIterator::Ptr vertexIt = mpSpaceTimeNetwork->getGraph()->getVertexIterator();
+   VertexIterator::Ptr vertexIt = mSpaceTimeNetwork.getGraph()->getVertexIterator();
    while(vertexIt->next())
    {
        MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex(new MultiCommodityMinCostFlow::vertex_t(commodities));
@@ -51,7 +52,7 @@ BaseGraph::Ptr MinCostFlow::createFlowGraph(uint32_t commodities)
    // Create the edges, i.e. the 'transport-links'
    // Iterator of the existing edges of the transport network
    // and set the commodities
-   EdgeIterator::Ptr edgeIt = mpSpaceTimeNetwork->getGraph()->getEdgeIterator();
+   EdgeIterator::Ptr edgeIt = mSpaceTimeNetwork.getGraph()->getEdgeIterator();
    while(edgeIt->next())
    {
        WeightedEdge::Ptr edge = dynamic_pointer_cast<WeightedEdge>(edgeIt->current());
@@ -111,7 +112,7 @@ void MinCostFlow::setCommoditySupplyAndDemand()
 
                 // Get the tuple in the graph and augment with role
                 // information
-                SpaceTimeNetwork::tuple_t::Ptr currentTuple = spaceTimeNetwork->tupleByKeys(location, interval.getFrom());
+                SpaceTimeNetwork::tuple_t::Ptr currentTuple = mSpaceTimeNetwork.tupleByKeys(location, interval.getFrom());
                 currentTuple->addRole(role);
 
                 Vertex::Ptr vertex = mBipartiteGraph.getUniquePartner(currentTuple);
@@ -151,7 +152,7 @@ std::vector<Flaw> MinCostFlow::compute()
     MultiCommodityMinCostFlow minCostFlow(flowGraph, numberOfCommodities);
     // LOGGING
     {
-        std::string filename  = mMission.getLoggingSession().filename("min-cost-flow-init.dot");
+        std::string filename  = mMission.getLogger()->filename("min-cost-flow-init.dot");
         graph_analysis::io::GraphIO::write(filename, flowGraph);
     }
 
@@ -161,7 +162,7 @@ std::vector<Flaw> MinCostFlow::compute()
 
     // LOGGING
     {
-        std::string filename  = mMission.getLoggingSession().filename("min-cost-flow-result.dot");
+        std::string filename  = mMission.getLogger()->filename("min-cost-flow-result.dot");
         graph_analysis::io::GraphIO::write(filename, flowGraph);
     }
 
@@ -216,7 +217,7 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
                 csp::FluentTimeResource ftr_subsequent = *(fit+1);
 
                 flaw.ftr = *fit;
-                flaw.subsequent_ftr = *(fit+1);
+                flaw.subsequentFtr = *(fit+1);
 
 /*
                 LOG_INFO_S << "Transflow violation in timeline: enforce distiction on timeline for: " << affectedRole.toString()
@@ -315,13 +316,14 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
             }
         }
     }
+}
 
-std::vector<FluentTimeResource>::const_iterator MinCostFlow::getFluent(const csp::RoleTimeline& roleTimeline, const SpaceTimeNetwork::tuple_t::Ptr& tuple)
+std::vector<csp::FluentTimeResource>::const_iterator MinCostFlow::getFluent(const csp::RoleTimeline& roleTimeline, const SpaceTimeNetwork::tuple_t::Ptr& tuple) const
 {
     LOG_WARN_S << "Find tuple: " << tuple->toString() << " in timeline " << roleTimeline.toString();
 
-    const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
-    std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
+    const std::vector<csp::FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
+    std::vector<csp::FluentTimeResource>::const_iterator fit = ftrs.begin();
     for(; fit != ftrs.end(); ++fit)
     {
         symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
@@ -334,8 +336,6 @@ std::vector<FluentTimeResource>::const_iterator MinCostFlow::getFluent(const csp
     }
     throw std::invalid_argument("MissionPlanner::getFluent: could not retrieve corresponding fluent in timeline: '" 
             + roleTimeline.toString() + "' from tuple '" + tuple->toString());
-}
-
 }
 
 } // end namespace transshipment

@@ -2,7 +2,7 @@
 #define TEMPL_SOLVER_TRANSSHIPMENT_MINCOSTFLOW_HPP
 
 #include <vector>
-#include <graph_analysis/BaseGraph.hpp>
+#include <graph_analysis/BipartiteGraph.hpp>
 #include <graph_analysis/algorithms/MultiCommodityMinCostFlow.hpp>
 #include <templ/Mission.hpp>
 #include <templ/solvers/csp/RoleTimeline.hpp>
@@ -14,7 +14,7 @@ namespace transshipment {
 
 struct Flaw
 {
-    ConstraintViolation violation;
+    graph_analysis::algorithms::ConstraintViolation violation;
     Role affectedRole;
 
     csp::FluentTimeResource previousFtr;
@@ -24,7 +24,7 @@ struct Flaw
     Flaw(const graph_analysis::algorithms::ConstraintViolation& violation, 
         const Role& role)
         : violation(violation)
-        , role(role)
+        , affectedRole(role)
     {}
 };
 
@@ -42,10 +42,9 @@ class MinCostFlow
      * \param commodities number of existing immobile resources (i.e. roles in
      * this planners context)
      */
-    MinCostFlow::MinCostFlow(const Mission& mission,
+    MinCostFlow(const Mission& mission,
             const std::map<Role, csp::RoleTimeline>& timelines,
-            SpaceTimeNetwork* spaceTimeNetwork,
-            uint32_t commodities);
+            SpaceTimeNetwork* spaceTimeNetwork);
     /**
      *  Translating the space time network into the mincommodity representation,
      *  i.e. the flow graph
@@ -60,7 +59,7 @@ class MinCostFlow
      * \param commodities Number of commodities that should be taken into
      * consideration for the underlying MultiCommodityMinCostFlow problem
      */
-    BaseGraph::Ptr createFlowGraph(uint32_t commodities);
+    graph_analysis::BaseGraph::Ptr createFlowGraph(uint32_t commodities);
 
     /** 
      *  Set the commodity supply and demand 
@@ -73,7 +72,7 @@ class MinCostFlow
      */
     void setCommoditySupplyAndDemand();
 
-    MinCostFlowStatus compute();
+    std::vector<Flaw> compute();
 
     /**
      * After the flow optimization has taken place -- update the space time
@@ -81,7 +80,7 @@ class MinCostFlow
      * Update the spaceTimeNetwork from the data of the flowGraph using the reverse mapping and adding
      * the corresponding (and new) roles
      */
-    void updateRoles(const BaseGraph::Ptr& flowGraph);
+    void updateRoles(const graph_analysis::BaseGraph::Ptr& flowGraph);
 
     //    const std::map<Role, RoleTimeline>& timelines,
     //    const Mission& mission,
@@ -92,14 +91,14 @@ class MinCostFlow
 
     std::vector<templ::solvers::csp::FluentTimeResource>::const_iterator 
         getFluent(const templ::solvers::csp::RoleTimeline& roleTimeline,
-            const SpaceTimeNetwork::tuple_t::Ptr& tuple);
+            const SpaceTimeNetwork::tuple_t::Ptr& tuple) const;
 
 private:
     Mission mMission;
     std::map<Role, csp::RoleTimeline> mTimelines;
     std::vector<Role> mCommoditiesRoles;
 
-    SpaceTimeNetwork mpSpaceTimeNetwork;
+    SpaceTimeNetwork mSpaceTimeNetwork;
     // Store the mapping between flow graph and space time network
     graph_analysis::BipartiteGraph mBipartiteGraph;
 };
