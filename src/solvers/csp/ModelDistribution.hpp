@@ -33,7 +33,7 @@ public:
     const std::vector<solvers::temporal::Interval>& getIntervals() const { return mIntervals; }
 private:
     /// The mission to plan for
-    Mission mMission;
+    Mission::Ptr mpMission;
 
     /// The model pool -- in terms of available resources that can be used for
     /// planning

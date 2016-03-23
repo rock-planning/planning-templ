@@ -9,6 +9,7 @@
 #include <organization_model/vocabularies/OM.hpp>
 #include <organization_model/Functionality.hpp>
 #include <templ/solvers/temporal/Interval.hpp>
+#include <templ/Mission.hpp>
 
 namespace templ {
 namespace solvers {
@@ -18,6 +19,7 @@ namespace csp {
 
 struct FluentTimeResource
 {
+    Mission::Ptr mission;
     std::set<uint32_t> resources;
     uint32_t time;
     uint32_t fluent;
@@ -31,7 +33,15 @@ struct FluentTimeResource
 
     typedef std::vector<FluentTimeResource> List;
 
-    FluentTimeResource(uint32_t resource, uint32_t time, uint32_t fluent,
+    /**
+     * Default (dummy) constructor
+     */
+    FluentTimeResource();
+
+    FluentTimeResource(const Mission::Ptr& mission,
+            uint32_t resource,
+            uint32_t time,
+            uint32_t fluent,
             const organization_model::ModelPool& availableModels = organization_model::ModelPool());
 
     bool operator==(const FluentTimeResource& other) const;
@@ -47,7 +57,7 @@ struct FluentTimeResource
     static std::vector< std::vector<FluentTimeResource> > getConcurrent(const std::vector<FluentTimeResource>& requirements,
             const std::vector<solvers::temporal::Interval>& intervals);
 
-    solvers::temporal::Interval getInterval(const ModelDistribution* modelDistribution) const;
+    solvers::temporal::Interval getInterval() const;
 
     /**
      * Get the set of functionalities this FluentTimeResource requires
@@ -56,8 +66,7 @@ struct FluentTimeResource
      * uses the index to refer to this resource -- allows to remap from index to
      * model
      */
-    std::set<organization_model::Functionality> getFunctionalities(const owlapi::model::OWLOntologyAsk& ontologyAsk, const owlapi::model::IRIList& mappedResources) const;
-
+    std::set<organization_model::Functionality> getFunctionalities() const;
 };
 
 } // end namespace csp

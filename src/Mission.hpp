@@ -35,6 +35,8 @@ class Mission
     solvers::temporal::TemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
 
 public:
+    typedef shared_ptr<Mission> Ptr;
+
     Mission(organization_model::OrganizationModel::Ptr om, const std::string& name = "");
 
     Mission(const Mission& other);
@@ -47,7 +49,10 @@ public:
     void setName(const std::string& name) { mName = name; }
     const std::string& getName() const { return mName; }
 
-    void prepare();
+    /**
+     * Set the known timeintervals from the set of persistence conditions
+     */
+    void prepareTimeIntervals();
 
     /**
      * Add a constraint that bind a resource (Service or Actor) to a specific
@@ -93,7 +98,8 @@ public:
     const organization_model::ModelPool& getAvailableResources() const { return mModelPool; }
 
     /**
-     * Refresh information, e.g. after updating the resources
+     * Refresh internal datastructures, e.g. after updating the list of
+     * available resources
      */
     void refresh();
 
@@ -109,9 +115,12 @@ public:
 
     organization_model::OrganizationModel::Ptr getOrganizationModel() const { return mpOrganizationModel; }
 
-    const owlapi::model::IRISet& getRequestedResources() const { return mRequestedResources; }
+    const owlapi::model::IRIList& getRequestedResources() const { return mRequestedResources; }
 
-    const std::unordered_set<solvers::temporal::Interval>& getTimeIntervals() const { return mTimeIntervals; }
+    /**
+     * Get all involved time intervals
+     */
+    const std::vector<solvers::temporal::Interval>& getTimeIntervals() const { return mTimeIntervals; }
 
     const std::set<symbols::ObjectVariable::Ptr>& getObjectVariables() const { return mObjectVariables; }
     symbols::ObjectVariable::Ptr getObjectVariable(const std::string& name, symbols::ObjectVariable::Type type) const;
@@ -151,7 +160,16 @@ public:
      */
     Logger::Ptr getLogger() const { return mpLogger; }
 
+    /**
+     * The path to the scenario file that was used to load this mission file
+     * (if loaded) -- will be empty if was not loaded from a file
+     */
+    const std::string& getScenarioFile() const { return mScenarioFile; }
+
     std::vector<solvers::Constraint::Ptr> getConstraints() const { return mConstraints; }
+
+protected:
+    Mission(const std::string& name = "");
 
     /**
      * Add a constant
@@ -162,12 +180,6 @@ public:
     void addConstant(const symbols::Constant::Ptr& constant);
 
     void validateAvailableResources() const;
-
-    /**
-     * The path to the scenario file that was used to load this mission file
-     * (if loaded) -- will be empty if was not loaded from a file
-     */
-    const std::string& getScenarioFile() const { return mScenarioFile; }
 
     /**
      * Set the path to the scenario file that was used to load this mission file
@@ -189,11 +201,11 @@ private:
     std::vector<solvers::Constraint::Ptr> mConstraints;
 
     // Structures to facilitate CSP definition
-    owlapi::model::IRISet mRequestedResources;
+    owlapi::model::IRIList mRequestedResources;
 
     /// Since a sorted set required the less operator for sorting in is not a suitable
     /// suitable container for Interval, since overlapping intervals have to be considered
-    std::unordered_set<solvers::temporal::Interval> mTimeIntervals;
+    std::vector<solvers::temporal::Interval> mTimeIntervals;
 
     std::set<symbols::ObjectVariable::Ptr> mObjectVariables;
     std::set<symbols::Constant::Ptr> mConstants;

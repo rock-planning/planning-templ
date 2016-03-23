@@ -7,7 +7,13 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
-FluentTimeResource::FluentTimeResource(uint32_t resource, uint32_t time, uint32_t fluent,
+FluentTimeResource::FluentTimeResource()
+{}
+
+FluentTimeResource::FluentTimeResource(const Mission::Ptr& mission,
+        uint32_t resource,
+        uint32_t time,
+        uint32_t fluent,
         const organization_model::ModelPool& availableModels)
     : time(time)
     , fluent(fluent)
@@ -107,13 +113,17 @@ std::vector< std::vector<FluentTimeResource> > FluentTimeResource::getConcurrent
     return concurrentFts;
 }
 
-solvers::temporal::Interval FluentTimeResource::getInterval(const ModelDistribution* m) const
+solvers::temporal::Interval FluentTimeResource::getInterval() const
 {
-    return m->getIntervals().at(time);
+    return mission->getTimeIntervals().at(time);
 }
 
-std::set<organization_model::Functionality> FluentTimeResource::getFunctionalities(const owlapi::model::OWLOntologyAsk& ontologyAsk, const owlapi::model::IRIList& mappedResources) const
+std::set<organization_model::Functionality> FluentTimeResource::getFunctionalities() const
 {
+    assert(mission->getOrganizationModel());
+    owlapi::model::OWLOntologyAsk ontologyAsk(mission->getOrganizationModel()->ontology());
+    owlapi::model::IRIList mappedResources = mission->getRequestedResources();
+
     std::set<organization_model::Functionality> functionalities;
 
     std::set<uint32_t>::const_iterator cit = resources.begin();

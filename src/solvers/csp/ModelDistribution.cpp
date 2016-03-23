@@ -23,7 +23,7 @@ ModelDistribution::Solution ModelDistribution::getSolution() const
     for(size_t i = 0; i < mResourceRequirements.size(); ++i)
     {
         organization_model::ModelPool modelPool;
-        for(size_t mi = 0; mi < mMission.getAvailableResources().size(); ++mi)
+        for(size_t mi = 0; mi < mpMission->getAvailableResources().size(); ++mi)
         {
             Gecode::IntVar var = resourceDistribution(mi, i);
             if(!var.assigned())
@@ -51,7 +51,7 @@ organization_model::ModelPoolSet ModelDistribution::getDomain(const FluentTimeRe
     // where solutions can be picked
     //
     // Collect functionality requirements
-    std::set<organization_model::Functionality> functionalities = requirement.getFunctionalities(mAsk.ontology(), mResources);
+    std::set<organization_model::Functionality> functionalities = requirement.getFunctionalities();
 
     // When retrieving combinations for services, then this is not the
     // complete set since this might conflict with the minCardinalities
@@ -113,11 +113,11 @@ uint32_t ModelDistribution::systemModelToCSP(const owlapi::model::IRI& model) co
 
 ModelDistribution::ModelDistribution(const templ::Mission& mission)
     : Gecode::Space()
-    , mMission(mission)
+    , mpMission(new Mission(mission))
     , mModelPool(mission.getAvailableResources())
     , mAsk(mission.getOrganizationModel(), mission.getAvailableResources(), true)
-    , mResources(mission.getRequestedResources().begin(), mission.getRequestedResources().end())
-    , mIntervals(mission.getTimeIntervals().begin(), mission.getTimeIntervals().end())
+    , mResources(mission.getRequestedResources())
+    , mIntervals(mission.getTimeIntervals())
     , mLocations(mission.getLocations())
     , mResourceRequirements(getResourceRequirements())
     , mModelUsage(*this, /*# of models*/ mission.getAvailableResources().size()*
@@ -299,7 +299,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
 
 ModelDistribution::ModelDistribution(bool share, ModelDistribution& other)
     : Gecode::Space(share, other)
-    , mMission(other.mMission)
+    , mpMission(other.mpMission)
     , mModelPool(other.mModelPool)
     , mAsk(other.mAsk)
     , mServices(other.mServices)
@@ -335,7 +335,8 @@ std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::M
     SolutionList solutions;
 
     Mission mission = _mission;
-    mission.prepare();
+    mission.prepareTimeIntervals();
+
     ModelDistribution* distribution = new ModelDistribution(mission);
     ModelDistribution* solvedDistribution = NULL;
     {
@@ -436,11 +437,11 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
     std::vector<FluentTimeResource> requirements;
 
     using namespace templ::solvers::temporal;
-    point_algebra::TimePointComparator timepointComparator(mMission.getTemporalConstraintNetwork());
+    point_algebra::TimePointComparator timepointComparator(mpMission->getTemporalConstraintNetwork());
 
     // Iterate over all existing persistence conditions
     // -- pick the ones relating to location-cardinality function
-    const std::vector<PersistenceCondition::Ptr>& conditions = mMission.getPersistenceConditions();
+    const std::vector<PersistenceCondition::Ptr>& conditions = mpMission->getPersistenceConditions();
     std::vector<PersistenceCondition::Ptr>::const_iterator cit = conditions.begin();
     for(; cit != conditions.end(); ++cit)
     {
@@ -479,12 +480,13 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
                 throw std::runtime_error("Could not find location: " + location->toString());
             }
 
-            // Map objects to numeric indices
+            // Map objects to numeric indices -- the indices can be mapped
+            // backed using the mission they were created from
             uint32_t timeIndex = iit - mIntervals.begin();
-            FluentTimeResource ftr((int) (sit - mResources.begin())
+            FluentTimeResource ftr(mpMission, 
+                    (int) (sit - mResources.begin())
                     , timeIndex
                     , (int) (lit - mLocations.begin()));
-                    //, mModelPool);
 
             if(mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
             {

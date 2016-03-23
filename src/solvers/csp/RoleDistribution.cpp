@@ -165,7 +165,7 @@ RoleDistribution::SolutionList RoleDistribution::solve(const Mission& _mission, 
     SolutionList solutions;
 
     Mission mission = _mission;
-    mission.prepare();
+    mission.prepareTimeIntervals();
 
     RoleDistribution* distribution = new RoleDistribution(mission, modelDistribution);
     RoleDistribution* solvedDistribution = NULL;
