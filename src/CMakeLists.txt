@@ -60,6 +60,7 @@ rock_library(templ
         RoleInfoTuple.hpp
         SpaceTimeNetwork.hpp
         Symbol.hpp
+        TemporallyExpandedNetwork.hpp
         Timepoint.hpp
         Tuple.hpp
         Variable.hpp
