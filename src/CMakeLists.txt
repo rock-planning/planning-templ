@@ -58,6 +58,7 @@ rock_library(templ
         PlanSpaceVisitor.hpp
         Role.hpp
         RoleInfoTuple.hpp
+        SpaceTimeNetwork.hpp
         Symbol.hpp
         Timepoint.hpp
         Tuple.hpp
