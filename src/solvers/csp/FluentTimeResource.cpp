@@ -15,10 +15,12 @@ FluentTimeResource::FluentTimeResource(const Mission::Ptr& mission,
         uint32_t time,
         uint32_t fluent,
         const organization_model::ModelPool& availableModels)
-    : time(time)
+    : mission(mission)
+    , time(time)
     , fluent(fluent)
     , maxCardinalities(availableModels)
 {
+    assert(mission);
     resources.insert(resource);
 }
 
@@ -120,7 +122,6 @@ solvers::temporal::Interval FluentTimeResource::getInterval() const
 
 std::set<organization_model::Functionality> FluentTimeResource::getFunctionalities() const
 {
-    assert(mission->getOrganizationModel());
     owlapi::model::OWLOntologyAsk ontologyAsk(mission->getOrganizationModel()->ontology());
     owlapi::model::IRIList mappedResources = mission->getRequestedResources();
 
