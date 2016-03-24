@@ -29,7 +29,7 @@ int main(int argc, char** argv)
     OrganizationModel::Ptr organizationModel = OrganizationModel::getInstance(organizationModelFilename);
     mission.setOrganizationModel(organizationModel);
     
-    MissionPlanner missionPlanner(mission, organizationModel);
+    MissionPlanner missionPlanner(mission);
 
     std::vector<Plan> solutions = missionPlanner.execute(minimumNumberOfSolutions);
     std::cout << "The following solutions have been found: " << Plan::toString(solutions) << std::endl;
