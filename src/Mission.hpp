@@ -168,6 +168,12 @@ public:
 
     std::vector<solvers::Constraint::Ptr> getConstraints() const { return mConstraints; }
 
+    /**
+     * Check if mission is ready to be forwarded to planner
+     * \throws std::runtime_error if mission is not ready to be used for planning
+     */
+    void validateForPlanning() const;
+
 protected:
     Mission(const std::string& name = "");
 
@@ -179,6 +185,9 @@ protected:
      */
     void addConstant(const symbols::Constant::Ptr& constant);
 
+    /**
+     * Check if there are some resources available at all
+     */
     void validateAvailableResources() const;
 
     /**

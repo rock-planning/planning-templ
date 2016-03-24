@@ -125,7 +125,6 @@ void Mission::prepareTimeIntervals()
 {
     using namespace solvers::temporal;
 
-    validateAvailableResources();
     if(!mpTemporalConstraintNetwork->isConsistent())
     {
         throw std::runtime_error("templ::Mission: provided temporal constraint network is not consistent");
@@ -145,6 +144,20 @@ void Mission::prepareTimeIntervals()
         } else {
             LOG_DEBUG_S << "TimeInterval: " << tit->toString() << " already in list";
         }
+    }
+}
+
+void Mission::validateForPlanning() const
+{
+    validateAvailableResources();
+    if(!mpTemporalConstraintNetwork->isConsistent())
+    {
+        throw std::runtime_error("templ::Mission::validate provided temporal constraint network is not consistent");
+    }
+
+    if(mTimeIntervals.empty())
+    {
+        throw std::runtime_error("templ::Mission::validate: no time intervals defined");
     }
 }
 

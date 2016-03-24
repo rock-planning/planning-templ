@@ -29,8 +29,43 @@ class ModelDistribution : public Gecode::Space
 public:
     typedef std::map<FluentTimeResource, organization_model::ModelPool > Solution;
     typedef std::vector<Solution> SolutionList;
+    typedef shared_ptr<ModelDistribution> Ptr;
+    typedef shared_ptr< Gecode::BAB<ModelDistribution> > BABSearchEnginePtr;
 
     const std::vector<solvers::temporal::Interval>& getIntervals() const { return mIntervals; }
+
+
+    /**
+     * Search state of the model distribution
+     */
+    class SearchState
+    {
+    public:
+        enum Type { OPEN, SUCCESS, FAILED };
+
+        SearchState(const Mission::Ptr& mission);
+
+        SearchState(const ModelDistribution::Ptr& modelDistribution,
+                const ModelDistribution::BABSearchEnginePtr& searchEngine = ModelDistribution::BABSearchEnginePtr());
+
+        ModelDistribution::Ptr getInitialState() const { return mpInitialState; }
+        Mission::Ptr getMission() const { return mpMission; }
+
+        SearchState next() const;
+
+        Type getType() const { return mType; }
+        const Solution& getSolution() const { return mSolution; }
+
+    private:
+        Mission::Ptr mpMission;
+        ModelDistribution::Ptr mpInitialState;
+        ModelDistribution::BABSearchEnginePtr mpSearchEngine;
+
+        Type mType;
+        Solution mSolution;
+    };
+
+    friend class SearchState;
 private:
     /// The mission to plan for
     Mission::Ptr mpMission;
@@ -115,6 +150,7 @@ private:
      * refer to the same fluent and time
      */
     void compact(std::vector<FluentTimeResource>& requirements) const;
+
 protected:
     /**
      * Get the solution of this Gecode::Space instance
@@ -122,7 +158,7 @@ protected:
     Solution getSolution() const;
 
 public:
-    ModelDistribution(const templ::Mission& mission);
+    ModelDistribution(const templ::Mission::Ptr& mission);
 
     /**
      * Search support
@@ -137,12 +173,7 @@ public:
      */
     virtual Gecode::Space* copy(bool share);
 
-    static SolutionList solve(const templ::Mission& mission);
-
-    /**
-     * Compute the next solution
-     */
-    ModelDistribution* nextSolution();
+    static SolutionList solve(const templ::Mission::Ptr& mission);
 
     std::string toString() const;
     void print(std::ostream& os) const { os << toString() << std::endl; }

@@ -31,16 +31,49 @@ class RoleDistribution : public Gecode::Space
 
     // Get time intervals
     std::vector<solvers::temporal::Interval> mIntervals;
-    owlapi::model::IRIList mAvailableModels;
 
 public:
     typedef std::map<FluentTimeResource, Role::List> Solution;
     typedef std::vector<Solution> SolutionList;
 
+    typedef shared_ptr<RoleDistribution> Ptr;
+    typedef shared_ptr< Gecode::BAB<RoleDistribution> > BABSearchEnginePtr;
+
+    /**
+     * Search state for the role distribution
+     * to allow for incremental construction of solutions
+     */
+    class SearchState
+    {
+    public:
+        enum Type { OPEN, SUCCESS, FAILED };
+
+        SearchState(const ModelDistribution::SearchState& modelSearchState);
+
+        SearchState(const RoleDistribution::Ptr& modelDistribution,
+                const RoleDistribution::BABSearchEnginePtr& searchEngine = RoleDistribution::BABSearchEnginePtr());
+
+        RoleDistribution::Ptr getInitialState() const { return mpInitialState; }
+
+        SearchState next() const;
+
+        Type getType() const { return mType; }
+        const Solution& getSolution() const { return mSolution; }
+
+    private:
+        RoleDistribution::Ptr mpInitialState;
+        RoleDistribution::BABSearchEnginePtr mpSearchEngine;
+
+        Type mType;
+        Solution mSolution;
+    };
+
+    friend class SearchState;
+
     /**
      * Default constructor
      */
-    RoleDistribution(const Mission& mission, const ModelDistribution::Solution& modelDistribution);
+    RoleDistribution(const Mission::Ptr& mission, const ModelDistribution::Solution& modelDistribution);
 
     /**
      * Search support
@@ -60,9 +93,7 @@ public:
     std::string toString() const;
     void print(std::ostream& os) const { os << toString() << std::endl; }
 
-    static SolutionList solve(const Mission& mission, const ModelDistribution::Solution& modelDistribution);
-
-    RoleDistribution* nextSolution();
+    static SolutionList solve(const Mission::Ptr& mission, const ModelDistribution::Solution& modelDistribution);
 
     size_t getFluentIndex(const FluentTimeResource& fluent) const;
 

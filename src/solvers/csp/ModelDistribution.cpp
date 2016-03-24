@@ -14,6 +14,53 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
+ModelDistribution::SearchState::SearchState(const Mission::Ptr& mission)
+    : mpMission(mission)
+    , mpInitialState(NULL)
+    , mpSearchEngine(NULL)
+    , mType(OPEN)
+{
+    assert(mpMission);
+    mpInitialState = ModelDistribution::Ptr(new ModelDistribution(mpMission));
+    mpSearchEngine = ModelDistribution::BABSearchEnginePtr(new Gecode::BAB<ModelDistribution>(mpInitialState.get()));
+}
+
+ModelDistribution::SearchState::SearchState(const ModelDistribution::Ptr& modelDistribution,
+        const ModelDistribution::BABSearchEnginePtr& searchEngine)
+    : mpMission(modelDistribution->mpMission)
+    , mpInitialState(modelDistribution)
+    , mpSearchEngine(searchEngine)
+    , mType(OPEN)
+{
+    assert(mpMission);
+    assert(mpInitialState);
+    if(!mpSearchEngine)
+    {
+        mpSearchEngine = ModelDistribution::BABSearchEnginePtr(new Gecode::BAB<ModelDistribution>(mpInitialState.get()));
+    }
+}
+
+ModelDistribution::SearchState ModelDistribution::SearchState::next() const
+{
+    if(!getInitialState())
+    {
+        throw std::runtime_error("templ::solvers::csp::ModelDistribution::SearchState::next: "
+                " next() called on an unitialized search state");
+    }
+
+    SearchState searchState(mpInitialState, mpSearchEngine);
+    ModelDistribution* solvedDistribution = mpSearchEngine->next();
+    if(solvedDistribution)
+    {
+        searchState.mSolution = solvedDistribution->getSolution();
+        searchState.mType = SUCCESS;
+        delete solvedDistribution;
+    } else {
+        searchState.mType = FAILED;
+    }
+    return searchState;
+}
+
 ModelDistribution::Solution ModelDistribution::getSolution() const
 {
     Solution solution;
@@ -111,19 +158,22 @@ uint32_t ModelDistribution::systemModelToCSP(const owlapi::model::IRI& model) co
 
 }
 
-ModelDistribution::ModelDistribution(const templ::Mission& mission)
+ModelDistribution::ModelDistribution(const templ::Mission::Ptr& mission)
     : Gecode::Space()
-    , mpMission(new Mission(mission))
-    , mModelPool(mission.getAvailableResources())
-    , mAsk(mission.getOrganizationModel(), mission.getAvailableResources(), true)
-    , mResources(mission.getRequestedResources())
-    , mIntervals(mission.getTimeIntervals())
-    , mLocations(mission.getLocations())
+    , mpMission(mission)
+    , mModelPool(mpMission->getAvailableResources())
+    , mAsk(mpMission->getOrganizationModel(), mpMission->getAvailableResources(), true)
+    , mResources(mpMission->getRequestedResources())
+    , mIntervals(mpMission->getTimeIntervals())
+    , mLocations(mpMission->getLocations())
     , mResourceRequirements(getResourceRequirements())
-    , mModelUsage(*this, /*# of models*/ mission.getAvailableResources().size()*
+    , mModelUsage(*this, /*# of models*/ mpMission->getAvailableResources().size()*
             /*# of fluent time services*/mResourceRequirements.size(), 0, getMaxResourceCount(mModelPool))
-    , mAvailableModels(mission.getModels())
+    , mAvailableModels(mpMission->getModels())
 {
+    assert( mpMission->getOrganizationModel() );
+    assert(!mIntervals.empty());
+
     ConstraintMatrix constraintMatrix(mAvailableModels);
 
     if(mResourceRequirements.empty())
@@ -144,7 +194,7 @@ ModelDistribution::ModelDistribution(const templ::Mission& mission)
 
     ////rel(*this, x + y, Gecode::SRT_SUB, z)
 
-    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mission.getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
+    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mpMission->getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
     // Example usage
     //
     //Gecode::IntVar v = resourceDistribution(0,0);
@@ -308,6 +358,8 @@ ModelDistribution::ModelDistribution(bool share, ModelDistribution& other)
     , mResourceRequirements(other.mResourceRequirements)
     , mAvailableModels(other.mAvailableModels)
 {
+    assert( mpMission->getOrganizationModel() );
+    assert(!mIntervals.empty());
     mModelUsage.update(*this, share, other.mModelUsage);
 }
 
@@ -316,26 +368,14 @@ Gecode::Space* ModelDistribution::copy(bool share)
     return new ModelDistribution(share, *this);
 }
 
-ModelDistribution* ModelDistribution::nextSolution()
-{
-    Gecode::BAB<ModelDistribution> searchEngine(this);
-    //Gecode::DFS<ModelDistribution> searchEngine(this);
-
-    ModelDistribution* current = searchEngine.next();
-    if(current == NULL)
-    {
-        throw std::runtime_error("templ::solvers::csp::ModelDistribution::solve: no solution found");
-    } else {
-        return current;
-    }
-}
-
-std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::Mission& _mission)
+std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::Mission::Ptr& mission)
 {
     SolutionList solutions;
 
-    Mission mission = _mission;
-    mission.prepareTimeIntervals();
+    mission->validateForPlanning();
+
+    assert(mission->getOrganizationModel());
+    assert(!mission->getTimeIntervals().empty());
 
     ModelDistribution* distribution = new ModelDistribution(mission);
     ModelDistribution* solvedDistribution = NULL;
@@ -434,6 +474,13 @@ size_t ModelDistribution::getResourceModelMaxCardinality(size_t index) const
 
 std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() const
 {
+    if(mIntervals.empty())
+    {
+        throw std::runtime_error("solvers::csp::ModelDistribution::getResourceRequirements: no time intervals available"
+                " -- make sure you called prepareTimeIntervals() on the mission instance");
+    }
+
+
     std::vector<FluentTimeResource> requirements;
 
     using namespace templ::solvers::temporal;
@@ -464,20 +511,20 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
             if(iit == mIntervals.end())
             {
                 LOG_INFO_S << "Size of intervals: " << mIntervals.size();
-                throw std::runtime_error("Could not find interval");
+                throw std::runtime_error("templ::solvers::csp::ModelDistribution::getResourceRequirements: could not find interval: '" + interval.toString() + "'");
             }
 
             owlapi::model::IRIList::const_iterator sit = std::find(mResources.begin(), mResources.end(), resourceModel);
             if(sit == mResources.end())
             {
-                throw std::runtime_error("Could not find service");
+                throw std::runtime_error("templ::solvers::csp::ModelDistribution::getResourceRequirements: could not find service: '" + resourceModel.toString() + "'");
             }
 
             symbols::constants::Location::Ptr location = locationCardinality->getLocation();
             std::vector<symbols::constants::Location::Ptr>::const_iterator lit = std::find(mLocations.begin(), mLocations.end(), location);
             if(lit == mLocations.end())
             {
-                throw std::runtime_error("Could not find location: " + location->toString());
+                throw std::runtime_error("templ::solvers::csp::ModelDistribution::getResourceRequirements: could not find location: '" + location->toString() + "'");
             }
 
             // Map objects to numeric indices -- the indices can be mapped

@@ -32,19 +32,20 @@ BOOST_AUTO_TEST_CASE(mission_0)
     point_algebra::TimePoint::Ptr t2 = point_algebra::QualitativeTimePoint::getInstance("t2");
     point_algebra::TimePoint::Ptr t3 = point_algebra::QualitativeTimePoint::getInstance("t3");
 
-    Mission mission(om);
+    Mission baseMission(om);
 
     using namespace ::templ::symbols;
     constants::Location::Ptr loc0( new constants::Location("loc0", base::Point(0,0,0)));
     constants::Location::Ptr loc1( new constants::Location("loc1", base::Point(10,10,0)));
 
-    mission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
-    mission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
+    baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
+    baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
 
-    mission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.prepareTimeIntervals();
 
     {
-        solvers::temporal::point_algebra::TimePointComparator comparator(mission.getTemporalConstraintNetwork());
+        solvers::temporal::point_algebra::TimePointComparator comparator(baseMission.getTemporalConstraintNetwork());
         Interval i0(t0,t1, comparator);
         Interval i1(t2,t3, comparator);
 
@@ -53,34 +54,41 @@ BOOST_AUTO_TEST_CASE(mission_0)
 
     using namespace solvers;
     {
+        Mission::Ptr mission(new Mission(baseMission));
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
-        mission.setAvailableResources(modelPool);
-        BOOST_REQUIRE_MESSAGE(mission.getOrganizationModel(), "Mission has organization model set");
+        mission->setAvailableResources(modelPool);
+        BOOST_REQUIRE_MESSAGE(mission->getOrganizationModel(), "Mission has organization model set");
+
         solvers::csp::ModelDistribution::solve(mission);
     }
 
     {
+        Mission::Ptr mission(new Mission(baseMission));
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
-        mission.setAvailableResources(modelPool);
+        mission->setAvailableResources(modelPool);
+
         solvers::csp::ModelDistribution::solve(mission);
     }
 
     {
+        Mission::Ptr mission(new Mission(baseMission));
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
         modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
-        mission.setAvailableResources(modelPool);
+        mission->setAvailableResources(modelPool);
         solvers::csp::ModelDistribution::solve(mission);
     }
 
     {
+        Mission::Ptr mission(new Mission(baseMission));
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
         modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
         modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
-        mission.setAvailableResources(modelPool);
+        mission->setAvailableResources(modelPool);
+
         solvers::csp::ModelDistribution::solve(mission);
     }
 }
@@ -110,16 +118,17 @@ BOOST_AUTO_TEST_CASE(mission_1)
     constants::Location::Ptr loc0(new constants::Location("loc0", base::Point(0,0,0)));
     constants::Location::Ptr loc1(new constants::Location("loc1", base::Point(10,10,0)));
 
-    Mission mission(om);
-    mission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
-    mission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
+    Mission baseMission(om);
+    baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
+    baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
 
     // Overlapping intervals at two locations
-    mission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Greater);
-    mission.addTemporalConstraint(t0,t3, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Greater);
+    baseMission.addTemporalConstraint(t0,t3, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.prepareTimeIntervals();
 
     {
-        solvers::temporal::point_algebra::TimePointComparator comparator(mission.getTemporalConstraintNetwork());
+        solvers::temporal::point_algebra::TimePointComparator comparator(baseMission.getTemporalConstraintNetwork());
         Interval i0(t0,t1, comparator);
         Interval i1(t2,t3, comparator);
 
@@ -129,17 +138,21 @@ BOOST_AUTO_TEST_CASE(mission_1)
 
     using namespace solvers;
     {
+        Mission::Ptr mission(new Mission(baseMission));
+
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
-        mission.setAvailableResources(modelPool);
+        mission->setAvailableResources(modelPool);
         BOOST_REQUIRE_THROW(solvers::csp::ModelDistribution::solve(mission), std::runtime_error);
     }
 
     using namespace solvers;
     {
+        Mission::Ptr mission(new Mission(baseMission));
+
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 10;
-        mission.setAvailableResources(modelPool);
+        mission->setAvailableResources(modelPool);
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
 
@@ -150,43 +163,99 @@ BOOST_AUTO_TEST_CASE(mission_1)
 
     using namespace solvers;
     {
+        Mission::Ptr mission(new Mission(baseMission));
+
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
         modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
-        mission.setAvailableResources(modelPool);
+        mission->setAvailableResources(modelPool);
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
 
         // Check role distribution after model distribution
         std::vector<solvers::csp::RoleDistribution::Solution> roleSolutions = solvers::csp::RoleDistribution::solve(mission, solutions[0]);
         BOOST_REQUIRE_MESSAGE(!roleSolutions.empty(), "Solutions found for role distribution: " << roleSolutions);
+
     }
 
     using namespace solvers;
     {
+        Mission::Ptr mission(new Mission(baseMission));
+
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
         modelPool[ vocabulary::OM::resolve("CREX") ] = 3;
         modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
-        mission.setAvailableResources(modelPool);
+        mission->setAvailableResources(modelPool);
+
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
 
         // Check role distribution after model distribution
         std::vector<solvers::csp::RoleDistribution::Solution> roleSolutions = solvers::csp::RoleDistribution::solve(mission, solutions[0]);
         BOOST_REQUIRE_MESSAGE(!roleSolutions.empty(), "Solutions found for role distribution: " << roleSolutions);
+
+        std::vector<solvers::csp::ModelDistribution::Solution> i_modelSolutions;
+        using namespace solvers::csp;
+        ModelDistribution::SearchState modelSearchState(mission);
+        std::vector<ModelDistribution::SearchState> modelSolutionStates;
+
+        BOOST_TEST_MESSAGE("Checking for iterative production of solutions for model and role distribution");
+        BOOST_REQUIRE_MESSAGE(modelSearchState.getType() == ModelDistribution::SearchState::OPEN, "search state is open");
+        bool stopSearch = false;
+        while(!stopSearch)
+        {
+            ModelDistribution::SearchState nextState = modelSearchState.next();
+            switch(nextState.getType())
+            {
+                case ModelDistribution::SearchState::SUCCESS:
+                    i_modelSolutions.push_back(nextState.getSolution());
+                    modelSolutionStates.push_back(nextState);
+                    break;
+                case ModelDistribution::SearchState::FAILED:
+                    stopSearch = true;
+                    break;
+                case ModelDistribution::SearchState::OPEN:
+                    BOOST_REQUIRE_MESSAGE(false, "Open model search state found though should be either success of failed");
+            }
+        }
+        BOOST_REQUIRE_MESSAGE(solutions.size() == i_modelSolutions.size(), "Number of model solutions of the same size: " << solutions.size() << " vs. " << i_modelSolutions.size());
+        BOOST_TEST_MESSAGE("Iteratively found model distribution solutions: " << i_modelSolutions);
+
+        std::vector<solvers::csp::RoleDistribution::Solution> i_roleSolutions;
+        RoleDistribution::SearchState roleSearchState(modelSolutionStates[0]);
+        stopSearch = false;
+        while(!stopSearch)
+        {
+            RoleDistribution::SearchState nextState = roleSearchState.next();
+            switch(nextState.getType())
+            {
+                case RoleDistribution::SearchState::SUCCESS:
+                    i_roleSolutions.push_back(nextState.getSolution());
+                    break;
+                case RoleDistribution::SearchState::FAILED:
+                    stopSearch = true;
+                    break;
+                case RoleDistribution::SearchState::OPEN:
+                    BOOST_REQUIRE_MESSAGE(false, "Open role search state found, though should be either success or failed");
+            }
+        }
+        BOOST_REQUIRE_MESSAGE(roleSolutions.size() == i_roleSolutions.size(), "Number of role solutions of the same size: " << roleSolutions.size() << " vs. " << i_roleSolutions.size());
+        BOOST_TEST_MESSAGE("Iteratively found role distribution solutions: " << i_roleSolutions);
     }
 
     using namespace solvers;
     {
+        Mission::Ptr mission(new Mission(baseMission));
+
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
         modelPool[ vocabulary::OM::resolve("CREX") ] = 3;
         modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
-        mission.setAvailableResources(modelPool);
+        mission->setAvailableResources(modelPool);
 
         owlapi::model::IRI emi_power_provider = vocabulary::OM::resolve("EmiPowerProvider");
-        mission.addResourceLocationCardinalityConstraint(loc1, t2, t3, emi_power_provider);
+        mission->addResourceLocationCardinalityConstraint(loc1, t2, t3, emi_power_provider);
             
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
@@ -223,14 +292,15 @@ BOOST_AUTO_TEST_CASE(mission_tt)
     constants::Location::Ptr loc0(new constants::Location("loc0", base::Point(0,0,0)));
     constants::Location::Ptr loc1(new constants::Location("loc1", base::Point(10,10,0)));
 
-    Mission mission(om);
-    mission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
-    mission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider); 
+    Mission baseMission(om);
+    baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
+    baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider); 
 
-    mission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.prepareTimeIntervals();
 
     {
-        solvers::temporal::point_algebra::TimePointComparator comparator(mission.getTemporalConstraintNetwork());
+        solvers::temporal::point_algebra::TimePointComparator comparator(baseMission.getTemporalConstraintNetwork());
         Interval i0(t0,t1, comparator);
         Interval i1(t2,t3, comparator);
 
@@ -239,10 +309,12 @@ BOOST_AUTO_TEST_CASE(mission_tt)
 
     using namespace solvers;
     {
+        Mission::Ptr mission(new Mission(baseMission));
+
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
-        mission.setAvailableResources(modelPool);
+        mission->setAvailableResources(modelPool);
 
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
@@ -277,20 +349,22 @@ BOOST_AUTO_TEST_CASE(symmetry_breaking)
     constants::Location::Ptr loc1(new constants::Location("loc1", base::Point(10,10,0)));
     constants::Location::Ptr loc2(new constants::Location("loc2", base::Point(10,15,0)));
 
-    Mission mission(om);
-    mission.addResourceLocationCardinalityConstraint(loc0, t0, t1, payloadModel);
-    mission.addResourceLocationCardinalityConstraint(loc1, t2, t3, payloadModel);
-    mission.addResourceLocationCardinalityConstraint(loc2, t4, t5, payloadModel);
+    Mission baseMission(om);
+    baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, payloadModel);
+    baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, payloadModel);
+    baseMission.addResourceLocationCardinalityConstraint(loc2, t4, t5, payloadModel);
 
     // Overlapping intervals at two locations
-    mission.addTemporalConstraint(t2,t1, point_algebra::QualitativeTimePointConstraint::Greater);
-    mission.addTemporalConstraint(t4,t3, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t2,t1, point_algebra::QualitativeTimePointConstraint::Greater);
+    baseMission.addTemporalConstraint(t4,t3, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.prepareTimeIntervals();
 
     using namespace solvers;
     {
+        Mission::Ptr mission(new Mission(baseMission));
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Payload") ] = 100;
-        mission.setAvailableResources(modelPool);
+        mission->setAvailableResources(modelPool);
 
         std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
         BOOST_REQUIRE_MESSAGE(solutions.size() == 1, "Exactly one solution found " << solutions);

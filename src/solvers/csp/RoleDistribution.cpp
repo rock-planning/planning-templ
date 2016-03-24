@@ -10,17 +10,61 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
-RoleDistribution::RoleDistribution(const Mission& mission, const ModelDistribution::Solution& modelDistribution)
+
+RoleDistribution::SearchState::SearchState(const ModelDistribution::SearchState& modelSearchState)
+    : mpInitialState(NULL)
+    , mpSearchEngine(NULL)
+    , mType(OPEN)
+{
+    mpInitialState = RoleDistribution::Ptr(new RoleDistribution(modelSearchState.getMission(), modelSearchState.getSolution()) );
+    mpSearchEngine = RoleDistribution::BABSearchEnginePtr(new Gecode::BAB<RoleDistribution>(mpInitialState.get()));
+}
+
+RoleDistribution::SearchState::SearchState(const RoleDistribution::Ptr& roleDistribution,
+        const RoleDistribution::BABSearchEnginePtr& searchEngine)
+    : mpInitialState(roleDistribution)
+    , mpSearchEngine(searchEngine)
+    , mType(OPEN)
+{
+    assert(mpInitialState);
+    if(!mpSearchEngine)
+    {
+        mpSearchEngine = RoleDistribution::BABSearchEnginePtr(new Gecode::BAB<RoleDistribution>(mpInitialState.get()));
+    }
+}
+
+RoleDistribution::SearchState RoleDistribution::SearchState::next() const
+{
+    if(!getInitialState())
+    {
+        throw std::runtime_error("templ::solvers::csp::RoleDistribution::SearchState::next: "
+                " next() called on an unitialized search state");
+    }
+
+    SearchState searchState(mpInitialState, mpSearchEngine);
+    RoleDistribution* solvedDistribution = mpSearchEngine->next();
+    if(solvedDistribution)
+    {
+        searchState.mSolution = solvedDistribution->getSolution();
+        searchState.mType = SUCCESS;
+        delete solvedDistribution;
+    } else {
+        searchState.mType = FAILED;
+    }
+    return searchState;
+}
+
+
+RoleDistribution::RoleDistribution(const Mission::Ptr& mission, const ModelDistribution::Solution& modelDistribution)
     : Gecode::Space()
-    , mRoleUsage(*this, /*width --> col */ mission.getRoles().size()* /*height --> row*/ modelDistribution.size(), 0, 1) // Domain 0,1 to represent activation
-    , mRoles(mission.getRoles())
-    , mIntervals(mission.getTimeIntervals().begin(), mission.getTimeIntervals().end())
-    , mAvailableModels(mission.getModels())
+    , mRoleUsage(*this, /*width --> col */ mission->getRoles().size()* /*height --> row*/ modelDistribution.size(), 0, 1) // Domain 0,1 to represent activation
+    , mRoles(mission->getRoles())
+    , mIntervals(mission->getTimeIntervals().begin(), mission->getTimeIntervals().end())
 {
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ modelDistribution.size());
 
-    const owlapi::model::IRIList& models = mission.getModels();
-    const organization_model::ModelPool& resources = mission.getAvailableResources();
+    const owlapi::model::IRIList& availableModels = mission->getModels();
+    const organization_model::ModelPool& resources = mission->getAvailableResources();
 
     // foreach FluentTimeResource
     //     same role types -> sum <= modelbound given by solution
@@ -36,10 +80,10 @@ RoleDistribution::RoleDistribution(const Mission& mission, const ModelDistributi
 
         // Set limits per model type
         size_t index = 0;
-        for(size_t i = 0; i < models.size(); ++i)
+        for(size_t i = 0; i < availableModels.size(); ++i)
         {
             Gecode::IntVarArgs args;
-            const owlapi::model::IRI& currentModel = models[i];
+            const owlapi::model::IRI& currentModel = availableModels[i];
 
             organization_model::ModelPool::const_iterator mit = resources.find(currentModel);
             if(mit == resources.end())
@@ -110,8 +154,8 @@ RoleDistribution::RoleDistribution(const Mission& mission, const ModelDistributi
     //
     Gecode::Symmetries symmetries;
     // define interchangeable columns for roles of the same model type
-    owlapi::model::IRIList::const_iterator ait = mAvailableModels.begin();
-    for(; ait != mAvailableModels.end(); ++ait)
+    owlapi::model::IRIList::const_iterator ait = availableModels.begin();
+    for(; ait != availableModels.end(); ++ait)
     {
         const owlapi::model::IRI& currentModel = *ait;
         LOG_INFO_S << "Starting symmetry column for model: " << currentModel.toString();
@@ -160,12 +204,9 @@ size_t RoleDistribution::getFluentIndex(const FluentTimeResource& fluent) const
     throw std::runtime_error("templ::solvers::csp::RoleDistribution::getFluentIndex: could not find fluent index for '" + fluent.toString() + "'");
 }
 
-RoleDistribution::SolutionList RoleDistribution::solve(const Mission& _mission, const ModelDistribution::Solution& modelDistribution)
+RoleDistribution::SolutionList RoleDistribution::solve(const Mission::Ptr& mission, const ModelDistribution::Solution& modelDistribution)
 {
     SolutionList solutions;
-
-    Mission mission = _mission;
-    mission.prepareTimeIntervals();
 
     RoleDistribution* distribution = new RoleDistribution(mission, modelDistribution);
     RoleDistribution* solvedDistribution = NULL;
@@ -194,20 +235,6 @@ RoleDistribution::SolutionList RoleDistribution::solve(const Mission& _mission, 
     solvedDistribution = NULL;
 
     return solutions;
-}
-
-RoleDistribution* RoleDistribution::nextSolution()
-{
-    Gecode::BAB<RoleDistribution> searchEngine(this);
-    //Gecode::DFS<RoleDistribution> searchEngine(this);
-
-    RoleDistribution* current = searchEngine.next();
-    if(current == NULL)
-    {
-        throw std::runtime_error("templ::solvers::csp::RoleDistribution::solve: no solution found");
-    } else {
-        return current;
-    }
 }
 
 RoleDistribution::Solution RoleDistribution::getSolution() const
