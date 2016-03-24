@@ -217,41 +217,27 @@ BOOST_AUTO_TEST_CASE(gqr_cxx_api)
             res = search.next();
         } catch(const std::invalid_argument& e)
         {
-            BOOST_TEST_MESSAGE("Search finished on iteration: " << i);
+            BOOST_TEST_MESSAGE("Search aborted on iteration: " << i);
             break;
         }
-        BOOST_REQUIRE_MESSAGE(res, "Search is not resulting in null");
-        //RestartsFramework restarts;
-        //restarts.initialize();
-        //gqrtl::RestartingDFS<gqrtl::Relation8> search_r(csp, restarts, NULL);
-        //res = search_r.run();
-
-    //    BOOST_TEST_MESSAGE("TEST OUT " << i);
-    //    assert(res);
-
-    //    //gqrtl::CSP<gqrtl::Relation8, gqrtl::CalculusOperations<gqrtl::Relation8> > csp(*input.csp, *c1);
-    //    //gqrtl::DFS<gqrtl::Relation8> MySearch(csp, NULL);
-    //    //gqrtl::CSP<gqrtl::Relation8, gqrtl::CalculusOperations<gqrtl::Relation8> >* res = MySearch.run();
-    //    //        if (!res)
-    //                //return NULL;
-
-
-    //    CSPSimple cspCopy(csp);
-    //    gqrtl::WeightedTripleIterator<gqrtl::Relation8, gqrtl::CSP<gqrtl::Relation8, gqrtl::CalculusOperations<gqrtl::Relation8> > > prop;
-    //    assert(prop.enforce(cspCopy).empty());
-
-        for (size_t i = 0; i < res->getSize(); i++)
+        if(res)
         {
-            for (size_t j = i; j < res->getSize(); j++)
+            for (size_t i = 0; i < res->getSize(); i++)
             {
-                Relation relation = res->getConstraint(i, j).getRelation();
-                std::string relationString = pointAlgebra->relationToString(relation);
+                for (size_t j = i; j < res->getSize(); j++)
+                {
+                    Relation relation = res->getConstraint(i, j).getRelation();
+                    std::string relationString = pointAlgebra->relationToString(relation);
 
-                BOOST_TEST_MESSAGE("Relation for " << i << " -- " << j << " " << relation << ": " << relationString);
-                //result->csp->setConstraint(i, j, );
+                    BOOST_TEST_MESSAGE("Relation for " << i << " -- " << j << " " << relation << ": " << relationString);
+                    //result->csp->setConstraint(i, j, );
+                }
             }
+            delete res;
+        } else {
+            BOOST_TEST_MESSAGE("Search aborted on iteration: " << i << " since result was NULL");
+            break;
         }
-        delete res;
     }
 }
 
@@ -439,7 +425,7 @@ BOOST_AUTO_TEST_CASE(start)
 
     QualitativeTimePoint::Ptr lastTp;
     int i = 0;
-    for(; i < 100; ++i)
+    for(; i < 10; ++i)
     {
         std::stringstream ss;
         ss << "t" << i;
