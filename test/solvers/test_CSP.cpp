@@ -56,6 +56,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
         mission.setAvailableResources(modelPool);
+        BOOST_REQUIRE_MESSAGE(mission.getOrganizationModel(), "Mission has organization model set");
         solvers::csp::ModelDistribution::solve(mission);
     }
 
