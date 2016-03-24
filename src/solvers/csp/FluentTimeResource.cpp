@@ -59,8 +59,10 @@ std::string FluentTimeResource::toString() const
     ss << std::endl;
     ss << "    time: #" << time << std::endl;
     ss << "    fluent: #" << fluent << std::endl;
-    ss << "    max cardinalities: " << maxCardinalities.toString() << std::endl;
-    ss << "    min cardinalities: " << minCardinalities.toString() << std::endl;
+    ss << "    max cardinalities: " << std::endl
+        << maxCardinalities.toString(8) << std::endl;
+    ss << "    min cardinalities: " << std::endl
+        << minCardinalities.toString(8) << std::endl;
     return ss.str();
 }
 
