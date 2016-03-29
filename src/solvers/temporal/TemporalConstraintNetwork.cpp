@@ -346,6 +346,11 @@ void TemporalConstraintNetwork::sort(std::vector<point_algebra::TimePoint::Ptr>&
     comparator.sort(timepoints);
 }
 
+void TemporalConstraintNetwork::setConsistentNetwork(const graph_analysis::BaseGraph::Ptr& baseGraph)
+{
+    setGraph(baseGraph);
+}
+
 } // end namespace temporal
 } // end namespace solvers
 } // end namespace templ

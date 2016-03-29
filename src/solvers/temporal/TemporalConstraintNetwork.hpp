@@ -119,6 +119,11 @@ public:
      */
     void sort(std::vector<point_algebra::TimePoint::Ptr>& timepoints) const;
 
+    /**
+     * Set a consistent base graph network
+     */
+    virtual void setConsistentNetwork(const graph_analysis::BaseGraph::Ptr& baseGraph);
+
 protected:
     virtual ConstraintNetwork* getClone() const { return new TemporalConstraintNetwork(*this); }
 

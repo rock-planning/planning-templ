@@ -288,7 +288,7 @@ BOOST_AUTO_TEST_CASE(gqr_reasoner)
         }
     }
 
-    tcn->setGraph(primarySolution);
+    tcn->setConsistentNetwork(primarySolution);
     BOOST_REQUIRE_MESSAGE( tcn->isConsistent(), "Primary solution consistency checked with PA incremental algo");
 
     point_algebra::TimePointComparator tpc(tcn);

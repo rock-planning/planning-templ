@@ -477,6 +477,12 @@ QualitativeTemporalConstraintNetwork::ConstraintValidationResult QualitativeTemp
     return r;
 }
 
+void QualitativeTemporalConstraintNetwork::setConsistentNetwork(const graph_analysis::BaseGraph::Ptr& baseGraph)
+{
+    mUpdatedConstraints.clear();
+    TemporalConstraintNetwork::setConsistentNetwork(baseGraph);
+}
+
 } // end namespace temporal
 } // end namespace solvers
 } // end namespace templ

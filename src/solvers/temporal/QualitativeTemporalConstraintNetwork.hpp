@@ -122,6 +122,8 @@ public:
      */
     ConstraintValidationResult getConstraintType(const graph_analysis::Vertex::Ptr& s, const graph_analysis::Vertex::Ptr& o, const graph_analysis::Vertex::Ptr& t);
 
+    virtual void setConsistentNetwork(const graph_analysis::BaseGraph::Ptr& graph);
+
 protected:
     virtual ConstraintNetwork* getClone() const { return new QualitativeTemporalConstraintNetwork(*this); }
 

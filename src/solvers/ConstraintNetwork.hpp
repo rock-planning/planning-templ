@@ -75,12 +75,12 @@ public:
      */
     graph_analysis::BaseGraph::Ptr getGraph() const { return mGraph; }
 
+protected:
     /**
      * Set the underlying graph of this constraint network
      */
     graph_analysis::BaseGraph::Ptr setGraph(const graph_analysis::BaseGraph::Ptr& graph) { return mGraph = graph; }
 
-protected:
     virtual ConstraintNetwork* getClone() const { return new ConstraintNetwork(*this); }
 
 };
