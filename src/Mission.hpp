@@ -175,8 +175,6 @@ public:
     void validateForPlanning() const;
 
 protected:
-    Mission(const std::string& name = "");
-
     /**
      * Add a constant
      * \param constant Ptr object of this constant

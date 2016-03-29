@@ -10,14 +10,6 @@ namespace templ {
 
 namespace pa = solvers::temporal::point_algebra;
 
-Mission::Mission(const std::string& name)
-    : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
-    , mpOrganizationModel(new organization_model::OrganizationModel())
-    , mAsk(mpOrganizationModel)
-    , mName(name)
-    , mpLogger(new Logger())
-{}
-
 Mission::Mission(organization_model::OrganizationModel::Ptr om, const std::string& name)
     : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
     , mpOrganizationModel(om)
@@ -88,6 +80,7 @@ void Mission::refresh()
 
     // Update the ask object based on the model pool and applying the functional
     // saturation bound
+    assert(mpOrganizationModel);
     mAsk = organization_model::OrganizationModelAsk(mpOrganizationModel, mModelPool, true /*functional saturation bound*/);
 }
 

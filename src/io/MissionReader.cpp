@@ -142,9 +142,9 @@ std::string MissionReader::getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, con
     throw std::invalid_argument("templ::io::MissionReader::getSubNodeContent: could not find subnode '" + name + "' in node '" + std::string((const char*) node->name) + "'");
 }
 
-Mission MissionReader::fromFile(const std::string& url)
+Mission MissionReader::fromFile(const std::string& url, const organization_model::OrganizationModel::Ptr& om)
 {
-    Mission mission;
+    Mission mission(om);
     mission.setScenarioFile(url);
 
     /*

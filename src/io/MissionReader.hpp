@@ -75,7 +75,7 @@ struct Constraints
 class MissionReader
 {
 public:
-    static Mission fromFile(const std::string& url);
+    static Mission fromFile(const std::string& url, const organization_model::OrganizationModel::Ptr& organizationModel);
 
 private:
     static bool nameMatches(xmlNodePtr node, const std::string& name);

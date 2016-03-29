@@ -13,11 +13,10 @@ BOOST_AUTO_TEST_CASE(copy_construct)
     std::string missionFilename = rootDir + "/test/data/scenarios/test-mission-0.xml";
     std::string organizationModelFilename = rootDir + "/test/data/om-schema-v0.13.owl";
 
-    Mission mission = io::MissionReader::fromFile(missionFilename);
-
     using namespace organization_model;
     OrganizationModel::Ptr organizationModel = OrganizationModel::getInstance(organizationModelFilename);
-    mission.setOrganizationModel(organizationModel);
+
+    Mission mission = io::MissionReader::fromFile(missionFilename, organizationModel);
 
     using namespace templ::solvers::temporal;
     point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
