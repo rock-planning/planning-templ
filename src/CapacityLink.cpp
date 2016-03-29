@@ -1,4 +1,5 @@
 #include "CapacityLink.hpp"
+#include <sstream>
 
 namespace templ {
 

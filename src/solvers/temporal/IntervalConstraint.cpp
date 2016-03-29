@@ -1,4 +1,5 @@
 #include "IntervalConstraint.hpp"
+#include <sstream>
 
 using namespace graph_analysis;
 

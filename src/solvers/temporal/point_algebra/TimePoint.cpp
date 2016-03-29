@@ -1,5 +1,6 @@
 #include "TimePoint.hpp"
 #include "QualitativeTimePoint.hpp"
+#include <sstream>
 
 namespace templ {
 namespace solvers {
