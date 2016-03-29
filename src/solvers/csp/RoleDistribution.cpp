@@ -120,10 +120,8 @@ RoleDistribution::RoleDistribution(const Mission::Ptr& mission, const ModelDistr
         std::vector< std::vector<FluentTimeResource> > concurrentRequirements = FluentTimeResource::getConcurrent(mRequirements, mIntervals);
 
         std::vector< std::vector<FluentTimeResource> >::const_iterator cit = concurrentRequirements.begin();
-        if(concurrentRequirements.empty())
+        if(!concurrentRequirements.empty())
         {
-            LOG_WARN_S << "No concurrent requirements found";
-        } else {
             for(; cit != concurrentRequirements.end(); ++cit)
             {
                 LOG_DEBUG_S << "Concurrent roles requirements: " << mRoles.size();
@@ -144,6 +142,8 @@ RoleDistribution::RoleDistribution(const Mission::Ptr& mission, const ModelDistr
                     rel(*this, sum(args) <= 1);
                 }
             }
+        } else {
+            LOG_DEBUG_S << "No concurrent requirements found";
         }
     }
 
