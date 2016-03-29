@@ -20,15 +20,12 @@ int main(int argc, char** argv)
 
     std::string missionFilename = argv[1];
     std::string organizationModelFilename = argv[2];
+    organization_model::OrganizationModel::Ptr organizationModel = organization_model::OrganizationModel::getInstance(organizationModelFilename);
 
     using namespace templ;
-    Mission mission = io::MissionReader::fromFile(missionFilename);
+    Mission mission = io::MissionReader::fromFile(missionFilename, organizationModel);
     printf("%s\n",mission.toString().c_str());
 
-    using namespace organization_model;
-    OrganizationModel::Ptr organizationModel = OrganizationModel::getInstance(organizationModelFilename);
-    mission.setOrganizationModel(organizationModel);
-    
     MissionPlanner missionPlanner(mission);
 
     std::vector<Plan> solutions = missionPlanner.execute(minimumNumberOfSolutions);
