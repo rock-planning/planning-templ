@@ -12,10 +12,10 @@ namespace transshipment {
 class TransportNetwork
 {
 public:
-    TransportNetwork(const Mission& mission,
+    TransportNetwork(const Mission::Ptr& mission,
         const std::map<Role, csp::RoleTimeline>& timelines);
 
-    const Mission& getMission() const { return mMission; }
+    const Mission::Ptr& getMission() const { return mpMission; }
     SpaceTimeNetwork& getSpaceTimeNetwork() { return mSpaceTimeNetwork; }
     const std::map<Role, csp::RoleTimeline> getTimeslines() const { return mTimelines; }
 
@@ -25,7 +25,7 @@ protected:
     void save();
 
 private:
-    Mission mMission;
+    Mission::Ptr mpMission;
     SpaceTimeNetwork mSpaceTimeNetwork;
     std::map<Role, csp::RoleTimeline> mTimelines;
 

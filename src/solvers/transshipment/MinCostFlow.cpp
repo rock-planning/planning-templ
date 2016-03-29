@@ -5,7 +5,6 @@
 #include <graph_analysis/GraphIO.hpp>
 #include <organization_model/facets/Robot.hpp>
 #include <templ/solvers/csp/FluentTimeResource.hpp>
-#include <templ/SpaceTimeNetwork.hpp>
 #include <templ/Logger.hpp>
 
 using namespace graph_analysis;
@@ -15,19 +14,19 @@ namespace templ {
 namespace solvers {
 namespace transshipment {
 
-MinCostFlow::MinCostFlow(const Mission& mission,
+MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
         const std::map<Role, csp::RoleTimeline>& timelines,
-        SpaceTimeNetwork* spaceTimeNetwork)
-    : mMission(mission)
+        TransportNetwork& transportNetwork)
+    : mpMission(mission)
     , mTimelines(timelines)
-    , mSpaceTimeNetwork(mission.getLocations(), mission.getTimepoints())
+    , mSpaceTimeNetwork(transportNetwork.getSpaceTimeNetwork())
 {
 
     std::map<Role, csp::RoleTimeline>::const_iterator rit = mTimelines.begin();
     for(; rit != mTimelines.end(); ++rit)
     {
         const Role& role = rit->first;
-        organization_model::facets::Robot robot(role.getModel(), mMission.getOrganizationModelAsk());
+        organization_model::facets::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
         if(!robot.isMobile()) // only immobile systems are relevant
         {
             // Allow to later map roles back from index
@@ -140,7 +139,7 @@ void MinCostFlow::setCommoditySupplyAndDemand()
     } // end for role timelines
 }
 
-std::vector<Flaw> MinCostFlow::compute()
+std::vector<Flaw> MinCostFlow::run()
 {
     using namespace graph_analysis;
     using namespace graph_analysis::algorithms;
@@ -152,7 +151,7 @@ std::vector<Flaw> MinCostFlow::compute()
     MultiCommodityMinCostFlow minCostFlow(flowGraph, numberOfCommodities);
     // LOGGING
     {
-        std::string filename  = mMission.getLogger()->filename("min-cost-flow-init.dot");
+        std::string filename  = mpMission->getLogger()->filename("min-cost-flow-init.dot");
         graph_analysis::io::GraphIO::write(filename, flowGraph);
     }
 
@@ -162,7 +161,7 @@ std::vector<Flaw> MinCostFlow::compute()
 
     // LOGGING
     {
-        std::string filename  = mMission.getLogger()->filename("min-cost-flow-result.dot");
+        std::string filename  = mpMission->getLogger()->filename("min-cost-flow-result.dot");
         graph_analysis::io::GraphIO::write(filename, flowGraph);
     }
 

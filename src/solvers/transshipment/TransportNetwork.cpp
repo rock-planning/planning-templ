@@ -14,16 +14,18 @@ namespace templ {
 namespace solvers {
 namespace transshipment {
 
-TransportNetwork::TransportNetwork(const Mission& mission,
+TransportNetwork::TransportNetwork(const Mission::Ptr& mission,
         const std::map<Role, csp::RoleTimeline>& timelines)
-    : mMission(mission)
-    , mSpaceTimeNetwork(mission.getLocations(), mission.getTimepoints())
+    : mpMission(mission)
+    , mSpaceTimeNetwork(mpMission->getLocations(), mpMission->getTimepoints())
     , mTimelines(timelines)
 {
-    if(!mission.getTemporalConstraintNetwork()->isConsistent())
+    assert(mpMission);
+
+    if(!mpMission->getTemporalConstraintNetwork()->isConsistent())
     {
-        std::string filename = mMission.getLogger()->filename("transport-network-temporally-constrained-network.dot");
-        graph_analysis::io::GraphIO::write(filename, mMission.getTemporalConstraintNetwork()->getGraph());
+        std::string filename = mpMission->getLogger()->filename("transport-network-temporally-constrained-network.dot");
+        graph_analysis::io::GraphIO::write(filename, mpMission->getTemporalConstraintNetwork()->getGraph());
         LOG_DEBUG_S << "Written temporal constraint network to: " << filename;
         LOG_DEBUG_S << "(e.g. view with 'xdot " << filename << "'" << ")";
 
@@ -37,7 +39,7 @@ TransportNetwork::TransportNetwork(const Mission& mission,
 
 void TransportNetwork::save()
 {
-    std::string filename = mMission.getLogger()->filename("transport-network.dot");
+    std::string filename = mpMission->getLogger()->filename("transport-network.dot");
     graph_analysis::io::GraphIO::write(filename, mSpaceTimeNetwork.getGraph());
     LOG_DEBUG_S << "Written transport network to: " << filename;
     LOG_DEBUG_S << "(e.g. view with 'xdot " << filename << "'" << ")";
@@ -63,7 +65,7 @@ void TransportNetwork::initialize()
         // Check if this item is mobile, i.e. change change the location 
         // WARNING: this is domain specific
         // transportCapacity
-        organization_model::facets::Robot robot(role.getModel(), mMission.getOrganizationModelAsk());
+        organization_model::facets::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
         if(!robot.isMobile())
         {
             continue;

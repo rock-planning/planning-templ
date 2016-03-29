@@ -6,7 +6,7 @@
 #include <graph_analysis/algorithms/MultiCommodityMinCostFlow.hpp>
 #include <templ/Mission.hpp>
 #include <templ/solvers/csp/RoleTimeline.hpp>
-#include <templ/SpaceTimeNetwork.hpp>
+#include <templ/solvers/transshipment/TransportNetwork.hpp>
 
 namespace templ {
 namespace solvers {
@@ -37,14 +37,23 @@ struct MinCostFlowStatus
 
 class MinCostFlow
 {
+public:
     /**
      *
      * \param commodities number of existing immobile resources (i.e. roles in
      * this planners context)
      */
-    MinCostFlow(const Mission& mission,
+    MinCostFlow(const Mission::Ptr& mission,
             const std::map<Role, csp::RoleTimeline>& timelines,
-            SpaceTimeNetwork* spaceTimeNetwork);
+            TransportNetwork& transportNetwork);
+
+
+    /**
+     * Run the min cost flow optimization
+     * \return flaws found
+     */
+    std::vector<Flaw> run();
+protected:
     /**
      *  Translating the space time network into the mincommodity representation,
      *  i.e. the flow graph
@@ -72,8 +81,6 @@ class MinCostFlow
      */
     void setCommoditySupplyAndDemand();
 
-    std::vector<Flaw> compute();
-
     /**
      * After the flow optimization has taken place -- update the space time
      * network, i.e. the locations, with information about the roles
@@ -82,11 +89,6 @@ class MinCostFlow
      */
     void updateRoles(const graph_analysis::BaseGraph::Ptr& flowGraph);
 
-    //    const std::map<Role, RoleTimeline>& timelines,
-    //    const Mission& mission,
-    //    SpaceTimeNetwork* spaceTimeNetwork,
-    //    uint32_t commodities);
-    //
     std::vector<Flaw> computeFlaws(const graph_analysis::algorithms::MultiCommodityMinCostFlow&) const;
 
     std::vector<templ::solvers::csp::FluentTimeResource>::const_iterator 
@@ -94,7 +96,7 @@ class MinCostFlow
             const SpaceTimeNetwork::tuple_t::Ptr& tuple) const;
 
 private:
-    Mission mMission;
+    Mission::Ptr mpMission;
     std::map<Role, csp::RoleTimeline> mTimelines;
     std::vector<Role> mCommoditiesRoles;
 
