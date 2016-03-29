@@ -10,14 +10,11 @@
 
 #include <templ/solvers/temporal/Chronicle.hpp>
 #include <templ/Mission.hpp>
-#include <templ/solvers/GQReasoner.hpp>
-#include <templ/solvers/csp/ModelDistribution.hpp>
-#include <templ/solvers/csp/RoleDistribution.hpp>
+#include <templ/PlanningState.hpp>
 #include <templ/solvers/csp/RoleTimeline.hpp>
-#include <templ/solvers/csp/Resolver.hpp>
-#include <templ/TemporallyExpandedNetwork.hpp>
-#include <templ/Logging.hpp>
-#include <templ/Plan.hpp>
+#include <templ/SpaceTimeNetwork.hpp>
+#include <templ/Logger.hpp>
+#include <templ/PlanSpaceVisitor.hpp>
 
 
 /**
@@ -154,6 +151,9 @@
  *
  */
 namespace templ {
+namespace solvers {
+    class GQReasoner;
+}
 
 typedef std::vector<Mission> CandidateMissions;
 
@@ -167,105 +167,38 @@ typedef std::vector<Mission> CandidateMissions;
  */
 class MissionPlanner
 {
-    friend class templ::solvers::csp::Resolver;
-    friend class templ::solvers::csp::RoleAddDistinction;
-    friend class templ::solvers::csp::FunctionalityRequest;
-
 public:
-    typedef TemporallyExpandedNetwork<templ::symbols::constants::Location> SpaceTimeNetwork;
+    enum Type { BASIC };
 
-    MissionPlanner(const Mission& mission, const organization_model::OrganizationModel::Ptr& organizationModel);
+    MissionPlanner(const Mission& mission);
 
-    ~MissionPlanner();
-
-    /**
-     * \brief Prepare the use of the currently active temporal constraint network
-     * (without timeline gaps)
-     */
-    void prepareTemporalConstraintNetwork();
+    virtual ~MissionPlanner();
 
     /**
      * Execute planning with up to a given number of solutions
      * \return list of solution plans
      */
-    std::vector<Plan> execute(uint32_t maxIterations);
+    virtual std::vector<Plan> execute(uint32_t maxIterations);
 
     /**
-     * Get the next fully instanciated temporal constraint network
+     * Compute the next temporal constraint network for this mission
      */
-    bool nextTemporalConstraintNetwork();
+    graph_analysis::BaseGraph::Ptr nextTemporalConstraintNetwork();
 
     /**
      *
-     */
-    bool nextModelAssignment();
-    /**
-     *
-     */
-    bool nextRoleAssignment();
-
-    void computeRoleTimelines();
-    void computeTemporallyExpandedLocationNetwork();
-    std::vector<graph_analysis::algorithms::ConstraintViolation> computeMinCostFlow();
-
-    // Save the intermediate results
-    void save(const std::string& markerLabel = "", const std::string& dir = "") const;
-
-    /**
      * \brief Render a plan from the current solution
      * \throw std::runtime_error if an initial tuple could not be found
      * \throw std::invalid_argument if rendering of plan failed
      */
-    Plan renderPlan(const std::string& markerLabel = "") const;
+    Plan renderPlan(SpaceTimeNetwork* spaceTimeNetwork,
+            const std::map<Role, solvers::csp::RoleTimeline>& timelines,
+            const std::string& markerLabel = "") const;
 
-protected:
-    std::vector<templ::solvers::csp::FluentTimeResource>::const_iterator getFluent(const templ::solvers::csp::RoleTimeline& roleTimeline, const SpaceTimeNetwork::tuple_t::Ptr& tuple);
-
-    void constrainMission(const symbols::constants::Location::Ptr& mLocation,
-            const solvers::temporal::Interval& mInterval,
-            const owlapi::model::IRI& mModel);
-
-    Mission mCurrentMission;
-    std::vector<Mission> mConstrainedMissions;
-
-    organization_model::OrganizationModel::Ptr mOrganizationModel;
-    organization_model::OrganizationModelAsk mOrganizationModelAsk;
-    owlapi::model::OWLOntologyAsk mOntologyAsk;
-
-    solvers::csp::ModelDistribution* mModelDistribution;
-    std::vector<solvers::csp::ModelDistribution*> mModelDistributions;
-    /// set of distribution where search can be continued
-    solvers::csp::ModelDistribution::Solution mModelDistributionSolution;
-    Gecode::BAB<solvers::csp::ModelDistribution>* mModelDistributionSearchEngine;
-    std::vector< Gecode::BAB<solvers::csp::ModelDistribution>* > mModelDistributionSearchStates;
-
-    solvers::csp::RoleDistribution* mRoleDistribution;
-    solvers::csp::RoleDistribution::Solution mRoleDistributionSolution;
-    Gecode::BAB<solvers::csp::RoleDistribution>* mRoleDistributionSearchEngine;
-    std::map<Role, solvers::csp::RoleTimeline> mRoleTimelines;
-    uint32_t mCommodities;
-
+private:
+    Mission mMission;
     solvers::GQReasoner* mpGQReasoner;
-
-    //typedef std::pair< templ::symbols::constants::Location::Ptr, templ::solvers::temporal::point_algebra::TimePoint::Ptr> LocationTimePointPair;
-    //std::map< LocationTimePointPair, LocationTimepointTuple::Ptr > mTupleMap;
-
-
-    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> mTimepoints;
-    solvers::temporal::TemporalConstraintNetwork::Ptr mTemporalConstraintNetwork;
-    solvers::temporal::point_algebra::TimePointComparator mTimePointComparator;
-    std::vector<templ::symbols::constants::Location::Ptr> mLocations;
-
-    SpaceTimeNetwork* mpSpaceTimeNetwork;
-
-    //graph_analysis::BaseGraph::Ptr mSpaceTimeGraph;
-    graph_analysis::BaseGraph::Ptr mFlowGraph;
-
-    // Current set of resolver that can be applied to fix the plan at this stage
-    std::vector<solvers::csp::Resolver::Ptr> mResolvers;
-
-    Logging mLogging;
-
+    Logger::Ptr mpLogger;
 };
 
 } // end namespace templ
