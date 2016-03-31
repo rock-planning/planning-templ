@@ -60,12 +60,12 @@ protected:
 private:
     void groundCalculus();
 
-    graph_analysis::Edge::Ptr getEdge(int i, int j) const;
     /**
      * Retrieve the edge between i and j or create a new one
      * \return the edge found or the one newly created (via cloning from the
      * default constraint type)
      */
+    graph_analysis::Edge::Ptr getOrCreateEdge(int i, int j) const;
 
     /**
      * Reset the constraint label between the edges i and j

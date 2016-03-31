@@ -159,7 +159,7 @@ BaseGraph::Ptr GQReasoner::getPrimarySolution()
                 std::string relationString = mpCalculus->relationToString(relation);
                 size_t relationStringSize = relationString.size();
                 assert(relationStringSize >= 4);
-                // remove brackets an spaces ( < ) --> <
+                // remove brackets and spaces ( < ) --> <
                 std::string label = relationString.substr(2, relationStringSize -4);
 
                 relabel(i,j, label);
@@ -183,7 +183,7 @@ BaseGraph::Ptr GQReasoner::getPrimarySolution()
                 Relation relation = csp->getConstraint(i, j).getRelation();
                 std::string relationString = mpCalculus->relationToString(relation);
 
-                getEdge(i,j)->setLabel(relationString);
+                getOrCreateEdge(i,j)->setLabel(relationString);
             }
         }
     } else if(mpCSP32r)
@@ -203,14 +203,13 @@ BaseGraph::Ptr GQReasoner::getPrimarySolution()
                 Relation relation = csp->getConstraint(i, j).getRelation();
                 std::string relationString = mpCalculus->relationToString(relation);
 
-                getEdge(i,j)->setLabel(relationString);
+                getOrCreateEdge(i,j)->setLabel(relationString);
             }
         }
     }
 
     mCurrentSolution  = ss.str();
-    return mpGraph;
-
+    return mpGraph->cloneEdges();
 }
 
 graph_analysis::BaseGraph::Ptr GQReasoner::getNextSolution()
@@ -295,7 +294,7 @@ graph_analysis::BaseGraph::Ptr GQReasoner::getNextSolution()
     }
 
     mCurrentSolution = ss.str();
-    return mpGraph;
+    return mpGraph->cloneEdges();
 }
 
 void GQReasoner::groundCalculus()
@@ -321,7 +320,7 @@ void GQReasoner::groundCalculus()
     }
 }
 
-Edge::Ptr GQReasoner::getEdge(int i, int j) const
+Edge::Ptr GQReasoner::getOrCreateEdge(int i, int j) const
 {
     Vertex::Ptr vertex_i = mpGraph->getVertex(i);
     Vertex::Ptr vertex_j = mpGraph->getVertex(j);
@@ -333,13 +332,33 @@ Edge::Ptr GQReasoner::getEdge(int i, int j) const
         edge->setSourceVertex(vertex_i);
         edge->setTargetVertex(vertex_j);
         return edge;
+    } else if(edges.size() == 1)
+    {
+        return edges[0];
+    } else {
+        throw std::runtime_error("templ::GQReasoner::getOrCreateEdge: more than one edge found between two vertices");
     }
-    return edges[0];
 }
 
 void GQReasoner::relabel(int i, int j, const std::string& label)
 {
-    Edge::Ptr edge = getEdge(i,j);
+    Edge::Ptr edge = getOrCreateEdge(i,j);
+
+    // Cleanup residue from previous runs if necessary
+    if(i != j)
+    {
+        Edge::Ptr inverseEdge = getOrCreateEdge(j,i);
+        if(inverseEdge)
+        {
+            try {
+                mpGraph->removeEdge(inverseEdge);
+            } catch(...)
+            {
+                // ignore if not present
+            }
+        }
+    }
+
     try {
         mpGraph->removeEdge(edge);
         LOG_DEBUG_S << "Removed edge: '" << edge->toString() << "' from graph: " << mpGraph->getId();
