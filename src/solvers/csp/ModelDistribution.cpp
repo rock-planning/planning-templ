@@ -89,35 +89,6 @@ ModelDistribution::Solution ModelDistribution::getSolution() const
     return solution;
 }
 
-organization_model::ModelPoolSet ModelDistribution::getDomain(const FluentTimeResource& requirement) const
-{
-    // The domain definition accounts for service requirements as well as explicitly stated
-    // resource model requirements
-    //
-    // It constructs a model combination set, i.e., extensional constraints from
-    // where solutions can be picked
-    //
-    // Collect functionality requirements
-    std::set<organization_model::Functionality> functionalities = requirement.getFunctionalities();
-
-    // When retrieving combinations for services, then this is not the
-    // complete set since this might conflict with the minCardinalities
-    // constraint -- thus we need to first derive the functionalBound and then
-    // apply the minCardinalities by expanding the set of model if required
-    organization_model::ModelPoolSet combinations = mAsk.getResourceSupport(functionalities);
-    LOG_INFO_S << "Resources: " << organization_model::ModelPool::toString(combinations);
-    combinations = mAsk.applyUpperBound(combinations, requirement.maxCardinalities);
-    LOG_INFO_S << "Bounded resources (upper bound): " << organization_model::ModelPool::toString(combinations);
-
-    // The minimum resource requirements are accounted here by enforcing the
-    // lower bound -- the given combinations are guaranteed to support the
-    // services due upperBound which is derived from the functionalSaturationBound
-    combinations = mAsk.expandToLowerBound(combinations, requirement.minCardinalities);
-    LOG_INFO_S << "Expanded resource (lower bound enforced): " << organization_model::ModelPool::toString(combinations);
-
-    return combinations;
-}
-
 std::set< std::vector<uint32_t> > ModelDistribution::toCSP(const organization_model::ModelPoolSet& combinations) const
 {
     std::set< std::vector<uint32_t> > csp_combinations;
@@ -277,7 +248,7 @@ ModelDistribution::ModelDistribution(const templ::Mission::Ptr& mission)
 
                 // Extensional constraints, i.e. specifying the allowed
                 // combinations
-                organization_model::ModelPoolSet allowedCombinations = getDomain(fts);
+                organization_model::ModelPoolSet allowedCombinations = fts.getDomain();
                 appendToTupleSet(mExtensionalConstraints[requirementIndex], allowedCombinations);
 
                 // there can be no empty assignment for a service

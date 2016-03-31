@@ -67,6 +67,20 @@ struct FluentTimeResource
      * model
      */
     std::set<organization_model::Functionality> getFunctionalities() const;
+
+    /**
+     * Get the domain in terms of model pool that are allowed
+     * TimeInterval -- Location (StateVariable) : associated robot models
+     * pair(time_interval, location) -- map_to --> service requirements
+     * pair(time_interval, location) -- map_to --> set of set of models
+     *
+     * optional:
+     *  - parameterize on resource usage/distribution
+
+     * Get the minimum requirements as set of ModelCombinations
+     * \return ModelCombinations that fulfill the requirement
+     */
+    organization_model::ModelPoolSet getDomain() const;
 };
 
 } // end namespace csp

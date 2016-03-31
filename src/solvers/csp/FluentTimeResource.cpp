@@ -63,6 +63,13 @@ std::string FluentTimeResource::toString() const
         << maxCardinalities.toString(8) << std::endl;
     ss << "    min cardinalities: " << std::endl
         << minCardinalities.toString(8) << std::endl;
+    ss << "    model pool set: " << std::endl;
+    organization_model::ModelPoolSet domain = getDomain();
+    organization_model::ModelPoolSet::const_iterator dit = domain.begin();
+    for(;dit != domain.end(); ++dit)
+    {
+        ss << dit->toString(8) << std::endl;
+    }
     return ss.str();
 }
 
@@ -144,6 +151,39 @@ std::set<organization_model::Functionality> FluentTimeResource::getFunctionaliti
     }
     return functionalities;
 }
+
+organization_model::ModelPoolSet FluentTimeResource::getDomain() const
+{
+    assert(mission);
+
+    // The domain definition accounts for service requirements as well as explicitly stated
+    // resource model requirements
+    //
+    // It constructs a model combination set, i.e., extensional constraints from
+    // where solutions can be picked
+    //
+    // Collect functionality requirements
+    std::set<organization_model::Functionality> functionalities = getFunctionalities();
+
+    // When retrieving combinations for services, then this is not the
+    // complete set since this might conflict with the minCardinalities
+    // constraint -- thus we need to first derive the functionalBound and then
+    // apply the minCardinalities by expanding the set of model if required
+    organization_model::ModelPoolSet combinations = mission->getOrganizationModelAsk().getResourceSupport(functionalities);
+    LOG_INFO_S << "Resources: " << organization_model::ModelPool::toString(combinations);
+    combinations = mission->getOrganizationModelAsk().applyUpperBound(combinations, maxCardinalities);
+    LOG_INFO_S << "Bounded resources (upper bound): " << organization_model::ModelPool::toString(combinations);
+
+    // The minimum resource requirements are accounted here by enforcing the
+    // lower bound -- the given combinations are guaranteed to support the
+    // services due upperBound which is derived from the functionalSaturationBound
+    combinations = mission->getOrganizationModelAsk().expandToLowerBound(combinations, minCardinalities);
+    LOG_INFO_S << "Expanded resource (lower bound enforced): " << organization_model::ModelPool::toString(combinations);
+
+    return combinations;
+}
+
+
 
 } // end namespace csp
 } // end namespace solvers
