@@ -42,11 +42,12 @@ bool FluentTimeResource::operator<(const FluentTimeResource& other) const
     return resources < other.resources;
 }
 
-std::string FluentTimeResource::toString() const
+std::string FluentTimeResource::toString(uint32_t indent) const
 {
     std::stringstream ss;
-    ss << "FluentTimeResource: " << std::endl;
-    ss << "    resources: #";
+    std::string hspace(indent,' ');
+    ss << hspace << "FluentTimeResource: " << std::endl;
+    ss << hspace << "    resources: #";
     std::set<uint32_t>::const_iterator cit = resources.begin();
     for(; cit != resources.end(); )
     {
@@ -57,18 +58,19 @@ std::string FluentTimeResource::toString() const
         }
     }
     ss << std::endl;
-    ss << "    time: #" << time << std::endl;
-    ss << "    fluent: #" << fluent << std::endl;
-    ss << "    max cardinalities: " << std::endl
-        << maxCardinalities.toString(8) << std::endl;
-    ss << "    min cardinalities: " << std::endl
-        << minCardinalities.toString(8) << std::endl;
-    ss << "    model pool set: " << std::endl;
+    ss << hspace << "    time: #" << time << std::endl;
+    ss << getInterval().toString(indent + 8) << std::endl;
+    ss << hspace << "    fluent: #" << fluent << std::endl;
+    ss << hspace << "    max cardinalities: " << std::endl
+        << maxCardinalities.toString(indent + 8) << std::endl;
+    ss << hspace << "    min cardinalities: " << std::endl
+        << minCardinalities.toString(indent + 8) << std::endl;
+    ss << hspace << "    model pool set: " << std::endl;
     organization_model::ModelPoolSet domain = getDomain();
     organization_model::ModelPoolSet::const_iterator dit = domain.begin();
     for(;dit != domain.end(); ++dit)
     {
-        ss << dit->toString(8) << std::endl;
+        ss << dit->toString(indent + 8) << std::endl;
     }
     return ss.str();
 }

@@ -111,7 +111,7 @@ public:
     /**
      * Stringify interval object
      */
-    std::string toString() const;
+    std::string toString(uint32_t indent = 0) const;
 
     /**
      * Check if all given intervals overlap with each other

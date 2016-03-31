@@ -59,12 +59,13 @@ bool Interval::distinctFrom(const Interval& other) const
     return !equals(other);
 }
 
-std::string Interval::toString() const
+std::string Interval::toString(uint32_t indent) const
 {
     std::stringstream ss;
-    ss << "Interval: " << std::endl;
-    ss << "    from: " << mpFrom->toString() << std::endl;
-    ss << "    to: " << mpTo->toString() << std::endl;
+    std::string hspace(indent, ' ');
+    ss << hspace << "Interval: " << std::endl;
+    ss << hspace << "    from: " << mpFrom->toString() << std::endl;
+    ss << hspace << "    to: " << mpTo->toString() << std::endl;
     return ss.str();
 }
 
