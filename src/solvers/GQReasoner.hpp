@@ -16,26 +16,44 @@ public:
     GQReasoner(const std::string& calculus, const graph_analysis::BaseGraph::Ptr& graph, const graph_analysis::Edge::Ptr& defaultEdge);
     virtual ~GQReasoner();
 
+    /**
+     * Get the primary (here: first) solution for the gq reasoner
+     * \return A graph instance that shares the vertices with the graph that has
+     * been used for initialization
+     */
     graph_analysis::BaseGraph::Ptr getPrimarySolution();
 
+    /*
+     * Get the next solution for the gq reasoner
+     * \return A graph instance that shares the vertices with the graph that has
+     * been used for initialization
+     */
     graph_analysis::BaseGraph::Ptr getNextSolution();
 
     /**
      * Get the current solution as string representation
+     * \return A string that represents the current solution
      */
     std::string getCurrentSolutionString() const { return mCurrentSolution; }
 
 protected:
+    /**
+     * Initialize the respective calculus, e.g. for point algebra use 'point'
+     * Other (though untested) are: allen, cd, occ, opra1, opra2, opra4, rcc23
+     * \see data folder of gqr installation for more available algbras
+     */
     void init(const std::string& calculus);
 
     /**
-     * Translate the directed graph into the internal representation
+     * Translate the directed graph into the internal representation, i.e.
+     * the given graph is translated into the GQR CSP, so that there is a
+     * starting point for the CSP
      */
     void translateGraph();
 
     /**
      * Return the constraint label of this edge -- if not overloaded will just
-     * return the label of the edge
+     * \return the label of the edge
      */
     virtual std::string getConstraintLabel(const graph_analysis::Edge::Ptr& e) const { assert(e); return e->getLabel(); }
 
@@ -43,7 +61,16 @@ private:
     void groundCalculus();
 
     graph_analysis::Edge::Ptr getEdge(int i, int j) const;
+    /**
+     * Retrieve the edge between i and j or create a new one
+     * \return the edge found or the one newly created (via cloning from the
+     * default constraint type)
+     */
 
+    /**
+     * Reset the constraint label between the edges i and j
+     * Will remove any reverse edge j-i unless, j == i
+     */
     void relabel(int i, int j, const std::string& label);
 
     graph_analysis::BaseGraph::Ptr mpGraph;
