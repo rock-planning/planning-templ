@@ -185,13 +185,15 @@ public:
      */
     graph_analysis::BaseGraph::Ptr nextTemporalConstraintNetwork();
 
+protected:
     /**
      *
      * \brief Render a plan from the current solution
      * \throw std::runtime_error if an initial tuple could not be found
      * \throw std::invalid_argument if rendering of plan failed
      */
-    Plan renderPlan(SpaceTimeNetwork* spaceTimeNetwork,
+    Plan renderPlan(const Mission::Ptr& mission,
+            SpaceTimeNetwork* spaceTimeNetwork,
             const std::map<Role, solvers::csp::RoleTimeline>& timelines,
             const std::string& markerLabel = "") const;
 

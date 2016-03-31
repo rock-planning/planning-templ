@@ -168,11 +168,12 @@ graph_analysis::BaseGraph::Ptr MissionPlanner::nextTemporalConstraintNetwork()
 //    }
 //}
 
-Plan MissionPlanner::renderPlan(SpaceTimeNetwork* spaceTimeNetwork,
+Plan MissionPlanner::renderPlan(const Mission::Ptr& mission,
+        SpaceTimeNetwork* spaceTimeNetwork,
         const std::map<Role, csp::RoleTimeline>& timelines,
         const std::string& markerLabel) const
 {
-    Plan plan(markerLabel);
+    Plan plan(mission, markerLabel);
 
     std::map<Role, RoleTimeline>::const_iterator it = timelines.begin();
     for(; it != timelines.end(); ++it)
