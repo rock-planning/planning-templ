@@ -135,21 +135,16 @@ graph_analysis::BaseGraph::Ptr MissionPlanner::nextTemporalConstraintNetwork()
     } else {
         solution = mpGQReasoner->getNextSolution();
 
-        LOG_DEBUG_S << " gqr solution network: " << std::endl
+    }
+    if(!solution)
+    {
+        LOG_WARN_S << "No solution exists for temporal constraint network";
+    } else {
+        LOG_WARN_S << " gqr solution network: " << std::endl
             << mpGQReasoner->getCurrentSolutionString() << std::endl;
     }
 
-    if(!solution)
-    {
-        LOG_DEBUG_S << "No solution exists for temporal constraint network";
-    }
     return solution;
-
-    //else {
-    //    state->getTemporalConstraintNetwork()->setGraph(solution);
-    //    prepareTemporalConstraintNetwork(state);
-    //    return true;
-    //}
 }
 
 
