@@ -7,8 +7,9 @@
 
 namespace templ {
 
-Plan::Plan(const std::string& label)
-    : mLabel(label)
+Plan::Plan(const Mission::Ptr& mission, const std::string& label)
+    : mpMission(mission)
+    , mLabel(label)
 {}
 
 void Plan::add(const Role& role, const std::vector<graph_analysis::Vertex::Ptr>& path)
@@ -37,6 +38,17 @@ std::string Plan::toString(uint32_t indent) const
             ss << hspace << "    - " << (*vit)->toString() << std::endl;
         }
     }
+    typedef std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> TimepointList;
+    TimepointList timepoints = mpMission->getOrderedTimepoints();
+    TimepointList::const_iterator tit = timepoints.begin();
+    ss << hspace << "Timepoints:" << std::endl;
+    for(; tit != timepoints.end(); ++tit)
+    {
+        ss << hspace << "    " << (*tit)->toString() << std::endl;
+    }
+
+    ss << "Mission: " << mpMission.get() << ", temporal constraint: " << mpMission->getTemporalConstraintNetwork()->getGraph().get();
+
     return ss.str();
 }
 
