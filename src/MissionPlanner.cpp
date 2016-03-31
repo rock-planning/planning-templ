@@ -148,22 +148,6 @@ graph_analysis::BaseGraph::Ptr MissionPlanner::nextTemporalConstraintNetwork()
 }
 
 
-//ModelDistribution::SearchState MissionPlanner::nextModelDistributionSearch(ModelDistribution::SearchState currentSearchState)
-//{
-//    } else {
-//
-//    if(solvedDistribution)
-//    {
-//        state->setModelDistributionSolution(solvedDistribution->getSolution());
-//        delete solvedDistribution;
-//        LOG_WARN_S << "Found model assignment: " << state->getModelDistributionSolution();
-//        return true;
-//    } else {
-//        state->cleanup(PlanningState::MODEL);
-//        return false;
-//    }
-//}
-
 Plan MissionPlanner::renderPlan(const Mission::Ptr& mission,
         SpaceTimeNetwork* spaceTimeNetwork,
         const std::map<Role, csp::RoleTimeline>& timelines,
