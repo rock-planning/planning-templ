@@ -33,6 +33,10 @@ MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
             mCommoditiesRoles.push_back(role);
         }
     }
+    if(mCommoditiesRoles.empty())
+    {
+        LOG_WARN_S << "No immobile systems, thus no commodities to be routed";
+    }
 }
 
 BaseGraph::Ptr MinCostFlow::createFlowGraph(uint32_t commodities)
