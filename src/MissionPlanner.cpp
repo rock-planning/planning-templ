@@ -34,6 +34,7 @@ MissionPlanner::MissionPlanner(const Mission& mission)
     : mMission(mission)
     , mpGQReasoner(0)
     , mpLogger(mission.getLogger())
+    , mType(BASIC)
 {
     if(!mMission.getTimeIntervals().empty())
     {

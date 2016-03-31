@@ -197,10 +197,13 @@ protected:
             const std::map<Role, solvers::csp::RoleTimeline>& timelines,
             const std::string& markerLabel = "") const;
 
+    Type getType() const { return mType; }
+
 private:
     Mission mMission;
     solvers::GQReasoner* mpGQReasoner;
     Logger::Ptr mpLogger;
+    Type mType;
 };
 
 } // end namespace templ
