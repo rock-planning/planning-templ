@@ -29,7 +29,22 @@ int main(int argc, char** argv)
     MissionPlanner missionPlanner(mission);
 
     std::vector<Plan> solutions = missionPlanner.execute(minimumNumberOfSolutions);
-    std::cout << "The following solutions have been found: " << Plan::toString(solutions) << std::endl;
+    if(solutions.empty())
+    {
+        std::cout << "No solution found" << std::endl;
+    } else {
+        std::cout << solutions.size() << " solutions have been found: " << Plan::toString(solutions) << std::endl;
+
+        mission.getLogger()->disableSessions();
+        {
+            std::string filename = mission.getLogger()->filename("plans.log");
+            Plan::save(solutions, filename);
+        }
+        {
+            std::string filename = mission.getLogger()->filename("actionplans.log");
+            Plan::saveAsActionPlan(solutions, mission, filename);
+        }
+    }
 
     return 0;
 }
