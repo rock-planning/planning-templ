@@ -139,6 +139,16 @@ public:
     // Get special sets of constants
     std::vector<symbols::constants::Location::Ptr> getLocations() const;
 
+    /**
+     * Get the timepoints ordered by the associated temporal constraint network
+     * \return timepoints ordered (earlier entries correspond to earlier times)
+     */
+    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> getOrderedTimepoints() const;
+
+    /**
+     * Get all timepoints that are for this mission
+     * \return list of (unordered) timepoints
+     */
     std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> getTimepoints() const;
 
     void save(const std::string& filename) const { throw std::runtime_error("Mission::save: not implemented"); }

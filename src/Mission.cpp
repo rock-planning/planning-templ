@@ -332,6 +332,13 @@ std::vector<symbols::constants::Location::Ptr> Mission::getLocations() const
 }
 
 
+std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> Mission::getOrderedTimepoints() const
+{
+    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints = getTimepoints();
+    mpTemporalConstraintNetwork->sort(timepoints);
+    return timepoints;
+}
+
 std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> Mission::getTimepoints() const
 {
     using namespace graph_analysis;
