@@ -349,7 +349,6 @@ std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::M
     assert(!mission->getTimeIntervals().empty());
 
     ModelDistribution* distribution = new ModelDistribution(mission);
-    ModelDistribution* solvedDistribution = NULL;
     {
         Gecode::BAB<ModelDistribution> searchEngine(distribution);
         //Gecode::DFS<ModelDistribution> searchEngine(this);
@@ -368,11 +367,13 @@ std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::M
 
         if(best == NULL)
         {
+            delete distribution;
             throw std::runtime_error("templ::solvers::csp::ModelDistribution::solve: no solution found");
         }
     }
-    delete solvedDistribution;
-    solvedDistribution = NULL;
+
+    delete best;
+    delete distribution;
 
     return solutions;
 }
@@ -501,7 +502,7 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
             // Map objects to numeric indices -- the indices can be mapped
             // backed using the mission they were created from
             uint32_t timeIndex = iit - mIntervals.begin();
-            FluentTimeResource ftr(mpMission, 
+            FluentTimeResource ftr(mpMission,
                     (int) (sit - mResources.begin())
                     , timeIndex
                     , (int) (lit - mLocations.begin()));
