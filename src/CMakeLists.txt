@@ -63,7 +63,6 @@ rock_library(templ
         SpaceTimeNetwork.hpp
         Symbol.hpp
         TemporallyExpandedNetwork.hpp
-        Timepoint.hpp
         Tuple.hpp
         Variable.hpp
         io/MissionReader.hpp
