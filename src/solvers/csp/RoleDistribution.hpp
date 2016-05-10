@@ -73,7 +73,7 @@ public:
     /**
      * Default constructor
      */
-    RoleDistribution(const Mission::Ptr& mission, const ModelDistribution::Solution& modelDistribution);
+    RoleDistribution(const Mission::Ptr& mission, const ModelDistribution::ModelDistributionSolution& modelDistribution);
 
     /**
      * Search support
@@ -93,7 +93,7 @@ public:
     std::string toString() const;
     void print(std::ostream& os) const { os << toString() << std::endl; }
 
-    static SolutionList solve(const Mission::Ptr& mission, const ModelDistribution::Solution& modelDistribution);
+    static SolutionList solve(const Mission::Ptr& mission, const ModelDistribution::ModelDistributionSolution& modelDistribution);
 
     size_t getFluentIndex(const FluentTimeResource& fluent) const;
 

@@ -1,4 +1,4 @@
-#include "ModelDistribution.hpp"
+#include "TransportNetwork.hpp"
 #include <base/Logging.hpp>
 #include <numeric/Combinatorics.hpp>
 #include <gecode/minimodel.hh>
@@ -14,14 +14,14 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
-std::string ModelDistribution::Solution::toString(uint32_t indent) const
+std::string TransportNetwork::Solution::toString(uint32_t indent) const
 {
     std::stringstream ss;
     std::string hspace(indent,' ');
     {
-        ModelDistributionSolution::const_iterator cit = mModelDistribution.begin();
+        ModelDistribution::const_iterator cit = mModelDistribution.begin();
         size_t count = 0;
-        ss << hspace << "ModelDistributionSolution" << std::endl;
+        ss << hspace << "ModelDistribution" << std::endl;
         for(; cit != mModelDistribution.end(); ++cit)
         {
             const FluentTimeResource& fts = cit->first;
@@ -33,9 +33,9 @@ std::string ModelDistribution::Solution::toString(uint32_t indent) const
         }
     }
     {
-        ModelDistribution::ModelDistributionSolution::const_iterator cit = mModelDistribution.begin();
+        TransportNetwork::ModelDistribution::const_iterator cit = mModelDistribution.begin();
         size_t count = 0;
-        ss << hspace << "ModelDistributionSolution" << std::endl;
+        ss << hspace << "ModelDistribution" << std::endl;
         for(; cit != mModelDistribution.end(); ++cit)
         {
             const FluentTimeResource& fts = cit->first;
@@ -47,9 +47,9 @@ std::string ModelDistribution::Solution::toString(uint32_t indent) const
         }
     }
     {
-        RoleDistributionSolution::const_iterator cit = mRoleDistribution.begin();
+        RoleDistribution::const_iterator cit = mRoleDistribution.begin();
         size_t count = 0;
-        ss << hspace << "RoleDistributionSolution" << std::endl;
+        ss << hspace << "RoleDistribution" << std::endl;
         for(; cit != mRoleDistribution.end(); ++cit)
         {
             const FluentTimeResource& fts = cit->first;
@@ -63,21 +63,21 @@ std::string ModelDistribution::Solution::toString(uint32_t indent) const
     return ss.str();
 }
 
-ModelDistribution::SearchState::SearchState(const Mission::Ptr& mission)
+TransportNetwork::SearchState::SearchState(const Mission::Ptr& mission)
     : mpMission(mission)
     , mpInitialState(NULL)
     , mpSearchEngine(NULL)
     , mType(OPEN)
 {
     assert(mpMission);
-    mpInitialState = ModelDistribution::Ptr(new ModelDistribution(mpMission));
-    mpSearchEngine = ModelDistribution::BABSearchEnginePtr(new Gecode::BAB<ModelDistribution>(mpInitialState.get()));
+    mpInitialState = TransportNetwork::Ptr(new TransportNetwork(mpMission));
+    mpSearchEngine = TransportNetwork::BABSearchEnginePtr(new Gecode::BAB<TransportNetwork>(mpInitialState.get()));
 }
 
-ModelDistribution::SearchState::SearchState(const ModelDistribution::Ptr& modelDistribution,
-        const ModelDistribution::BABSearchEnginePtr& searchEngine)
-    : mpMission(modelDistribution->mpMission)
-    , mpInitialState(modelDistribution)
+TransportNetwork::SearchState::SearchState(const TransportNetwork::Ptr& transportNetwork,
+        const TransportNetwork::BABSearchEnginePtr& searchEngine)
+    : mpMission(transportNetwork->mpMission)
+    , mpInitialState(transportNetwork)
     , mpSearchEngine(searchEngine)
     , mType(OPEN)
 {
@@ -85,20 +85,20 @@ ModelDistribution::SearchState::SearchState(const ModelDistribution::Ptr& modelD
     assert(mpInitialState);
     if(!mpSearchEngine)
     {
-        mpSearchEngine = ModelDistribution::BABSearchEnginePtr(new Gecode::BAB<ModelDistribution>(mpInitialState.get()));
+        mpSearchEngine = TransportNetwork::BABSearchEnginePtr(new Gecode::BAB<TransportNetwork>(mpInitialState.get()));
     }
 }
 
-ModelDistribution::SearchState ModelDistribution::SearchState::next() const
+TransportNetwork::SearchState TransportNetwork::SearchState::next() const
 {
     if(!getInitialState())
     {
-        throw std::runtime_error("templ::solvers::csp::ModelDistribution::SearchState::next: "
+        throw std::runtime_error("templ::solvers::csp::TransportNetwork::SearchState::next: "
                 " next() called on an unitialized search state");
     }
 
     SearchState searchState(mpInitialState, mpSearchEngine);
-    ModelDistribution* solvedDistribution = mpSearchEngine->next();
+    TransportNetwork* solvedDistribution = mpSearchEngine->next();
     if(solvedDistribution)
     {
         searchState.mSolution = solvedDistribution->getSolution();
@@ -110,17 +110,17 @@ ModelDistribution::SearchState ModelDistribution::SearchState::next() const
     return searchState;
 }
 
-ModelDistribution::Solution ModelDistribution::getSolution() const
+TransportNetwork::Solution TransportNetwork::getSolution() const
 {
     Solution solution;
-    solution.mModelDistribution = getModelDistributionSolution();
-    solution.mRoleDistribution = getRoleDistributionSolution();
+    solution.mModelDistribution = getModelDistribution();
+    solution.mRoleDistribution = getRoleDistribution();
     return solution;
 }
 
-ModelDistribution::ModelDistributionSolution ModelDistribution::getModelDistributionSolution() const
+TransportNetwork::ModelDistribution TransportNetwork::getModelDistribution() const
 {
-    ModelDistributionSolution solution;
+    ModelDistribution solution;
     Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mModelPool.size(), mResourceRequirements.size());
 
     // Check if resource requirements holds
@@ -132,7 +132,7 @@ ModelDistribution::ModelDistributionSolution ModelDistribution::getModelDistribu
             Gecode::IntVar var = resourceDistribution(mi, i);
             if(!var.assigned())
             {
-                throw std::runtime_error("templ::solvers::csp::ModelDistribution::getSolution: value has not been assigned");
+                throw std::runtime_error("templ::solvers::csp::TransportNetwork::getSolution: value has not been assigned");
             }
 
             Gecode::IntVarValues v( var );
@@ -145,9 +145,9 @@ ModelDistribution::ModelDistributionSolution ModelDistribution::getModelDistribu
     return solution;
 }
 
-ModelDistribution::RoleDistributionSolution ModelDistribution::getRoleDistributionSolution() const
+TransportNetwork::RoleDistribution TransportNetwork::getRoleDistribution() const
 {
-    RoleDistributionSolution solution;
+    RoleDistribution solution;
 
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
 
@@ -177,7 +177,7 @@ ModelDistribution::RoleDistributionSolution ModelDistribution::getRoleDistributi
     return solution;
 }
 
-std::set< std::vector<uint32_t> > ModelDistribution::toCSP(const organization_model::ModelPoolSet& combinations) const
+std::set< std::vector<uint32_t> > TransportNetwork::toCSP(const organization_model::ModelPoolSet& combinations) const
 {
     std::set< std::vector<uint32_t> > csp_combinations;
     organization_model::ModelPoolSet::const_iterator cit = combinations.begin();
@@ -188,7 +188,7 @@ std::set< std::vector<uint32_t> > ModelDistribution::toCSP(const organization_mo
     return csp_combinations;
 }
 
-std::vector<uint32_t> ModelDistribution::toCSP(const organization_model::ModelPool& combination) const
+std::vector<uint32_t> TransportNetwork::toCSP(const organization_model::ModelPool& combination) const
 {
     // return index of model and count per model
     std::vector<uint32_t> csp_combination(mModelPool.size(),0);
@@ -202,14 +202,14 @@ std::vector<uint32_t> ModelDistribution::toCSP(const organization_model::ModelPo
     return csp_combination;
 }
 
-uint32_t ModelDistribution::systemModelToCSP(const owlapi::model::IRI& model) const
+uint32_t TransportNetwork::systemModelToCSP(const owlapi::model::IRI& model) const
 {
     owlapi::model::IRIList::const_iterator cit = std::find(mAvailableModels.begin(),
             mAvailableModels.end(), model);
 
     if(cit == mAvailableModels.end())
     {
-        throw std::invalid_argument("templ::solvers::csp::ModelDistribution::systemModelToCSP:"
+        throw std::invalid_argument("templ::solvers::csp::TransportNetwork::systemModelToCSP:"
                 " unknown model '" + model.toString() );
     } else {
         return (cit - mAvailableModels.begin());
@@ -217,7 +217,7 @@ uint32_t ModelDistribution::systemModelToCSP(const owlapi::model::IRI& model) co
 
 }
 
-ModelDistribution::ModelDistribution(const templ::Mission::Ptr& mission)
+TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     : Gecode::Space()
     , mpMission(mission)
     , mModelPool(mpMission->getAvailableResources())
@@ -239,10 +239,10 @@ ModelDistribution::ModelDistribution(const templ::Mission::Ptr& mission)
 
     if(mResourceRequirements.empty())
     {
-        throw std::invalid_argument("templ::solvers::csp::ModelDistribution: no resource requirements given");
+        throw std::invalid_argument("templ::solvers::csp::TransportNetwork: no resource requirements given");
     }
 
-    LOG_INFO_S << "ModelDistribution CSP Problem Construction" << std::endl
+    LOG_INFO_S << "TransportNetwork CSP Problem Construction" << std::endl
     << "    requested resources: " << mResources << std::endl
     << "    intervals: " << mIntervals.size() << std::endl
     << "    # requirements: " << mResourceRequirements.size() << std::endl;
@@ -490,7 +490,7 @@ ModelDistribution::ModelDistribution(const templ::Mission::Ptr& mission)
 
 }
 
-ModelDistribution::ModelDistribution(bool share, ModelDistribution& other)
+TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
     : Gecode::Space(share, other)
     , mpMission(other.mpMission)
     , mModelPool(other.mModelPool)
@@ -508,12 +508,12 @@ ModelDistribution::ModelDistribution(bool share, ModelDistribution& other)
     mRoleUsage.update(*this, share, other.mRoleUsage);
 }
 
-Gecode::Space* ModelDistribution::copy(bool share)
+Gecode::Space* TransportNetwork::copy(bool share)
 {
-    return new ModelDistribution(share, *this);
+    return new TransportNetwork(share, *this);
 }
 
-std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::Mission::Ptr& mission)
+std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mission::Ptr& mission)
 {
     SolutionList solutions;
 
@@ -522,13 +522,13 @@ std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::M
     assert(mission->getOrganizationModel());
     assert(!mission->getTimeIntervals().empty());
 
-    ModelDistribution* distribution = new ModelDistribution(mission);
+    TransportNetwork* distribution = new TransportNetwork(mission);
     {
-        Gecode::BAB<ModelDistribution> searchEngine(distribution);
-        //Gecode::DFS<ModelDistribution> searchEngine(this);
+        Gecode::BAB<TransportNetwork> searchEngine(distribution);
+        //Gecode::DFS<TransportNetwork> searchEngine(this);
 
-        ModelDistribution* best = NULL;
-        while(ModelDistribution* current = searchEngine.next())
+        TransportNetwork* best = NULL;
+        while(TransportNetwork* current = searchEngine.next())
         {
             delete best;
             best = current;
@@ -542,7 +542,7 @@ std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::M
         if(best == NULL)
         {
             delete distribution;
-            throw std::runtime_error("templ::solvers::csp::ModelDistribution::solve: no solution found");
+            throw std::runtime_error("templ::solvers::csp::TransportNetwork::solve: no solution found");
         }
     //    delete best;
         best = NULL;
@@ -552,7 +552,7 @@ std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::M
     return solutions;
 }
 
-void ModelDistribution::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPoolSet& combinations) const
+void TransportNetwork::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPoolSet& combinations) const
 {
     std::set< std::vector<uint32_t> > csp = toCSP( combinations );
     std::set< std::vector<uint32_t> >::const_iterator cit = csp.begin();
@@ -573,7 +573,7 @@ void ModelDistribution::appendToTupleSet(Gecode::TupleSet& tupleSet, const organ
     }
 }
 
-size_t ModelDistribution::getFluentIndex(const FluentTimeResource& fluent) const
+size_t TransportNetwork::getFluentIndex(const FluentTimeResource& fluent) const
 {
     std::vector<FluentTimeResource>::const_iterator ftsIt = std::find(mResourceRequirements.begin(), mResourceRequirements.end(), fluent);
     if(ftsIt != mResourceRequirements.end())
@@ -583,10 +583,10 @@ size_t ModelDistribution::getFluentIndex(const FluentTimeResource& fluent) const
         return (size_t) index;
     }
 
-    throw std::runtime_error("templ::solvers::csp::ModelDistribution::getFluentIndex: could not find fluent index for '" + fluent.toString() + "'");
+    throw std::runtime_error("templ::solvers::csp::TransportNetwork::getFluentIndex: could not find fluent index for '" + fluent.toString() + "'");
 }
 
-size_t ModelDistribution::getResourceModelIndex(const owlapi::model::IRI& model) const
+size_t TransportNetwork::getResourceModelIndex(const owlapi::model::IRI& model) const
 {
     owlapi::model::IRIList::const_iterator cit = std::find(mAvailableModels.begin(), mAvailableModels.end(), model);
     if(cit != mAvailableModels.end())
@@ -596,33 +596,33 @@ size_t ModelDistribution::getResourceModelIndex(const owlapi::model::IRI& model)
         return (size_t) index;
     }
 
-    throw std::runtime_error("templ::solvers::csp::ModelDistribution::getResourceModelIndex: could not find model index for '" + model.toString() + "'");
+    throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceModelIndex: could not find model index for '" + model.toString() + "'");
 }
 
-const owlapi::model::IRI& ModelDistribution::getResourceModelFromIndex(size_t index) const
+const owlapi::model::IRI& TransportNetwork::getResourceModelFromIndex(size_t index) const
 {
     if(index < mAvailableModels.size())
     {
         return mAvailableModels.at(index);
     }
-    throw std::invalid_argument("templ::solvers::csp::ModelDistribution::getResourceModelIndex: index is out of bounds");
+    throw std::invalid_argument("templ::solvers::csp::TransportNetwork::getResourceModelIndex: index is out of bounds");
 }
 
-size_t ModelDistribution::getResourceModelMaxCardinality(size_t index) const
+size_t TransportNetwork::getResourceModelMaxCardinality(size_t index) const
 {
     organization_model::ModelPool::const_iterator cit = mModelPool.find(getResourceModelFromIndex(index));
     if(cit != mModelPool.end())
     {
         return cit->second;
     }
-    throw std::invalid_argument("templ::solvers::csp::ModelDistribution::getResourceModelMaxCardinality: model not found");
+    throw std::invalid_argument("templ::solvers::csp::TransportNetwork::getResourceModelMaxCardinality: model not found");
 }
 
-std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() const
+std::vector<FluentTimeResource> TransportNetwork::getResourceRequirements() const
 {
     if(mIntervals.empty())
     {
-        throw std::runtime_error("solvers::csp::ModelDistribution::getResourceRequirements: no time intervals available"
+        throw std::runtime_error("solvers::csp::TransportNetwork::getResourceRequirements: no time intervals available"
                 " -- make sure you called prepareTimeIntervals() on the mission instance");
     }
 
@@ -657,20 +657,20 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
             if(iit == mIntervals.end())
             {
                 LOG_INFO_S << "Size of intervals: " << mIntervals.size();
-                throw std::runtime_error("templ::solvers::csp::ModelDistribution::getResourceRequirements: could not find interval: '" + interval.toString() + "'");
+                throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find interval: '" + interval.toString() + "'");
             }
 
             owlapi::model::IRIList::const_iterator sit = std::find(mResources.begin(), mResources.end(), resourceModel);
             if(sit == mResources.end())
             {
-                throw std::runtime_error("templ::solvers::csp::ModelDistribution::getResourceRequirements: could not find service: '" + resourceModel.toString() + "'");
+                throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find service: '" + resourceModel.toString() + "'");
             }
 
             symbols::constants::Location::Ptr location = locationCardinality->getLocation();
             std::vector<symbols::constants::Location::Ptr>::const_iterator lit = std::find(mLocations.begin(), mLocations.end(), location);
             if(lit == mLocations.end())
             {
-                throw std::runtime_error("templ::solvers::csp::ModelDistribution::getResourceRequirements: could not find location: '" + location->toString() + "'");
+                throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find location: '" + location->toString() + "'");
             }
 
             // Map objects to numeric indices -- the indices can be mapped
@@ -704,7 +704,7 @@ std::vector<FluentTimeResource> ModelDistribution::getResourceRequirements() con
     return requirements;
 }
 
-void ModelDistribution::compact(std::vector<FluentTimeResource>& requirements) const
+void TransportNetwork::compact(std::vector<FluentTimeResource>& requirements) const
 {
     LOG_DEBUG_S << "BEGIN compact requirements";
     std::vector<FluentTimeResource>::iterator it = requirements.begin();
@@ -765,12 +765,12 @@ void ModelDistribution::compact(std::vector<FluentTimeResource>& requirements) c
     LOG_DEBUG_S << "END compact requirements";
 }
 
-bool ModelDistribution::isRoleForModel(uint32_t roleIndex, uint32_t modelIndex) const
+bool TransportNetwork::isRoleForModel(uint32_t roleIndex, uint32_t modelIndex) const
 {
     return mRoles.at(roleIndex).getModel() == mAvailableModels.at(modelIndex);
 }
 
-size_t ModelDistribution::getMaxResourceCount(const organization_model::ModelPool& pool) const
+size_t TransportNetwork::getMaxResourceCount(const organization_model::ModelPool& pool) const
 {
     size_t maxValue = std::numeric_limits<size_t>::min();
     organization_model::ModelPool::const_iterator cit = pool.begin();
@@ -781,10 +781,10 @@ size_t ModelDistribution::getMaxResourceCount(const organization_model::ModelPoo
     return maxValue;
 }
 
-std::string ModelDistribution::toString() const
+std::string TransportNetwork::toString() const
 {
     std::stringstream ss;
-    ss << "ModelDistribution: #" << std::endl;
+    ss << "TranportNetwork: #" << std::endl;
     Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mModelPool.size(), mResourceRequirements.size());
 
     //// Check if resource requirements holds
@@ -816,15 +816,15 @@ std::string ModelDistribution::toString() const
     return ss.str();
 }
 
-std::ostream& operator<<(std::ostream& os, const ModelDistribution::Solution& solution)
+std::ostream& operator<<(std::ostream& os, const TransportNetwork::Solution& solution)
 {
     os << solution.toString();
     return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const ModelDistribution::SolutionList& solutions)
+std::ostream& operator<<(std::ostream& os, const TransportNetwork::SolutionList& solutions)
 {
-    ModelDistribution::SolutionList::const_iterator cit = solutions.begin();
+    TransportNetwork::SolutionList::const_iterator cit = solutions.begin();
     os << std::endl << "BEGIN SolutionList (#" << solutions.size() << " solutions)" << std::endl;
     size_t count = 0;
     for(; cit != solutions.end(); ++cit)
@@ -836,7 +836,7 @@ std::ostream& operator<<(std::ostream& os, const ModelDistribution::SolutionList
     return os;
 }
 
-void ModelDistribution::addFunctionRequirement(const FluentTimeResource& fts, owlapi::model::IRI& function)
+void TransportNetwork::addFunctionRequirement(const FluentTimeResource& fts, owlapi::model::IRI& function)
 {
     size_t index = 0;
     owlapi::model::IRIList::const_iterator cit = mResources.begin();
@@ -854,7 +854,7 @@ void ModelDistribution::addFunctionRequirement(const FluentTimeResource& fts, ow
             LOG_INFO_S << "AUTO ADDED '" << function << "' to required resources";
             mResources.push_back(function);
         } else {
-            throw std::invalid_argument("templ::solvers::csp::ModelDistribution: could not find the resource index for: '" + function.toString() + "' -- which is not a service class");
+            throw std::invalid_argument("templ::solvers::csp::TransportNetwork: could not find the resource index for: '" + function.toString() + "' -- which is not a service class");
         }
     }
     LOG_DEBUG_S << "Using index: " << index;
@@ -862,7 +862,7 @@ void ModelDistribution::addFunctionRequirement(const FluentTimeResource& fts, ow
     std::vector<FluentTimeResource>::iterator fit = std::find(mResourceRequirements.begin(), mResourceRequirements.end(), fts);
     if(fit == mResourceRequirements.end())
     {
-        throw std::invalid_argument("templ::solvers::csp::ModelDistribution: could not find the fluent time resource: '" + fts.toString() + "'");
+        throw std::invalid_argument("templ::solvers::csp::TransportNetwork: could not find the fluent time resource: '" + fts.toString() + "'");
     }
     LOG_DEBUG_S << "Fluent before adding function requirement: " << fit->toString();
     // insert the resource requirement

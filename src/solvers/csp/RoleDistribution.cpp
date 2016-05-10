@@ -16,7 +16,7 @@ RoleDistribution::SearchState::SearchState(const ModelDistribution::SearchState&
     , mpSearchEngine(NULL)
     , mType(OPEN)
 {
-    mpInitialState = RoleDistribution::Ptr(new RoleDistribution(modelSearchState.getMission(), modelSearchState.getSolution()) );
+    mpInitialState = RoleDistribution::Ptr(new RoleDistribution(modelSearchState.getMission(), modelSearchState.getModelDistributionSolution()) );
     mpSearchEngine = RoleDistribution::BABSearchEnginePtr(new Gecode::BAB<RoleDistribution>(mpInitialState.get()));
 }
 
@@ -55,7 +55,7 @@ RoleDistribution::SearchState RoleDistribution::SearchState::next() const
 }
 
 
-RoleDistribution::RoleDistribution(const Mission::Ptr& mission, const ModelDistribution::Solution& modelDistribution)
+RoleDistribution::RoleDistribution(const Mission::Ptr& mission, const ModelDistribution::ModelDistributionSolution& modelDistribution)
     : Gecode::Space()
     , mRoleUsage(*this, /*width --> col */ mission->getRoles().size()* /*height --> row*/ modelDistribution.size(), 0, 1) // Domain 0,1 to represent activation
     , mRoles(mission->getRoles())
@@ -68,7 +68,7 @@ RoleDistribution::RoleDistribution(const Mission::Ptr& mission, const ModelDistr
 
     // foreach FluentTimeResource
     //     same role types -> sum <= modelbound given by solution
-    ModelDistribution::Solution::const_iterator cit = modelDistribution.begin();
+    ModelDistribution::ModelDistributionSolution::const_iterator cit = modelDistribution.begin();
     size_t column = 0;
     for(; cit != modelDistribution.end(); ++cit, ++column)
     {
@@ -204,7 +204,7 @@ size_t RoleDistribution::getFluentIndex(const FluentTimeResource& fluent) const
     throw std::runtime_error("templ::solvers::csp::RoleDistribution::getFluentIndex: could not find fluent index for '" + fluent.toString() + "'");
 }
 
-RoleDistribution::SolutionList RoleDistribution::solve(const Mission::Ptr& mission, const ModelDistribution::Solution& modelDistribution)
+RoleDistribution::SolutionList RoleDistribution::solve(const Mission::Ptr& mission, const ModelDistribution::ModelDistributionSolution& modelDistribution)
 {
     SolutionList solutions;
 

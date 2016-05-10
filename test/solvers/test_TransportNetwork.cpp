@@ -1,7 +1,6 @@
 #include <boost/test/unit_test.hpp>
 #include <templ/Mission.hpp>
-#include <templ/solvers/csp/ModelDistribution.hpp>
-#include <templ/solvers/csp/RoleDistribution.hpp>
+#include <templ/solvers/csp/TransportNetwork.hpp>
 #include <organization_model/vocabularies/OM.hpp>
 
 #include "../test_utils.hpp"
@@ -9,7 +8,7 @@
 using namespace templ;
 using namespace organization_model;
 
-BOOST_AUTO_TEST_SUITE(csp)
+BOOST_AUTO_TEST_SUITE(csp_transport_network)
 
 BOOST_AUTO_TEST_CASE(mission_0)
 {
@@ -60,7 +59,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
         mission->setAvailableResources(modelPool);
         BOOST_REQUIRE_MESSAGE(mission->getOrganizationModel(), "Mission has organization model set");
 
-        solvers::csp::ModelDistribution::solve(mission);
+        solvers::csp::TransportNetwork::solve(mission);
     }
 
     {
@@ -69,7 +68,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
         mission->setAvailableResources(modelPool);
 
-        solvers::csp::ModelDistribution::solve(mission);
+        solvers::csp::TransportNetwork::solve(mission);
     }
 
     {
@@ -78,7 +77,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
         modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
         mission->setAvailableResources(modelPool);
-        solvers::csp::ModelDistribution::solve(mission);
+        solvers::csp::TransportNetwork::solve(mission);
     }
 
     {
@@ -89,7 +88,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
         modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
         mission->setAvailableResources(modelPool);
 
-        solvers::csp::ModelDistribution::solve(mission);
+        solvers::csp::TransportNetwork::solve(mission);
     }
 }
 
@@ -143,7 +142,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
         mission->setAvailableResources(modelPool);
-        BOOST_REQUIRE_THROW(solvers::csp::ModelDistribution::solve(mission), std::runtime_error);
+        BOOST_REQUIRE_THROW(solvers::csp::TransportNetwork::solve(mission), std::runtime_error);
     }
 
     using namespace solvers;
@@ -153,12 +152,8 @@ BOOST_AUTO_TEST_CASE(mission_1)
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 10;
         mission->setAvailableResources(modelPool);
-        std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
-
-        // Check role distribution after model distribution
-        std::vector<solvers::csp::RoleDistribution::Solution> roleSolutions = solvers::csp::RoleDistribution::solve(mission, solutions[0].getModelDistributionSolution());
-        BOOST_REQUIRE_MESSAGE(!roleSolutions.empty(), "Solutions found for role distribution: " << roleSolutions);
     }
 
     using namespace solvers;
@@ -169,13 +164,8 @@ BOOST_AUTO_TEST_CASE(mission_1)
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
         modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
         mission->setAvailableResources(modelPool);
-        std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
-
-        // Check role distribution after model distribution
-        std::vector<solvers::csp::RoleDistribution::Solution> roleSolutions = solvers::csp::RoleDistribution::solve(mission, solutions[0].getModelDistributionSolution());
-        BOOST_REQUIRE_MESSAGE(!roleSolutions.empty(), "Solutions found for role distribution: " << roleSolutions);
-
     }
 
     using namespace solvers;
@@ -188,60 +178,35 @@ BOOST_AUTO_TEST_CASE(mission_1)
         modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
         mission->setAvailableResources(modelPool);
 
-        std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
 
-        // Check role distribution after model distribution
-        std::vector<solvers::csp::RoleDistribution::Solution> roleSolutions = solvers::csp::RoleDistribution::solve(mission, solutions[0].getModelDistributionSolution());
-        BOOST_REQUIRE_MESSAGE(!roleSolutions.empty(), "Solutions found for role distribution: " << roleSolutions);
-
-        std::vector<solvers::csp::ModelDistribution::Solution> i_modelSolutions;
+        std::vector<solvers::csp::TransportNetwork::Solution> i_modelSolutions;
         using namespace solvers::csp;
-        ModelDistribution::SearchState modelSearchState(mission);
-        std::vector<ModelDistribution::SearchState> modelSolutionStates;
+        TransportNetwork::SearchState modelSearchState(mission);
+        std::vector<TransportNetwork::SearchState> modelSolutionStates;
 
         BOOST_TEST_MESSAGE("Checking for iterative production of solutions for model and role distribution");
-        BOOST_REQUIRE_MESSAGE(modelSearchState.getType() == ModelDistribution::SearchState::OPEN, "search state is open");
+        BOOST_REQUIRE_MESSAGE(modelSearchState.getType() == TransportNetwork::SearchState::OPEN, "search state is open");
         bool stopSearch = false;
         while(!stopSearch)
         {
-            ModelDistribution::SearchState nextState = modelSearchState.next();
+            TransportNetwork::SearchState nextState = modelSearchState.next();
             switch(nextState.getType())
             {
-                case ModelDistribution::SearchState::SUCCESS:
+                case TransportNetwork::SearchState::SUCCESS:
                     i_modelSolutions.push_back(nextState.getSolution());
                     modelSolutionStates.push_back(nextState);
                     break;
-                case ModelDistribution::SearchState::FAILED:
+                case TransportNetwork::SearchState::FAILED:
                     stopSearch = true;
                     break;
-                case ModelDistribution::SearchState::OPEN:
+                case TransportNetwork::SearchState::OPEN:
                     BOOST_REQUIRE_MESSAGE(false, "Open model search state found though should be either success of failed");
             }
         }
         BOOST_REQUIRE_MESSAGE(solutions.size() == i_modelSolutions.size(), "Number of model solutions of the same size: " << solutions.size() << " vs. " << i_modelSolutions.size());
         BOOST_TEST_MESSAGE("Iteratively found model distribution solutions: " << i_modelSolutions);
-
-        std::vector<solvers::csp::RoleDistribution::Solution> i_roleSolutions;
-        RoleDistribution::SearchState roleSearchState(modelSolutionStates[0]);
-        stopSearch = false;
-        while(!stopSearch)
-        {
-            RoleDistribution::SearchState nextState = roleSearchState.next();
-            switch(nextState.getType())
-            {
-                case RoleDistribution::SearchState::SUCCESS:
-                    i_roleSolutions.push_back(nextState.getSolution());
-                    break;
-                case RoleDistribution::SearchState::FAILED:
-                    stopSearch = true;
-                    break;
-                case RoleDistribution::SearchState::OPEN:
-                    BOOST_REQUIRE_MESSAGE(false, "Open role search state found, though should be either success or failed");
-            }
-        }
-        BOOST_REQUIRE_MESSAGE(roleSolutions.size() == i_roleSolutions.size(), "Number of role solutions of the same size: " << roleSolutions.size() << " vs. " << i_roleSolutions.size());
-        BOOST_TEST_MESSAGE("Iteratively found role distribution solutions: " << i_roleSolutions);
     }
 
     using namespace solvers;
@@ -257,12 +222,8 @@ BOOST_AUTO_TEST_CASE(mission_1)
         owlapi::model::IRI emi_power_provider = vocabulary::OM::resolve("EmiPowerProvider");
         mission->addResourceLocationCardinalityConstraint(loc1, t2, t3, emi_power_provider);
 
-        std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
-
-        // Check role distribution after model distribution
-        std::vector<solvers::csp::RoleDistribution::Solution> roleSolutions = solvers::csp::RoleDistribution::solve(mission, solutions[0].getModelDistributionSolution());
-        BOOST_REQUIRE_MESSAGE(!roleSolutions.empty(), "Solutions found for role distribution: " << roleSolutions);
     }
 }
 
@@ -316,7 +277,7 @@ BOOST_AUTO_TEST_CASE(mission_tt)
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
         mission->setAvailableResources(modelPool);
 
-        std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
     }
 }
@@ -366,14 +327,9 @@ BOOST_AUTO_TEST_CASE(symmetry_breaking)
         modelPool[ vocabulary::OM::resolve("Payload") ] = 100;
         mission->setAvailableResources(modelPool);
 
-        std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
         BOOST_REQUIRE_MESSAGE(solutions.size() < 10, "Number of solutions found (using symmetry breaking): # of found solutions less than 10 (since symmetry breaking "
                 " is not a 'complete' algorithm) : actual number of solutions: " << solutions);
-
-        // Check role distribution after model distribution
-        std::vector<solvers::csp::RoleDistribution::Solution> roleSolutions = solvers::csp::RoleDistribution::solve(mission, solutions[0].getModelDistributionSolution());
-        BOOST_REQUIRE_MESSAGE(roleSolutions.size() < 10, "Number of solution founds (using symmetry breaking): # of found solutions less than 10 (since symmetry "
-            "breaking is not complete: action number of solutions: " << roleSolutions.size());
     }
 }
 

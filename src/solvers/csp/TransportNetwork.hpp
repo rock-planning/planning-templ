@@ -1,5 +1,5 @@
-#ifndef TEMPL_SOLVERS_CSP_MODEL_DISTRIBUTION_HPP
-#define TEMPL_SOLVERS_CSP_MODEL_DISTRIBUTION_HPP
+#ifndef TEMPL_SOLVERS_CSP_TRANSPORT_NETWORK_HPP
+#define TEMPL_SOLVERS_CSP_TRANSPORT_NETWORK_HPP
 
 #include <string>
 #include <map>
@@ -17,35 +17,35 @@ namespace solvers {
 namespace csp {
 
 /**
- * \class ModelDistribution
- * \details ModelDistribution tries to associate actor models
+ * \class TransportNetwork
+ * \details TransportNetwork tries to associate actor models
  * according to the requirement of a given mission.
  *
  *
  */
-class ModelDistribution : public Gecode::Space
+class TransportNetwork : public Gecode::Space
 {
     friend class templ::MissionPlanner;
 public:
-    typedef std::map<FluentTimeResource, organization_model::ModelPool > ModelDistributionSolution;
-    typedef std::map<FluentTimeResource, Role::List> RoleDistributionSolution;
+    typedef std::map<FluentTimeResource, organization_model::ModelPool > ModelDistribution;
+    typedef std::map<FluentTimeResource, Role::List> RoleDistribution;
 
     class Solution
     {
-        friend class ModelDistribution;
+        friend class TransportNetwork;
 
-        ModelDistributionSolution mModelDistribution;
-        RoleDistributionSolution mRoleDistribution;
+        ModelDistribution mModelDistribution;
+        RoleDistribution mRoleDistribution;
     public:
-        const ModelDistributionSolution& getModelDistributionSolution() const { return mModelDistribution; }
-        const RoleDistributionSolution& getRoleDistributionSolution() const { return mRoleDistribution; }
+        const ModelDistribution& getModelDistribution() const { return mModelDistribution; }
+        const RoleDistribution& getRoleDistribution() const { return mRoleDistribution; }
 
         std::string toString(uint32_t indent = 0) const;
     };
 
     typedef std::vector<Solution> SolutionList;
-    typedef shared_ptr<ModelDistribution> Ptr;
-    typedef shared_ptr< Gecode::BAB<ModelDistribution> > BABSearchEnginePtr;
+    typedef shared_ptr<TransportNetwork> Ptr;
+    typedef shared_ptr< Gecode::BAB<TransportNetwork> > BABSearchEnginePtr;
 
     const std::vector<solvers::temporal::Interval>& getIntervals() const { return mIntervals; }
 
@@ -59,25 +59,25 @@ public:
 
         SearchState(const Mission::Ptr& mission);
 
-        SearchState(const ModelDistribution::Ptr& modelDistribution,
-                const ModelDistribution::BABSearchEnginePtr& searchEngine = ModelDistribution::BABSearchEnginePtr());
+        SearchState(const TransportNetwork::Ptr& transportNetwork,
+                const TransportNetwork::BABSearchEnginePtr& searchEngine = TransportNetwork::BABSearchEnginePtr());
 
-        ModelDistribution::Ptr getInitialState() const { return mpInitialState; }
+        TransportNetwork::Ptr getInitialState() const { return mpInitialState; }
         Mission::Ptr getMission() const { return mpMission; }
 
         SearchState next() const;
 
         Type getType() const { return mType; }
 
-        const ModelDistributionSolution& getModelDistributionSolution() const { return mSolution.getModelDistributionSolution(); }
-        const RoleDistributionSolution& getRoleDistributionSolution() const { return mSolution.getRoleDistributionSolution(); }
+        const ModelDistribution& getModelDistribution() const { return mSolution.getModelDistribution(); }
+        const RoleDistribution& getRoleDistribution() const { return mSolution.getRoleDistribution(); }
 
         const Solution getSolution() const { return mSolution; }
 
     private:
         Mission::Ptr mpMission;
-        ModelDistribution::Ptr mpInitialState;
-        ModelDistribution::BABSearchEnginePtr mpSearchEngine;
+        TransportNetwork::Ptr mpInitialState;
+        TransportNetwork::BABSearchEnginePtr mpSearchEngine;
 
         Type mType;
         Solution mSolution;
@@ -196,18 +196,18 @@ protected:
      */
     Solution getSolution() const;
 
-    ModelDistributionSolution getModelDistributionSolution() const;
-    RoleDistributionSolution getRoleDistributionSolution() const;
+    ModelDistribution getModelDistribution() const;
+    RoleDistribution getRoleDistribution() const;
 
 public:
-    ModelDistribution(const templ::Mission::Ptr& mission);
+    TransportNetwork(const templ::Mission::Ptr& mission);
 
     /**
      * Search support
      * This copy constructor is required for the search engine
      * and it has to provide a deep copy
      */
-    ModelDistribution(bool share, ModelDistribution& s);
+    TransportNetwork(bool share, TransportNetwork& s);
 
     /**
      * Creat a copy of this space
@@ -223,10 +223,10 @@ public:
     void addFunctionRequirement(const FluentTimeResource& fts, owlapi::model::IRI& function);
 };
 
-std::ostream& operator<<(std::ostream& os, const ModelDistribution::Solution& solution);
-std::ostream& operator<<(std::ostream& os, const ModelDistribution::SolutionList& solutions);
+std::ostream& operator<<(std::ostream& os, const TransportNetwork::Solution& solution);
+std::ostream& operator<<(std::ostream& os, const TransportNetwork::SolutionList& solutions);
 
 } // end namespace csp
 } // end namespace solvers
 } // end namespace templ
-#endif // TEMPL_SOLVERS_CSP_MODEL_DISTRIBUTION_HPP
+#endif // TEMPL_SOLVERS_CSP_TRANSPORT_NETWORK_HPP
