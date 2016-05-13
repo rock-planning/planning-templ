@@ -101,6 +101,8 @@ private:
 
     /// (Time)Intervals (as defined in the mission)
     std::vector<solvers::temporal::Interval> mIntervals;
+    /// Timepoints
+    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> mTimepoints;
     /// Constants: Locations (as defined in the mission)
     std::vector<symbols::constants::Location::Ptr> mLocations;
 
@@ -151,6 +153,29 @@ private:
     // model-based first stage guarantees conflict free solution on type basis
     Role::List mRoles;
 
+    std::vector<uint32_t> mActiveRoles;
+    // ############################
+    // Timelines
+    // ############################
+    // per role a timeline for each node in the path
+    // in the form of an adjacency list for spatio-temporal tuples
+    // (|Locations|*|Timepoints|)^2
+    //
+    // Activation if edge is traversed by this item or not
+    std::vector< Gecode::IntVarArray > mTimelines;
+
+    std::vector< Gecode::IntVarArray > mTimelineGraphs;
+
+    // Map the transport characteristic: (|Locations|*|Timepoints|)^2
+    // Order such that bigger indexes are referring to later events(!)
+    //                    | (t-0,loc-var-0) | (t-0, loc-var-1) | (t-0, loc-var-2) | ...
+    // (t-0, loc-var-0)   |     0          |     0
+    // (t-0, loc-var-1)   |     1          |     0
+    // (t-0, loc-var-2)   |     1          |     0
+    // (t-1, loc-var-0)   |
+    std::vector< Gecode::IntVarArray > mProvidedCapacities;
+    std::vector< Gecode::IntVarArray > mConsumedCapacities;
+
 private:
 
     std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelPoolSet& set) const;
@@ -189,6 +214,12 @@ private:
      * \return true if this is the case, false otherwise
      */
     bool isRoleForModel(uint32_t roleIndex, uint32_t modelIndex) const;
+
+    static void postRoleAssignments(Gecode::Space& home);
+    void postRoleAssignments();
+
+    static void postRoleTimelines(Gecode::Space& home);
+    void postRoleTimelines();
 
 protected:
     /**

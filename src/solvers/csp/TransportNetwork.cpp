@@ -9,6 +9,7 @@
 #include <templ/SharedPtr.hpp>
 #include <templ/symbols/object_variables/LocationCardinality.hpp>
 #include <templ/solvers/csp/ConstraintMatrix.hpp>
+#include <templ/SpaceTimeNetwork.hpp>
 
 namespace templ {
 namespace solvers {
@@ -224,6 +225,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     , mAsk(mpMission->getOrganizationModel(), mpMission->getAvailableResources(), true)
     , mResources(mpMission->getRequestedResources())
     , mIntervals(mpMission->getTimeIntervals())
+    , mTimepoints(mpMission->getOrderedTimepoints())
     , mLocations(mpMission->getLocations())
     , mResourceRequirements(getResourceRequirements())
     , mModelUsage(*this, /*# of models*/ mpMission->getAvailableResources().size()*
@@ -475,6 +477,61 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
         symmetries << VariableSequenceSymmetry(sameModelColumns, roleDistribution.height());
     }
 
+    LOG_INFO_S << "TIMEPOINTS";
+
+
+    // Now that the 'partial timeline exists' we want to make it a path, i.e.
+    // since it is too cumbersome to identify the start/end nodes for a
+    // timeline, we use the hamiltonian circuit
+    // --> generally nodes are connected for 'same location' and here we also
+    // connect the nodes of the very 'last' known timepoint to all of the very
+    // first
+    // this allows to use the hamiltonian circuit constraint to be enforced per
+    // role
+    //Gecode::IntVarArgs adjacencyList;
+    //size_t sourceNodeIndex = 0;
+    //for(size_t t = 0; t < mTimepoints.size()-1; ++t)
+    //{
+    //    Gecode::IntVarArgs args;
+    //    for(size_t l = 0; l < mLocations.size(); ++l, ++sourceNodeIndex)
+    //    {
+    //        size_t targetNodesStartIndex = (t+1)*mLocations.size();
+
+    //        Gecode::IntVar v(*this, targetNodesStartIndex, locationTimeSize-1);
+    //        args << v;
+    //    }
+    //    adjacencyList << v;
+    //}
+
+    //circuit(*this, adjacencyList);
+
+
+
+
+    //SpaceTimeNetwork spaceTimeNetwork(mLocations, mTimepoints);
+    //graph_analysis::VertexIterator::Ptr vertexIt = spaceTimeNetwork.getGraph()->getVertexIterator();
+    //while(vertexIt->next())
+    //{
+    //    graph_analysis::Vertex::Ptr vertex = vertexIt->current();
+
+    //}
+    //Gecode::IntVarArray usedCapacities(*this, mLocations.size()*mTimepoints.size(), 0, 1);
+    //graph_analysis::EdgeIterator::Ptr edgeIt = spaceTimeNetwork.getGraph()->getEdgeIterator();
+    //while(edgeIt->next())
+    //{
+    //    graph_analysis::Edge::Ptr edge = edgeIt->current();
+
+    //}
+
+
+
+    //// Create a timeline for a given role
+    //for(int c = 0; c < roleDistribution.width(); ++c)
+    //{
+    //    mRoles[c].getModel()
+
+    //}
+
     branch(*this, mModelUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());
     branch(*this, mModelUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_SPLIT_MIN());
     branch(*this, mModelUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_SPLIT_MIN());
@@ -483,7 +540,10 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN(), symmetries);
     branch(*this, mRoleUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_MIN(), symmetries);
 
-    //Gecode::Gist::Print<ModelDistribution> p("Print solution");
+    // see 8.14 Executing code between branchers
+    branch(*this, &TransportNetwork::postRoleAssignments);
+
+    //Gecode::Gist::Print<TransportNetwork> p("Print solution");
     //Gecode::Gist::Options o;
     //o.inspect.click(&p);
     //Gecode::Gist::bab(this, o);
@@ -497,6 +557,7 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
     , mAsk(other.mAsk)
     , mServices(other.mServices)
     , mIntervals(other.mIntervals)
+    , mTimepoints(other.mTimepoints)
     , mLocations(other.mLocations)
     , mResourceRequirements(other.mResourceRequirements)
     , mAvailableModels(other.mAvailableModels)
@@ -506,6 +567,18 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
     assert(!mIntervals.empty());
     mModelUsage.update(*this, share, other.mModelUsage);
     mRoleUsage.update(*this, share, other.mRoleUsage);
+
+    for(size_t i = 0; i < other.mTimelines.size(); ++i)
+    {
+        Gecode::IntVarArray array;
+        mTimelines.push_back(array);
+
+        Gecode::IntVarArray t_array;
+        mTimelineGraphs.push_back(t_array);
+
+        mTimelines[i].update(*this, share, other.mTimelines[i]);
+        mTimelineGraphs[i].update(*this, share, other.mTimelineGraphs[i]);
+    }
 }
 
 Gecode::Space* TransportNetwork::copy(bool share)
@@ -516,7 +589,6 @@ Gecode::Space* TransportNetwork::copy(bool share)
 std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mission::Ptr& mission)
 {
     SolutionList solutions;
-
     mission->validateForPlanning();
 
     assert(mission->getOrganizationModel());
@@ -537,6 +609,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
             LOG_INFO_S << "Solution found:" << current->toString();
             solutions.push_back(current->getSolution());
+            break;
         }
 
         if(best == NULL)
@@ -770,6 +843,203 @@ bool TransportNetwork::isRoleForModel(uint32_t roleIndex, uint32_t modelIndex) c
     return mRoles.at(roleIndex).getModel() == mAvailableModels.at(modelIndex);
 }
 
+void TransportNetwork::postRoleAssignments(Gecode::Space& home)
+{
+    static_cast<TransportNetwork&>(home).postRoleAssignments();
+}
+
+void TransportNetwork::postRoleAssignments()
+{
+    (void) status();
+    LOG_WARN_S << "Role usage: " << mRoleUsage;
+
+    // Identify active roles
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
+    for(size_t r = 0; r < mRoles.size(); ++r)
+    {
+        for(size_t i = 0; i < mResourceRequirements.size(); ++i)
+        {
+            Gecode::IntVar var = roleDistribution(r,i);
+            if(!var.assigned())
+            {
+                throw std::runtime_error("templ::solvers::csp::TransportNetwork::postRoleAssignments: value has not been assigned for role: '" + mRoles[r].toString() + "'");
+            }
+            Gecode::IntVarValues v(var);
+            if(v.val() == 1)
+            {
+                LOG_WARN_S << "Active role: " << mRoles[r].toString();
+                mActiveRoles.push_back(r);
+                break;
+            }
+        }
+    }
+
+    // construct timelines
+    size_t locationTimeSize = mLocations.size()*mTimepoints.size();
+    size_t timelineIndex = 0;
+    LOG_INFO_S << "LocationTimeSize: " << locationTimeSize*locationTimeSize << " -- " << mRoles.size() << " roles";
+    for(uint32_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
+    {
+        // consider only active roles
+        if(mActiveRoles.end() == std::find(mActiveRoles.begin(), mActiveRoles.end(), roleIndex))
+        {
+            continue;
+        }
+
+        Gecode::IntVarArray timeline(*this, locationTimeSize*locationTimeSize,0,1); // Domain is 0 or 1 to represent activation
+        mTimelines.push_back(timeline);
+        Gecode::Matrix<Gecode::IntVarArray> roleTimeline(mTimelines[timelineIndex], locationTimeSize, locationTimeSize);
+        ++timelineIndex;
+
+        for(uint32_t requirementIndex = 0; requirementIndex < mResourceRequirements.size(); ++requirementIndex)
+        {
+            Gecode::IntVar roleRequirement = roleDistribution(roleIndex, requirementIndex);
+
+            // maps to the interval
+            {
+                const FluentTimeResource& fts = mResourceRequirements[requirementIndex];
+                // index of the location is: fts.fluent
+                //
+                using namespace solvers::temporal;
+                point_algebra::TimePoint::Ptr from = fts.getInterval().getFrom();
+                point_algebra::TimePoint::Ptr to = fts.getInterval().getTo();
+                std::vector<point_algebra::TimePoint::Ptr>::const_iterator fromIt = std::find(mTimepoints.begin(), mTimepoints.end(), from);
+                std::vector<point_algebra::TimePoint::Ptr>::const_iterator toIt = std::find(mTimepoints.begin(), mTimepoints.end(), to);
+
+                uint32_t fromIndex = fromIt - mTimepoints.begin();
+                uint32_t toIndex = toIt - mTimepoints.begin();
+                for(uint32_t timeIndex = fromIndex; timeIndex < toIndex; ++timeIndex)
+                {
+                    // index of the location is fts.fluent
+                    // edge index:
+                    // row = |timepoints|*location + timepoint-from
+                    // col = |timepoints|*location + timepoint-to
+                    size_t row = timeIndex*mLocations.size() + fts.fluent;
+                    // Always connect to the next timestep
+                    size_t col = (timeIndex + 1)*mLocations.size() + fts.fluent;
+                    Gecode::IntVar edgeActivation = roleTimeline(col, row);
+
+                    // constraint between roleTimeline and roleRequirement
+                    // TODO: check if bool >= int does actually work
+                    rel(*this, edgeActivation >= roleRequirement);
+                }
+            }
+        }
+
+        // one outgoing edge per node only
+        for(size_t index = 0; index < locationTimeSize; ++index)
+        {
+            rel(*this, sum( roleTimeline.col(index) ) <= 1);
+            rel(*this, sum( roleTimeline.row(index) ) <= 1);
+        }
+
+        // one outgoing edge for same time nodes only
+        for(size_t t = 0; t < mTimepoints.size()-1; ++t)
+        {
+            Gecode::IntVarArgs args;
+            args << roleTimeline.slice(
+                t*mLocations.size(), t*mLocations.size() + mLocations.size() -1,
+                t*mLocations.size(), t*mLocations.size() + mLocations.size()-1);
+            rel(*this, sum(args) <= 1);
+
+            // forward in time only
+            //        t0-l0 ... t0-l2   t1-l1 ...
+            // t0-l0    x        x       ok
+            // t0-l1    x        x       ok
+            // t0-l2    x        x       ok
+            // t1-l1    x        x       x        x
+            // t1-l2    x        x       x        x
+            //
+            rel(*this, sum( roleTimeline.slice(
+                            0, t*mLocations.size() + mLocations.size() -1,
+                            t*mLocations.size(), t*mLocations.size()) ) == 0);
+
+        }
+    }
+    // Construct the basic timeline
+    //
+    // Map role requirements back to activation in general network
+    // requirement = location t0--tN, role-0, role-1
+    //
+    // foreach involved role
+    //     foreach requirement
+    //          from lX,t0 --> tN
+    //              request edge activation (referring to the role is active during that interval)
+    //              by >= value of the requirement( which is typically 0 or 1),
+    //              whereas activation can be 0 or 1 as well
+    //
+    // Compute a network with proper activation
+
+    branch(*this, &TransportNetwork::postRoleTimelines);
+
+    for(size_t i = 0; i < mActiveRoles.size(); ++i)
+    {
+        branch(*this, mTimelines[i], Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());
+        branch(*this, mTimelines[i], Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_SPLIT_MIN());
+        branch(*this, mTimelines[i], Gecode::INT_VAR_NONE(), Gecode::INT_VAL_SPLIT_MIN());
+    }
+}
+
+void TransportNetwork::postRoleTimelines(Gecode::Space& home)
+{
+    static_cast<TransportNetwork&>(home).postRoleTimelines();
+}
+
+void TransportNetwork::postRoleTimelines()
+{
+    (void) status();
+    for(size_t i = 0;  i < mTimelines.size(); ++i)
+    {
+        size_t locationTimeSize = mLocations.size()*mTimepoints.size();
+        Gecode::Matrix<Gecode::IntVarArray> timeline(mTimelines[i], locationTimeSize, locationTimeSize);
+
+        Gecode::IntVarArgs adjacencyList;
+        for(size_t row = 0; row < locationTimeSize; ++row)
+        {
+            std::vector<int> neighbours;
+            for(size_t col = 0; col < locationTimeSize; ++col)
+            {
+                Gecode::IntVar var = timeline(col, row);
+                if(var.assigned())
+                {
+                    Gecode::IntVarValues v(var);
+                    if(v.val() == 1)
+                    {
+                        // must be ajacent
+                        neighbours.push_back(col);
+                        break; // break the loop since there can be only one connection, so goto the next row
+                    }
+                } else {
+                    neighbours.push_back(col);
+                }
+            }
+
+            Gecode::IntArgs intNeighbours(neighbours.size(), neighbours.data());
+            Gecode::IntSet domain(intNeighbours);
+            Gecode::IntVar edge(*this, domain);
+
+            adjacencyList << edge;
+        }
+
+
+        Gecode::IntVarArray graph(*this, adjacencyList);
+        mTimelineGraphs.push_back(graph);
+
+        //Gecode::IntVar var = roleDistribution(r,i);
+        //Gecode::IntVarArgs args;
+        //Gecode::IntVar n0;
+
+        circuit(*this, adjacencyList);
+    }
+
+    for(size_t i = 0; i < mTimelineGraphs.size(); ++i)
+    {
+        branch(*this, mTimelineGraphs[i], Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());
+        branch(*this, mTimelineGraphs[i], Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_SPLIT_MIN());
+        branch(*this, mTimelineGraphs[i], Gecode::INT_VAR_NONE(), Gecode::INT_VAL_SPLIT_MIN());
+    }
+}
+
 size_t TransportNetwork::getMaxResourceCount(const organization_model::ModelPool& pool) const
 {
     size_t maxValue = std::numeric_limits<size_t>::min();
@@ -784,7 +1054,7 @@ size_t TransportNetwork::getMaxResourceCount(const organization_model::ModelPool
 std::string TransportNetwork::toString() const
 {
     std::stringstream ss;
-    ss << "TranportNetwork: #" << std::endl;
+    ss << "TransportNetwork: #" << std::endl;
     Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mModelPool.size(), mResourceRequirements.size());
 
     //// Check if resource requirements holds
@@ -812,6 +1082,16 @@ std::string TransportNetwork::toString() const
     ss << "Current model usage: " << mModelUsage << std::endl;
     ss << "Current model usage: " << resourceDistribution << std::endl;
     ss << "Current role usage: " << mRoleUsage << std::endl;
+    ss << "Current timelines:" << std::endl;
+    for(size_t i = 0; i < mTimelines.size(); ++i)
+    {
+        ss << "    #"<< i << ": " << mTimelines[i] << std::endl;
+    }
+    ss << "Current timeline graphs:" << std::endl;
+    for(size_t i = 0; i < mTimelineGraphs.size(); ++i)
+    {
+        ss << "    #"<< i << ": " << mTimelineGraphs[i] << std::endl;
+    }
 
     return ss.str();
 }

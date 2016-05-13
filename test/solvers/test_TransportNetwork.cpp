@@ -173,9 +173,9 @@ BOOST_AUTO_TEST_CASE(mission_1)
         Mission::Ptr mission(new Mission(baseMission));
 
         organization_model::ModelPool modelPool;
-        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
-        modelPool[ vocabulary::OM::resolve("CREX") ] = 3;
-        modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
+        modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
+        modelPool[ vocabulary::OM::resolve("Payload") ] = 1;
         mission->setAvailableResources(modelPool);
 
         std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
@@ -197,6 +197,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
                 case TransportNetwork::SearchState::SUCCESS:
                     i_modelSolutions.push_back(nextState.getSolution());
                     modelSolutionStates.push_back(nextState);
+                    stopSearch = true;
                     break;
                 case TransportNetwork::SearchState::FAILED:
                     stopSearch = true;
