@@ -10,6 +10,7 @@
 #include <templ/symbols/object_variables/LocationCardinality.hpp>
 #include <templ/solvers/csp/ConstraintMatrix.hpp>
 #include <templ/SpaceTimeNetwork.hpp>
+#include <iomanip>
 
 namespace templ {
 namespace solvers {
@@ -479,52 +480,6 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
 
     LOG_INFO_S << "TIMEPOINTS";
 
-
-    // Now that the 'partial timeline exists' we want to make it a path, i.e.
-    // since it is too cumbersome to identify the start/end nodes for a
-    // timeline, we use the hamiltonian circuit
-    // --> generally nodes are connected for 'same location' and here we also
-    // connect the nodes of the very 'last' known timepoint to all of the very
-    // first
-    // this allows to use the hamiltonian circuit constraint to be enforced per
-    // role
-    //Gecode::IntVarArgs adjacencyList;
-    //size_t sourceNodeIndex = 0;
-    //for(size_t t = 0; t < mTimepoints.size()-1; ++t)
-    //{
-    //    Gecode::IntVarArgs args;
-    //    for(size_t l = 0; l < mLocations.size(); ++l, ++sourceNodeIndex)
-    //    {
-    //        size_t targetNodesStartIndex = (t+1)*mLocations.size();
-
-    //        Gecode::IntVar v(*this, targetNodesStartIndex, locationTimeSize-1);
-    //        args << v;
-    //    }
-    //    adjacencyList << v;
-    //}
-
-    //circuit(*this, adjacencyList);
-
-
-
-
-    //SpaceTimeNetwork spaceTimeNetwork(mLocations, mTimepoints);
-    //graph_analysis::VertexIterator::Ptr vertexIt = spaceTimeNetwork.getGraph()->getVertexIterator();
-    //while(vertexIt->next())
-    //{
-    //    graph_analysis::Vertex::Ptr vertex = vertexIt->current();
-
-    //}
-    //Gecode::IntVarArray usedCapacities(*this, mLocations.size()*mTimepoints.size(), 0, 1);
-    //graph_analysis::EdgeIterator::Ptr edgeIt = spaceTimeNetwork.getGraph()->getEdgeIterator();
-    //while(edgeIt->next())
-    //{
-    //    graph_analysis::Edge::Ptr edge = edgeIt->current();
-
-    //}
-
-
-
     //// Create a timeline for a given role
     //for(int c = 0; c < roleDistribution.width(); ++c)
     //{
@@ -874,7 +829,9 @@ void TransportNetwork::postRoleAssignments()
         }
     }
 
-    // construct timelines
+    // construct timelines -- add an additional transfer location
+    mLocations.push_back(symbols::constants::Location::Ptr(new symbols::constants::Location("transfer")));
+
     size_t locationTimeSize = mLocations.size()*mTimepoints.size();
     size_t timelineIndex = 0;
     LOG_INFO_S << "LocationTimeSize: " << locationTimeSize*locationTimeSize << " -- " << mRoles.size() << " roles";
@@ -926,20 +883,22 @@ void TransportNetwork::postRoleAssignments()
             }
         }
 
-        // one outgoing edge per node only
+        // maximum one outgoing edge per node only
         for(size_t index = 0; index < locationTimeSize; ++index)
         {
             rel(*this, sum( roleTimeline.col(index) ) <= 1);
             rel(*this, sum( roleTimeline.row(index) ) <= 1);
         }
 
-        // one outgoing edge for same time nodes only
         for(size_t t = 0; t < mTimepoints.size()-1; ++t)
         {
             Gecode::IntVarArgs args;
-            args << roleTimeline.slice(
-                t*mLocations.size(), t*mLocations.size() + mLocations.size() -1,
-                t*mLocations.size(), t*mLocations.size() + mLocations.size()-1);
+            size_t baseIndex = t*mLocations.size();
+            // maxmimum one outgoing edge for same time nodes only
+            for(size_t l = 0; l < mLocations.size(); ++l)
+            {
+                args << roleTimeline.row(baseIndex + l);
+            }
             rel(*this, sum(args) <= 1);
 
             // forward in time only
@@ -988,11 +947,17 @@ void TransportNetwork::postRoleTimelines(Gecode::Space& home)
 void TransportNetwork::postRoleTimelines()
 {
     (void) status();
+
+    // Check for each timeline -- which is associated with a role
     for(size_t i = 0;  i < mTimelines.size(); ++i)
     {
         size_t locationTimeSize = mLocations.size()*mTimepoints.size();
+        LOG_DEBUG_S << "locations" << mLocations.size() << " timepoints " << mTimepoints.size();
         Gecode::Matrix<Gecode::IntVarArray> timeline(mTimelines[i], locationTimeSize, locationTimeSize);
 
+        // compute the adjacency list from the existing matrix
+        // identify the starting point and end point
+        std::vector< std::pair<size_t,size_t> > path;
         Gecode::IntVarArgs adjacencyList;
         for(size_t row = 0; row < locationTimeSize; ++row)
         {
@@ -1005,39 +970,93 @@ void TransportNetwork::postRoleTimelines()
                     Gecode::IntVarValues v(var);
                     if(v.val() == 1)
                     {
-                        // must be ajacent
-                        neighbours.push_back(col);
+                        path.push_back( std::pair<size_t,size_t>(col,row) );
                         break; // break the loop since there can be only one connection, so goto the next row
                     }
-                } else {
-                    neighbours.push_back(col);
+                }
+            }
+        }
+
+        // For each element in the path except for end and start there needs to
+        // be a connection in the range of the two given edges
+        if(path.size() >= 2)
+        {
+            if(path.size() > 2)
+            {
+                size_t startCol = path.front().first;
+                size_t startRow = path.front().second - path.front().second%mLocations.size();
+                size_t endCol = path.back().first;
+                size_t endRow = path.back().second - path.back().second%mLocations.size();
+
+                for(size_t rowIndex = startRow; rowIndex <= endRow; ++rowIndex)
+                {
+                    // requires a
+                    // already specified rel(*this, sum( timeline.row(rowIndex)) <= 1);
+                    if(rowIndex > startRow + mLocations.size())
+                    {
+                        // edges need to form a path
+                        //rel(*this, sum( timeline.row(rowIndex)) == sum (timeline.col(rowIndex)) );
+                    }
+
+                    if(rowIndex != endRow)
+                    {
+                        // for each timestep there needs to be a path segment
+                        if(rowIndex%mLocations.size() == 0)
+                        {
+                            // fc,tc, fr, tr: from column to column, from row to
+                            // row
+                            Gecode::IntVarArgs args;
+                            args << timeline.slice(rowIndex+mLocations.size(), rowIndex + 2*mLocations.size() -1,
+                                    rowIndex, rowIndex + mLocations.size() -1);
+                            rel(*this, sum(args) == 1);
+                        }
+                    }
                 }
             }
 
-            Gecode::IntArgs intNeighbours(neighbours.size(), neighbours.data());
-            Gecode::IntSet domain(intNeighbours);
-            Gecode::IntVar edge(*this, domain);
+            for(size_t nodeIndex = 0; nodeIndex < path.size(); ++nodeIndex)
+            {
+                size_t col = path[nodeIndex].first;
+                size_t row = path[nodeIndex].second;
+                // last affected row that is temporally concurrent with the
+                // current row
+                size_t startRow = row - row%mLocations.size();
+                size_t endRow = startRow + mLocations.size() -1;
 
-            adjacencyList << edge;
+                if(nodeIndex == 0)
+                {
+                    // No connection before this time-location
+                    Gecode::IntVarArgs args;
+                    for(size_t rowIndex = 0; rowIndex <= endRow; ++rowIndex)
+                    {
+                       args << timeline.row(rowIndex);
+                    }
+                    rel(*this, sum(args) == 1);
+
+                } else {
+                    // Require the node 'row' to be connected to 'col'
+                    rel(*this, sum( timeline.col(row) ) == 1);
+                }
+
+                if(nodeIndex == path.size() -1)
+                {
+                    // No connection after this time-location
+                    Gecode::IntVarArgs args;
+                    for(size_t rowIndex = startRow; rowIndex < locationTimeSize; ++rowIndex)
+                    {
+                       args << timeline.row(rowIndex);
+                    }
+                    // no edge should leave from anywhere, since this is the
+                    // last
+                    rel(*this, sum(args) == 1);
+                } else
+                {
+                    rel(*this, sum( timeline.row(col) ) == 1);
+                }
+            }
         }
-
-
-        Gecode::IntVarArray graph(*this, adjacencyList);
-        mTimelineGraphs.push_back(graph);
-
-        //Gecode::IntVar var = roleDistribution(r,i);
-        //Gecode::IntVarArgs args;
-        //Gecode::IntVar n0;
-
-        circuit(*this, adjacencyList);
     }
 
-    for(size_t i = 0; i < mTimelineGraphs.size(); ++i)
-    {
-        branch(*this, mTimelineGraphs[i], Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());
-        branch(*this, mTimelineGraphs[i], Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_SPLIT_MIN());
-        branch(*this, mTimelineGraphs[i], Gecode::INT_VAR_NONE(), Gecode::INT_VAL_SPLIT_MIN());
-    }
 }
 
 size_t TransportNetwork::getMaxResourceCount(const organization_model::ModelPool& pool) const
@@ -1086,13 +1105,33 @@ std::string TransportNetwork::toString() const
     for(size_t i = 0; i < mTimelines.size(); ++i)
     {
         ss << "    #"<< i << ": " << mTimelines[i] << std::endl;
-    }
-    ss << "Current timeline graphs:" << std::endl;
-    for(size_t i = 0; i < mTimelineGraphs.size(); ++i)
-    {
-        ss << "    #"<< i << ": " << mTimelineGraphs[i] << std::endl;
-    }
+        std::string path;
 
+        size_t locationTimeSize = mLocations.size()*mTimepoints.size();
+        Gecode::Matrix<Gecode::IntVarArray> timeline(mTimelines[i], locationTimeSize, locationTimeSize);
+        for(size_t row = 0; row < locationTimeSize; ++row)
+        {
+            size_t timeIndex = (row - row%mLocations.size())/mLocations.size();
+            size_t locationIndex = row%mLocations.size();
+            std::string label = "" + mTimepoints[timeIndex]->toString() + "-" + mLocations[locationIndex]->toString();
+            ss << "#" << row << " " << std::setw(65) << label << " ";
+            for(size_t col = 0; col < locationTimeSize; ++col)
+            {
+                Gecode::IntVar var = timeline(col,row);
+                ss <<  var << " ";
+                if(var.assigned())
+                {
+                    Gecode::IntVarValues v(var);
+                    if(v.val() == 1)
+                    {
+                        path += "-->" + label;
+                    }
+                }
+            }
+            ss << std::endl;
+        }
+        ss << "    " << path << std::endl;
+    }
     return ss.str();
 }
 
