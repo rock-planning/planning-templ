@@ -164,15 +164,16 @@ private:
     // Activation if edge is traversed by this item or not
     std::vector< Gecode::IntVarArray > mTimelines;
 
-    std::vector< Gecode::IntVarArray > mTimelineGraphs;
-
     // Map the transport characteristic: (|Locations|*|Timepoints|)^2
     // Order such that bigger indexes are referring to later events(!)
     //                    | (t-0,loc-var-0) | (t-0, loc-var-1) | (t-0, loc-var-2) | ...
     // (t-0, loc-var-0)   |     0          |     0
     // (t-0, loc-var-1)   |     1          |     0
     // (t-0, loc-var-2)   |     1          |     0
+    // (t-0, loc-trans)   |     1          |     0
     // (t-1, loc-var-0)   |
+    std::vector< Gecode::IntVarArray > mTimelineGraphs;
+
     std::vector< Gecode::IntVarArray > mProvidedCapacities;
     std::vector< Gecode::IntVarArray > mConsumedCapacities;
 
@@ -229,6 +230,8 @@ protected:
 
     ModelDistribution getModelDistribution() const;
     RoleDistribution getRoleDistribution() const;
+
+    std::string toString(const std::vector<Gecode::IntVarArray>& timelines) const;
 
 public:
     TransportNetwork(const templ::Mission::Ptr& mission);

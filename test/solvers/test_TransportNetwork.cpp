@@ -228,6 +228,65 @@ BOOST_AUTO_TEST_CASE(mission_1)
     }
 }
 
+BOOST_AUTO_TEST_CASE(mission_2)
+{
+    // mission outline -- qualitative planning
+    // [location_image_provider, mission_point1]@[t0,t1]
+    // [location_image_provider, mission_point2]@[t2,t3]
+    // [location_image_provider, mission_point1]@[t6,t7]
+    //
+    // temporalConstraint t1 < t2
+    //
+    // --> translate into systems and update timings accordingly
+    // --> mission should contain sychronization points
+
+    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
+                getRootDir() + "test/data/om-schema-latest.owl");
+    owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
+
+    using namespace solvers::temporal;
+    point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
+    point_algebra::TimePoint::Ptr t1 = point_algebra::QualitativeTimePoint::getInstance("t1");
+    point_algebra::TimePoint::Ptr t2 = point_algebra::QualitativeTimePoint::getInstance("t2");
+    point_algebra::TimePoint::Ptr t3 = point_algebra::QualitativeTimePoint::getInstance("t3");
+    point_algebra::TimePoint::Ptr t4 = point_algebra::QualitativeTimePoint::getInstance("t4");
+    point_algebra::TimePoint::Ptr t5 = point_algebra::QualitativeTimePoint::getInstance("t5");
+    point_algebra::TimePoint::Ptr t6 = point_algebra::QualitativeTimePoint::getInstance("t6");
+    point_algebra::TimePoint::Ptr t7 = point_algebra::QualitativeTimePoint::getInstance("t7");
+
+    Mission baseMission(om);
+
+    using namespace ::templ::symbols;
+    constants::Location::Ptr loc0( new constants::Location("loc0", base::Point(0,0,0)));
+    constants::Location::Ptr loc1( new constants::Location("loc1", base::Point(10,10,0)));
+
+    baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
+    //baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
+    baseMission.addResourceLocationCardinalityConstraint(loc0, t6, t7, location_image_provider);
+
+    baseMission.addTemporalConstraint(t0,t1, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t2,t3, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t3,t4, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t4,t5, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t5,t6, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t6,t7, point_algebra::QualitativeTimePointConstraint::Less);
+
+    baseMission.prepareTimeIntervals();
+
+    using namespace solvers;
+    {
+        Mission::Ptr mission(new Mission(baseMission));
+        organization_model::ModelPool modelPool;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
+        mission->setAvailableResources(modelPool);
+        BOOST_REQUIRE_MESSAGE(mission->getOrganizationModel(), "Mission has organization model set");
+
+        solvers::csp::TransportNetwork::solve(mission);
+    }
+}
+
+
 BOOST_AUTO_TEST_CASE(mission_tt)
 {
 
