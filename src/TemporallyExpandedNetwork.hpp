@@ -11,6 +11,14 @@
 
 namespace templ {
 
+/**
+ * \class TemporallyExpandedNetwork
+ * \tparam D0
+ * \tparam D1
+ * \brief The temporally expanded network connects all tuples of the first
+ * dimension (D0) if they belong to the same value of the second dimension D1
+ * and assigns an infinite weight on this edge
+ */
 template<typename D0, typename D1 = templ::solvers::temporal::point_algebra::TimePoint>
 class TemporallyExpandedNetwork
 {
