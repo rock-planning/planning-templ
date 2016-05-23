@@ -11,6 +11,8 @@
 #include <templ/solvers/csp/ConstraintMatrix.hpp>
 #include <templ/SpaceTimeNetwork.hpp>
 #include <iomanip>
+#include <organization_model/facets/Robot.hpp>
+#include <Eigen/Dense>
 
 namespace templ {
 namespace solvers {
@@ -234,6 +236,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     , mAvailableModels(mpMission->getModels())
     , mRoleUsage(*this, /*width --> col */ mission->getRoles().size()* /*height --> row*/ mResourceRequirements.size(), 0, 1) // Domain 0,1 to represent activation
     , mRoles(mission->getRoles())
+    , mCapacities(*this, (mLocations.size()+1)*(mLocations.size()+1)*mTimepoints.size()*mTimepoints.size(), 0, Gecode::Int::Limits::max)
 {
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
@@ -508,6 +511,7 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
     , mResourceRequirements(other.mResourceRequirements)
     , mAvailableModels(other.mAvailableModels)
     , mRoles(other.mRoles)
+    , mActiveRoles(other.mActiveRoles)
 {
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
@@ -520,6 +524,7 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
         mTimelines.push_back(array);
         mTimelines[i].update(*this, share, other.mTimelines[i]);
     }
+    mCapacities.update(*this, share, other.mCapacities);
 }
 
 Gecode::Space* TransportNetwork::copy(bool share)
@@ -550,6 +555,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
             LOG_INFO_S << "Solution found:" << current->toString();
             solutions.push_back(current->getSolution());
+            break;
         }
 
         if(best == NULL)
@@ -788,11 +794,9 @@ void TransportNetwork::postRoleAssignments(Gecode::Space& home)
     static_cast<TransportNetwork&>(home).postRoleAssignments();
 }
 
-void TransportNetwork::postRoleAssignments()
+std::vector<uint32_t> TransportNetwork::getActiveRoles() const
 {
-    (void) status();
-    LOG_WARN_S << "Role usage: " << mRoleUsage;
-
+    std::vector<uint32_t> activeRoles;
     // Identify active roles
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
     for(size_t r = 0; r < mRoles.size(); ++r)
@@ -808,18 +812,29 @@ void TransportNetwork::postRoleAssignments()
             if(v.val() == 1)
             {
                 LOG_WARN_S << "Active role: " << mRoles[r].toString();
-                mActiveRoles.push_back(r);
+                activeRoles.push_back(r);
                 break;
             }
         }
     }
+    return activeRoles;
+}
+
+void TransportNetwork::postRoleAssignments()
+{
+    LOG_WARN_S << "POST ROLE ASSIGNMENTS";
+    (void) status();
+    LOG_WARN_S << "Role usage: " << mRoleUsage;
+    mActiveRoles = getActiveRoles();
+
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
 
     //#############################################
     // construct timelines
     // ############################################
     //
     // -- add an additional transfer location to allow for 'timegaps'
-    mLocations.push_back(symbols::constants::Location::Ptr(new symbols::constants::Location("transfer")));
+    mLocations.push_back(symbols::constants::Location::Ptr(new symbols::constants::Location("in-transfer")));
 
     size_t locationTimeSize = mLocations.size()*mTimepoints.size();
     size_t timelineIndex = 0;
@@ -939,15 +954,15 @@ void TransportNetwork::postRoleAssignments()
     //              whereas activation can be 0 or 1 as well
     //
     // Compute a network with proper activation
-
     branch(*this, &TransportNetwork::postRoleTimelines);
-
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
         branch(*this, mTimelines[i], Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());
         branch(*this, mTimelines[i], Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_SPLIT_MIN());
         branch(*this, mTimelines[i], Gecode::INT_VAR_NONE(), Gecode::INT_VAL_SPLIT_MIN());
     }
+
+    branch(*this, &TransportNetwork::postFlowCapacities);
 }
 
 void TransportNetwork::postRoleTimelines(Gecode::Space& home)
@@ -957,6 +972,11 @@ void TransportNetwork::postRoleTimelines(Gecode::Space& home)
 
 void TransportNetwork::postRoleTimelines()
 {
+    LOG_WARN_S << "POST ROLE TIMELINES";
+    if(mActiveRoles.empty())
+    {
+        LOG_WARN_S << "NO ACTIVE ROLES";
+    }
     (void) status();
 
     // Check for each timeline -- which is associated with a role
@@ -1076,6 +1096,104 @@ void TransportNetwork::postRoleTimelines()
     }
 }
 
+void TransportNetwork::postFlowCapacities(Gecode::Space& home)
+{
+    static_cast<TransportNetwork&>(home).postFlowCapacities();
+}
+
+void TransportNetwork::postFlowCapacities()
+{
+    (void) status();
+    LOG_WARN_S << "POST FLOW CAPACITIES";
+
+
+    // Consumer vs. Providers
+    size_t locationTimeSize = mLocations.size()*mTimepoints.size();
+    size_t  numberOfRows = locationTimeSize;
+
+    typedef Eigen::Matrix<int32_t, Eigen::Dynamic, Eigen::Dynamic> MatrixXi;
+    MatrixXi capacities = MatrixXi::Zero(locationTimeSize, locationTimeSize);
+
+    Gecode::Matrix< Gecode::IntVarArray > capacityMatrix(mCapacities, locationTimeSize, locationTimeSize);
+
+    for(size_t rowIndex = 0; rowIndex < locationTimeSize; ++rowIndex)
+    {
+        size_t rowLocationIndex = rowIndex%mLocations.size();
+        size_t rowTimeIndex = rowIndex/mLocations.size();
+        LOG_WARN_S << "row: " << rowIndex <<  " " << mLocations[rowLocationIndex]->toString();
+        LOG_WARN_S << "                          " << mTimepoints[rowTimeIndex]->toString();
+
+        for(size_t colIndex = 0; colIndex < locationTimeSize; ++colIndex)
+        {
+            bool isSameLocation = false;
+
+            size_t colLocationIndex = colIndex%mLocations.size();
+            size_t colTimeIndex = colIndex/mLocations.size();
+
+            LOG_WARN_S << "col: " << colIndex <<  " " << mLocations[colLocationIndex]->toString();
+            LOG_WARN_S << "       " << mTimepoints[colTimeIndex]->toString();
+
+            if( rowLocationIndex == colLocationIndex)
+            {
+                LOG_WARN_S << "Is same location";
+                isSameLocation = true;
+                if(rowTimeIndex + 1 == colTimeIndex)
+                {
+                    LOG_WARN_S << "Updating: " << rowIndex << "/" << colIndex;
+                    capacities(rowIndex, colIndex) = std::numeric_limits<int32_t>::max();
+                } else {
+                    LOG_WARN_S << "Not subsequent timesteps";
+                }
+            }
+
+            std::vector<uint32_t>::const_iterator cit = mActiveRoles.begin();
+            size_t timelineIndex = 0;
+            for(; cit != mActiveRoles.end(); ++cit, ++timelineIndex)
+            {
+                const Role& role = mRoles[*cit];
+
+                if(!isSameLocation)
+                {
+                        Gecode::Matrix<Gecode::IntVarArray> timeline(mTimelines[timelineIndex], numberOfRows, numberOfRows);
+                        // check assignment
+                        Gecode::IntVar pathElement = timeline(colIndex, rowIndex);
+                        if(pathElement.assigned())
+                        {
+                            Gecode::IntVarValues v(pathElement);
+                            if(v.val() == 1)
+                            {
+
+                                organization_model::facets::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
+                                if(robot.isMobile())
+                                {
+                                    // Provider
+                                    uint32_t capacity = robot.getPayloadTransportCapacity();
+                                    capacities(rowIndex, colIndex) += capacity;
+                                    LOG_WARN_S << "INCREASE CAPACITY OF: " << capacity << " at " << rowIndex << " " << colIndex << " cap: " << capacities(rowIndex, colIndex);
+                                } else {
+                                    // Consumer
+                                    capacities(rowIndex, colIndex) -= 1; //capacity;
+                                    LOG_WARN_S << "REDUCE CAPACITY OF: " << " at " << rowIndex << " " << colIndex << " cap" << capacities(rowIndex, colIndex);
+                                }
+                            }
+                        }
+                    }
+            }
+            int capacity = capacities(rowIndex, colIndex);
+            Gecode::IntVar capacityVar = capacityMatrix(colIndex, rowIndex);
+            if(capacity == std::numeric_limits<int32_t>::max())
+            {
+                rel(*this, capacityVar, Gecode::IRT_EQ, Gecode::Int::Limits::max);
+            } else {
+                rel(*this, capacityVar, Gecode::IRT_EQ, capacity);
+            }
+
+            rel(*this, capacityVar, Gecode::IRT_GQ, 0);
+        }
+    }
+
+}
+
 size_t TransportNetwork::getMaxResourceCount(const organization_model::ModelPool& pool) const
 {
     size_t maxValue = std::numeric_limits<size_t>::min();
@@ -1119,40 +1237,52 @@ std::string TransportNetwork::toString() const
     ss << "Current model usage: " << resourceDistribution << std::endl;
     ss << "Current role usage: " << mRoleUsage << std::endl;
     ss << "Current timelines:" << std::endl << toString(mTimelines) << std::endl;
+    ss << "Capacities: " << std::endl << toString(mCapacities) << std::endl;
     return ss.str();
 }
 
 std::string TransportNetwork::toString(const std::vector<Gecode::IntVarArray>& timelines) const
 {
+    std::vector<uint32_t> activeRoles = getActiveRoles();
     std::stringstream ss;
     for(size_t i = 0; i < timelines.size(); ++i)
     {
-        std::string path;
-        size_t locationTimeSize = mLocations.size()*mTimepoints.size();
-        Gecode::Matrix<Gecode::IntVarArray> timeline(mTimelines[i], locationTimeSize, locationTimeSize);
-        for(size_t row = 0; row < locationTimeSize; ++row)
+        assert( activeRoles.size() > i);
+        ss << mRoles[ activeRoles[i] ].toString() << std::endl;
+
+        ss << toString(timelines[i]) << std::endl;
+    }
+    return ss.str();
+}
+
+std::string TransportNetwork::toString(const Gecode::IntVarArray& array) const
+{
+    std::stringstream ss;
+    std::string path;
+    size_t locationTimeSize = mLocations.size()*mTimepoints.size();
+    Gecode::Matrix<Gecode::IntVarArray> timeline(array, locationTimeSize, locationTimeSize);
+    for(size_t row = 0; row < locationTimeSize; ++row)
+    {
+        size_t timeIndex = (row - row%mLocations.size())/mLocations.size();
+        size_t locationIndex = row%mLocations.size();
+        std::string label = "" + mTimepoints[timeIndex]->toString() + "-" + mLocations[locationIndex]->toString();
+        ss << "#" << row << " " << std::setw(65) << label << " ";
+        for(size_t col = 0; col < locationTimeSize; ++col)
         {
-            size_t timeIndex = (row - row%mLocations.size())/mLocations.size();
-            size_t locationIndex = row%mLocations.size();
-            std::string label = "" + mTimepoints[timeIndex]->toString() + "-" + mLocations[locationIndex]->toString();
-            ss << "#" << row << " " << std::setw(65) << label << " ";
-            for(size_t col = 0; col < locationTimeSize; ++col)
+            Gecode::IntVar var = timeline(col,row);
+            ss <<  var << " ";
+            if(var.assigned())
             {
-                Gecode::IntVar var = timeline(col,row);
-                ss <<  var << " ";
-                if(var.assigned())
+                Gecode::IntVarValues v(var);
+                if(v.val() == 1)
                 {
-                    Gecode::IntVarValues v(var);
-                    if(v.val() == 1)
-                    {
-                        path += "-->" + label;
-                    }
+                    path += "-->" + label;
                 }
             }
-            ss << std::endl;
         }
-        ss << "    " << path << std::endl;
+        ss << std::endl;
     }
+    ss << "    " << path << std::endl;
     return ss.str();
 }
 

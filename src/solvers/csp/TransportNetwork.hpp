@@ -173,9 +173,12 @@ private:
     // (t-0, loc-trans)   |     1          |     0
     // (t-1, loc-var-0)   |
     std::vector< Gecode::IntVarArray > mTimelineGraphs;
+    Gecode::IntVarArray mCapacities;
+    //std::vector< Gecode::IntVarArray > mProviderCapacities;
+    //std::vector< Gecode::IntVarArray > mConsumerCapacities;
 
-    std::vector< Gecode::IntVarArray > mProvidedCapacities;
-    std::vector< Gecode::IntVarArray > mConsumedCapacities;
+    // row column access
+    //MatrixXi mProviderCapacities;
 
 private:
 
@@ -216,11 +219,16 @@ private:
      */
     bool isRoleForModel(uint32_t roleIndex, uint32_t modelIndex) const;
 
+    std::vector<uint32_t> getActiveRoles() const;
+
     static void postRoleAssignments(Gecode::Space& home);
     void postRoleAssignments();
 
     static void postRoleTimelines(Gecode::Space& home);
     void postRoleTimelines();
+
+    static void postFlowCapacities(Gecode::Space& home);
+    void postFlowCapacities();
 
 protected:
     /**
@@ -232,6 +240,7 @@ protected:
     RoleDistribution getRoleDistribution() const;
 
     std::string toString(const std::vector<Gecode::IntVarArray>& timelines) const;
+    std::string toString(const Gecode::IntVarArray& array) const;
 
 public:
     TransportNetwork(const templ::Mission::Ptr& mission);
