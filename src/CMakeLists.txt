@@ -25,6 +25,7 @@ rock_library(templ
         solvers/csp/FluentTimeResource.cpp
         solvers/csp/TemporalCSP.cpp
         solvers/csp/TransportNetwork.cpp
+        solvers/csp/TemporallyExpandedGraph.cpp
         solvers/GQReasoner.cpp
         solvers/temporal/Bounds.cpp
         solvers/temporal/Chronicle.cpp
@@ -79,6 +80,7 @@ rock_library(templ
         solvers/csp/RoleTimeline.hpp
         solvers/csp/TemporalCSP.hpp
         solvers/csp/TransportNetwork.hpp
+        solvers/csp/TemporallyExpandedGraph.hpp
         solvers/temporal/Bounds.hpp
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
