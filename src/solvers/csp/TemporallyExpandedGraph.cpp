@@ -118,65 +118,6 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, ViewArray<Int::IntView>& xv
         }
     }
 
-    //Gecode::LinIntExpr v = (xv[0] + xv[1] + xv[2] + xv[3]);
-
-    //Gecode::Matrix< ViewArray<Int::IntView> > adjacencyMatrix(xv, numberOfVertices, numberOfVertices);
-    //LOG_WARN_S << "t and f" << numberOfTimepoints << " " << numberOfFluents;
-    //for(uint32_t t = 0; t <= numberOfTimepoints; ++t)
-    //{
-    //    for(uint32_t f = 0; f <= numberOfFluents; ++f)
-    //    {
-    //        //LOG_WARN_S << "T und F" << t << " " << f;
-    //        uint32_t index = t*numberOfFluents + f;
-    //        LOG_WARN_S << "INDEX of: " << index << " should be 0";
-    //        GECODE_ME_CHECK(xv[index].eq(home,1));
-    //    }
-    //}
-
-    // maximum one outgoing edge per node only
-    //for(size_t index = 0; index < numberOfVertices; ++index)
-    //{
-    //    rel(home, sum( adjacencyMatrix.col(index) ) <= 1);
-    //    rel(home, sum( adjacencyMatrix.row(index) ) <= 1);
-    //}
-
-    //for(size_t t = 0; t < numberOfTimepoints-1; ++t)
-    //{
-    //    Gecode::IntVarArgs args;
-    //    size_t baseIndex = t*numberOfFluents;
-    //    // #####################################################
-    //    // maximum one outgoing edge for same time nodes only
-    //    // #####################################################
-    //    LOG_WARN_S << " Sum of ";
-    //    for(size_t l = 0; l < numberOfFluents; ++l)
-    //    {
-    //        LOG_WARN_S << " row: " << baseIndex + l;
-    //        args << adjacencyMatrix.row(baseIndex + l);
-    //    }
-    //    rel(home, sum(args) <= 1);
-    //    LOG_WARN_S << " less than 1";
-
-    //    //############################
-    //    //    forward in time only
-    //    //###########################
-    //    //        t0-l0 ... t0-l2   t1-l1 ...
-    //    // t0-l0    x        x       ok
-    //    // t0-l1    x        x       ok
-    //    // t0-l2    x        x       ok
-    //    // t1-l1    x        x       x        x
-    //    // t1-l2    x        x       x        x
-    //    //
-    //    // fc tc fr tr: from col to col, from row to row
-    //    // open interval, i.e. [fc,tc) so that tc is not included in the
-    //    // slice
-    //    size_t fc = 0;
-    //    size_t tc = t*numberOfFluents + numberOfFluents;
-    //    size_t fr = t*numberOfFluents;
-    //    size_t tr = numberOfVertices;
-    //    LOG_WARN_S << "SLICE " << fc << "/"<< tc << " -- " << fr << "/" << tr << " sum == 0";
-    //    rel(home, sum( adjacencyMatrix.slice(fc,tc,fr,tr)) == 0);
-    //}
-
     // documentation. 4.3.1 Post functions are clever
     // A constraint post function carefully analyzes its arguments. Based on
     // this analysis, the constraint post function chooses the best possible propagator for the constraint

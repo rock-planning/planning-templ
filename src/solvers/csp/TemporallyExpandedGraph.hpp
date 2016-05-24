@@ -7,6 +7,10 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
+/**
+ * Check if a given array of the form [timepointIdx*#fluents + fluentIdx]
+ * is representing a path that conforms to temporal constraints
+ */
 class IsPath : public Gecode::NaryPropagator<Gecode::Int::IntView,Gecode::Int::PC_INT_BND>
 {
 public:
@@ -38,7 +42,6 @@ public:
 
     virtual Gecode::ExecStatus propagate(Gecode::Space& home, const Gecode::ModEventDelta&);
 };
-
 
 void isPath(Gecode::Space& home, const Gecode::IntVarArgs&, uint32_t numberOfTimepoints, uint32_t numberOfFluents);
 
