@@ -4,6 +4,8 @@ rock_testsuite(test_suite suite.cpp
     solvers/test_Propagators.cpp
     solvers/test_TransportNetwork.cpp
     solvers/test_TemporalCSP.cpp
+    solvers/transport_network/TestSpace.cpp
+    solvers/test_TemporallyExpandedGraph.cpp
     test_CartographicMapping.cpp
     test_LoosePathConsistency.cpp
     test_Mission.cpp

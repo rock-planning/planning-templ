@@ -1,5 +1,6 @@
 #include <boost/test/unit_test.hpp>
 #include <templ/Mission.hpp>
+#include <templ/io/MissionReader.hpp>
 #include <templ/solvers/csp/TransportNetwork.hpp>
 #include <organization_model/vocabularies/OM.hpp>
 
@@ -261,8 +262,10 @@ BOOST_AUTO_TEST_CASE(mission_2)
     constants::Location::Ptr loc1( new constants::Location("loc1", base::Point(10,10,0)));
 
     baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
+    baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, vocabulary::OM::resolve("Payload") );
     //baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
-    baseMission.addResourceLocationCardinalityConstraint(loc0, t6, t7, location_image_provider);
+    baseMission.addResourceLocationCardinalityConstraint(loc1, t6, t7, location_image_provider);
+    baseMission.addResourceLocationCardinalityConstraint(loc1, t6, t7, vocabulary::OM::resolve("Payload") );
 
     baseMission.addTemporalConstraint(t0,t1, point_algebra::QualitativeTimePointConstraint::Less);
     baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
@@ -279,9 +282,27 @@ BOOST_AUTO_TEST_CASE(mission_2)
         Mission::Ptr mission(new Mission(baseMission));
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
+        modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
+        modelPool[ vocabulary::OM::resolve("Payload") ] = 1;
         mission->setAvailableResources(modelPool);
         BOOST_REQUIRE_MESSAGE(mission->getOrganizationModel(), "Mission has organization model set");
 
+        std::vector<solvers::csp::TransportNetwork::Solution> solution = solvers::csp::TransportNetwork::solve(mission);
+        BOOST_TEST_MESSAGE("solution: " << solution[0].toString());
+
+    }
+}
+
+BOOST_AUTO_TEST_CASE(mission_from_file)
+{
+    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(owlapi::model::IRI("http://www.rock-robotics.org/2015/12/projects/TransTerrA"));
+    std::string missionFilename = getRootDir() + "test/data/scenarios/transport_network_mission.xml";
+    Mission baseMission = templ::io::MissionReader::fromFile(missionFilename, om);
+    baseMission.prepareTimeIntervals();
+
+    using namespace solvers;
+    {
+        Mission::Ptr mission(new Mission(baseMission));
         solvers::csp::TransportNetwork::solve(mission);
     }
 }

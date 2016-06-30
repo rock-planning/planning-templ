@@ -2,13 +2,16 @@
 #define TEMPL_SOLVERS_CSP_TEMPORALLY_EXPANDED_GRAPH_HPP
 
 #include <gecode/int.hh>
+#include <gecode/int/rel.hh>
+#include <gecode/minimodel.hh>
+
 
 namespace templ {
 namespace solvers {
 namespace csp {
 
 /**
- * Check if a given array of the form [timepointIdx*#fluents + fluentIdx]
+ * Check if a given array of the form [srcTimepointFluentIdx*#timepointFluents + targetTimepointFluentIdx]
  * is representing a path that conforms to temporal constraints
  */
 class IsPath : public Gecode::NaryPropagator<Gecode::Int::IntView,Gecode::Int::PC_INT_BND>
@@ -23,7 +26,13 @@ protected:
     uint32_t mNumberOfVertices;
     IntVarArrayView mGraph;
 
+    static Gecode::LinIntExpr sumOfArray(const Gecode::ViewArray<Gecode::Int::IntView>& view, uint32_t from, uint32_t n);
+
 public:
+    /**
+     * Spans an temporally extended network of size <numberOfTimepoints> X <numberOfFluents>
+     * Checks if the given IntVarArray forms a path
+     */
     IsPath(Gecode::Space& home, IntVarArrayView& graph, uint32_t numberOfTimepoints, uint32_t numberOfFluents);
 
     IsPath(Gecode::Space& home, bool share, IsPath& p);

@@ -198,7 +198,15 @@ private:
      */
     void appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPoolSet& combinations) const;
 
+    /**
+     * Map a fluents to its index (id)
+     * \return index of the fluent
+     */
     size_t getFluentIndex(const FluentTimeResource& fluent) const;
+    /**
+     * Map the resource model to its index (id)
+     * \return index of the resource model
+     */
     size_t getResourceModelIndex(const owlapi::model::IRI& model) const;
     const owlapi::model::IRI& getResourceModelFromIndex(size_t index) const;
     size_t getResourceModelMaxCardinality(size_t model) const;
@@ -219,6 +227,10 @@ private:
      */
     bool isRoleForModel(uint32_t roleIndex, uint32_t modelIndex) const;
 
+    /**
+     * Get the set of roles that are actively used in the solutions
+     * \return set of roles (by index id) that are active
+     */
     std::vector<uint32_t> getActiveRoles() const;
 
     static void postRoleAssignments(Gecode::Space& home);

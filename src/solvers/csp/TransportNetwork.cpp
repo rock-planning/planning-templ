@@ -1,5 +1,5 @@
 #include "TransportNetwork.hpp"
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 #include <numeric/Combinatorics.hpp>
 #include <gecode/minimodel.hh>
 
@@ -13,6 +13,8 @@
 #include <iomanip>
 #include <organization_model/facets/Robot.hpp>
 #include <Eigen/Dense>
+
+#include <templ/solvers/csp/TemporallyExpandedGraph.hpp>
 
 namespace templ {
 namespace solvers {
@@ -406,24 +408,26 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
 
     // Role distribution
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
-    for(size_t modelIndex = 0; modelIndex < mAvailableModels.size(); ++modelIndex)
     {
-        for(uint32_t requirementIndex = 0; requirementIndex < mResourceRequirements.size(); ++requirementIndex)
+        // Sum of all role instances has to correspond to the model count
+        for(size_t modelIndex = 0; modelIndex < mAvailableModels.size(); ++modelIndex)
         {
-            Gecode::IntVar modelCount = resourceDistribution(modelIndex,requirementIndex);
-            Gecode::IntVarArgs args;
-            for(uint32_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
+            for(uint32_t requirementIndex = 0; requirementIndex < mResourceRequirements.size(); ++requirementIndex)
             {
-                if(isRoleForModel(roleIndex, modelIndex))
+                Gecode::IntVar modelCount = resourceDistribution(modelIndex,requirementIndex);
+                Gecode::IntVarArgs args;
+                for(uint32_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
                 {
-                    Gecode::IntVar roleActivation = roleDistribution(roleIndex, requirementIndex);
-                    args << roleActivation;
+                    if(isRoleForModel(roleIndex, modelIndex))
+                    {
+                        Gecode::IntVar roleActivation = roleDistribution(roleIndex, requirementIndex);
+                        args << roleActivation;
+                    }
                 }
+                rel(*this, sum(args) == modelCount);
             }
-            rel(*this, sum(args) == modelCount);
         }
     }
-
     {
         // Set of available models: mModelPool
         // Make sure the assignments are within resource bounds for concurrent requirements
@@ -825,7 +829,6 @@ void TransportNetwork::postRoleAssignments()
     LOG_WARN_S << "POST ROLE ASSIGNMENTS";
     (void) status();
     LOG_WARN_S << "Role usage: " << mRoleUsage;
-    mActiveRoles = getActiveRoles();
 
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
 
@@ -838,7 +841,10 @@ void TransportNetwork::postRoleAssignments()
 
     size_t locationTimeSize = mLocations.size()*mTimepoints.size();
     size_t timelineIndex = 0;
-    LOG_INFO_S << "LocationTimeSize: " << locationTimeSize*locationTimeSize << " -- " << mRoles.size() << " roles";
+    mActiveRoles = getActiveRoles();
+
+    LOG_INFO_S << "Adjacency matrix (locationTime) size: " << locationTimeSize*locationTimeSize << " -- for " << mRoles.size() << " roles; " << mActiveRoles.size() << " are active roles";
+
     for(uint32_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
     {
         // consider only active roles
@@ -847,15 +853,21 @@ void TransportNetwork::postRoleAssignments()
             continue;
         }
 
-        Gecode::IntVarArray timeline(*this, locationTimeSize*locationTimeSize,0,1); // Domain is 0 or 1 to represent activation
-        mTimelines.push_back(timeline);
-        Gecode::Matrix<Gecode::IntVarArray> roleTimeline(mTimelines[timelineIndex], locationTimeSize, locationTimeSize);
+        {
+            // Initialize timelines for all roles
+            Gecode::IntVarArray timeline(*this, locationTimeSize*locationTimeSize,0,1); // Domain is 0 or 1 to represent activation
+            mTimelines.push_back(timeline);
+        }
+
+        Gecode::IntVarArray& timeline = mTimelines[timelineIndex];
+        Gecode::Matrix<Gecode::IntVarArray> roleTimeline(timeline, locationTimeSize, locationTimeSize);
         ++timelineIndex;
 
+        // Link the edge activation to the role requirement, i.e. make sure that
+        // or each requirement the interval is 'activated'
         for(uint32_t requirementIndex = 0; requirementIndex < mResourceRequirements.size(); ++requirementIndex)
         {
             Gecode::IntVar roleRequirement = roleDistribution(roleIndex, requirementIndex);
-
             // maps to the interval
             {
                 const FluentTimeResource& fts = mResourceRequirements[requirementIndex];
@@ -901,46 +913,12 @@ void TransportNetwork::postRoleAssignments()
             }
         }
 
-        // maximum one outgoing edge per node only
-        for(size_t index = 0; index < locationTimeSize; ++index)
-        {
-            rel(*this, sum( roleTimeline.col(index) ) <= 1);
-            rel(*this, sum( roleTimeline.row(index) ) <= 1);
-        }
-
-        for(size_t t = 0; t < mTimepoints.size()-1; ++t)
-        {
-            Gecode::IntVarArgs args;
-            size_t baseIndex = t*mLocations.size();
-            // maxmimum one outgoing edge for same time nodes only
-            LOG_WARN_S << " Sum of ";
-            for(size_t l = 0; l < mLocations.size(); ++l)
-            {
-                LOG_WARN_S << " row: " << baseIndex + l;
-                args << roleTimeline.row(baseIndex + l);
-            }
-            rel(*this, sum(args) <= 1);
-            LOG_WARN_S << " less than 1";
-
-            // forward in time only
-            //        t0-l0 ... t0-l2   t1-l1 ...
-            // t0-l0    x        x       ok
-            // t0-l1    x        x       ok
-            // t0-l2    x        x       ok
-            // t1-l1    x        x       x        x
-            // t1-l2    x        x       x        x
-            //
-            // fc tc fr tr: from col to col, from row to row
-            // open interval, i.e. [fc,tc) so that tc is not included in the
-            // slice
-            size_t fc = 0;
-            size_t tc = t*mLocations.size() + mLocations.size();
-            size_t fr = t*mLocations.size();
-            size_t tr = locationTimeSize;
-            LOG_WARN_S << "SLICE " << fc << "/"<< tc << " -- " << fr << "/" << tr << " sum == 0";
-            rel(*this, sum( roleTimeline.slice(fc,tc,fr,tr)) == 0);
-        }
+        // Make sure that the timeline for this role forms a path
+        // This allows to account for feasible paths for immobile units as well
+        // a mobile units to cover
+        isPath(*this, timeline, mTimepoints.size(), mLocations.size());
     }
+
     // Construct the basic timeline
     //
     // Map role requirements back to activation in general network
