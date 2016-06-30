@@ -2,7 +2,7 @@
 #define TEMPL_SYMBOLS_VALUES_INT_HPP
 
 #include <templ/symbols/Value.hpp>
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 
 namespace templ {
 namespace symbols {

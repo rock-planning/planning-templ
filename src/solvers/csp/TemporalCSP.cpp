@@ -6,7 +6,7 @@
 #include <gecode/minimodel.hh>
 #include <gecode/minimodel.hh>
 
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 
 using namespace templ::solvers::temporal;
 

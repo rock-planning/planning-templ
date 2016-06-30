@@ -1,7 +1,7 @@
 #include "FluentTimeResource.hpp"
 #include <templ/solvers/csp/ModelDistribution.hpp>
 
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 
 namespace templ {
 namespace solvers {

@@ -4,7 +4,7 @@
 #include <boost/bind.hpp>
 #include <sstream>
 
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 #include <base/Time.hpp>
 
 #include <graph_analysis/WeightedEdge.hpp>
@@ -127,6 +127,7 @@ std::vector<Plan> MissionPlanner::execute(uint32_t)
 
 graph_analysis::BaseGraph::Ptr MissionPlanner::nextTemporalConstraintNetwork()
 {
+    LOG_WARN_S << "NEXT_TEMPORAL";
     graph_analysis::BaseGraph::Ptr solution;
     if(!mpGQReasoner)
     {
@@ -184,7 +185,10 @@ Plan MissionPlanner::renderPlan(const Mission::Ptr& mission,
         DFS dfs(spaceTimeNetwork->getGraph(), pathConstructor, skipper);
         dfs.run(startTuple);
 
-        plan.add(role, pathConstructor->getPath());
+        std::vector<graph_analysis::Vertex::Ptr> path = pathConstructor->getPath();
+        path.insert(path.begin(), startTuple);
+
+        plan.add(role,path);
     }
     return plan;
 }

@@ -1,5 +1,5 @@
 #include "ModelDistribution.hpp"
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 #include <numeric/Combinatorics.hpp>
 #include <gecode/minimodel.hh>
 

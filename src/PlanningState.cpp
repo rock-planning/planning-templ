@@ -1,5 +1,5 @@
 #include "PlanningState.hpp"
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 
 namespace pa = templ::solvers::temporal::point_algebra;
 

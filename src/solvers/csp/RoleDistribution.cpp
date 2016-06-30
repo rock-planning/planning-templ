@@ -3,7 +3,7 @@
 #include <gecode/minimodel.hh>
 #include <gecode/set.hh>
 #include <gecode/search.hh>
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 #include <numeric/Combinatorics.hpp>
 
 namespace templ {

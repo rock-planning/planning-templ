@@ -1,6 +1,6 @@
 #include "Interval.hpp"
 #include <numeric/Combinatorics.hpp>
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 
 namespace templ {
 namespace solvers {

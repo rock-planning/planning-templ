@@ -3,7 +3,7 @@
 #include <graph_analysis/GraphIO.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
 #include <templ/Logger.hpp>
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 
 namespace pa = templ::solvers::temporal::point_algebra;
 namespace co = templ::symbols::constants;

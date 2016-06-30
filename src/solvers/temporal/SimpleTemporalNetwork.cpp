@@ -1,6 +1,6 @@
 #include "SimpleTemporalNetwork.hpp"
 #include <numeric/Combinatorics.hpp>
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
 #include <graph_analysis/algorithms/FloydWarshall.hpp>
 

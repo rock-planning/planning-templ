@@ -1,5 +1,5 @@
 #include "TimePointComparator.hpp"
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 #include <algorithm>
 
 namespace templ {

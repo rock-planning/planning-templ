@@ -1,5 +1,5 @@
 #include "QualitativeTemporalConstraintNetwork.hpp"
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 #include <base/Time.hpp>
 #include <numeric/Combinatorics.hpp>
 #include <graph_analysis/VertexTypeManager.hpp>

@@ -3,7 +3,7 @@
 #include <fstream>
 #include <templ/RoleInfoTuple.hpp>
 #include <organization_model/facets/Robot.hpp>
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 
 namespace templ {
 

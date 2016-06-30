@@ -1,7 +1,7 @@
 #include "Logger.hpp"
 #include <sstream>
 #include <boost/filesystem.hpp>
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 #include <owlapi/io/OWLOntologyIO.hpp>
 #include <templ/Mission.hpp>
 

@@ -1,5 +1,5 @@
 #include "MinCostFlow.hpp"
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 #include <graph_analysis/BipartiteGraph.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
 #include <graph_analysis/GraphIO.hpp>
