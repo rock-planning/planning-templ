@@ -18,11 +18,10 @@ PlanningState::PlanningState(const Mission& mission, const std::string& label)
 }
 
 PlanningState::PlanningState(const PlanningState& other)
-    : mMission("")
+    : mMission(other.mMission)
 {
-    mMission = other.mMission;
     mpTemporalConstraintNetwork = other.mpTemporalConstraintNetwork;
-    mpTemporalConstraintNetwork->setGraph(other.mpTemporalConstraintNetwork->getGraph()->cloneEdges());
+    mpTemporalConstraintNetwork->setConsistentNetwork(other.mpTemporalConstraintNetwork->getGraph()->cloneEdges());
 
     mTimePoints = other.mTimePoints;
     mLocations = other.mLocations;
@@ -58,7 +57,7 @@ void PlanningState::setMission(const Mission& mission)
 void PlanningState::setTemporalConstraintNetwork(const solvers::temporal::TemporalConstraintNetwork::Ptr& tcn)
 { 
     mpTemporalConstraintNetwork = tcn;
-    mpTemporalConstraintNetwork->setGraph(mpTemporalConstraintNetwork->getGraph()->cloneEdges());
+    mpTemporalConstraintNetwork->setConsistentNetwork(mpTemporalConstraintNetwork->getGraph()->cloneEdges());
     mpTemporalConstraintNetwork->sort(mTimePoints);
     LOG_INFO_S << pa::TimePoint::toString(mTimePoints);
 

@@ -4,7 +4,7 @@
 #include <boost/lexical_cast.hpp>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
-#include <base/Logging.hpp>
+#include <base-logging/Logging.hpp>
 #include <templ/SharedPtr.hpp>
 #include <templ/symbols/constants/Location.hpp>
 #include <templ/utils/CartographicMapping.hpp>

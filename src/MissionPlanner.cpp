@@ -54,12 +54,21 @@ std::vector<Plan> MissionPlanner::execute(uint32_t)
 
     graph_analysis::BaseGraph::Ptr tcn;
 
-    while( (tcn = nextTemporalConstraintNetwork()) )
+    uint32_t tcnVariants = 0;
+    uint32_t modelDistributionVariants = 0;
+    ModelDistribution::SolutionList modelDistributionSolutions;
+    RoleDistribution::SolutionList roleDistributionSolutions;
+    uint32_t roleDistributionVariants = 0;
+    bool stopSearch = false;
+
+    while(!stopSearch && (tcn = nextTemporalConstraintNetwork()) )
     {
         LOG_WARN_S << "TCN generated";
+        ++tcnVariants;
 
         using namespace solvers;
         Mission::Ptr mission(new Mission(mMission));
+        graph_analysis::io::GraphIO::write("/tmp/test-tcn-pre.dot", tcn);
         mission->getTemporalConstraintNetwork()->setConsistentNetwork(tcn);
         mission->getTemporalConstraintNetwork()->save("/tmp/test-tcn");
         mission->prepareTimeIntervals();
@@ -67,13 +76,15 @@ std::vector<Plan> MissionPlanner::execute(uint32_t)
         csp::ModelDistribution::SearchState modelSearchState(mission);
 
         bool stopModelSearch = false;
-        while(!stopModelSearch)
+        while(!stopSearch && !stopModelSearch)
         {
             LOG_WARN_S << "MODEL DISTRIBUTION SEARCH";
             csp::ModelDistribution::SearchState modelDistributionState = modelSearchState.next();
             switch(modelDistributionState.getType())
             {
                 case csp::ModelDistribution::SearchState::SUCCESS:
+                    ++modelDistributionVariants;
+                    modelDistributionSolutions.push_back(modelDistributionState.getSolution());
                     LOG_WARN_S << "MODEL DISTRIBUTION SEARCH: success";
                     break;
                 case csp::ModelDistribution::SearchState::FAILED:
@@ -87,12 +98,14 @@ std::vector<Plan> MissionPlanner::execute(uint32_t)
             LOG_WARN_S << "ROLE DISTRIBUTION SEARCH";
             csp::RoleDistribution::SearchState roleSearchState(modelDistributionState);
             bool stopRoleSearch = false;
-            while(!stopRoleSearch)
+            while(!stopSearch && !stopRoleSearch)
             {
                 csp::RoleDistribution::SearchState roleDistributionState = roleSearchState.next();
                 switch(roleDistributionState.getType())
                 {
                     case csp::RoleDistribution::SearchState::SUCCESS:
+                        ++roleDistributionVariants;
+                        roleDistributionSolutions.push_back(roleDistributionState.getSolution());
                         LOG_WARN_S << "ROLE DISTRIBUTION SEARCH: success";
                         break;
                     case csp::RoleDistribution::SearchState::FAILED:
@@ -113,10 +126,10 @@ std::vector<Plan> MissionPlanner::execute(uint32_t)
                 LOG_WARN_S << "Flaws in plan: " << flaws.size();
                 if(flaws.empty())
                 {
-                    LOG_WARN_S << "Solution found";
-                    Plan plan = renderPlan(&transportNetwork.getSpaceTimeNetwork(), timelines);
+                    Plan plan = renderPlan(mission, &transportNetwork.getSpaceTimeNetwork(), timelines);
                     plans.push_back(plan);
-                    return plans;
+                    mission->getLogger()->incrementSessionId();
+                    LOG_WARN_S << "Solution found: " << plan.toString();
                 }
             }
         }

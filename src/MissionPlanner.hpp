@@ -163,12 +163,12 @@ typedef std::vector<Mission> CandidateMissions;
  * \details Planning is divided into multiple steps
  * 1. model assignment
  * 2. role assignment
- * 3. solving the multi-commodity min cost flow 
+ * 3. solving the multi-commodity min cost flow
  */
 class MissionPlanner
 {
 public:
-    enum Type { BASIC };
+    enum Type { BASIC, GRAPH_PLANNER };
 
     MissionPlanner(const Mission& mission);
 

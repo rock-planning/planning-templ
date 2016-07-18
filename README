@@ -25,7 +25,12 @@ different aspects of the mission planner.
   - payload-items have to be moved to locations, where no system is initially
   moving towards
     -- feature-req: iterative repair, e.g., fix by adding a transport service requirement to
-    this location if no initial solution can be found
+    this location if no initial solution can be found [ONGOING RESTRUCTURING OF SEARCH]
+  - add CardinalityConstraints on functionality in order to allow for a quantification of the functionality -- e.g. for transport add a min capacity for payload transport or similar
+
+  - allow for threading, i.e. start search per thread
+
+  - use A* based search using the violations for a distance to a proper solution
 
   - compute safety metric (here: redundancy level) for individual transitions
     -- feature-req: compute metric with respect to the required functionality (along the
