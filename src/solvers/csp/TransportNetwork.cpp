@@ -14,7 +14,7 @@
 #include <organization_model/facets/Robot.hpp>
 #include <Eigen/Dense>
 
-#include <templ/solvers/csp/TemporallyExpandedGraph.hpp>
+#include <templ/solvers/csp/propagators/IsPath.hpp>
 
 namespace templ {
 namespace solvers {
@@ -915,8 +915,8 @@ void TransportNetwork::postRoleAssignments()
 
         // Make sure that the timeline for this role forms a path
         // This allows to account for feasible paths for immobile units as well
-        // a mobile units to cover
-        isPath(*this, timeline, mTimepoints.size(), mLocations.size());
+        // as mobile units to cover this area
+        propagators::isPath(*this, timeline, mTimepoints.size(), mLocations.size());
     }
 
     // Construct the basic timeline

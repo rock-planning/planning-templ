@@ -1,5 +1,5 @@
-#ifndef TEMPL_SOLVERS_CSP_TEMPORALLY_EXPANDED_GRAPH_HPP
-#define TEMPL_SOLVERS_CSP_TEMPORALLY_EXPANDED_GRAPH_HPP
+#ifndef TEMPL_SOLVERS_CSP_PROPAGATORS_IS_PATH_HPP
+#define TEMPL_SOLVERS_CSP_PROPAGATORS_IS_PATH_HPP
 
 #include <gecode/int.hh>
 #include <gecode/int/rel.hh>
@@ -9,6 +9,7 @@
 namespace templ {
 namespace solvers {
 namespace csp {
+namespace propagators {
 
 /**
  * Check if a given array of the form [srcTimepointFluentIdx*#timepointFluents + targetTimepointFluentIdx]
@@ -26,11 +27,17 @@ protected:
     uint32_t mNumberOfVertices;
     IntVarArrayView mGraph;
 
+    /**
+     * Compute the sum of the elements of a subsection of a IntView array
+     * \param from Index to start from
+     * \param n Offset defining the number of element to sum up from the given
+     * from index
+     */
     static Gecode::LinIntExpr sumOfArray(const Gecode::ViewArray<Gecode::Int::IntView>& view, uint32_t from, uint32_t n);
 
 public:
     /**
-     * Spans an temporally extended network of size <numberOfTimepoints> X <numberOfFluents>
+     * Spans a temporally extended network of size <numberOfTimepoints> X <numberOfFluents>
      * Checks if the given IntVarArray forms a path
      */
     IsPath(Gecode::Space& home, IntVarArrayView& graph, uint32_t numberOfTimepoints, uint32_t numberOfFluents);
@@ -54,7 +61,8 @@ public:
 
 void isPath(Gecode::Space& home, const Gecode::IntVarArgs&, uint32_t numberOfTimepoints, uint32_t numberOfFluents);
 
+} // end namespace propagators
 } // end namespace csp
 } // end namespace solvers
 } // end namespace templ
-#endif // TEMPL_SOLVERS_CSP_TEMPORALLY_EXPANDED_GRAPH_HPP
+#endif // TEMPL_SOLVERS_CSP_PROPAGATORS_IS_PATH_HPP
