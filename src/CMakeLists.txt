@@ -1,7 +1,7 @@
 find_package(Boost REQUIRED system filesystem)
 
 rock_library(templ
-    SOURCES 
+    SOURCES
         CapacityLink.cpp
         Logger.cpp
         Mission.cpp
@@ -139,4 +139,26 @@ rock_executable(templ-tcn_reader
     utils/TemporalConstraintNetworkMain.cpp
     DEPS templ
 )
+
+rock_library(templ_gui
+    HEADERS
+        gui/TemplGui.hpp
+        gui/MissionEditor/MissionEditor.hpp
+    SOURCES
+        gui/TemplGui.cpp
+        gui/MissionEditor/MissionEditor.cpp
+    MOC
+        gui/TemplGui.hpp
+        gui/MissionEditor/MissionEditor.hpp
+    DEPS
+        templ
+    DEPS_PKGCONFIG
+        QtGui
+    UI
+        gui/TemplGui.ui
+        gui/MissionEditor/MissionEditor.ui
+)
+
+rock_executable(templ-gui gui/Main.cpp
+    DEPS templ_gui)
 
