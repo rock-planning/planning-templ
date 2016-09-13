@@ -38,25 +38,23 @@ TemplGui::TemplGui()
     , mpBaseGraph(graph_analysis::BaseGraph::getInstance())
     , mpQBaseGraph(new graph_analysis::gui::QBaseGraph(mpBaseGraph))
     , mpBaseGraphView(new graph_analysis::gui::BaseGraphView(mpBaseGraph, this))
-    , mpMissionEditor(new MissionEditor(mpBaseGraph, this))
+    , mpOntologyView(new OntologyView(this))
 {
     mpUi->setupUi(this);
     mpUi->tabWidget->clear();
     mpUi->tabWidget->addTab(mpBaseGraphView, mpBaseGraphView->getClassName());
     mpUi->tabWidget->addTab(mpMissionEditor,
                             mpMissionEditor->getClassName());
+    mpUi->tabWidget->addTab(mpOntologyView,
+                            mpOntologyView->getClassName());
     mpUi->tabWidget->setCurrentWidget(mpMissionEditor);
 
     // and show both' widgets status-messages on the statusbar. this simply
     // assumes that only the one in the front is sending updates. otherwise
     // they would interleave...
-    //connect(mpBaseGraphView, SIGNAL(currentStatus(QString, int)),
-    //        mpUi->statusbar, SLOT(showMessage(QString, int)));
-    //connect(mpMissionEditor, SIGNAL(currentStatus(QString, int)),
-    //        mpUi->statusbar, SLOT(showMessage(QString, int)));
 
-    connect(mpQBaseGraph, SIGNAL(graphChanged()),
-            this, SLOT(updateVisualization()));
+    //connect(mpQBaseGraph, SIGNAL(graphChanged()),
+    //        this, SLOT(updateVisualization()));
 
 
     QMenuBar *bar = menuBar();

@@ -144,12 +144,18 @@ rock_library(templ_gui
     HEADERS
         gui/TemplGui.hpp
         gui/MissionEditor/MissionEditor.hpp
+        gui/OntologyView/OntologyView.hpp
+        gui/OntologyView/OntologyTreeModel.hpp
     SOURCES
         gui/TemplGui.cpp
         gui/MissionEditor/MissionEditor.cpp
+        gui/OntologyView/OntologyView.cpp
+        gui/OntologyView/OntologyTreeModel.cpp
     MOC
         gui/TemplGui.hpp
         gui/MissionEditor/MissionEditor.hpp
+        gui/OntologyView/OntologyView.hpp
+        gui/OntologyView/OntologyTreeModel.hpp
     DEPS
         templ
     DEPS_PKGCONFIG
@@ -157,6 +163,7 @@ rock_library(templ_gui
     UI
         gui/TemplGui.ui
         gui/MissionEditor/MissionEditor.ui
+        gui/OntologyView/OntologyView.ui
 )
 
 rock_executable(templ-gui gui/Main.cpp
