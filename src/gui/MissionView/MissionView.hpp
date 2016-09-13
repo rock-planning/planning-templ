@@ -1,37 +1,36 @@
-#ifndef TEMPL_GUI_MISSION_EDITOR_HPP
-#define TEMPL_GUI_MISSION_EDITOR_HPP
+#ifndef TEMPL_GUI_MISSION_VIEW_HPP
+#define TEMPL_GUI_MISSION_VIEW_HPP
 
 #include <QTreeWidget>
 #include <QWidget>
 #include <QProcess>
+#include <QGraphicsView>
+#include <QGraphicsScene>
+#include <QGraphicsGridLayout>
+
 #include <graph_analysis/Graph.hpp>
 #include <templ/Mission.hpp>
-
-namespace Ui {
-    class MissionEditor;
-}
 
 namespace templ {
 namespace gui {
 
-class MissionEditor : public QWidget
+class MissionView : public QGraphicsView
 {
     Q_OBJECT
 
 public:
-    MissionEditor(QWidget* parent = NULL);
-    ~MissionEditor();
+    MissionView(QWidget* parent = NULL);
+    ~MissionView();
 
     QString getClassName() const
     {
-        return "templ::gui::MissionEditor";
+        return "templ::gui::MissionView";
     }
 
 private:
-    // GUI Elements
-    Ui::MissionEditor* mpUi;
-
     Mission::Ptr mMission;
+    QGraphicsGridLayout* mpGraphicsGridLayout;
+    QGraphicsScene* mpScene;
 
     // Adding/Removing Constraints
     void on_addConstraintButton_clicked();
@@ -47,6 +46,16 @@ private:
 
     void updateVisualization();
 
+protected:
+    /// qt mouse wheel spin callback
+    void wheelEvent(QWheelEvent *event);
+    /// scales scene (zooms into or out of the scene)
+    void scaleView(qreal scaleFactor);
+
+    void mousePressEvent(QMouseEvent*);
+
+    void mouseReleaseEvent(QMouseEvent*);
+
 public slots:
     void on_planMission_clicked();
 
@@ -54,4 +63,4 @@ public slots:
 
 } // end namespace gui
 } // end namespace templ
-#endif // TEMPL_GUI_MISSION_EDITOR_HPP
+#endif // TEMPL_GUI_MISSION_VIEW_HPP

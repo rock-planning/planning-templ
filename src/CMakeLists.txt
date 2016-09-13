@@ -143,17 +143,23 @@ rock_executable(templ-tcn_reader
 rock_library(templ_gui
     HEADERS
         gui/TemplGui.hpp
+        gui/SpatioTemporalRequirementItem.hpp
         gui/MissionEditor/MissionEditor.hpp
+        gui/MissionView/MissionView.hpp
         gui/OntologyView/OntologyView.hpp
         gui/OntologyView/OntologyTreeModel.hpp
     SOURCES
         gui/TemplGui.cpp
+        gui/SpatioTemporalRequirementItem.cpp
         gui/MissionEditor/MissionEditor.cpp
+        gui/MissionView/MissionView.cpp
         gui/OntologyView/OntologyView.cpp
         gui/OntologyView/OntologyTreeModel.cpp
     MOC
         gui/TemplGui.hpp
+        gui/SpatioTemporalRequirementItem.hpp
         gui/MissionEditor/MissionEditor.hpp
+        gui/MissionView/MissionView.hpp
         gui/OntologyView/OntologyView.hpp
         gui/OntologyView/OntologyTreeModel.hpp
     DEPS

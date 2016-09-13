@@ -11,6 +11,8 @@
 #include <QMenuBar>
 #include <QToolBar>
 #include <QCommonStyle>
+#include <QInputDialog>
+#include <QGraphicsGridLayout>
 
 #include <base-logging/Logging.hpp>
 
@@ -25,6 +27,8 @@
 #include <graph_analysis/gui/ActionCommander.hpp>
 
 #include <templ/gui/MissionEditor/MissionEditor.hpp>
+#include <templ/gui/MissionView/MissionView.hpp>
+#include <templ/gui/OntologyView/OntologyView.hpp>
 
 using namespace graph_analysis;
 using namespace graph_analysis::gui;
@@ -38,6 +42,8 @@ TemplGui::TemplGui()
     , mpBaseGraph(graph_analysis::BaseGraph::getInstance())
     , mpQBaseGraph(new graph_analysis::gui::QBaseGraph(mpBaseGraph))
     , mpBaseGraphView(new graph_analysis::gui::BaseGraphView(mpBaseGraph, this))
+    , mpMissionEditor(new MissionEditor(this))
+    , mpMissionView(new MissionView(this))
     , mpOntologyView(new OntologyView(this))
 {
     mpUi->setupUi(this);
@@ -45,6 +51,8 @@ TemplGui::TemplGui()
     mpUi->tabWidget->addTab(mpBaseGraphView, mpBaseGraphView->getClassName());
     mpUi->tabWidget->addTab(mpMissionEditor,
                             mpMissionEditor->getClassName());
+    mpUi->tabWidget->addTab(mpMissionView,
+                            "Mission view");
     mpUi->tabWidget->addTab(mpOntologyView,
                             mpOntologyView->getClassName());
     mpUi->tabWidget->setCurrentWidget(mpMissionEditor);
@@ -52,6 +60,10 @@ TemplGui::TemplGui()
     // and show both' widgets status-messages on the statusbar. this simply
     // assumes that only the one in the front is sending updates. otherwise
     // they would interleave...
+    connect(mpBaseGraphView, SIGNAL(currentStatus(QString, int)),
+            mpUi->statusbar, SLOT(showMessage(QString, int)));
+    connect(mpMissionEditor, SIGNAL(currentStatus(QString, int)),
+            mpUi->statusbar, SLOT(showMessage(QString, int)));
 
     //connect(mpQBaseGraph, SIGNAL(graphChanged()),
     //        this, SLOT(updateVisualization()));
@@ -65,14 +77,17 @@ TemplGui::TemplGui()
     QStyle* style = new QCommonStyle();
     QAction *actionImport = comm.addAction("Import", SLOT(importGraph()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open ), tr("Import graph from file"));
     QAction *actionExport = comm.addAction("Export", SLOT(exportGraph()), style->standardIcon(QStyle::SP_DialogSaveButton), QKeySequence( QKeySequence::SaveAs), tr("Export graph to file"));
+    QAction *selectLayout = comm.addAction("Layout", SLOT(selectLayout()), style->standardIcon(QStyle::SP_FileDialogListView), QKeySequence( Qt::ControlModifier & Qt::Key_L), tr("Export graph to file"));
 
     fileMenu->addAction(actionImport);
     fileMenu->addAction(actionExport);
+    fileMenu->addAction(selectLayout);
     fileMenu->addSeparator();
 
     QToolBar* toolBar = new QToolBar("Toolbar");
     toolBar->addAction(actionImport);
     toolBar->addAction(actionExport);
+    toolBar->addAction(selectLayout);
     toolBar->setFloatable(true);
     addToolBar(toolBar);
 }
@@ -94,7 +109,7 @@ void TemplGui::importGraph()
     for(;;)
     {
         ss << representation::TypeTxt[rit->first] << " (";
-        io::GraphIO::SuffixMap::const_iterator sit = suffixMap.begin();
+        graph_analysis::io::GraphIO::SuffixMap::const_iterator sit = suffixMap.begin();
         for(; sit != suffixMap.end(); ++sit)
         {
             if(sit->second == rit->first)
@@ -123,7 +138,7 @@ void TemplGui::importGraph()
     if(!filename.isEmpty())
     {
         fromFile(filename.toStdString());
-        updateVisualization();
+        //updateVisualization();
     }
     else
     {
@@ -134,67 +149,69 @@ void TemplGui::importGraph()
 
 void TemplGui::exportGraph()
 {
-    if(mpQBaseGraph->getBaseGraph()->empty())
-    {
-        QMessageBox::critical(this, tr("Graph Export Failed"),
-                              "Graph is empty");
-        return;
-    }
+    using namespace graph_analysis;
 
-    QString selectedFilter;
+    //if(mpQBaseGraph->getBaseGraph()->empty())
+    //{
+    //    QMessageBox::critical(this, tr("Graph Export Failed"),
+    //                          "Graph is empty");
+    //    return;
+    //}
 
-    // Constructing the writer suffix filter
-    io::GraphIO::SuffixMap suffixMap = io::GraphIO::getSuffixMap();
-    io::GraphIO::WriterMap writerMap = io::GraphIO::getWriterMap();
-    io::GraphIO::WriterMap::const_iterator wit = writerMap.begin();
+    //QString selectedFilter;
 
-    std::stringstream ss;
-    for(;;)
-    {
-        ss << representation::TypeTxt[wit->first] << " (";
-        io::GraphIO::SuffixMap::const_iterator sit = suffixMap.begin();
-        for(; sit != suffixMap.end(); ++sit)
-        {
-            if(sit->second == wit->first)
-            {
-                ss << "*." << sit->first << " ";
-            }
-        }
-        ss << ")";
+    //// Constructing the writer suffix filter
+    //io::GraphIO::SuffixMap suffixMap = io::GraphIO::getSuffixMap();
+    //io::GraphIO::WriterMap writerMap = io::GraphIO::getWriterMap();
+    //io::GraphIO::WriterMap::const_iterator wit = writerMap.begin();
 
-        ++wit;
-        if(wit != writerMap.end())
-        {
-            ss << ";;";
-        }
-        else
-        {
-            break;
-        }
-    }
-    // End constructing the writer suffix filter
+    //std::stringstream ss;
+    //for(;;)
+    //{
+    //    ss << representation::TypeTxt[wit->first] << " (";
+    //    io::GraphIO::SuffixMap::const_iterator sit = suffixMap.begin();
+    //    for(; sit != suffixMap.end(); ++sit)
+    //    {
+    //        if(sit->second == wit->first)
+    //        {
+    //            ss << "*." << sit->first << " ";
+    //        }
+    //    }
+    //    ss << ")";
 
-    dialogs::ExportFile dialog(ss.str().c_str());
-    if(dialog.exec() == QFileDialog::Accepted)
-    {
-        try
-        {
-            io::GraphIO::write(dialog.getFilename().toStdString(), mpQBaseGraph->getBaseGraph(),
-                               dialog.getTypeName());
-        }
-        catch(const std::exception& e)
-        {
-            std::string msg = "Export of graph to '" +
-                              dialog.getFilename().toStdString() + "' failed " +
-                              e.what();
-            QMessageBox::critical(this, tr("Graph Export Failed"), msg.c_str());
-            return;
-        }
-    }
-    else
-    {
-        /* updateStatus("Exporting graph aborted by user"); */
-    }
+    //    ++wit;
+    //    if(wit != writerMap.end())
+    //    {
+    //        ss << ";;";
+    //    }
+    //    else
+    //    {
+    //        break;
+    //    }
+    //}
+    //// End constructing the writer suffix filter
+
+    //dialogs::ExportFile dialog(ss.str().c_str());
+    //if(dialog.exec() == QFileDialog::Accepted)
+    //{
+    //    try
+    //    {
+    //        io::GraphIO::write(dialog.getFilename().toStdString(), mpQBaseGraph->getBaseGraph(),
+    //                           dialog.getTypeName());
+    //    }
+    //    catch(const std::exception& e)
+    //    {
+    //        std::string msg = "Export of graph to '" +
+    //                          dialog.getFilename().toStdString() + "' failed " +
+    //                          e.what();
+    //        QMessageBox::critical(this, tr("Graph Export Failed"), msg.c_str());
+    //        return;
+    //    }
+    //}
+    //else
+    //{
+    //    /* updateStatus("Exporting graph aborted by user"); */
+    //}
 }
 
 void TemplGui::fromFile(const std::string& filename)
@@ -202,7 +219,7 @@ void TemplGui::fromFile(const std::string& filename)
     graph_analysis::BaseGraph::Ptr graph = graph_analysis::BaseGraph::getInstance();
     try
     {
-        io::GraphIO::read(filename, graph);
+        graph_analysis::io::GraphIO::read(filename, graph);
     }
     catch(const std::exception& e)
     {
@@ -210,14 +227,32 @@ void TemplGui::fromFile(const std::string& filename)
         QMessageBox::critical(this, tr("Graph Import Failed"), msg.c_str());
         return;
     }
-    delete mpQBaseGraph;
-    delete mpBaseGraphView;
 
     mpBaseGraph = graph;
+
+    delete mpQBaseGraph;
     mpQBaseGraph = new QBaseGraph(mpBaseGraph);
-    mpBaseGraphView = new graph_analysis::gui::BaseGraphView(mpBaseGraph, this);
-    assert(mpQBaseGraph);
-    assert(mpBaseGraphView);
+
+    mpBaseGraphView->setGraph(mpBaseGraph);
+    mpBaseGraphView->clearVisualization();
+    mpBaseGraphView->refresh();
+    mpBaseGraphView->updateVisualization();
+}
+
+void TemplGui::selectLayout()
+{
+    if(mpUi->tabWidget->currentWidget() == mpBaseGraphView)
+    {
+        bool ok;
+        QString desiredLayout = QInputDialog::getItem(this, tr("Select Layout"),
+                                    tr("select a layout:"), mpBaseGraphView->getSupportedLayouts(),
+                                    0, false, &ok);
+        if(ok)
+        {
+            mpBaseGraphView->applyLayout(desiredLayout.toStdString());
+        }
+    }
+    updateVisualization();
 }
 
 void TemplGui::on_tabWidget_currentChanged(int index)
@@ -229,14 +264,14 @@ void TemplGui::on_tabWidget_currentChanged(int index)
 void TemplGui::updateVisualization()
 {
     // Call the current tab widget's update function
-    //if (mpUi->tabWidget->currentWidget() == mpMissionEditor)
-    //{
-    //    mpMissionEditor->updateVisualization();
-    //} else {
-    LOG_WARN_S << "Populate canvas";
-    assert(mpBaseGraphView);
-    mpBaseGraphView->update();
-    //}
+    if (mpUi->tabWidget->currentWidget() == mpBaseGraphView)
+    {
+        assert(mpBaseGraphView);
+        mpBaseGraphView->updateVisualization();
+    } else if (mpUi->tabWidget->currentWidget() == mpMissionEditor)
+    {
+        mpMissionEditor->update();
+    }
 }
 
 } // end namespace gui

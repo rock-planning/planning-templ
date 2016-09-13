@@ -18,6 +18,8 @@ namespace templ {
 namespace gui {
 
 class MissionEditor;
+class MissionView;
+class OntologyView;
 
 class TemplGui : public QMainWindow
 {
@@ -41,6 +43,8 @@ private:
     graph_analysis::gui::BaseGraphView* mpBaseGraphView;
 
     MissionEditor* mpMissionEditor;
+    MissionView* mpMissionView;
+    OntologyView* mpOntologyView;
 
     void fromFile(const std::string& filename);
     void notifyAll();
@@ -48,6 +52,7 @@ private:
 private slots:
     void importGraph();
     void exportGraph();
+    void selectLayout();
 
     /*Connected to QBaseGraph*/
     void updateVisualization();
