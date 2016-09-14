@@ -28,9 +28,11 @@ public:
     }
 
 private:
-    Mission::Ptr mMission;
+    Mission::Ptr mpMission;
     QGraphicsGridLayout* mpGraphicsGridLayout;
     QGraphicsScene* mpScene;
+
+    organization_model::OrganizationModel::Ptr mpOrganizationModel;
 
     // Adding/Removing Constraints
     void on_addConstraintButton_clicked();
@@ -38,13 +40,15 @@ private:
 
     // Loading/Storing Missions
     void on_loadMissionButton_clicked();
-    void on_loadOntologyButton_clicked();
+    void on_loadOrganizationModelButton_clicked();
 
     void on_saveButton_clicked();
     void on_updateButton_clicked();
     void on_clearButton_clicked();
 
     void updateVisualization();
+
+    void refreshView();
 
 protected:
     /// qt mouse wheel spin callback
@@ -55,6 +59,8 @@ protected:
     void mousePressEvent(QMouseEvent*);
 
     void mouseReleaseEvent(QMouseEvent*);
+
+    void contextMenuEvent(QContextMenuEvent* event);
 
 public slots:
     void on_planMission_clicked();

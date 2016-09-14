@@ -6,6 +6,7 @@
 #include <QGraphicsRectItem>
 
 #include <graph_analysis/gui/GraphicsItemTypes.hpp>
+#include <templ/solvers/temporal/PersistenceCondition.hpp>
 
 namespace templ {
 namespace gui {
@@ -39,6 +40,11 @@ public:
                QWidget* widget = 0);
     virtual QRectF boundingRect() const;
 
+    void setPersistenceCondition(const templ::solvers::temporal::PersistenceCondition::Ptr& condition)
+    {
+        mpPersistenceCondition = condition;
+    }
+    void updateFromPersistenceCondition();
 protected:
 
     virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
@@ -50,6 +56,15 @@ protected:
     virtual void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
 
     QGraphicsRectItem* mpRect;
+    QGraphicsTextItem* mpFromTimePoint;
+    QGraphicsTextItem* mpToTimePoint;
+
+    QGraphicsTextItem* mpLocation;
+    QGraphicsTextItem* mpResource;
+    QGraphicsTextItem* mpCardinality;
+
+    // Persistence Condition
+    templ::solvers::temporal::PersistenceCondition::Ptr mpPersistenceCondition;
 
 };
 

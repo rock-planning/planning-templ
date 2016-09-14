@@ -17,13 +17,15 @@
 #include <QGraphicsWidget>
 #include <QGraphicsProxyWidget>
 
+#include <QMenu>
+#include <templ/symbols/object_variables/LocationCardinality.hpp>
 #include <templ/gui/SpatioTemporalRequirementItem.hpp>
 
 namespace templ {
 namespace gui {
 MissionView::MissionView(QWidget* parent)
     : QGraphicsView(parent)
-    , mpGraphicsGridLayout(new QGraphicsGridLayout)
+    , mpGraphicsGridLayout()
     , mpScene(new QGraphicsScene(this))
 {
     mpScene->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -32,29 +34,6 @@ MissionView::MissionView(QWidget* parent)
     setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
                    QPainter::SmoothPixmapTransform);
 
-    for(int c = 0; c < 4; ++c)
-    {
-        for(int r = 0; r < 4; ++r)
-        {
-            QLabel* label = new QLabel;
-            std::stringstream ss;
-            ss << c << "--" << r;
-            label->setText(ss.str().c_str());
-            if(!scene())
-            {
-                throw std::runtime_error("NO SCENE");
-            }
-
-            //QGraphicsProxyWidget* pw = scene()->addWidget(label);
-
-            SpatioTemporalRequirementItem* pw = new SpatioTemporalRequirementItem;
-            mpGraphicsGridLayout->addItem(pw, c*100, r*100);
-        }
-    }
-
-    QGraphicsWidget* form = new QGraphicsWidget;
-    form->setLayout(mpGraphicsGridLayout);
-    scene()->addItem(form);
 }
 
 MissionView::~MissionView()
@@ -67,27 +46,37 @@ void MissionView::updateVisualization()
 
 void MissionView::on_loadMissionButton_clicked()
 {
-    QString filename = QFileDialog::getOpenFileName(
-        this, tr("Load mission description"),
-        QDir::currentPath(),
-        tr("Mission Description File (*.mdf *.xml)"));
-
-    if(!filename.isEmpty())
+    if(!mpOrganizationModel)
     {
-        templ::io::MissionReader reader;
+        QMessageBox msgBox;
+        msgBox.setText("Cannot load a mission without loading the organization model (ontology) first");
+        msgBox.exec();
+    } else {
+        QString filename = QFileDialog::getOpenFileName(
+            this, tr("Load mission description"),
+            QDir::currentPath(),
+            tr("Mission Description File (*.mdf *.xml)"));
+
+        if(!filename.isEmpty())
+        {
+            Mission mission = templ::io::MissionReader::fromFile(filename.toStdString(), mpOrganizationModel);
+            mpMission = Mission::Ptr(new Mission(mission));
+
+            refreshView();
+        }
     }
 }
 
-void MissionView::on_loadOntologyButton_clicked()
+void MissionView::on_loadOrganizationModelButton_clicked()
 {
     QString filename = QFileDialog::getOpenFileName(
         this, tr("Load ontology"),
         QDir::currentPath(),
-        tr("Mission Description File (*.xml)"));
+        tr("Ontology Description File (*.owl)"));
 
     if(!filename.isEmpty())
     {
-        // owlapi::MissionReader reader;
+        mpOrganizationModel = organization_model::OrganizationModel::getInstance(filename.toStdString());
     }
 }
 
@@ -168,6 +157,90 @@ void MissionView::mouseReleaseEvent(QMouseEvent* event)
     }
 
     QGraphicsView::mouseReleaseEvent(event);
+}
+
+void MissionView::contextMenuEvent(QContextMenuEvent* event)
+{
+    QMenu contextMenu;
+    QAction* loadOrganizationModel = contextMenu.addAction("Load organization model");
+    QAction* loadMission = contextMenu.addAction("Load mission");
+
+    QAction* selectedAction = contextMenu.exec(event->globalPos());
+    if(selectedAction == loadOrganizationModel)
+    {
+        on_loadOrganizationModelButton_clicked();
+    } else if(selectedAction == loadMission)
+    {
+        on_loadMissionButton_clicked();
+    }
+}
+
+void MissionView::refreshView()
+{
+    if(mpMission)
+    {
+        scene()->clear();
+
+        mpGraphicsGridLayout = new QGraphicsGridLayout;
+
+        std::vector<symbols::constants::Location::Ptr> locations = mpMission->getLocations();
+        std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints = mpMission->getOrderedTimepoints();
+
+        using namespace templ::solvers::temporal;
+        std::vector<PersistenceCondition::Ptr> pConditions = mpMission->getPersistenceConditions();
+        std::vector<PersistenceCondition::Ptr>::const_iterator cit = pConditions.begin();
+
+        for(; cit != pConditions.end(); ++cit)
+        {
+            const PersistenceCondition::Ptr& pc = *cit;
+
+            SpatioTemporalRequirementItem* requirementItem = new SpatioTemporalRequirementItem;
+            requirementItem->setPersistenceCondition(pc);
+            requirementItem->updateFromPersistenceCondition();
+
+            Symbol::Ptr symbol = pc->getValue();
+            symbols::object_variables::LocationCardinality::Ptr locationCardinality = dynamic_pointer_cast<symbols::object_variables::LocationCardinality>(symbol);
+
+            int rowIndex = 0;
+            symbols::constants::Location::Ptr location = locationCardinality->getLocation();
+            if(location)
+            {
+                rowIndex = std::distance(locations.begin(), std::find(locations.begin(), locations.end(), location));
+                // Column is Time
+            } else {
+                LOG_WARN_S << "Could not cast to location pointer --BEGIN " << symbol->toString()
+                    << " --END";
+            }
+
+            int columnIndex = std::distance( timepoints.begin(), std::find(timepoints.begin(), timepoints.end(), pc->getFromTimePoint()));
+
+            LOG_WARN_S << "ADD ITEM AT" << columnIndex << "/" << rowIndex
+                << pc->getFromTimePoint()->toString()
+                << " "
+                << location->toString();
+
+            mpGraphicsGridLayout->addItem(requirementItem, rowIndex, columnIndex);
+        }
+
+        //for(int c = 0; c < 4; ++c)
+        //{
+        //    for(int r = 0; r < 4; ++r)
+        //    {
+        //        QLabel* label = new QLabel;
+        //        std::stringstream ss;
+        //        ss << c << "--" << r;
+        //        label->setText(ss.str().c_str());
+        //        //QGraphicsProxyWidget* pw = scene()->addWidget(label);
+
+        //        SpatioTemporalRequirementItem* pw = new SpatioTemporalRequirementItem;
+        //        mpGraphicsGridLayout->addItem(pw, c, r);
+        //    }
+        //}
+
+        QGraphicsWidget* form = new QGraphicsWidget;
+        form->setLayout(mpGraphicsGridLayout);
+        scene()->addItem(form);
+    }
 }
 
 
