@@ -414,4 +414,55 @@ BOOST_AUTO_TEST_CASE(symmetry_breaking)
     }
 }
 
+BOOST_AUTO_TEST_CASE(mission_3)
+{
+    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
+                getRootDir() + "test/data/om-schema-latest.owl");
+    owlapi::model::IRI sherpa = vocabulary::OM::resolve("Sherpa");
+    owlapi::model::IRI payload = vocabulary::OM::resolve("Payload");
+
+    using namespace solvers::temporal;
+    point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
+    point_algebra::TimePoint::Ptr t1 = point_algebra::QualitativeTimePoint::getInstance("t1");
+    point_algebra::TimePoint::Ptr t2 = point_algebra::QualitativeTimePoint::getInstance("t2");
+    point_algebra::TimePoint::Ptr t3 = point_algebra::QualitativeTimePoint::getInstance("t3");
+    point_algebra::TimePoint::Ptr t4 = point_algebra::QualitativeTimePoint::getInstance("t4");
+    point_algebra::TimePoint::Ptr t5 = point_algebra::QualitativeTimePoint::getInstance("t5");
+
+    Mission baseMission(om);
+
+    using namespace ::templ::symbols;
+    constants::Location::Ptr loc0( new constants::Location("loc0", base::Point(0,0,0)));
+    constants::Location::Ptr loc1( new constants::Location("loc1", base::Point(10,10,0)));
+    constants::Location::Ptr loc2( new constants::Location("loc2", base::Point(10,20,0)));
+
+    baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, sherpa);
+    baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, payload);
+
+    baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, payload);
+    baseMission.addResourceLocationCardinalityConstraint(loc2, t4, t5, sherpa);
+
+    baseMission.addTemporalConstraint(t0,t1, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t2,t3, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t3,t4, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addTemporalConstraint(t4,t5, point_algebra::QualitativeTimePointConstraint::Less);
+
+    baseMission.prepareTimeIntervals();
+
+    using namespace solvers;
+    {
+        Mission::Ptr mission(new Mission(baseMission));
+        organization_model::ModelPool modelPool;
+        modelPool[ sherpa ] = 1;
+        modelPool[ payload ] = 1;
+        mission->setAvailableResources(modelPool);
+
+        BOOST_REQUIRE_MESSAGE(mission->getOrganizationModel(), "Mission has organization model set");
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
+
+        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+    }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

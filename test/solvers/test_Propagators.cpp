@@ -1,5 +1,5 @@
 #include <boost/test/unit_test.hpp>
-#include <templ/solvers/csp/TemporallyExpandedGraph.hpp>
+#include <templ/solvers/csp/propagators/IsPath.hpp>
 #include <gecode/search.hh>
 #include <gecode/minimodel.hh>
 
@@ -21,7 +21,7 @@ public:
         , mGraph(*this, mNumberOfVertices*mNumberOfVertices,0,1)
     {
 
-        templ::solvers::csp::isPath(*this, mGraph, numberOfTimepoints, numberOfFluents);
+        templ::solvers::csp::propagators::isPath(*this, mGraph, numberOfTimepoints, numberOfFluents);
 
         branch(*this, mGraph, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());
         branch(*this, mGraph, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_SPLIT_MIN());

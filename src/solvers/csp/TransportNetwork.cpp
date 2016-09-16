@@ -15,6 +15,7 @@
 #include <Eigen/Dense>
 
 #include <templ/solvers/csp/propagators/IsPath.hpp>
+#include <templ/solvers/csp/propagators/MultiCommodityFlow.hpp>
 
 namespace templ {
 namespace solvers {
@@ -835,36 +836,50 @@ void TransportNetwork::postRoleAssignments()
     //#############################################
     // construct timelines
     // ############################################
+    // row = |timepoints|*location + timepoint-from
+    // col = |timepoints|*location + timepoint-to
     //
+    // i.e.
+    //
+    //        l0-t0  l0-t1 ... l0-tn l1-t1 l1-t1
+    // l0-t0
+    // l0-t1
+    // ...
     // -- add an additional transfer location to allow for 'timegaps'
     mLocations.push_back(symbols::constants::Location::Ptr(new symbols::constants::Location("in-transfer")));
 
     size_t locationTimeSize = mLocations.size()*mTimepoints.size();
-    size_t timelineIndex = 0;
     mActiveRoles = getActiveRoles();
 
     LOG_INFO_S << "Adjacency matrix (locationTime) size: " << locationTimeSize*locationTimeSize << " -- for " << mRoles.size() << " roles; " << mActiveRoles.size() << " are active roles";
 
+    Role::List activeRoles;
     for(uint32_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
     {
         // consider only active roles
         if(mActiveRoles.end() == std::find(mActiveRoles.begin(), mActiveRoles.end(), roleIndex))
         {
+            LOG_WARN_S << "NO ACTIVE ROLE: " << mRoles[roleIndex].toString();
             continue;
         }
+        LOG_WARN_S << "ACTIVE ROLE: " << mRoles[roleIndex].toString();
 
+        activeRoles.push_back(mRoles[roleIndex]);
+
+        // A timeline describes the transitions in space time for a given role
+        // transitions are boolean 1 or 0, whereas 1 means the transition is
+        // mandatory to take place
         {
-            // Initialize timelines for all roles
+            // Initialize timelines for all roles, i.e. here the current one
             Gecode::IntVarArray timeline(*this, locationTimeSize*locationTimeSize,0,1); // Domain is 0 or 1 to represent activation
             mTimelines.push_back(timeline);
         }
 
-        Gecode::IntVarArray& timeline = mTimelines[timelineIndex];
+        Gecode::IntVarArray& timeline = mTimelines.back();
         Gecode::Matrix<Gecode::IntVarArray> roleTimeline(timeline, locationTimeSize, locationTimeSize);
-        ++timelineIndex;
 
         // Link the edge activation to the role requirement, i.e. make sure that
-        // or each requirement the interval is 'activated'
+        // for each requirement the interval is 'activated'
         for(uint32_t requirementIndex = 0; requirementIndex < mResourceRequirements.size(); ++requirementIndex)
         {
             Gecode::IntVar roleRequirement = roleDistribution(roleIndex, requirementIndex);
@@ -913,26 +928,32 @@ void TransportNetwork::postRoleAssignments()
             }
         }
 
-        // Make sure that the timeline for this role forms a path
+        // Make sure that the timeline for each role forms a path
         // This allows to account for feasible paths for immobile units as well
         // as mobile units to cover this area
         propagators::isPath(*this, timeline, mTimepoints.size(), mLocations.size());
     }
 
-    // Construct the basic timeline
-    //
-    // Map role requirements back to activation in general network
-    // requirement = location t0--tN, role-0, role-1
-    //
-    // foreach involved role
-    //     foreach requirement
-    //          from lX,t0 --> tN
-    //              request edge activation (referring to the role is active during that interval)
-    //              by >= value of the requirement( which is typically 0 or 1),
-    //              whereas activation can be 0 or 1 as well
-    //
-    // Compute a network with proper activation
-    branch(*this, &TransportNetwork::postRoleTimelines);
+
+    // Compute the multi commodity flow
+    LOG_WARN_S << "POST MULTI COMMODITY FLOW: " << mTimelines.size() << " -- " << activeRoles.size();
+    assert(mTimelines.size() == activeRoles.size());
+    propagators::multiCommodityFlow(*this, activeRoles, mTimelines, mTimepoints.size(), mLocations.size(), mpMission->getOrganizationModelAsk());
+
+    //// Construct the basic timeline
+    ////
+    //// Map role requirements back to activation in general network
+    //// requirement = location t0--tN, role-0, role-1
+    ////
+    //// foreach involved role
+    ////     foreach requirement
+    ////          from lX,t0 --> tN
+    ////              request edge activation (referring to the role is active during that interval)
+    ////              by >= value of the requirement( which is typically 0 or 1),
+    ////              whereas activation can be 0 or 1 as well
+    ////
+    //// Compute a network with proper activation
+    //branch(*this, &TransportNetwork::postRoleTimelines);
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
         branch(*this, mTimelines[i], Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());
@@ -940,7 +961,7 @@ void TransportNetwork::postRoleAssignments()
         branch(*this, mTimelines[i], Gecode::INT_VAR_NONE(), Gecode::INT_VAL_SPLIT_MIN());
     }
 
-    branch(*this, &TransportNetwork::postFlowCapacities);
+    //branch(*this, &TransportNetwork::postFlowCapacities);
 }
 
 void TransportNetwork::postRoleTimelines(Gecode::Space& home)
