@@ -1,4 +1,4 @@
-#include <templ/solvers/csp/propagators/IsPath.hpp>
+#include "IsPath.hpp"
 #include <gecode/int.hh>
 #include <gecode/int/rel.hh>
 #include <gecode/minimodel.hh>

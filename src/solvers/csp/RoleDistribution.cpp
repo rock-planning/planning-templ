@@ -1,10 +1,11 @@
-#include "RoleDistribution.hpp"
-
+#include <numeric/Combinatorics.hpp>
 #include <gecode/minimodel.hh>
 #include <gecode/set.hh>
 #include <gecode/search.hh>
 #include <base-logging/Logging.hpp>
-#include <numeric/Combinatorics.hpp>
+
+#include "RoleDistribution.hpp"
+
 
 namespace templ {
 namespace solvers {

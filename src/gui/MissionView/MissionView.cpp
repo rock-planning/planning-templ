@@ -2,7 +2,7 @@
 #include <templ/io/MissionReader.hpp>
 
 // QT specific includes
-#include "ui_MissionView.h"
+//#include "ui_MissionView.h"
 #include <QDirIterator>
 #include <QFileDialog>
 #include <QMessageBox>

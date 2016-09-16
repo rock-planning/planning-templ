@@ -1,4 +1,5 @@
 #include "TestSpace.hpp"
+#include <templ/solvers/csp/propagators/IsPath.hpp>
 #include <gecode/gist.hh>
 
 namespace templ {
@@ -29,7 +30,7 @@ TestSpace::TestSpace(const std::vector<bool>& network, size_t numberOfTimepoints
 
     std::cout << "Print " << mNetwork << std::endl;
 
-    using namespace solvers::csp;
+    using namespace solvers::csp::propagators;
     isPath(*this, mNetwork, mNumberOfTimepoints, mNumberOfFluents);
 
     branch(*this, mNetwork, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());

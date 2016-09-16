@@ -1,5 +1,6 @@
-#include <templ/solvers/csp/TemporallyExpandedGraph.hpp>
 #include <vector>
+#include <gecode/set.hh>
+#include <gecode/minimodel.hh>
 
 namespace templ {
 namespace test {
