@@ -19,6 +19,7 @@ class IsPath : public Gecode::NaryPropagator<Gecode::Int::IntView,Gecode::Int::P
 {
 public:
     typedef Gecode::ViewArray<Gecode::Int::IntView> IntVarArrayView;
+    typedef std::pair<uint32_t, uint32_t> FluentTimeIdx;
 
 protected:
     uint32_t mNumberOfTimepoints;
@@ -32,9 +33,10 @@ protected:
      * \param from Index to start from
      * \param n Offset defining the number of element to sum up from the given
      * from index
-     */
-    static Gecode::LinIntExpr sumOfArray(const Gecode::ViewArray<Gecode::Int::IntView>& view, uint32_t from, uint32_t n);
+    */
+    static Gecode::LinIntExpr sumOfArray(const Gecode::ViewArray<Gecode::Int::IntView>& view, uint32_t from, uint32_t n = 0);
 
+    static Gecode::LinIntExpr sumOfMatrixSlice(const Gecode::ViewArray<Gecode::Int::IntView>& view, uint32_t fromCol, uint32_t fromRow, uint32_t toCol, uint32_t toRow, uint32_t rowSize);
 public:
     /**
      * Spans a temporally extended network of size <numberOfTimepoints> X <numberOfFluents>
@@ -57,6 +59,12 @@ public:
     virtual Gecode::PropCost cost(const Gecode::Space&, const Gecode::ModEventDelta&) const;
 
     virtual Gecode::ExecStatus propagate(Gecode::Space& home, const Gecode::ModEventDelta&);
+
+    static Gecode::Int::IntView getView(Gecode::ViewArray<Gecode::Int::IntView>& view,
+            uint32_t col, uint32_t row,
+            uint32_t numberOfFluent, uint32_t numberOfTimepoints);
+
+    static FluentTimeIdx getFluentTimeIdx(uint32_t rowOrCol, uint32_t numberOfFluents);
 };
 
 void isPath(Gecode::Space& home, const Gecode::IntVarArgs&, uint32_t numberOfTimepoints, uint32_t numberOfFluents);

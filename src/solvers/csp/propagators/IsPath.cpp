@@ -14,6 +14,11 @@ namespace propagators {
 Gecode::LinIntExpr IsPath::sumOfArray(const Gecode::ViewArray<Int::IntView>& view, uint32_t from, uint32_t n)
 {
     Gecode::LinIntExpr expr = 0;
+    if(n == 0)
+    {
+        n = view.size() - from;
+    }
+
     for(uint32_t offset = 0; offset < n; ++offset)
     {
         if( ((uint32_t) view.size()) <= (from + offset))
@@ -23,6 +28,21 @@ Gecode::LinIntExpr IsPath::sumOfArray(const Gecode::ViewArray<Int::IntView>& vie
         }
         assert(view.size() > from + offset);
         expr = expr + view[from + offset];
+    }
+    return expr;
+}
+
+Gecode::LinIntExpr IsPath::sumOfMatrixSlice(const Gecode::ViewArray<Gecode::Int::IntView>& view, uint32_t fromCol, uint32_t fromRow, uint32_t toCol, uint32_t toRow, uint32_t rowSize)
+{
+    Gecode::LinIntExpr expr = 0;
+
+    for(uint32_t row = fromRow; row <= toRow; ++row)
+    {
+        uint32_t rowBaseIdx = row*rowSize;
+        for(uint32_t idx = rowBaseIdx + fromCol; idx <= rowBaseIdx + toCol; ++idx)
+        {
+            expr = expr + view[idx];
+        }
     }
     return expr;
 }
@@ -82,17 +102,25 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, ViewArray<Int::IntView>& xv
         rows.push_back(expr);
     }
 
+    // Record the sum of all columns -- which should be
+    // constrained to one -- i.e. no parallel edges
+    std::vector<Gecode::LinIntExpr> sumOfCols;
+    std::vector<Gecode::LinIntExpr> sumOfRows;
+
     // 1. validate time property: only valid are time-forward-connections
     // compute sums of columns and rows for connections between timepoints
     // i.e. validate transitions between timepoints
     Gecode::LinIntExpr sumOfConnections = 0;
+    // The length of all
+    uint32_t sameTimeColumnSize = colSize*numberOfFluents;
     for(uint32_t row = 0; row < colSize; ++row)
     {
-        uint32_t timepointSource = row/numberOfFluents;
+        uint32_t fromFluentIdx = row%numberOfFluents;
+        uint32_t fromTimeIdx = (row - fromFluentIdx)/numberOfFluents;
 
-        // Constrained defined here: there can be maximum 1 outgoing edge from one timepoint
-        // Use the row that represents the start of one timepoint
-        if(row%numberOfFluents == 0)
+        // Constrained defined here: there can be maximum 1 outgoing edge from any timepoint
+        // Use the fluent with index 0 which represents the start of an arbitrary timepoint
+        if(fromFluentIdx == 0)
         {
             // sum all rows that correspond to one timepoint
             // row*colSize --> row times the "width of a row" (column size) is
@@ -101,11 +129,37 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, ViewArray<Int::IntView>& xv
             // timepoint, since there are multiple fluents (e.g. locations) that
             // are associated with a timepoint this can cover more than one row
             //
-            Gecode::LinIntExpr sumOfOutEdges = sumOfArray(xv, row*colSize, colSize*numberOfFluents);
+            uint32_t fromIdx = row*colSize; // marks the start of the array index
+            Gecode::LinIntExpr sumOfOutEdges = sumOfArray(xv, fromIdx, sameTimeColumnSize);
             Gecode::LinIntRel maxOneOutEdge( sumOfOutEdges <= 1);
             maxOneOutEdge.post(home, true, intConLevel);
+
+            if(row != colSize -1)
+            {
+                Gecode::BoolExpr hasOutgoingEdge(sumOfOutEdges == 1);
+
+                // Make sure that either the next timepoint has an outgoing transition or no
+                // other
+                uint32_t nextIdx = row + numberOfFluents;
+                Gecode::LinIntExpr sumOfNextOutEdgesRowWise = sumOfMatrixSlice(xv, 0, nextIdx, colSize -1, nextIdx + numberOfFluents-1, rowSize);
+                Gecode::LinIntExpr sumOfNextOutEdgesColumnWise = sumOfMatrixSlice(xv, nextIdx,0, nextIdx + numberOfFluents -1, rowSize -1, rowSize);
+
+                Gecode::LinIntRel minOneOutEdge(sumOfNextOutEdgesRowWise + sumOfNextOutEdgesColumnWise == 2);
+
+                Gecode::LinIntExpr sumOfRemainingEdges = sumOfMatrixSlice(xv, 0, nextIdx, colSize-1, rowSize -1, rowSize);
+                Gecode::LinIntRel noOtherOutEdge(sumOfRemainingEdges == 0);
+
+                Gecode::BoolExpr endPoint(minOneOutEdge, BoolExpr::NT_OR, noOtherOutEdge);
+
+                Gecode::BoolExpr connectionRequirement(!hasOutgoingEdge, BoolExpr::NT_OR, endPoint);
+                Gecode::BoolVar isValidEdge = connectionRequirement.expr(home, intConLevel);
+
+                Gecode::LinIntRel valid(isValidEdge, Gecode::IRT_EQ, 1);
+                valid.post(home, true, intConLevel);
+            }
         }
 
+        Gecode::LinIntExpr sumOfRow = 0;
         // Constrained defined here: edges can be only link two vertices forward in time
         //############################
         //    forward in time only
@@ -119,70 +173,93 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, ViewArray<Int::IntView>& xv
         //
         for(uint32_t col = 0; col < rowSize; ++col)
         {
-            uint32_t timepointTarget = col/numberOfFluents;
+            FluentTimeIdx toIdx = getFluentTimeIdx(col, numberOfFluents);
+            //uint32_t toFluentIdx = toIdx.first;
+            uint32_t toTimeIdx = toIdx.second;
+
+            Gecode::Int::IntView sourceElementView = getView(xv, col, row, numberOfFluents, numberOfTimepoints);
+
+            // Constrain the transition to go forward in time only
+            // 0: no edge, i.e. transition not allowed
+            if(toTimeIdx <= fromTimeIdx)
             {
-                assert(xv.size() > row*rowSize + col);
-                Gecode::Int::IntView& elementView = xv[row*rowSize + col];
-                //{
-                //    Gecode::LinIntExpr& expr = rows.at(row);
-                //    expr = expr + elementView;
-                //}
-                //{
-                //    Gecode::LinIntExpr& expr = cols.at(col);
-                //    expr = expr + elementView;
-                //}
-
-                // Constrain the transition to go forward in time only
-                // 0: no edge, i.e. transition not allowed
-                if(timepointTarget <= timepointSource)
-                {
-                    Gecode::LinIntExpr expr = 0 + elementView;
-                    Gecode::LinIntRel r(expr,Gecode::IRT_EQ,0);
-                    r.post(home, true, intConLevel);
-                }
-
-                sumOfConnections = sumOfConnections + elementView;
+                Gecode::LinIntExpr expr = 0 + sourceElementView;
+                Gecode::LinIntRel r(expr,Gecode::IRT_EQ,0);
+                r.post(home, true, intConLevel);
             }
-        }
 
-        // Check if there is a transition to the next timepoint and given
-        // fluent (location), if so then make sure there is an outgoing
-        // connection from this location as well (or no connection at all after that)
-        if(timepointSource+1 < numberOfTimepoints)
-        {
-            LOG_WARN_S << "Row: " << row << " -- vertices: " << rowSize;
-            for(uint32_t fluentIdx = 0; fluentIdx < numberOfFluents; ++fluentIdx)
             {
-                uint32_t sourceRowIndex = timepointSource*numberOfFluents + fluentIdx;
-                uint32_t targetRowIndex = (timepointSource+1)*numberOfFluents + fluentIdx;
+                Gecode::BoolExpr hasConnection(sourceElementView == 1);
+                Gecode::LinIntExpr competingEdges = sumOfMatrixSlice(xv, 0, row+1, col, rowSize - 1, rowSize);
+                Gecode::LinIntRel noConflictingEdges(competingEdges, Gecode::IRT_EQ, 0);
 
-                Gecode::Int::IntView& sourceNodeView = xv[sourceRowIndex];
-                Gecode::BoolExpr hasConnection(sourceNodeView == 1);
-
-                //std::cout << "Source row: " << sourceRowIndex << std::endl;
-                //std::cout << "Target row: " << targetRowIndex << std::endl;
-                //std::cout << "timepoint*fluents: " << rowSize << std::endl;
-                //std::cout << "fluent idx: " << fluentIdx << std::endl;
-                //std::cout << "Find target row: " << targetRowIndex << " fluents: " << numberOfFluents << std::endl;
-                //std::cout << "Current view: " << sourceNodeView << std::endl;
-
-                uint32_t startTargetOffset = (timepointSource+1)*numberOfTimepoints*numberOfFluents;
-                //std::cout << "Start target offset: " << startTargetOffset << std::endl;
-
-                // Either there is an outgoing connection
-                Gecode::LinIntExpr sumOfLocalOutEdges = sumOfArray(xv,startTargetOffset, numberOfFluents);
-                Gecode::LinIntRel locationRequirement(sumOfLocalOutEdges, Gecode::IRT_EQ, 1);
-
-                // or there is not connection at all following
-                Gecode::LinIntExpr sumOfRemainingOutEdges = sumOfArray(xv,startTargetOffset, rowSize*rowSize - startTargetOffset);
-                Gecode::LinIntRel noLocationRequirement(sumOfRemainingOutEdges, Gecode::IRT_EQ, 0);
-
-                BoolExpr nextPathElementRequirement(locationRequirement, BoolExpr::NT_OR, noLocationRequirement);
-                BoolExpr connectionRequirement(hasConnection, BoolExpr::NT_AND, nextPathElementRequirement);
-                connectionRequirement.expr(home, intConLevel);
+                Gecode::BoolExpr noConflict(!hasConnection, Gecode::BoolExpr::NT_OR, noConflictingEdges);
+                BoolVar conflictState = noConflict.expr(home, intConLevel);
+                Gecode::LinIntRel rel(conflictState, Gecode::IRT_EQ, 1);
+                rel.post(home, true, intConLevel);
             }
+
+            // Compute the sum of all connections
+            sumOfConnections = sumOfConnections + sourceElementView;
+            if(sumOfCols.size() <= col)
+            {
+                Gecode::LinIntExpr sum = 0;
+                sumOfCols.push_back(sum);
+            }
+            sumOfCols[col] = sumOfCols[col] + sourceElementView;
+
+            sumOfRow = sumOfRow + sourceElementView;
         }
+        // Gather the sums of rows
+        sumOfRows.push_back(sumOfRow);
     }
+
+    // Disallow parallel edges for the same target timepoint columns
+    for(uint32_t col = 0; col < colSize; ++col)
+    {
+        uint32_t toFluentIdx = col%numberOfFluents;
+        uint32_t toTimeIdx = (col-toFluentIdx)/numberOfFluents;
+
+        if(col < colSize -1)
+        {
+            Gecode::LinIntRel rel(sumOfRows[col] == sumOfCols[col+1]);
+            rel.post(home, true, intConLevel);
+        }
+
+        //if(toFluentIdx == 0)
+        //{
+        //    Gecode::LinIntExpr sumOfSameTimeCols = 0;
+        //    for(size_t i = 0; i < numberOfFluents; ++i)
+        //    {
+        //        sumOfSameTimeCols = sumOfSameTimeCols + sumOfCols[col+i];
+        //    }
+        //    Gecode::LinIntRel noParallelEdges(sumOfSameTimeCols, Gecode::IRT_LQ, 1);
+        //    noParallelEdges.post(home, true, intConLevel);
+        //}
+
+        // Check if this space-time has an incoming edge
+        // if so, then
+        // (a) its direct target has to have either an outgoing edge or
+        // no other edge can be present
+        // (b) no previous timepoint locations can have an outgoing edge
+        Gecode::BoolExpr hasIncomingEdge(sumOfCols[col] == 1);
+        Gecode::LinIntRel hasOutgoingEdge(sumOfRows[col], Gecode::IRT_EQ,1);
+
+        Gecode::LinIntExpr sumOfRemainingRows = 0;
+        // or there is not connection at all following
+        for(uint32_t remainingRowIdx = col; remainingRowIdx < colSize; ++remainingRowIdx)
+        {
+            sumOfRemainingRows = sumOfRemainingRows + sumOfRows[remainingRowIdx];
+        }
+        Gecode::LinIntRel noLaterOutgoingEdge(sumOfRemainingRows, Gecode::IRT_EQ,0);
+
+        Gecode::BoolExpr isIncrementalPath(hasOutgoingEdge, BoolExpr::NT_OR, noLaterOutgoingEdge);
+        Gecode::BoolVar var = isIncrementalPath.expr(home, intConLevel);
+
+        Gecode::LinIntRel requireTrue(var, Gecode::IRT_EQ, 1);
+        //requireTrue.post(home, true, intConLevel);
+    }
+
     // Make sure there is at least one connection -- otherwise this is
     // not a path
     Gecode::LinIntRel r(sumOfConnections >= 1);
@@ -271,6 +348,25 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
         // the propagator will be scheduled if one of its views have been modified
         return ES_NOFIX;
     }
+}
+
+Int::IntView IsPath::getView(Gecode::ViewArray<Gecode::Int::IntView>& view, uint32_t col, uint32_t row,
+        uint32_t numberOfFluents,
+        uint32_t numberOfTimepoints)
+{
+    uint32_t sizeOfCol = numberOfFluents*numberOfTimepoints;
+    uint32_t arrayIdx = row*sizeOfCol + col;
+
+    assert(arrayIdx < view.size());
+    return view[arrayIdx];
+}
+
+IsPath::FluentTimeIdx IsPath::getFluentTimeIdx(uint32_t rowOrCol, uint32_t numberOfFluents)
+{
+    FluentTimeIdx idx;
+    idx.first = rowOrCol % numberOfFluents;
+    idx.second = (rowOrCol - idx.first)/numberOfFluents;
+    return idx;
 }
 
 } // end namespace propagators
