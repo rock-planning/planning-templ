@@ -61,6 +61,7 @@ std::string FluentTimeResource::toString(uint32_t indent) const
     ss << hspace << "    time: #" << time << std::endl;
     ss << getInterval().toString(indent + 8) << std::endl;
     ss << hspace << "    fluent: #" << fluent << std::endl;
+    ss << hspace << "        " << mission->getLocations()[fluent]->toString();
     ss << hspace << "    max cardinalities: " << std::endl
         << maxCardinalities.toString(indent + 8) << std::endl;
     ss << hspace << "    min cardinalities: " << std::endl
