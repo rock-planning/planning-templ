@@ -8,14 +8,17 @@
 #include <organization_model/vocabularies/OM.hpp>
 #include <templ/SharedPtr.hpp>
 #include <templ/symbols/object_variables/LocationCardinality.hpp>
-#include <templ/solvers/csp/ConstraintMatrix.hpp>
 #include <templ/SpaceTimeNetwork.hpp>
 #include <iomanip>
 #include <organization_model/facets/Robot.hpp>
 #include <Eigen/Dense>
 
-#include <templ/solvers/csp/propagators/IsPath.hpp>
-#include <templ/solvers/csp/propagators/MultiCommodityFlow.hpp>
+#include "ConstraintMatrix.hpp"
+#include "propagators/IsPath.hpp"
+#include "propagators/MultiCommodityFlow.hpp"
+#include "utils/Formatter.hpp"
+
+using namespace templ::solvers::csp::utils;
 
 namespace templ {
 namespace solvers {
@@ -27,20 +30,6 @@ std::string TransportNetwork::Solution::toString(uint32_t indent) const
     std::string hspace(indent,' ');
     {
         ModelDistribution::const_iterator cit = mModelDistribution.begin();
-        size_t count = 0;
-        ss << hspace << "ModelDistribution" << std::endl;
-        for(; cit != mModelDistribution.end(); ++cit)
-        {
-            const FluentTimeResource& fts = cit->first;
-            ss << hspace << "--- requirement #" << count++ << std::endl;
-            ss << hspace << fts.toString() << std::endl;
-
-            const organization_model::ModelPool& modelPool = cit->second;
-            ss << modelPool.toString(indent) << std::endl;
-        }
-    }
-    {
-        TransportNetwork::ModelDistribution::const_iterator cit = mModelDistribution.begin();
         size_t count = 0;
         ss << hspace << "ModelDistribution" << std::endl;
         for(; cit != mModelDistribution.end(); ++cit)
@@ -66,6 +55,10 @@ std::string TransportNetwork::Solution::toString(uint32_t indent) const
             const Role::List& roles = cit->second;
             ss << hspace << Role::toString(roles) << std::endl;
         }
+    }
+    {
+        ss << hspace << "Timelines" << std::endl;
+        ss << hspace  << TransportNetwork::toString(mTimelines);
     }
     return ss.str();
 }
@@ -119,9 +112,11 @@ TransportNetwork::SearchState TransportNetwork::SearchState::next() const
 
 TransportNetwork::Solution TransportNetwork::getSolution() const
 {
+    assert(false);
     Solution solution;
     solution.mModelDistribution = getModelDistribution();
     solution.mRoleDistribution = getRoleDistribution();
+    solution.mTimelines = getTimelines();
     return solution;
 }
 
@@ -182,6 +177,104 @@ TransportNetwork::RoleDistribution TransportNetwork::getRoleDistribution() const
     }
 
     return solution;
+}
+
+TransportNetwork::Timelines TransportNetwork::getTimelines() const
+{
+    LOG_WARN_S << "GET TIMELINES";
+    LOG_WARN_S << std::endl << toString(mTimelines) << std::endl;
+
+    size_t locationTimeSize = mLocations.size()*mTimepoints.size();
+
+    TransportNetwork::Timelines timelines;
+
+    std::vector<int32_t> capacities;
+    for(size_t i = 0; i < locationTimeSize*locationTimeSize; ++i)
+    {
+        capacities.push_back(0);
+    }
+
+    for(size_t roleIdx = 0; roleIdx < mActiveRoles.size(); ++roleIdx)
+    {
+        const Role& role = mRoles[ mActiveRoles[roleIdx] ];
+        LOG_WARN_S << "Timeline for: " << role.toString();
+
+        TransportNetwork::Timeline finalRoleTimeline;
+
+        Gecode::Matrix<Gecode::IntVarArray> timeline( mTimelines[roleIdx],
+                locationTimeSize, locationTimeSize);
+
+        int idx = 0;
+        for(size_t rowIdx = 0; rowIdx < locationTimeSize; ++rowIdx)
+        {
+            FluentTimeIndex rowSpaceTimeIdx = FluentTimeIndex::fromRowOrCol(rowIdx, mLocations.size(), mTimepoints.size());
+
+            for(size_t colIdx = 0; colIdx < locationTimeSize; ++colIdx)
+            {
+                Gecode::IntVar var = timeline(colIdx, rowIdx);
+                if(!var.assigned())
+                {
+                    throw std::runtime_error("templ::solvers::csp::TransportNetwork::getTimelines: "
+                            "value has not been assigned for timeline of role:"
+                            " '" + role.toString() + "'");
+                }
+
+                Gecode::IntVarValues v(var);
+                if( v.val() == 1)
+                {
+                    organization_model::facets::Robot robot(role.getModel(), mAsk);
+                    int32_t supplyDemand = robot.getPayloadTransportSupplyDemand();
+
+                    capacities[idx] = capacities[idx] + supplyDemand;
+                    LOG_WARN_S << "ROW: "<< rowIdx << " -- COL: " << colIdx;
+
+                    FluentTimeIndex colSpaceTimeIdx = FluentTimeIndex::fromRowOrCol(colIdx, mLocations.size(), mTimepoints.size());
+                    if(finalRoleTimeline.empty())
+                    {
+                        // add from
+                        SpaceTimePoint stp;
+                        stp.first = mLocations[ rowSpaceTimeIdx.getFluentIndex() ];
+                        stp.second = mTimepoints[ rowSpaceTimeIdx.getTimeIndex()];
+                        finalRoleTimeline.push_back(stp);
+                    }
+
+                    // add to
+                    assert(colSpaceTimeIdx.first < mLocations.size());
+                    assert(colSpaceTimeIdx.second < mTimepoints.size());
+
+                    SpaceTimePoint stp;
+                    stp.first = mLocations[ colSpaceTimeIdx.getFluentIndex() ];
+                    stp.second = mTimepoints[ colSpaceTimeIdx.getTimeIndex()];
+                    finalRoleTimeline.push_back(stp);
+                }
+
+                ++idx;
+            }
+        }
+        timelines[role] = finalRoleTimeline;
+    }
+
+    std::stringstream rowCol;
+    rowCol << std::endl;
+    for(size_t r = 0; r < locationTimeSize; ++r)
+    {
+        for(size_t c = 0; c < locationTimeSize; ++c)
+        {
+            size_t i = FluentTimeIndex::toArrayIndex(r,c, mLocations.size(), mTimepoints.size());
+
+            rowCol << capacities[i] << "(" << std::setw(4) << i << ") ";
+
+            if(capacities[i] < 0)
+            {
+                std::stringstream cc;
+                cc << "capacity: " << capacities[i] << " at row: " << r << " , col: " << c;
+                throw std::runtime_error("Invalid capacity of less than 0 -- " + cc.str());
+            }
+        }
+        rowCol << std::endl;
+    }
+    LOG_WARN_S << rowCol.str();
+    return timelines;
 }
 
 std::set< std::vector<uint32_t> > TransportNetwork::toCSP(const organization_model::ModelPoolSet& combinations) const
@@ -537,7 +630,7 @@ Gecode::Space* TransportNetwork::copy(bool share)
     return new TransportNetwork(share, *this);
 }
 
-std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mission::Ptr& mission)
+std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions)
 {
     SolutionList solutions;
     mission->validateForPlanning();
@@ -560,7 +653,14 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
             LOG_INFO_S << "Solution found:" << current->toString();
             solutions.push_back(current->getSolution());
-            break;
+            if(minNumberOfSolutions != 0)
+            {
+                if(solutions.size() == minNumberOfSolutions)
+                {
+                    LOG_WARN_S << "Found solution";
+                    break;
+                }
+            }
         }
 
         if(best == NULL)
@@ -816,7 +916,6 @@ std::vector<uint32_t> TransportNetwork::getActiveRoles() const
             Gecode::IntVarValues v(var);
             if(v.val() == 1)
             {
-                LOG_WARN_S << "Active role: " << mRoles[r].toString();
                 activeRoles.push_back(r);
                 break;
             }
@@ -859,12 +958,13 @@ void TransportNetwork::postRoleAssignments()
         // consider only active roles
         if(mActiveRoles.end() == std::find(mActiveRoles.begin(), mActiveRoles.end(), roleIndex))
         {
-            LOG_WARN_S << "NO ACTIVE ROLE: " << mRoles[roleIndex].toString();
+            LOG_DEBUG_S << "Is not an active role: " << mRoles[roleIndex].toString();
             continue;
         }
-        LOG_WARN_S << "ACTIVE ROLE: " << mRoles[roleIndex].toString();
+        const Role& role = mRoles[roleIndex];
+        LOG_WARN_S << "Is an active role: " << role.toString();
 
-        activeRoles.push_back(mRoles[roleIndex]);
+        activeRoles.push_back(role);
 
         // A timeline describes the transitions in space time for a given role
         // transitions are boolean 1 or 0, whereas 1 means the transition is
@@ -878,6 +978,16 @@ void TransportNetwork::postRoleAssignments()
         Gecode::IntVarArray& timeline = mTimelines.back();
         Gecode::Matrix<Gecode::IntVarArray> roleTimeline(timeline, locationTimeSize, locationTimeSize);
 
+        using namespace solvers::temporal;
+        std::vector<point_algebra::TimePoint::Ptr>::const_iterator cit = mTimepoints.begin();
+        for(; cit != mTimepoints.end(); ++cit)
+        {
+            LOG_DEBUG_S << "Timepoints: " << (*cit)->toString();
+        }
+        for(size_t i = 0; i < mLocations.size(); ++i)
+        {
+            LOG_DEBUG_S << "Locations: " << mLocations[i]->toString();
+        }
         // Link the edge activation to the role requirement, i.e. make sure that
         // for each requirement the interval is 'activated'
         for(uint32_t requirementIndex = 0; requirementIndex < mResourceRequirements.size(); ++requirementIndex)
@@ -888,21 +998,10 @@ void TransportNetwork::postRoleAssignments()
                 const FluentTimeResource& fts = mResourceRequirements[requirementIndex];
                 // index of the location is: fts.fluent
                 //
-                using namespace solvers::temporal;
                 point_algebra::TimePoint::Ptr from = fts.getInterval().getFrom();
                 point_algebra::TimePoint::Ptr to = fts.getInterval().getTo();
                 std::vector<point_algebra::TimePoint::Ptr>::const_iterator fromIt = std::find(mTimepoints.begin(), mTimepoints.end(), from);
                 std::vector<point_algebra::TimePoint::Ptr>::const_iterator toIt = std::find(mTimepoints.begin(), mTimepoints.end(), to);
-
-                std::vector<point_algebra::TimePoint::Ptr>::const_iterator cit = mTimepoints.begin();
-                for(; cit != mTimepoints.end(); ++cit)
-                {
-                    LOG_WARN_S << "Timepoints: " << (*cit)->toString();
-                }
-                for(size_t i = 0; i < mLocations.size(); ++i)
-                {
-                    LOG_WARN_S << "Locations: " << mLocations[i]->toString();
-                }
 
                 uint32_t fromIndex = fromIt - mTimepoints.begin();
                 uint32_t toIndex = toIt - mTimepoints.begin();
@@ -910,16 +1009,32 @@ void TransportNetwork::postRoleAssignments()
                 {
                     // index of the location is fts.fluent
                     // edge index:
-                    // row = |timepoints|*location + timepoint-from
-                    // col = |timepoints|*location + timepoint-to
-                    size_t row = timeIndex*mLocations.size() + fts.fluent;
+                    // row = timepointIdx*#ofLocations + from-location-offset
+                    // col = (timepointIdx + 1) *#ofLocations + to-location-offset
+                    //
+                    // location (offset) = row % #ofLocations
+                    // timepointIndex = (row - location(offset)) / #ofLocations
+                    size_t row = FluentTimeIndex::toRowOrColumnIndex(fts.fluent, timeIndex, mLocations.size(), mTimepoints.size());
                     // Always connect to the next timestep
-                    size_t col = (timeIndex + 1)*mLocations.size() + fts.fluent;
+                    size_t col = FluentTimeIndex::toRowOrColumnIndex(fts.fluent, timeIndex + 1, mLocations.size(), mTimepoints.size());
+
                     Gecode::IntVar edgeActivation = roleTimeline(col, row);
 
-                    LOG_WARN_S << "EdgeActivation for col: " << col << ", row: " << row << " is required: " << roleRequirement;
+                    LOG_WARN_S << "EdgeActivation for col: " << col << ", row: " << row << " is required: " << role.toString();
                     LOG_WARN_S << "Translates to: " << from->toString() << " to " << to->toString();
                     LOG_WARN_S << "Fluent: " << mLocations[fts.fluent]->toString();
+
+                    //{
+                    //    SpaceTimeIdx spaceTimeIdx = convertToSpaceTimeIdx(col);
+                    //    assert(spaceTimeIdx.first == mLocations[fts.fluent]);
+                    //    assert(spaceTimeIdx.second == to);
+                    //}
+
+                    //{
+                    //    SpaceTimeIdx spaceTimeIdx = convertToSpaceTimeIdx(row);
+                    //    assert(spaceTimeIdx.first == mLocations[fts.fluent]);
+                    //    assert(spaceTimeIdx.second == from);
+                    //}
 
                     // constraint between roleTimeline and roleRequirement
                     // TODO: check if bool >= int does actually work
@@ -1117,26 +1232,25 @@ void TransportNetwork::postFlowCapacities()
 
     for(size_t rowIndex = 0; rowIndex < locationTimeSize; ++rowIndex)
     {
-        size_t rowLocationIndex = rowIndex%mLocations.size();
-        size_t rowTimeIndex = rowIndex/mLocations.size();
-        LOG_WARN_S << "row: " << rowIndex <<  " " << mLocations[rowLocationIndex]->toString();
-        LOG_WARN_S << "                          " << mTimepoints[rowTimeIndex]->toString();
+        FluentTimeIndex rowSpaceTimeIdx = FluentTimeIndex::fromRowOrCol(rowIndex, mLocations.size(), mTimepoints.size());
+
+        LOG_WARN_S << "row: " << rowIndex <<  " " << mLocations[rowSpaceTimeIdx.getFluentIndex()]->toString();
+        LOG_WARN_S << "                          " << mTimepoints[rowSpaceTimeIdx.getTimeIndex()]->toString();
 
         for(size_t colIndex = 0; colIndex < locationTimeSize; ++colIndex)
         {
             bool isSameLocation = false;
 
-            size_t colLocationIndex = colIndex%mLocations.size();
-            size_t colTimeIndex = colIndex/mLocations.size();
+            FluentTimeIndex colSpaceTimeIdx = FluentTimeIndex::fromRowOrCol(colIndex, mLocations.size(), mTimepoints.size());
 
-            LOG_WARN_S << "col: " << colIndex <<  " " << mLocations[colLocationIndex]->toString();
-            LOG_WARN_S << "       " << mTimepoints[colTimeIndex]->toString();
+            LOG_WARN_S << "col: " << colIndex <<  " " << mLocations[colSpaceTimeIdx.getFluentIndex()]->toString();
+            LOG_WARN_S << "       " << mTimepoints[colSpaceTimeIdx.getTimeIndex()]->toString();
 
-            if( rowLocationIndex == colLocationIndex)
+            if( rowSpaceTimeIdx.getFluentIndex() == colSpaceTimeIdx.getFluentIndex())
             {
                 LOG_WARN_S << "Is same location";
                 isSameLocation = true;
-                if(rowTimeIndex + 1 == colTimeIndex)
+                if(rowSpaceTimeIdx.getTimeIndex() + 1 == colSpaceTimeIdx.getTimeIndex())
                 {
                     LOG_WARN_S << "Updating: " << rowIndex << "/" << colIndex;
                     capacities(rowIndex, colIndex) = std::numeric_limits<int32_t>::max();
@@ -1236,52 +1350,61 @@ std::string TransportNetwork::toString() const
     ss << "Current model usage: " << resourceDistribution << std::endl;
     ss << "Current role usage: " << mRoleUsage << std::endl;
     ss << "Current timelines:" << std::endl << toString(mTimelines) << std::endl;
-    ss << "Capacities: " << std::endl << toString(mCapacities) << std::endl;
+    ss << "Capacities: " << std::endl << Formatter::toString(mCapacities,
+            toPtrList<Symbol,symbols::constants::Location>(mLocations),
+            toPtrList<Variable, temporal::point_algebra::TimePoint>(mTimepoints)
+            ) << std::endl;
+
     return ss.str();
 }
 
 std::string TransportNetwork::toString(const std::vector<Gecode::IntVarArray>& timelines) const
 {
     std::vector<uint32_t> activeRoles = getActiveRoles();
-    std::stringstream ss;
+    std::vector<std::string> labels;
     for(size_t i = 0; i < timelines.size(); ++i)
     {
-        assert( activeRoles.size() > i);
-        ss << mRoles[ activeRoles[i] ].toString() << std::endl;
+        labels.push_back( mRoles[ activeRoles[i] ] .toString());
+    }
+    return Formatter::toString(timelines,
+            toPtrList<Symbol,symbols::constants::Location>(mLocations),
+            toPtrList<Variable, temporal::point_algebra::TimePoint>(mTimepoints),
+            labels);
+}
 
-        ss << toString(timelines[i]) << std::endl;
+std::string TransportNetwork::toString(const Timeline& timeline, size_t indent)
+{
+    std::stringstream ss;
+    std::string hspace(indent,' ');
+    ss << "TIMELINE --" << std::endl;
+    Timeline::const_iterator cit = timeline.begin();
+    for(; cit != timeline.end(); ++cit)
+    {
+        const SpaceTimePoint& stp = *cit;
+        assert(stp.first);
+        ss << hspace <<  stp.first->toString();
+        assert(stp.second);
+        ss << " -- " << stp.second->toString();
+        ss << std::endl;
     }
     return ss.str();
 }
 
-std::string TransportNetwork::toString(const Gecode::IntVarArray& array) const
+std::string TransportNetwork::toString(const Timelines& timelines, size_t indent)
 {
     std::stringstream ss;
-    std::string path;
-    size_t locationTimeSize = mLocations.size()*mTimepoints.size();
-    Gecode::Matrix<Gecode::IntVarArray> timeline(array, locationTimeSize, locationTimeSize);
-    for(size_t row = 0; row < locationTimeSize; ++row)
+    std::string hspace(indent,' ');
+    ss << "TIMELINES --" << std::endl;
+
+    Timelines::const_iterator cit = timelines.begin();
+    for(; cit != timelines.end(); ++cit)
     {
-        size_t timeIndex = (row - row%mLocations.size())/mLocations.size();
-        size_t locationIndex = row%mLocations.size();
-        std::string label = "" + mTimepoints[timeIndex]->toString() + "-" + mLocations[locationIndex]->toString();
-        ss << "#" << row << " " << std::setw(65) << label << " ";
-        for(size_t col = 0; col < locationTimeSize; ++col)
-        {
-            Gecode::IntVar var = timeline(col,row);
-            ss <<  var << " ";
-            if(var.assigned())
-            {
-                Gecode::IntVarValues v(var);
-                if(v.val() == 1)
-                {
-                    path += "-->" + label;
-                }
-            }
-        }
-        ss << std::endl;
+        const Role& role = cit->first;
+        const Timeline& timeline = cit->second;
+
+        ss << hspace << role.toString() << std::endl;
+        ss << toString(timeline, indent + 4);
     }
-    ss << "    " << path << std::endl;
     return ss.str();
 }
 

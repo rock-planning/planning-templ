@@ -11,6 +11,7 @@
 
 #include <templ/Mission.hpp>
 #include <templ/solvers/csp/FluentTimeResource.hpp>
+#include <templ/solvers/csp/utils/FluentTimeIndex.hpp>
 
 namespace templ {
 namespace solvers {
@@ -29,6 +30,9 @@ class TransportNetwork : public Gecode::Space
 public:
     typedef std::map<FluentTimeResource, organization_model::ModelPool > ModelDistribution;
     typedef std::map<FluentTimeResource, Role::List> RoleDistribution;
+    typedef std::pair<symbols::constants::Location::Ptr, solvers::temporal::point_algebra::TimePoint::Ptr> SpaceTimePoint;
+    typedef std::vector< SpaceTimePoint> Timeline;
+    typedef std::map<Role, Timeline > Timelines;
 
     class Solution
     {
@@ -36,6 +40,8 @@ public:
 
         ModelDistribution mModelDistribution;
         RoleDistribution mRoleDistribution;
+        Timelines mTimelines;
+
     public:
         const ModelDistribution& getModelDistribution() const { return mModelDistribution; }
         const RoleDistribution& getRoleDistribution() const { return mRoleDistribution; }
@@ -250,9 +256,12 @@ protected:
 
     ModelDistribution getModelDistribution() const;
     RoleDistribution getRoleDistribution() const;
+    Timelines getTimelines() const;
+
+    static std::string toString(const Timeline& timeline, size_t indent = 0);
+    static std::string toString(const Timelines& timelines, size_t indent = 0);
 
     std::string toString(const std::vector<Gecode::IntVarArray>& timelines) const;
-    std::string toString(const Gecode::IntVarArray& array) const;
 
 public:
     TransportNetwork(const templ::Mission::Ptr& mission);
@@ -270,7 +279,7 @@ public:
      */
     virtual Gecode::Space* copy(bool share);
 
-    static SolutionList solve(const templ::Mission::Ptr& mission);
+    static SolutionList solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions = 0);
 
     std::string toString() const;
     void print(std::ostream& os) const { os << toString() << std::endl; }
