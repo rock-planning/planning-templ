@@ -416,8 +416,8 @@ BOOST_AUTO_TEST_CASE(symmetry_breaking)
 
 BOOST_AUTO_TEST_CASE(mission_3)
 {
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
-                getRootDir() + "test/data/om-schema-latest.owl");
+    owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
+    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(organizationModelIRI);
     owlapi::model::IRI sherpa = vocabulary::OM::resolve("Sherpa");
     owlapi::model::IRI payload = vocabulary::OM::resolve("Payload");
 
@@ -459,7 +459,7 @@ BOOST_AUTO_TEST_CASE(mission_3)
         mission->setAvailableResources(modelPool);
 
         BOOST_REQUIRE_MESSAGE(mission->getOrganizationModel(), "Mission has organization model set");
-        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission, 10);
 
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
     }
