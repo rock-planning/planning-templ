@@ -189,9 +189,19 @@ TransportNetwork::Timelines TransportNetwork::getTimelines() const
     TransportNetwork::Timelines timelines;
 
     std::vector<int32_t> capacities;
-    for(size_t i = 0; i < locationTimeSize*locationTimeSize; ++i)
+    for(size_t r = 0; r < locationTimeSize; ++r)
     {
-        capacities.push_back(0);
+        FluentTimeIndex from = FluentTimeIndex::fromRowOrCol(r, mLocations.size(), mTimepoints.size());
+        for(size_t c = 0; c < locationTimeSize; ++c)
+        {
+            FluentTimeIndex to = FluentTimeIndex::fromRowOrCol(r, mLocations.size(), mTimepoints.size());
+            if(from.getFluentIndex() == to.getFluentIndex())
+            {
+                capacities.push_back( std::numeric_limits<int32_t>::max()/2);
+            } else {
+                capacities.push_back(0);
+            }
+        }
     }
 
     for(size_t roleIdx = 0; roleIdx < mActiveRoles.size(); ++roleIdx)
@@ -256,6 +266,7 @@ TransportNetwork::Timelines TransportNetwork::getTimelines() const
 
     std::stringstream rowCol;
     rowCol << std::endl;
+    bool isValid = true;
     for(size_t r = 0; r < locationTimeSize; ++r)
     {
         for(size_t c = 0; c < locationTimeSize; ++c)
@@ -266,12 +277,17 @@ TransportNetwork::Timelines TransportNetwork::getTimelines() const
 
             if(capacities[i] < 0)
             {
+                isValid = false;
                 std::stringstream cc;
                 cc << "capacity: " << capacities[i] << " at row: " << r << " , col: " << c;
                 throw std::runtime_error("Invalid capacity of less than 0 -- " + cc.str());
             }
         }
         rowCol << std::endl;
+    }
+    if(isValid)
+    {
+        throw std::runtime_error("Solution is valid");
     }
     LOG_WARN_S << rowCol.str();
     return timelines;

@@ -440,6 +440,7 @@ BOOST_AUTO_TEST_CASE(mission_3)
     baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, payload);
 
     baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, payload);
+    //baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, sherpa);
     baseMission.addResourceLocationCardinalityConstraint(loc2, t4, t5, sherpa);
 
     baseMission.addTemporalConstraint(t0,t1, point_algebra::QualitativeTimePointConstraint::Less);
