@@ -19,7 +19,6 @@ class IsPath : public Gecode::NaryPropagator<Gecode::Int::IntView,Gecode::Int::P
 {
 public:
     typedef Gecode::ViewArray<Gecode::Int::IntView> IntVarArrayView;
-    typedef std::pair<uint32_t, uint32_t> FluentTimeIdx;
 
 protected:
     uint32_t mNumberOfTimepoints;
@@ -63,8 +62,6 @@ public:
     static Gecode::Int::IntView getView(Gecode::ViewArray<Gecode::Int::IntView>& view,
             uint32_t col, uint32_t row,
             uint32_t numberOfFluent, uint32_t numberOfTimepoints);
-
-    static FluentTimeIdx getFluentTimeIdx(uint32_t rowOrCol, uint32_t numberOfFluents);
 };
 
 void isPath(Gecode::Space& home, const Gecode::IntVarArgs&, uint32_t numberOfTimepoints, uint32_t numberOfFluents);
