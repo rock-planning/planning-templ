@@ -22,7 +22,6 @@ void multiCommodityFlow(Gecode::Space& home,
     // If there is no path -- fail directly
     if(timelines.empty())
     {
-        LOG_WARN_S << "TIMELINES EMPTY -- FAIL";
         home.fail();
     } else {
         // Construct as single ArrayView in order to perform the propagation
@@ -37,7 +36,6 @@ void multiCommodityFlow(Gecode::Space& home,
             Gecode::IntVarArray::const_iterator ait = args.begin();
             for(; ait != args.end(); ++ait)
             {
-                //LOG_WARN_S << "ACCESS at: " << viewIdx << "size is " << xv.size();
                 assert(viewIdx < xv.size());
                 xv[viewIdx++] = Int::IntView(*ait);
             }
@@ -66,81 +64,104 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
     , mNumberOfTimepoints(numberOfTimepoints)
     , mNumberOfFluents(numberOfFluents)
     , mLocationTimeSize(numberOfTimepoints*numberOfFluents)
+    , mTimelineSize(mLocationTimeSize*mLocationTimeSize)
     , mAsk(ask)
-    , mCapacityGraph(home, (int) mLocationTimeSize, 0,Gecode::Int::Limits::max)
-    , mRoleCapacities(home, mLocationTimeSize*roles.size(), Gecode::Int::Limits::min, Gecode::Int::Limits::max)
+    , mCapacityGraph()
 {
-//    uint32_t numberOfSpaceTimePoints = mNumberOfTimepoints*mNumberOfFluents;
-//    Gecode::Matrix<Gecode::IntVarArray> capacityGraph(mCapacityGraph,
-//            numberOfSpaceTimePoints, // width --> col
-//            numberOfSpaceTimePoints // height --> row
-//            );
-//
-//    // Construct the basic graph that allows for transitions
-//    // between space-time if the space (location) does not change at
-//    // all
-//    for(uint32_t row = 0; row < numberOfTimepoints; ++row)
-//    {
-//        for(uint32_t col = 0; col < numberOfSpaceTimePoints; ++col)
-//        {
-//            Gecode::IntVar transportCapacity = capacityGraph(col, row);
-//            uint32_t capacity = 0;
-//            // Allow a transition only from this to the next timepoint (no skipping)
-//            // row is source, col is destination
-//            if(col == row + 1)
-//            {
-//                // Make sure we are not at the start of a location sequence,
-//                // i.e. anything with the initial timepoint
-//                if( col%mNumberOfTimepoints != 0)
-//                {
-//                    capacity = Gecode::Int::Limits::max;
-//                }
-//            }
-//            LOG_WARN_S << "BaseTimeline: row " << row << "col " << col << capacity;
-//    //        rel(home, transportCapacity, Gecode::IRT_EQ, capacity);
-//        }
-//    }
-//
-//
-//    // Cache supply/demand for each role to
-//    // avoid recomputation
-//    // positive value means a provided capacity
-//    // a negative value means required (transport) capacity
-//    std::vector<int32_t> mRoleSupplyDemand;
-//    for(uint32_t roleIdx = 0; roleIdx < mRoles.size(); ++roleIdx)
-//    {
-//        const Role& role = mRoles[roleIdx];
-//        organization_model::facets::Robot robot(role.getModel(), mAsk);
-//        int32_t supplyDemand = robot.getPayloadTransportSupplyDemand();
-//        mRoleSupplyDemand.push_back(supplyDemand);
-//
-//        LOG_WARN_S << "SupplyDemand: " << role.toString()   << " " << supplyDemand;
-//    }
-//
-//    Gecode::IntConLevel intConLevel = Gecode::ICL_DEF;
+    uint32_t numberOfSpaceTimePoints = mNumberOfTimepoints*mNumberOfFluents;
+    {
+    std::stringstream ss;
+    ss << std::endl << "Number of Fluents: " << mNumberOfFluents << std::endl;
 
-    //for(uint32_t timelineEdgeIdx = 0;  timelineEdgeIdx < mLocationTimeSize; ++timelineEdgeIdx)
-    //{
-    //    Gecode::IntVar& baseCapacity = mCapacityGraph[timelineEdgeIdx];
-    //    Gecode::LinIntExpr sumOfSupplyDemand = 0;
-    //    sumOfSupplyDemand = sumOfSupplyDemand + baseCapacity;
+    // Construct the basic graph that allows for transitions (has infinite capacity)
+    // between space-time if the fluent (e.g. location) does not change
+    for(uint32_t row = 0; row < numberOfSpaceTimePoints; ++row)
+    {
+        for(uint32_t col = 0; col < numberOfSpaceTimePoints; ++col)
+        {
+            int32_t capacity = 0;
+            // Allow a transition only from this to the next timepoint (no skipping)
+            // row is source, col is destination, thus
+            // from row to col == from row to row +1
+            if(col == row + mNumberOfFluents)
+            {
+                capacity = 1;
+            }
+            ss << capacity << " ";
+            mCapacityGraph.push_back(capacity);
+        }
+        ss << std::endl;
+    }
+    LOG_WARN_S << ss.str();
+    }
 
-    //    for(uint32_t roleIdx = 0; roleIdx < mRoles.size(); ++roleIdx)
-    //    {
-    //        int idx = mLocationTimeSize*roleIdx + timelineEdgeIdx;
-    //        Gecode::Int::IntView& elementView = xv[idx];
+    // Cache supply/demand for each role to
+    // avoid recomputation
+    // positive value means a provided capacity
+    // a negative value means required (transport) capacity
+    if(mRoleSupplyDemand.empty())
+    {
+        for(uint32_t roleIdx = 0; roleIdx < mRoles.size(); ++roleIdx)
+        {
+            const Role& role = mRoles[roleIdx];
+            organization_model::facets::Robot robot(role.getModel(), mAsk);
+            int32_t supplyDemand = robot.getPayloadTransportSupplyDemand();
+            mRoleSupplyDemand.push_back(supplyDemand);
 
-    //        sumOfSupplyDemand = sumOfSupplyDemand + elementView;
-    //    }
+            LOG_WARN_S << "SupplyDemand: " << role.toString()   << " " << supplyDemand;
+        }
+    }
 
-    //    Gecode::LinIntRel noNegativeCapacity(sumOfSupplyDemand, Gecode::IRT_GQ, 0);
-    //    noNegativeCapacity.post(home, true, intConLevel);
-    //}
+    Gecode::IntConLevel intConLevel = Gecode::ICL_DEF;
+
+    std::stringstream ss;
+    ss << std::endl;
+    for(uint32_t timelineEdgeIdx = 0;  timelineEdgeIdx < mLocationTimeSize*mLocationTimeSize; ++timelineEdgeIdx)
+    {
+            std::stringstream elements;
+            Gecode::LinIntExpr sumOfSupplyDemand = 0;
+            for(uint32_t roleIdx = 0; roleIdx < mRoles.size(); ++roleIdx)
+            {
+                int idx = mLocationTimeSize*roleIdx + timelineEdgeIdx;
+                Gecode::Int::IntView elementView = xv[idx];
+
+                sumOfSupplyDemand = sumOfSupplyDemand + elementView*mRoleSupplyDemand[roleIdx];
+                elements << elementView;
+
+                if(roleIdx < mRoles.size()-1)
+                {
+                    elements << "/";
+                }
+            }
+
+            if(!isLocalTransition(timelineEdgeIdx))
+            {
+                Gecode::LinIntRel balancedCapacity(sumOfSupplyDemand, Gecode::IRT_GQ, 0);
+                //balancedCapacity.post(home, true, intConLevel);
+            }
+
+            if(timelineEdgeIdx%mLocationTimeSize != 0)
+            {
+                size_t rest = 24-elements.str().size();
+                std::string hspace(rest,' ');
+                ss << hspace;
+            }
+            ss << elements.str();
+
+            if((timelineEdgeIdx+1)%mLocationTimeSize == 0)
+            {
+                ss << std::endl;
+            }
+
+    }
+    LOG_WARN_S << ss.str();
 }
 
 MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home, bool share, MultiCommodityFlow& flow)
     : NaryPropagator<Int::IntView, Int::PC_INT_BND>(home, share, flow)
     , mAsk(flow.mAsk)
+    , mCapacityGraph(flow.mCapacityGraph)
+    , mRoleSupplyDemand(flow.mRoleSupplyDemand)
 {
     x.update(home, share, flow.x);
 }
@@ -179,13 +200,23 @@ Gecode::ExecStatus MultiCommodityFlow::propagate(Gecode::Space& home, const Geco
 {
     if(x.assigned())
     {
-        LOG_WARN_S << "SUBSUMED";
         return home.ES_SUBSUMED(*this);
+    } else if(home.failed())
+    {
+        return ES_FAILED;
     } else {
-        LOG_WARN_S << "NO FIX";
         // the propagator will be scheduled if one of its views have been modified
         return ES_NOFIX;
     }
+}
+
+bool MultiCommodityFlow::isLocalTransition(uint32_t timelineEdgeIdx) const
+{
+    if (mCapacityGraph[timelineEdgeIdx] != 0)
+    {
+        return true;
+    }
+    return false;
 }
 
 } // end namespace propagators

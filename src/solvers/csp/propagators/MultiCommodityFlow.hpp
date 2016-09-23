@@ -58,24 +58,23 @@ public:
     virtual Gecode::PropCost cost(const Gecode::Space&, const Gecode::ModEventDelta&) const;
 
     virtual Gecode::ExecStatus propagate(Gecode::Space& home, const Gecode::ModEventDelta&);
+
+    bool isLocalTransition(uint32_t timelineEdgeIdx) const;
 protected:
     Role::List mRoles;
     uint32_t mNumberOfTimepoints;
     uint32_t mNumberOfFluents;
     uint32_t mLocationTimeSize;
+    uint32_t mTimelineSize;
+
     organization_model::OrganizationModelAsk mAsk;
 
-    std::vector<uint32_t> mCapacities;
-
-    /**
-     * Commodity flows
-     * Each immobile uint is considered a commodity
-     */
-    std::vector<Gecode::IntVarArray> mCapacityFlowGraph;
-
-    Gecode::IntVarArray mCapacityGraph;
-    Gecode::IntVarArray mRemainingCapacityGraph;
-    Gecode::IntVarArray mRoleCapacities;
+    // The elements in the wrapped array a are accessed in row-major order
+    // as it is for all array in Gecode
+    // http://www.gecode.org/doc-latest/reference/classGecode_1_1Matrix.html#_details
+    std::vector<int32_t> mCapacityGraph;
+    // Supply Demand can be either positive or negative
+    std::vector<int32_t> mRoleSupplyDemand;
 };
 
 void multiCommodityFlow(Gecode::Space& home,
