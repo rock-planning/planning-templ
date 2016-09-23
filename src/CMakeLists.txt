@@ -27,6 +27,8 @@ rock_library(templ
         solvers/csp/TransportNetwork.cpp
         solvers/csp/propagators/IsPath.cpp
         solvers/csp/propagators/MultiCommodityFlow.cpp
+        solvers/csp/utils/FluentTimeIndex.cpp
+        solvers/csp/utils/Formatter.cpp
         solvers/GQReasoner.cpp
         solvers/temporal/Bounds.cpp
         solvers/temporal/Chronicle.cpp
@@ -83,6 +85,8 @@ rock_library(templ
         solvers/csp/TransportNetwork.hpp
         solvers/csp/propagators/IsPath.hpp
         solvers/csp/propagators/MultiCommodityFlow.hpp
+        solvers/csp/utils/FluentTimeIndex.hpp
+        solvers/csp/utils/Formatter.hpp
         solvers/temporal/Bounds.hpp
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
