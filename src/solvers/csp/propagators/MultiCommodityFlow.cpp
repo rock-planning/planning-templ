@@ -68,16 +68,15 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
     , mAsk(ask)
     , mCapacityGraph()
 {
-    uint32_t numberOfSpaceTimePoints = mNumberOfTimepoints*mNumberOfFluents;
     {
     std::stringstream ss;
     ss << std::endl << "Number of Fluents: " << mNumberOfFluents << std::endl;
 
     // Construct the basic graph that allows for transitions (has infinite capacity)
     // between space-time if the fluent (e.g. location) does not change
-    for(uint32_t row = 0; row < numberOfSpaceTimePoints; ++row)
+    for(uint32_t row = 0; row < mLocationTimeSize; ++row)
     {
-        for(uint32_t col = 0; col < numberOfSpaceTimePoints; ++col)
+        for(uint32_t col = 0; col < mLocationTimeSize; ++col)
         {
             int32_t capacity = 0;
             // Allow a transition only from this to the next timepoint (no skipping)
@@ -116,13 +115,14 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
 
     std::stringstream ss;
     ss << std::endl;
-    for(uint32_t timelineEdgeIdx = 0;  timelineEdgeIdx < mLocationTimeSize*mLocationTimeSize; ++timelineEdgeIdx)
+    uint32_t timelineSize = mLocationTimeSize*mLocationTimeSize;
+    for(uint32_t timelineEdgeIdx = 0;  timelineEdgeIdx < timelineSize; ++timelineEdgeIdx)
     {
             std::stringstream elements;
             Gecode::LinIntExpr sumOfSupplyDemand = 0;
             for(uint32_t roleIdx = 0; roleIdx < mRoles.size(); ++roleIdx)
             {
-                int idx = mLocationTimeSize*roleIdx + timelineEdgeIdx;
+                int idx = timelineSize*roleIdx + timelineEdgeIdx;
                 Gecode::Int::IntView elementView = xv[idx];
 
                 sumOfSupplyDemand = sumOfSupplyDemand + elementView*mRoleSupplyDemand[roleIdx];
@@ -137,7 +137,7 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
             if(!isLocalTransition(timelineEdgeIdx))
             {
                 Gecode::LinIntRel balancedCapacity(sumOfSupplyDemand, Gecode::IRT_GQ, 0);
-                //balancedCapacity.post(home, true, intConLevel);
+                balancedCapacity.post(home, true, intConLevel);
             }
 
             if(timelineEdgeIdx%mLocationTimeSize != 0)
