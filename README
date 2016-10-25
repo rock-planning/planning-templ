@@ -55,3 +55,5 @@ $ ./build/src/templ-mission_planner
 usage: ./build/src/templ-mission_planner <mission> <organization-model> [<min-number-of-solutions>]
 
 $./build/src/templ-mission_planner test/data/scenarios/transterra-mission-0.5.xml test/data/om-schema-v0.13.owl 1
+
+$./build/src/templ-transport_network_planner ./test/data/scenarios/should_succeed/0_deviation-0.xml ../../install/share/ontologies/http___www_rock-robotics_org_2015_12_projects_TransTerrA.owl 1

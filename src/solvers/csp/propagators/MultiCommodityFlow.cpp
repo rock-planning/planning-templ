@@ -15,7 +15,7 @@ namespace propagators {
 
 void multiCommodityFlow(Gecode::Space& home,
         const Role::List& roles,
-        const std::vector<Gecode::IntVarArray>& timelines,
+        const std::vector<Gecode::SetVarArray>& timelines,
         uint32_t numberOfTimepoints, uint32_t numberOfFluents,
         const organization_model::OrganizationModelAsk& ask)
 {
@@ -28,16 +28,16 @@ void multiCommodityFlow(Gecode::Space& home,
         // It concatenates all the timelines that exist for the given (active)
         // roles
         size_t viewIdx = 0;
-        ViewArray<Int::IntView> xv(home, timelines.front().size()*roles.size());
-        std::vector<Gecode::IntVarArray>::const_iterator tit = timelines.begin();
+        ViewArray<Set::SetView> xv(home, timelines.front().size()*roles.size());
+        std::vector<Gecode::SetVarArray>::const_iterator tit = timelines.begin();
         for(; tit != timelines.end(); ++tit)
         {
-            const Gecode::IntVarArray& args = *tit;
-            Gecode::IntVarArray::const_iterator ait = args.begin();
+            const Gecode::SetVarArray& args = *tit;
+            Gecode::SetVarArray::const_iterator ait = args.begin();
             for(; ait != args.end(); ++ait)
             {
                 assert(viewIdx < xv.size());
-                xv[viewIdx++] = Int::IntView(*ait);
+                xv[viewIdx++] = Set::SetView(*ait);
             }
         }
 
@@ -56,10 +56,10 @@ void multiCommodityFlow(Gecode::Space& home,
 
 MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
         const Role::List& roles,
-        IntViewViewArray& xv,
+        SetViewViewArray& xv,
         uint32_t numberOfTimepoints, uint32_t numberOfFluents,
         const organization_model::OrganizationModelAsk& ask)
-    : NaryPropagator<Int::IntView, Int::PC_INT_BND>(home, xv)
+    : NaryPropagator<Set::SetView, Set::PC_SET_ANY>(home, xv)
     , mRoles(roles)
     , mNumberOfTimepoints(numberOfTimepoints)
     , mNumberOfFluents(numberOfFluents)
@@ -68,32 +68,6 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
     , mAsk(ask)
     , mCapacityGraph()
 {
-    {
-    std::stringstream ss;
-    ss << std::endl << "Number of Fluents: " << mNumberOfFluents << std::endl;
-
-    // Construct the basic graph that allows for transitions (has infinite capacity)
-    // between space-time if the fluent (e.g. location) does not change
-    for(uint32_t row = 0; row < mLocationTimeSize; ++row)
-    {
-        for(uint32_t col = 0; col < mLocationTimeSize; ++col)
-        {
-            int32_t capacity = 0;
-            // Allow a transition only from this to the next timepoint (no skipping)
-            // row is source, col is destination, thus
-            // from row to col == from row to row +1
-            if(col == row + mNumberOfFluents)
-            {
-                capacity = 1;
-            }
-            ss << capacity << " ";
-            mCapacityGraph.push_back(capacity);
-        }
-        ss << std::endl;
-    }
-    LOG_WARN_S << ss.str();
-    }
-
     // Cache supply/demand for each role to
     // avoid recomputation
     // positive value means a provided capacity
@@ -108,57 +82,60 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
             mRoleSupplyDemand.push_back(supplyDemand);
 
             LOG_WARN_S << "SupplyDemand: " << role.toString()   << " " << supplyDemand;
+            for(uint32_t i = 0; i < mLocationTimeSize; ++i)
+            {
+                // the current role idx (in the concatenated list of timelines)
+                size_t idx = roleIdx*mLocationTimeSize + i;
+
+                // the target index (in the local timeline)
+                SetVar var(xv[idx]);
+                if(!var.assigned())
+                {
+                    throw std::invalid_argument("Cannot propagate since value is not assigned");
+                }
+
+                LOG_INFO_S << "Role " << roleIdx << " pos: " << i << " val glbSize: " << var.glbSize() << "  lubSize: " << var.lubSize() << " cardMax: " << var.cardMax() << " cardMin: " << var.cardMin();
+                if(var.cardMax() == 1 && var.cardMin() == 1)
+                {
+                    Gecode::SetVarGlbValues currentVar(var);
+                    std::pair<uint32_t, uint32_t> key(i, currentVar.val());
+
+                    std::vector<int32_t>& supplyDemandVector = mCapacityGraph[key];
+                    supplyDemandVector.push_back( supplyDemand );
+                }
+            }
         }
     }
 
-    Gecode::IntConLevel intConLevel = Gecode::ICL_DEF;
-
-    std::stringstream ss;
-    ss << std::endl;
-    uint32_t timelineSize = mLocationTimeSize*mLocationTimeSize;
-    for(uint32_t timelineEdgeIdx = 0;  timelineEdgeIdx < timelineSize; ++timelineEdgeIdx)
+    CapacityGraph::const_iterator cit = mCapacityGraph.begin();
+    for(; cit != mCapacityGraph.end(); ++cit)
     {
-            std::stringstream elements;
-            Gecode::LinIntExpr sumOfSupplyDemand = 0;
-            for(uint32_t roleIdx = 0; roleIdx < mRoles.size(); ++roleIdx)
+        const CapacityGraphKey& key = cit->first;
+        const std::vector<int32_t>& supplyDemand = cit->second;
+        if(key.second - key.first == mNumberOfFluents)
+        {
+            // this is a local transition with no capacity restriction
+            LOG_WARN_S << "This is a local transition at: " << key.second << " " << key.first;
+        } else {
+            int32_t sum = 0;
+            std::vector<int32_t>::const_iterator vit = supplyDemand.begin();
+            for(; vit != supplyDemand.end(); ++vit)
             {
-                int idx = timelineSize*roleIdx + timelineEdgeIdx;
-                Gecode::Int::IntView elementView = xv[idx];
-
-                sumOfSupplyDemand = sumOfSupplyDemand + elementView*mRoleSupplyDemand[roleIdx];
-                elements << elementView;
-
-                if(roleIdx < mRoles.size()-1)
-                {
-                    elements << "/";
-                }
+                sum += *vit;
             }
-
-            if(!isLocalTransition(timelineEdgeIdx))
+            if(sum < 0)
             {
-                Gecode::LinIntRel balancedCapacity(sumOfSupplyDemand, Gecode::IRT_GQ, 0);
-                balancedCapacity.post(home, true, intConLevel);
+                LOG_WARN_S << "SUM is " << sum << "  failing space at transition: from " <<  key.first << " to " << key.second;
+                LOG_WARN_S << xv;
+                home.fail();
             }
-
-            if(timelineEdgeIdx%mLocationTimeSize != 0)
-            {
-                size_t rest = 24-elements.str().size();
-                std::string hspace(rest,' ');
-                ss << hspace;
-            }
-            ss << elements.str();
-
-            if((timelineEdgeIdx+1)%mLocationTimeSize == 0)
-            {
-                ss << std::endl;
-            }
+        }
 
     }
-    LOG_WARN_S << ss.str();
 }
 
 MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home, bool share, MultiCommodityFlow& flow)
-    : NaryPropagator<Int::IntView, Int::PC_INT_BND>(home, share, flow)
+    : NaryPropagator<Set::SetView, Set::PC_SET_ANY>(home, share, flow)
     , mAsk(flow.mAsk)
     , mCapacityGraph(flow.mCapacityGraph)
     , mRoleSupplyDemand(flow.mRoleSupplyDemand)
@@ -168,7 +145,7 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home, bool share, MultiCom
 
 Gecode::ExecStatus MultiCommodityFlow::post(Gecode::Space& home,
         const Role::List& roles,
-        IntViewViewArray& xv,
+        SetViewViewArray& xv,
         uint32_t numberOfTimepoints, uint32_t numberOfFluents,
         const organization_model::OrganizationModelAsk& ask
         )
@@ -212,7 +189,7 @@ Gecode::ExecStatus MultiCommodityFlow::propagate(Gecode::Space& home, const Geco
 
 bool MultiCommodityFlow::isLocalTransition(uint32_t timelineEdgeIdx) const
 {
-    if (mCapacityGraph[timelineEdgeIdx] != 0)
+    //if (mCapacityGraph[timelineEdgeIdx] != 0)
     {
         return true;
     }

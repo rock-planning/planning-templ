@@ -17,6 +17,9 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
+typedef Gecode::SetVarArray AdjacencyList;
+typedef std::vector<AdjacencyList> ListOfAdjacencyLists;
+
 /**
  * \class TransportNetwork
  * \details TransportNetwork tries to associate actor models
@@ -160,15 +163,16 @@ private:
     Role::List mRoles;
 
     std::vector<uint32_t> mActiveRoles;
+    Role::List mActiveRoleList;
     // ############################
     // Timelines
     // ############################
     // per role a timeline for each node in the path
     // in the form of an adjacency list for spatio-temporal tuples
-    // (|Locations|*|Timepoints|)^2
+    // (|Locations|*|Timepoints|)
     //
     // Activation if edge is traversed by this item or not
-    std::vector< Gecode::IntVarArray > mTimelines;
+    ListOfAdjacencyLists mTimelines;
 
     // Map the transport characteristic: (|Locations|*|Timepoints|)^2
     // Order such that bigger indexes are referring to later events(!)
@@ -260,6 +264,9 @@ protected:
 
     static std::string toString(const Timeline& timeline, size_t indent = 0);
     static std::string toString(const Timelines& timelines, size_t indent = 0);
+
+    static std::string toString(const AdjacencyList& list, size_t ident = 0);
+    static std::string toString(const ListOfAdjacencyLists& lists, size_t ident = 0);
 
     std::string toString(const std::vector<Gecode::IntVarArray>& timelines) const;
 

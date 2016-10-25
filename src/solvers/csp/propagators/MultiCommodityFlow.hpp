@@ -1,6 +1,8 @@
 #ifndef TEMPL_SOLVERS_CSP_PROPAGATORS_MULTI_COMMODITY_FLOW_HPP
 #define TEMPL_SOLVERS_CSP_PROPAGATORS_MULTI_COMMODITY_FLOW_HPP
 
+#include <gecode/set.hh>
+#include <gecode/set/rel.hh>
 #include <gecode/int.hh>
 #include <gecode/int/rel.hh>
 #include <gecode/minimodel.hh>
@@ -15,10 +17,10 @@ namespace csp {
 namespace propagators {
 
 // MultiCommodityFlow computation
-class MultiCommodityFlow : public Gecode::NaryPropagator<Gecode::Int::IntView, Gecode::Int::PC_INT_BND>
+class MultiCommodityFlow : public Gecode::NaryPropagator<Gecode::Set::SetView, Gecode::Set::PC_SET_ANY>
 {
 public:
-    typedef Gecode::ViewArray<Gecode::Int::IntView> IntViewViewArray;
+    typedef Gecode::ViewArray<Gecode::Set::SetView> SetViewViewArray;
     // Input
     //     --> TupleSet: defining what types of Systems of combinations are
     // required
@@ -38,7 +40,7 @@ public:
 
 
     MultiCommodityFlow(Gecode::Space& home, const Role::List& roles,
-            IntViewViewArray& timelines,
+            SetViewViewArray& timelines,
             uint32_t numberOfTimepoints, uint32_t numberOfFluent,
             const organization_model::OrganizationModelAsk& ask);
 
@@ -47,7 +49,7 @@ public:
             MultiCommodityFlow& flow);
 
     static Gecode::ExecStatus post(Gecode::Space& home, const Role::List& roles,
-            IntViewViewArray& timelines,
+            SetViewViewArray& timelines,
             uint32_t numberOfTimepoints, uint32_t numberOfFluent,
             const organization_model::OrganizationModelAsk& ask);
 
@@ -72,14 +74,18 @@ protected:
     // The elements in the wrapped array a are accessed in row-major order
     // as it is for all array in Gecode
     // http://www.gecode.org/doc-latest/reference/classGecode_1_1Matrix.html#_details
-    std::vector<int32_t> mCapacityGraph;
+    typedef std::pair<uint32_t,uint32_t> CapacityGraphKey;
+    typedef std::map< CapacityGraphKey , std::vector<int32_t> > CapacityGraph;
+    CapacityGraph mCapacityGraph;
+
+    // Map the role index to the transport supply/demand
     // Supply Demand can be either positive or negative
     std::vector<int32_t> mRoleSupplyDemand;
 };
 
 void multiCommodityFlow(Gecode::Space& home,
         const Role::List& roles,
-        const std::vector<Gecode::IntVarArray>& timelines,
+        const std::vector<Gecode::SetVarArray>& timelines,
         uint32_t numberOfTimepoints, uint32_t numberOfFluents,
         const organization_model::OrganizationModelAsk& ask);
 

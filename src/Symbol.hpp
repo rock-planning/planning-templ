@@ -1,6 +1,7 @@
 #ifndef TEMPL_SYMBOL_HPP
 #define TEMPL_SYMBOL_HPP
 
+#include <vector>
 #include <map>
 #include <string>
 #include <utility>
@@ -12,6 +13,7 @@ class Symbol : public std::pair<std::string, std::string>
 {
 public:
     typedef shared_ptr<Symbol> Ptr;
+    typedef std::vector< Ptr > SymbolPtrList;
 
     enum Type { UNKNOWN, STATE_VARIABLE, OBJECT_VARIABLE, CONSTANT, TEMPORAL_VARIABLE, VALUE };
     static std::map<Type, std::string> TypeTxt;

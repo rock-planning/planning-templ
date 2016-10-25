@@ -116,7 +116,7 @@ TransportNetwork::Solution TransportNetwork::getSolution() const
     Solution solution;
     solution.mModelDistribution = getModelDistribution();
     solution.mRoleDistribution = getRoleDistribution();
-    solution.mTimelines = getTimelines();
+    //solution.mTimelines = getTimelines();
     return solution;
 }
 
@@ -182,114 +182,114 @@ TransportNetwork::RoleDistribution TransportNetwork::getRoleDistribution() const
 TransportNetwork::Timelines TransportNetwork::getTimelines() const
 {
     LOG_WARN_S << "GET TIMELINES";
-    LOG_WARN_S << std::endl << toString(mTimelines) << std::endl;
+    //LOG_WARN_S << std::endl << toString(mTimelines) << std::endl;
 
-    size_t locationTimeSize = mLocations.size()*mTimepoints.size();
+    //size_t locationTimeSize = mLocations.size()*mTimepoints.size();
 
     TransportNetwork::Timelines timelines;
 
-    std::vector<int32_t> capacities;
-    for(size_t r = 0; r < locationTimeSize; ++r)
-    {
-        FluentTimeIndex from = FluentTimeIndex::fromRowOrCol(r, mLocations.size(), mTimepoints.size());
-        for(size_t c = 0; c < locationTimeSize; ++c)
-        {
-            FluentTimeIndex to = FluentTimeIndex::fromRowOrCol(r, mLocations.size(), mTimepoints.size());
-            if(from.getFluentIndex() == to.getFluentIndex())
-            {
-                capacities.push_back( std::numeric_limits<int32_t>::max()/2);
-            } else {
-                capacities.push_back(0);
-            }
-        }
-    }
+    //std::vector<int32_t> capacities;
+    //for(size_t r = 0; r < locationTimeSize; ++r)
+    //{
+    //    FluentTimeIndex from = FluentTimeIndex::fromRowOrCol(r, mLocations.size(), mTimepoints.size());
+    //    for(size_t c = 0; c < locationTimeSize; ++c)
+    //    {
+    //        FluentTimeIndex to = FluentTimeIndex::fromRowOrCol(r, mLocations.size(), mTimepoints.size());
+    //        if(from.getFluentIndex() == to.getFluentIndex())
+    //        {
+    //            capacities.push_back( std::numeric_limits<int32_t>::max()/2);
+    //        } else {
+    //            capacities.push_back(0);
+    //        }
+    //    }
+    //}
 
-    for(size_t roleIdx = 0; roleIdx < mActiveRoles.size(); ++roleIdx)
-    {
-        const Role& role = mRoles[ mActiveRoles[roleIdx] ];
-        LOG_WARN_S << "Timeline for: " << role.toString();
+    //for(size_t roleIdx = 0; roleIdx < mActiveRoles.size(); ++roleIdx)
+    //{
+    //    const Role& role = mRoles[ mActiveRoles[roleIdx] ];
+    //    LOG_WARN_S << "Timeline for: " << role.toString();
 
-        TransportNetwork::Timeline finalRoleTimeline;
+    //    TransportNetwork::Timeline finalRoleTimeline;
 
-        Gecode::Matrix<Gecode::IntVarArray> timeline( mTimelines[roleIdx],
-                locationTimeSize, locationTimeSize);
+    //    Gecode::Matrix<Gecode::IntVarArray> timeline( mTimelines[roleIdx],
+    //            locationTimeSize, locationTimeSize);
 
-        int idx = 0;
-        for(size_t rowIdx = 0; rowIdx < locationTimeSize; ++rowIdx)
-        {
-            FluentTimeIndex rowSpaceTimeIdx = FluentTimeIndex::fromRowOrCol(rowIdx, mLocations.size(), mTimepoints.size());
+    //    int idx = 0;
+    //    for(size_t rowIdx = 0; rowIdx < locationTimeSize; ++rowIdx)
+    //    {
+    //        FluentTimeIndex rowSpaceTimeIdx = FluentTimeIndex::fromRowOrCol(rowIdx, mLocations.size(), mTimepoints.size());
 
-            for(size_t colIdx = 0; colIdx < locationTimeSize; ++colIdx)
-            {
-                Gecode::IntVar var = timeline(colIdx, rowIdx);
-                if(!var.assigned())
-                {
-                    throw std::runtime_error("templ::solvers::csp::TransportNetwork::getTimelines: "
-                            "value has not been assigned for timeline of role:"
-                            " '" + role.toString() + "'");
-                }
+    //        for(size_t colIdx = 0; colIdx < locationTimeSize; ++colIdx)
+    //        {
+    //            Gecode::IntVar var = timeline(colIdx, rowIdx);
+    //            if(!var.assigned())
+    //            {
+    //                throw std::runtime_error("templ::solvers::csp::TransportNetwork::getTimelines: "
+    //                        "value has not been assigned for timeline of role:"
+    //                        " '" + role.toString() + "'");
+    //            }
 
-                Gecode::IntVarValues v(var);
-                if( v.val() == 1)
-                {
-                    organization_model::facets::Robot robot(role.getModel(), mAsk);
-                    int32_t supplyDemand = robot.getPayloadTransportSupplyDemand();
+    //            Gecode::IntVarValues v(var);
+    //            if( v.val() == 1)
+    //            {
+    //                organization_model::facets::Robot robot(role.getModel(), mAsk);
+    //                int32_t supplyDemand = robot.getPayloadTransportSupplyDemand();
 
-                    capacities[idx] = capacities[idx] + supplyDemand;
-                    LOG_WARN_S << "ROW: "<< rowIdx << " -- COL: " << colIdx;
+    //                capacities[idx] = capacities[idx] + supplyDemand;
+    //                LOG_WARN_S << "ROW: "<< rowIdx << " -- COL: " << colIdx;
 
-                    FluentTimeIndex colSpaceTimeIdx = FluentTimeIndex::fromRowOrCol(colIdx, mLocations.size(), mTimepoints.size());
-                    if(finalRoleTimeline.empty())
-                    {
-                        // add from
-                        SpaceTimePoint stp;
-                        stp.first = mLocations[ rowSpaceTimeIdx.getFluentIndex() ];
-                        stp.second = mTimepoints[ rowSpaceTimeIdx.getTimeIndex()];
-                        finalRoleTimeline.push_back(stp);
-                    }
+    //                FluentTimeIndex colSpaceTimeIdx = FluentTimeIndex::fromRowOrCol(colIdx, mLocations.size(), mTimepoints.size());
+    //                if(finalRoleTimeline.empty())
+    //                {
+    //                    // add from
+    //                    SpaceTimePoint stp;
+    //                    stp.first = mLocations[ rowSpaceTimeIdx.getFluentIndex() ];
+    //                    stp.second = mTimepoints[ rowSpaceTimeIdx.getTimeIndex()];
+    //                    finalRoleTimeline.push_back(stp);
+    //                }
 
-                    // add to
-                    assert(colSpaceTimeIdx.first < mLocations.size());
-                    assert(colSpaceTimeIdx.second < mTimepoints.size());
+    //                // add to
+    //                assert(colSpaceTimeIdx.first < mLocations.size());
+    //                assert(colSpaceTimeIdx.second < mTimepoints.size());
 
-                    SpaceTimePoint stp;
-                    stp.first = mLocations[ colSpaceTimeIdx.getFluentIndex() ];
-                    stp.second = mTimepoints[ colSpaceTimeIdx.getTimeIndex()];
-                    finalRoleTimeline.push_back(stp);
-                }
+    //                SpaceTimePoint stp;
+    //                stp.first = mLocations[ colSpaceTimeIdx.getFluentIndex() ];
+    //                stp.second = mTimepoints[ colSpaceTimeIdx.getTimeIndex()];
+    //                finalRoleTimeline.push_back(stp);
+    //            }
 
-                ++idx;
-            }
-        }
-        timelines[role] = finalRoleTimeline;
-    }
+    //            ++idx;
+    //        }
+    //    }
+    //    timelines[role] = finalRoleTimeline;
+    //}
 
-    std::stringstream rowCol;
-    rowCol << std::endl;
-    bool isValid = true;
-    for(size_t r = 0; r < locationTimeSize; ++r)
-    {
-        for(size_t c = 0; c < locationTimeSize; ++c)
-        {
-            size_t i = FluentTimeIndex::toArrayIndex(r,c, mLocations.size(), mTimepoints.size());
+    //std::stringstream rowCol;
+    //rowCol << std::endl;
+    //bool isValid = true;
+    //for(size_t r = 0; r < locationTimeSize; ++r)
+    //{
+    //    for(size_t c = 0; c < locationTimeSize; ++c)
+    //    {
+    //        size_t i = FluentTimeIndex::toArrayIndex(r,c, mLocations.size(), mTimepoints.size());
 
-            rowCol << capacities[i] << "(" << std::setw(4) << i << ") ";
+    //        rowCol << capacities[i] << "(" << std::setw(4) << i << ") ";
 
-            if(capacities[i] < 0)
-            {
-                isValid = false;
-                std::stringstream cc;
-                cc << "capacity: " << capacities[i] << " at row: " << r << " , col: " << c;
-                throw std::runtime_error("Invalid capacity of less than 0 -- " + cc.str());
-            }
-        }
-        rowCol << std::endl;
-    }
-    if(isValid)
-    {
-        throw std::runtime_error("Solution is valid");
-    }
-    LOG_WARN_S << rowCol.str();
+    //        if(capacities[i] < 0)
+    //        {
+    //            isValid = false;
+    //            std::stringstream cc;
+    //            cc << "capacity: " << capacities[i] << " at row: " << r << " , col: " << c;
+    //            throw std::runtime_error("Invalid capacity of less than 0 -- " + cc.str());
+    //        }
+    //    }
+    //    rowCol << std::endl;
+    //}
+    //if(isValid)
+    //{
+    //    throw std::runtime_error("Solution is valid");
+    //}
+    //LOG_WARN_S << rowCol.str();
     return timelines;
 }
 
@@ -626,6 +626,7 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
     , mAvailableModels(other.mAvailableModels)
     , mRoles(other.mRoles)
     , mActiveRoles(other.mActiveRoles)
+    , mActiveRoleList(other.mActiveRoleList)
 {
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
@@ -634,7 +635,7 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
 
     for(size_t i = 0; i < other.mTimelines.size(); ++i)
     {
-        Gecode::IntVarArray array;
+        AdjacencyList array;
         mTimelines.push_back(array);
         mTimelines[i].update(*this, share, other.mTimelines[i]);
     }
@@ -944,7 +945,23 @@ void TransportNetwork::postRoleAssignments()
 {
     LOG_WARN_S << "POST ROLE ASSIGNMENTS";
     (void) status();
-    LOG_WARN_S << "Role usage: " << mRoleUsage;
+
+    std::stringstream ss;
+    ss << "Role usage:" << std::endl;
+    for(size_t i = 0; i < mRoles.size(); ++i)
+    {
+        ss << mRoles[i].toString() << " ";
+    }
+    ss << std::endl;
+    for(size_t r = 0; r < mResourceRequirements.size(); ++r)
+    {
+        for(size_t i = 0; i < mRoles.size(); ++i)
+        {
+            ss << mRoleUsage[r*mRoles.size() + i] << " ";
+        }
+        ss << std::endl;
+    }
+    LOG_WARN_S << ss.str();
 
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
 
@@ -983,16 +1000,18 @@ void TransportNetwork::postRoleAssignments()
         activeRoles.push_back(role);
 
         // A timeline describes the transitions in space time for a given role
-        // transitions are boolean 1 or 0, whereas 1 means the transition is
-        // mandatory to take place
+        // A timeline is represented by an adjacency list, pointing from the current node
+        // to the next -- given some temporal constraints
+        // An empty list assignment means, there is no transition and at
+        // maximum there can be one transition
         {
             // Initialize timelines for all roles, i.e. here the current one
-            Gecode::IntVarArray timeline(*this, locationTimeSize*locationTimeSize,0,1); // Domain is 0 or 1 to represent activation
+            //
+            Gecode::SetVarArray timeline(*this, locationTimeSize, Gecode::IntSet::empty, Gecode::IntSet(0,locationTimeSize-1),0,1);
             mTimelines.push_back(timeline);
         }
 
-        Gecode::IntVarArray& timeline = mTimelines.back();
-        Gecode::Matrix<Gecode::IntVarArray> roleTimeline(timeline, locationTimeSize, locationTimeSize);
+        Gecode::SetVarArray& timeline = mTimelines.back();
 
         using namespace solvers::temporal;
         std::vector<point_algebra::TimePoint::Ptr>::const_iterator cit = mTimepoints.begin();
@@ -1009,7 +1028,13 @@ void TransportNetwork::postRoleAssignments()
         for(uint32_t requirementIndex = 0; requirementIndex < mResourceRequirements.size(); ++requirementIndex)
         {
             Gecode::IntVar roleRequirement = roleDistribution(roleIndex, requirementIndex);
+            if(!roleRequirement.assigned())
+            {
+                throw std::runtime_error("TransportNetwork: roleRequirement is not assigned");
+            }
+            Gecode::IntVarValues var(roleRequirement);
             // maps to the interval
+            if(var.val() == 1)
             {
                 const FluentTimeResource& fts = mResourceRequirements[requirementIndex];
                 // index of the location is: fts.fluent
@@ -1034,27 +1059,21 @@ void TransportNetwork::postRoleAssignments()
                     // Always connect to the next timestep
                     size_t col = FluentTimeIndex::toRowOrColumnIndex(fts.fluent, timeIndex + 1, mLocations.size(), mTimepoints.size());
 
-                    Gecode::IntVar edgeActivation = roleTimeline(col, row);
 
-                    LOG_WARN_S << "EdgeActivation for col: " << col << ", row: " << row << " is required: " << role.toString();
+                    LOG_WARN_S << "EdgeActivation for col: " << col << ", row: " << row << " requirement for: " << role.toString() << " roleRequirement: " << roleRequirement;
                     LOG_WARN_S << "Translates to: " << from->toString() << " to " << to->toString();
                     LOG_WARN_S << "Fluent: " << mLocations[fts.fluent]->toString();
 
-                    //{
-                    //    SpaceTimeIdx spaceTimeIdx = convertToSpaceTimeIdx(col);
-                    //    assert(spaceTimeIdx.first == mLocations[fts.fluent]);
-                    //    assert(spaceTimeIdx.second == to);
-                    //}
 
-                    //{
-                    //    SpaceTimeIdx spaceTimeIdx = convertToSpaceTimeIdx(row);
-                    //    assert(spaceTimeIdx.first == mLocations[fts.fluent]);
-                    //    assert(spaceTimeIdx.second == from);
-                    //}
-
-                    // constraint between roleTimeline and roleRequirement
-                    // TODO: check if bool >= int does actually work
-                    rel(*this, edgeActivation >= roleRequirement);
+                    // constraint between timeline and roleRequirement
+                    // if 'roleRequirement' is given, then edgeActivation = col,
+                    // else edgeActivation = -1
+                    LOG_DEBUG_S << "Set SetVar in col: " << col << " and row " << row;
+                    Gecode::SetVar& edgeActivation = timeline[row];
+                    Gecode::Set::SetView v(edgeActivation);
+                    v.intersect(*this, col,col);
+                    v.cardMin(*this, 1);
+                    v.cardMax(*this, 1);
                 }
             }
         }
@@ -1062,14 +1081,14 @@ void TransportNetwork::postRoleAssignments()
         // Make sure that the timeline for each role forms a path
         // This allows to account for feasible paths for immobile units as well
         // as mobile units to cover this area
+        LOG_WARN_S << "POST TIMELINE";
         propagators::isPath(*this, timeline, mTimepoints.size(), mLocations.size());
+        LOG_WARN_S << "POSTED TIMELINE: " << timeline;
     }
 
+    LOG_WARN_S << "COMPLETED TIMELINE POSTING";
 
-    // Compute the multi commodity flow
-    LOG_WARN_S << "POST MULTI COMMODITY FLOW: " << mTimelines.size() << " -- " << activeRoles.size();
-    assert(mTimelines.size() == activeRoles.size());
-    propagators::multiCommodityFlow(*this, activeRoles, mTimelines, mTimepoints.size(), mLocations.size(), mpMission->getOrganizationModelAsk());
+    mActiveRoleList = activeRoles;
 
     //// Construct the basic timeline
     ////
@@ -1087,12 +1106,14 @@ void TransportNetwork::postRoleAssignments()
     //branch(*this, &TransportNetwork::postRoleTimelines);
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
-        branch(*this, mTimelines[i], Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());
-        branch(*this, mTimelines[i], Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_SPLIT_MIN());
-        branch(*this, mTimelines[i], Gecode::INT_VAR_NONE(), Gecode::INT_VAL_SPLIT_MIN());
+        branch(*this, mTimelines[i], Gecode::SET_VAR_MAX_MAX(), Gecode::SET_VAL_MAX_EXC());
+        branch(*this, mTimelines[i], Gecode::SET_VAR_MIN_MIN(), Gecode::SET_VAL_MAX_INC());
+        branch(*this, mTimelines[i], Gecode::SET_VAR_NONE(), Gecode::SET_VAL_MED_INC());
     }
 
-    //branch(*this, &TransportNetwork::postFlowCapacities);
+    LOG_WARN_S << mTimelines[0];
+
+    branch(*this, &TransportNetwork::postFlowCapacities);
 }
 
 void TransportNetwork::postRoleTimelines(Gecode::Space& home)
@@ -1102,128 +1123,128 @@ void TransportNetwork::postRoleTimelines(Gecode::Space& home)
 
 void TransportNetwork::postRoleTimelines()
 {
-    LOG_WARN_S << "POST ROLE TIMELINES";
-    if(mActiveRoles.empty())
-    {
-        LOG_WARN_S << "NO ACTIVE ROLES";
-    }
-    (void) status();
-
-    // Check for each timeline -- which is associated with a role
-    for(size_t i = 0;  i < mTimelines.size(); ++i)
-    {
-        size_t locationTimeSize = mLocations.size()*mTimepoints.size();
-        LOG_DEBUG_S << "locations" << mLocations.size() << " timepoints " << mTimepoints.size();
-        Gecode::Matrix<Gecode::IntVarArray> timeline(mTimelines[i], locationTimeSize, locationTimeSize);
-
-        // compute the adjacency list from the existing matrix
-        // identify the starting point and end point
-        std::vector< std::pair<size_t,size_t> > path;
-        Gecode::IntVarArgs adjacencyList;
-        for(size_t row = 0; row < locationTimeSize; ++row)
-        {
-            std::vector<int> neighbours;
-            for(size_t col = 0; col < locationTimeSize; ++col)
-            {
-                Gecode::IntVar var = timeline(col, row);
-                if(var.assigned())
-                {
-                    Gecode::IntVarValues v(var);
-                    if(v.val() == 1)
-                    {
-                        path.push_back( std::pair<size_t,size_t>(col,row) );
-                        break; // break the loop since there can be only one connection, so goto the next row
-                    }
-                }
-            }
-        }
-
-        if(!path.empty())
-        {
-            size_t pathStartRow = path.front().second;
-            size_t pathEndRow = path.back().second;
-            size_t numberOfRows = locationTimeSize;
-
-            // No path segments before the first requirement
-            {
-                Gecode::IntVarArgs args;
-                for(size_t rowIndex = 0; rowIndex < pathStartRow; ++rowIndex)
-                {
-                   args << timeline.row(rowIndex);
-                }
-                LOG_DEBUG_S << "graph constraint: no edges to/before first node";
-                rel(*this, sum(args) == 0);
-            }
-
-            // No path segments are needed after the last requirement
-            {
-                Gecode::IntVarArgs args;
-                for(size_t rowIndex = pathEndRow+1; rowIndex < numberOfRows; ++rowIndex)
-                {
-                    args << timeline.row(rowIndex);
-                }
-                LOG_DEBUG_S << "graph constraint: no edges from/after last node";
-                rel(*this, sum(args) == 0);
-            }
-
-            // For each element in the path except for end and start there needs to
-            // be a connection in the range of the two given edges
-            for(size_t rowIndex = pathStartRow; rowIndex <= pathEndRow; ++rowIndex)
-            {
-                // assume an already specified rel(*this, sum( timeline.row(rowIndex)) <= 1);
-                // row index matches the required target spatio-temporal tuple,
-                // which needs to be originated by another (therefore target of
-                // another must contain this tuple --> col(rowIndex) )
-                if(rowIndex > pathStartRow )
-                {
-                    // edges need to form a path, thus
-                    // from each vertex except for the end vertex the
-                    LOG_DEBUG_S << "graph constraint: edges from a path: sum of row: " << rowIndex << " == sum of col " << rowIndex;
-                    rel(*this, sum( timeline.row(rowIndex)) == sum (timeline.col(rowIndex)) );
-                }
-
-                // for each timestep there needs to be a path segment
-                if(rowIndex < pathEndRow && rowIndex%mLocations.size() == 0)
-                {
-                    // fc,tc, fr, tr: from column to column, from row to row
-                    // [tc,tc) -- open interval thus tc is not included!
-                    Gecode::IntVarArgs args;
-                    size_t fc = rowIndex + mLocations.size();
-                    size_t tc = fc + mLocations.size();
-                    size_t fr = rowIndex;
-                    size_t tr = rowIndex + mLocations.size();
-                    args << timeline.slice(fc, tc, fr, tr);
-                    LOG_DEBUG_S << "graph constraint: one edge between all involved timepoints";
-                    rel(*this, sum(args) == 1);
-                }
-            }
-
-            for(size_t nodeIndex = 0; nodeIndex < path.size(); ++nodeIndex)
-            {
-                size_t col = path[nodeIndex].first;
-                size_t row = path[nodeIndex].second;
-                // last affected row that is temporally concurrent with the
-                // current row
-
-                // If not start node
-                if(nodeIndex != 0)
-                {
-                    // Require the node 'row' to be connected to 'col'
-                    // i.e. previous edge needs to be directed to this one or
-                    // otherwise interpreted
-                    LOG_DEBUG_S << "graph constraint: incoming edge requirement: " << row  << " sum to 1";
-                    rel(*this, sum( timeline.col(row) ) == 1);
-                }
-
-                // If not end node then this node has to have an outgoing edge
-                if(nodeIndex != path.size() -1)
-                {
-                    LOG_WARN_S << "graph constraint: outgoing edge requirement: require row: " << col  << " sum to 1";
-                    rel(*this, sum( timeline.row(col) ) == 1);
-                }
-            }
-        }
-    }
+//    LOG_WARN_S << "POST ROLE TIMELINES";
+//    if(mActiveRoles.empty())
+//    {
+//        LOG_WARN_S << "NO ACTIVE ROLES";
+//    }
+//    (void) status();
+//
+//    // Check for each timeline -- which is associated with a role
+//    for(size_t i = 0;  i < mTimelines.size(); ++i)
+//    {
+//        size_t locationTimeSize = mLocations.size()*mTimepoints.size();
+//        LOG_DEBUG_S << "locations" << mLocations.size() << " timepoints " << mTimepoints.size();
+//        AdjacencyList timeline = mTimelines[i];
+//
+//        // compute the adjacency list from the existing matrix
+//        // identify the starting point and end point
+//        std::vector< std::pair<size_t,size_t> > path;
+//        Gecode::IntVarArgs adjacencyList;
+//        for(size_t row = 0; row < locationTimeSize; ++row)
+//        {
+//            std::vector<int> neighbours;
+//            for(size_t col = 0; col < locationTimeSize; ++col)
+//            {
+//                Gecode::IntVar var = timeline(col, row);
+//                if(var.assigned())
+//                {
+//                    Gecode::IntVarValues v(var);
+//                    if(v.val() == 1)
+//                    {
+//                        path.push_back( std::pair<size_t,size_t>(col,row) );
+//                        break; // break the loop since there can be only one connection, so goto the next row
+//                    }
+//                }
+//            }
+//        }
+//
+//        if(!path.empty())
+//        {
+//            size_t pathStartRow = path.front().second;
+//            size_t pathEndRow = path.back().second;
+//            size_t numberOfRows = locationTimeSize;
+//
+//            // No path segments before the first requirement
+//            {
+//                Gecode::IntVarArgs args;
+//                for(size_t rowIndex = 0; rowIndex < pathStartRow; ++rowIndex)
+//                {
+//                   args << timeline.row(rowIndex);
+//                }
+//                LOG_DEBUG_S << "graph constraint: no edges to/before first node";
+//                rel(*this, sum(args) == 0);
+//            }
+//
+//            // No path segments are needed after the last requirement
+//            {
+//                Gecode::IntVarArgs args;
+//                for(size_t rowIndex = pathEndRow+1; rowIndex < numberOfRows; ++rowIndex)
+//                {
+//                    args << timeline.row(rowIndex);
+//                }
+//                LOG_DEBUG_S << "graph constraint: no edges from/after last node";
+//                rel(*this, sum(args) == 0);
+//            }
+//
+//            // For each element in the path except for end and start there needs to
+//            // be a connection in the range of the two given edges
+//            for(size_t rowIndex = pathStartRow; rowIndex <= pathEndRow; ++rowIndex)
+//            {
+//                // assume an already specified rel(*this, sum( timeline.row(rowIndex)) <= 1);
+//                // row index matches the required target spatio-temporal tuple,
+//                // which needs to be originated by another (therefore target of
+//                // another must contain this tuple --> col(rowIndex) )
+//                if(rowIndex > pathStartRow )
+//                {
+//                    // edges need to form a path, thus
+//                    // from each vertex except for the end vertex the
+//                    LOG_DEBUG_S << "graph constraint: edges from a path: sum of row: " << rowIndex << " == sum of col " << rowIndex;
+//                    rel(*this, sum( timeline.row(rowIndex)) == sum (timeline.col(rowIndex)) );
+//                }
+//
+//                // for each timestep there needs to be a path segment
+//                if(rowIndex < pathEndRow && rowIndex%mLocations.size() == 0)
+//                {
+//                    // fc,tc, fr, tr: from column to column, from row to row
+//                    // [tc,tc) -- open interval thus tc is not included!
+//                    Gecode::IntVarArgs args;
+//                    size_t fc = rowIndex + mLocations.size();
+//                    size_t tc = fc + mLocations.size();
+//                    size_t fr = rowIndex;
+//                    size_t tr = rowIndex + mLocations.size();
+//                    args << timeline.slice(fc, tc, fr, tr);
+//                    LOG_DEBUG_S << "graph constraint: one edge between all involved timepoints";
+//                    rel(*this, sum(args) == 1);
+//                }
+//            }
+//
+//            for(size_t nodeIndex = 0; nodeIndex < path.size(); ++nodeIndex)
+//            {
+//                size_t col = path[nodeIndex].first;
+//                size_t row = path[nodeIndex].second;
+//                // last affected row that is temporally concurrent with the
+//                // current row
+//
+//                // If not start node
+//                if(nodeIndex != 0)
+//                {
+//                    // Require the node 'row' to be connected to 'col'
+//                    // i.e. previous edge needs to be directed to this one or
+//                    // otherwise interpreted
+//                    LOG_DEBUG_S << "graph constraint: incoming edge requirement: " << row  << " sum to 1";
+//                    rel(*this, sum( timeline.col(row) ) == 1);
+//                }
+//
+//                // If not end node then this node has to have an outgoing edge
+//                if(nodeIndex != path.size() -1)
+//                {
+//                    LOG_WARN_S << "graph constraint: outgoing edge requirement: require row: " << col  << " sum to 1";
+//                    rel(*this, sum( timeline.row(col) ) == 1);
+//                }
+//            }
+//        }
+//    }
 }
 
 void TransportNetwork::postFlowCapacities(Gecode::Space& home)
@@ -1235,92 +1256,102 @@ void TransportNetwork::postFlowCapacities()
 {
     (void) status();
     LOG_WARN_S << "POST FLOW CAPACITIES";
-
-
-    // Consumer vs. Providers
-    size_t locationTimeSize = mLocations.size()*mTimepoints.size();
-    size_t  numberOfRows = locationTimeSize;
-
-    typedef Eigen::Matrix<int32_t, Eigen::Dynamic, Eigen::Dynamic> MatrixXi;
-    MatrixXi capacities = MatrixXi::Zero(locationTimeSize, locationTimeSize);
-
-    Gecode::Matrix< Gecode::IntVarArray > capacityMatrix(mCapacities, locationTimeSize, locationTimeSize);
-
-    for(size_t rowIndex = 0; rowIndex < locationTimeSize; ++rowIndex)
+    for(size_t i = 0; i < mTimelines.size(); ++i)
     {
-        FluentTimeIndex rowSpaceTimeIdx = FluentTimeIndex::fromRowOrCol(rowIndex, mLocations.size(), mTimepoints.size());
-
-        LOG_WARN_S << "row: " << rowIndex <<  " " << mLocations[rowSpaceTimeIdx.getFluentIndex()]->toString();
-        LOG_WARN_S << "                          " << mTimepoints[rowSpaceTimeIdx.getTimeIndex()]->toString();
-
-        for(size_t colIndex = 0; colIndex < locationTimeSize; ++colIndex)
-        {
-            bool isSameLocation = false;
-
-            FluentTimeIndex colSpaceTimeIdx = FluentTimeIndex::fromRowOrCol(colIndex, mLocations.size(), mTimepoints.size());
-
-            LOG_WARN_S << "col: " << colIndex <<  " " << mLocations[colSpaceTimeIdx.getFluentIndex()]->toString();
-            LOG_WARN_S << "       " << mTimepoints[colSpaceTimeIdx.getTimeIndex()]->toString();
-
-            if( rowSpaceTimeIdx.getFluentIndex() == colSpaceTimeIdx.getFluentIndex())
-            {
-                LOG_WARN_S << "Is same location";
-                isSameLocation = true;
-                if(rowSpaceTimeIdx.getTimeIndex() + 1 == colSpaceTimeIdx.getTimeIndex())
-                {
-                    LOG_WARN_S << "Updating: " << rowIndex << "/" << colIndex;
-                    capacities(rowIndex, colIndex) = std::numeric_limits<int32_t>::max();
-                } else {
-                    LOG_WARN_S << "Not subsequent timesteps";
-                }
-            }
-
-            std::vector<uint32_t>::const_iterator cit = mActiveRoles.begin();
-            size_t timelineIndex = 0;
-            for(; cit != mActiveRoles.end(); ++cit, ++timelineIndex)
-            {
-                const Role& role = mRoles[*cit];
-
-                if(!isSameLocation)
-                {
-                        Gecode::Matrix<Gecode::IntVarArray> timeline(mTimelines[timelineIndex], numberOfRows, numberOfRows);
-                        // check assignment
-                        Gecode::IntVar pathElement = timeline(colIndex, rowIndex);
-                        if(pathElement.assigned())
-                        {
-                            Gecode::IntVarValues v(pathElement);
-                            if(v.val() == 1)
-                            {
-
-                                organization_model::facets::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
-                                if(robot.isMobile())
-                                {
-                                    // Provider
-                                    uint32_t capacity = robot.getPayloadTransportCapacity();
-                                    capacities(rowIndex, colIndex) += capacity;
-                                    LOG_WARN_S << "INCREASE CAPACITY OF: " << capacity << " at " << rowIndex << " " << colIndex << " cap: " << capacities(rowIndex, colIndex);
-                                } else {
-                                    // Consumer
-                                    capacities(rowIndex, colIndex) -= 1; //capacity;
-                                    LOG_WARN_S << "REDUCE CAPACITY OF: " << " at " << rowIndex << " " << colIndex << " cap" << capacities(rowIndex, colIndex);
-                                }
-                            }
-                        }
-                    }
-            }
-            int capacity = capacities(rowIndex, colIndex);
-            Gecode::IntVar capacityVar = capacityMatrix(colIndex, rowIndex);
-            if(capacity == std::numeric_limits<int32_t>::max())
-            {
-                rel(*this, capacityVar, Gecode::IRT_EQ, Gecode::Int::Limits::max);
-            } else {
-                rel(*this, capacityVar, Gecode::IRT_EQ, capacity);
-            }
-
-            rel(*this, capacityVar, Gecode::IRT_GQ, 0);
-        }
+        LOG_WARN_S << "Timeline: " << mTimelines[i];
     }
 
+    // Compute the multi commodity flow
+    LOG_WARN_S << "POST MULTI COMMODITY FLOW: timeline size: " << mTimelines.size() << ", active roles: " << mActiveRoleList.size();
+    assert(mTimelines.size() == mActiveRoleList.size());
+    propagators::multiCommodityFlow(*this, mActiveRoleList, mTimelines, mTimepoints.size(), mLocations.size(), mpMission->getOrganizationModelAsk());
+
+//
+//
+//    // Consumer vs. Providers
+//    size_t locationTimeSize = mLocations.size()*mTimepoints.size();
+//    size_t  numberOfRows = locationTimeSize;
+//
+//    typedef Eigen::Matrix<int32_t, Eigen::Dynamic, Eigen::Dynamic> MatrixXi;
+//    MatrixXi capacities = MatrixXi::Zero(locationTimeSize, locationTimeSize);
+//
+//    Gecode::Matrix< Gecode::IntVarArray > capacityMatrix(mCapacities, locationTimeSize, locationTimeSize);
+//
+//    for(size_t rowIndex = 0; rowIndex < locationTimeSize; ++rowIndex)
+//    {
+//        FluentTimeIndex rowSpaceTimeIdx = FluentTimeIndex::fromRowOrCol(rowIndex, mLocations.size(), mTimepoints.size());
+//
+//        LOG_WARN_S << "row: " << rowIndex <<  " " << mLocations[rowSpaceTimeIdx.getFluentIndex()]->toString();
+//        LOG_WARN_S << "                          " << mTimepoints[rowSpaceTimeIdx.getTimeIndex()]->toString();
+//
+//        for(size_t colIndex = 0; colIndex < locationTimeSize; ++colIndex)
+//        {
+//            bool isSameLocation = false;
+//
+//            FluentTimeIndex colSpaceTimeIdx = FluentTimeIndex::fromRowOrCol(colIndex, mLocations.size(), mTimepoints.size());
+//
+//            LOG_WARN_S << "col: " << colIndex <<  " " << mLocations[colSpaceTimeIdx.getFluentIndex()]->toString();
+//            LOG_WARN_S << "       " << mTimepoints[colSpaceTimeIdx.getTimeIndex()]->toString();
+//
+//            if( rowSpaceTimeIdx.getFluentIndex() == colSpaceTimeIdx.getFluentIndex())
+//            {
+//                LOG_WARN_S << "Is same location";
+//                isSameLocation = true;
+//                if(rowSpaceTimeIdx.getTimeIndex() + 1 == colSpaceTimeIdx.getTimeIndex())
+//                {
+//                    LOG_WARN_S << "Updating: " << rowIndex << "/" << colIndex;
+//                    capacities(rowIndex, colIndex) = std::numeric_limits<int32_t>::max();
+//                } else {
+//                    LOG_WARN_S << "Not subsequent timesteps";
+//                }
+//            }
+//
+//            std::vector<uint32_t>::const_iterator cit = mActiveRoles.begin();
+//            size_t timelineIndex = 0;
+//            for(; cit != mActiveRoles.end(); ++cit, ++timelineIndex)
+//            {
+//                const Role& role = mRoles[*cit];
+//
+//                if(!isSameLocation)
+//                {
+//                        Gecode::Matrix<Gecode::IntVarArray> timeline(mTimelines[timelineIndex], numberOfRows, numberOfRows);
+//                        // check assignment
+//                        Gecode::IntVar pathElement = timeline(colIndex, rowIndex);
+//                        if(pathElement.assigned())
+//                        {
+//                            Gecode::IntVarValues v(pathElement);
+//                            if(v.val() == 1)
+//                            {
+//
+//                                organization_model::facets::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
+//                                if(robot.isMobile())
+//                                {
+//                                    // Provider
+//                                    uint32_t capacity = robot.getPayloadTransportCapacity();
+//                                    capacities(rowIndex, colIndex) += capacity;
+//                                    LOG_WARN_S << "INCREASE CAPACITY OF: " << capacity << " at " << rowIndex << " " << colIndex << " cap: " << capacities(rowIndex, colIndex);
+//                                } else {
+//                                    // Consumer
+//                                    capacities(rowIndex, colIndex) -= 1; //capacity;
+//                                    LOG_WARN_S << "REDUCE CAPACITY OF: " << " at " << rowIndex << " " << colIndex << " cap" << capacities(rowIndex, colIndex);
+//                                }
+//                            }
+//                        }
+//                    }
+//            }
+//            int capacity = capacities(rowIndex, colIndex);
+//            Gecode::IntVar capacityVar = capacityMatrix(colIndex, rowIndex);
+//            if(capacity == std::numeric_limits<int32_t>::max())
+//            {
+//                rel(*this, capacityVar, Gecode::IRT_EQ, Gecode::Int::Limits::max);
+//            } else {
+//                rel(*this, capacityVar, Gecode::IRT_EQ, capacity);
+//            }
+//
+//            rel(*this, capacityVar, Gecode::IRT_GQ, 0);
+//        }
+//    }
+//
 }
 
 size_t TransportNetwork::getMaxResourceCount(const organization_model::ModelPool& pool) const
@@ -1423,6 +1454,16 @@ std::string TransportNetwork::toString(const Timelines& timelines, size_t indent
     }
     return ss.str();
 }
+
+std::string TransportNetwork::toString(const AdjacencyList& list, size_t indent)
+{
+    return std::string("TBD: ADJECENCY LIST");
+}
+std::string TransportNetwork::toString(const ListOfAdjacencyLists& lists, size_t indent)
+{
+    return std::string("TBD: LIST OF ADJECENCY LIST");
+}
+
 
 std::ostream& operator<<(std::ostream& os, const TransportNetwork::Solution& solution)
 {
