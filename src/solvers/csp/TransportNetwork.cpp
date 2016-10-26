@@ -588,7 +588,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
         {
             if( mRoles[c].getModel() == currentModel)
             {
-                LOG_INFO_S << "Adding column of " << mRoles[c].toString() << " for symmetry";
+                LOG_DEBUG_S << "Adding column of " << mRoles[c].toString() << " for symmetry";
                 sameModelColumns << roleDistribution.col(c);
             }
         }
@@ -674,7 +674,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             {
                 if(solutions.size() == minNumberOfSolutions)
                 {
-                    LOG_WARN_S << "Found solution";
+                    LOG_INFO_S << "Found minimum required number of solutions: " << solutions.size();
                     break;
                 }
             }
@@ -991,7 +991,7 @@ void TransportNetwork::postRoleAssignments()
     size_t locationTimeSize = mLocations.size()*mTimepoints.size();
     mActiveRoles = getActiveRoles();
 
-    LOG_INFO_S << "Adjacency matrix (locationTime) size: " << locationTimeSize*locationTimeSize << " -- for " << mRoles.size() << " roles; " << mActiveRoles.size() << " are active roles";
+    LOG_INFO_S << "Adjacency list (locationTime) size: " << locationTimeSize << " -- for " << mRoles.size() << " roles; " << mActiveRoles.size() << " are active roles";
 
     Role::List activeRoles;
     for(uint32_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
@@ -1068,9 +1068,9 @@ void TransportNetwork::postRoleAssignments()
                     size_t col = FluentTimeIndex::toRowOrColumnIndex(fts.fluent, timeIndex + 1, mLocations.size(), mTimepoints.size());
 
 
-                    LOG_WARN_S << "EdgeActivation for col: " << col << ", row: " << row << " requirement for: " << role.toString() << " roleRequirement: " << roleRequirement;
-                    LOG_WARN_S << "Translates to: " << from->toString() << " to " << to->toString();
-                    LOG_WARN_S << "Fluent: " << mLocations[fts.fluent]->toString();
+                    LOG_INFO_S << "EdgeActivation for col: " << col << ", row: " << row << " requirement for: " << role.toString() << " roleRequirement: " << roleRequirement;
+                    LOG_INFO_S << "Translates to: " << from->toString() << " to " << to->toString();
+                    LOG_INFO_S << "Fluent: " << mLocations[fts.fluent]->toString();
 
 
                     // constraint between timeline and roleRequirement
