@@ -33,7 +33,7 @@
         <latitude>-83.58491</latitude>
         <longitude>85.98319</longitude>
     </location>
-    <!--<location>
+    <location>
         <id>b1</id>
         <radius>moon</radius>
         <latitude>-84.1812</latitude>
@@ -75,7 +75,6 @@
         <latitude>-83.34083</latitude>
         <longitude>84.64467</longitude>
     </location>
-    -->
 </constants>
 <requirements>
     <requirement>
@@ -110,8 +109,8 @@
             </location>
         </spatial-requirement>
         <temporal-requirement type="persistence-condition | event" >
-            <from>t4</from>
-            <to>t5</to>
+            <from>t2</from>
+            <to>t3</to>
         </temporal-requirement>
         <resource-requirement>
             <resource>
@@ -131,8 +130,8 @@
             </location>
         </spatial-requirement>
         <temporal-requirement type="persistence-condition | event" >
-            <from>t6</from>
-            <to>t11</to>
+            <from>t4</from>
+            <to>t5</to>
         </temporal-requirement>
         <resource-requirement>
             <resource>
@@ -149,15 +148,14 @@
         <greaterThan lval="t4" rval="t3" />
         <greaterThan lval="t5" rval="t4" />
         <greaterThan lval="t6" rval="t5" />
-        <!--<greaterThan lval="t7" rval="t6" />
+        <greaterThan lval="t7" rval="t6" />
         <greaterThan lval="t8" rval="t7" />
         <greaterThan lval="t9" rval="t8" />
         <greaterThan lval="t10" rval="t9" />
         <greaterThan lval="t11" rval="t10" />
         <greaterThan lval="t12" rval="t11" />
         <greaterThan lval="t13" rval="t12" />
-        <greaterThan lval="t14" rval="t13" />-->
-        <greaterThan lval="t11" rval="t6" />
+        <greaterThan lval="t14" rval="t13" />
     </temporal-constraints>
 </constraints>
 </mission>

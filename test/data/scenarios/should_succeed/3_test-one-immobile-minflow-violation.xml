@@ -128,6 +128,27 @@
     </requirement>
     <requirement>
         <spatial-requirement>
+            <!-- where it is required -->
+            <location>
+                <id>b6</id>
+            </location>
+        </spatial-requirement>
+
+        <!-- when it is required / mixing qualitative and quantitative
+        information -->
+        <temporal-requirement type="persistence-condition | event" >
+            <from>t8</from>
+            <to>t9</to>
+        </temporal-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement>
+        <spatial-requirement>
             <location>
                 <id>b6</id>
             </location>

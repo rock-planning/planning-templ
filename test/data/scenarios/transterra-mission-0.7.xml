@@ -276,8 +276,6 @@
             </resource>
         </resource-requirement>
     </requirement>
-
-<!--
     <requirement>
         <spatial-requirement>
             <location>
@@ -295,8 +293,6 @@
             </resource>
         </resource-requirement>
     </requirement>
-    -->
-
 </requirements>
 <constraints>
     <temporal-constraints>
