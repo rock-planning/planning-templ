@@ -923,6 +923,7 @@ std::vector<uint32_t> TransportNetwork::getActiveRoles() const
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
     for(size_t r = 0; r < mRoles.size(); ++r)
     {
+        size_t requirementCount = 0;
         for(size_t i = 0; i < mResourceRequirements.size(); ++i)
         {
             Gecode::IntVar var = roleDistribution(r,i);
@@ -932,6 +933,13 @@ std::vector<uint32_t> TransportNetwork::getActiveRoles() const
             }
             Gecode::IntVarValues v(var);
             if(v.val() == 1)
+            {
+                ++requirementCount;
+            }
+
+            // Only if the resource is required at more than its current start
+            // position, we consider it to be active
+            if(requirementCount > 1)
             {
                 activeRoles.push_back(r);
                 break;
