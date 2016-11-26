@@ -23,10 +23,9 @@ void isPath(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfT
     {
         home.fail();
     } else {
-        ViewArray<Set::SetView> xv(home, x);
 
         LOG_DEBUG_S << "IsPath: propagate #timepoints " << numberOfTimepoints << ", #fluents " << numberOfFluents;
-        if(IsPath::post(home, xv, numberOfTimepoints, numberOfFluents, minPathLength, maxPathLength) != ES_OK)
+        if(IsPath::post(home, x, numberOfTimepoints, numberOfFluents, minPathLength, maxPathLength) != ES_OK)
         {
             home.fail();
         }
@@ -53,43 +52,48 @@ IsPath::IsPath(Gecode::Space& home, bool share, IsPath& p)
     mGraph.update(home, share, p.mGraph);
 }
 
-Gecode::ExecStatus IsPath::post(Gecode::Space& home, ViewArray<Set::SetView>& xv, uint32_t numberOfTimepoints, uint32_t numberOfFluents, uint32_t minPathLength, uint32_t maxPathLength)
+Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfTimepoints, uint32_t numberOfFluents, uint32_t minPathLength, uint32_t maxPathLength)
 {
     int32_t numberOfVertices = numberOfFluents*numberOfTimepoints;
     // 1. validate time property: only valid are time-forward-connections
     // compute sums of columns and rows for connections between timepoints
     // i.e. validate transitions between timepoints
     SetVarArray all(home, numberOfVertices);
+    SetVar path(home, Gecode::IntSet::empty, Gecode::IntSet(0,numberOfVertices),1,numberOfTimepoints);
+    Set::SetView viewPath(path);
+
     for(size_t timeIdx = 0; timeIdx < numberOfTimepoints; ++timeIdx)
     {
+        // This array contains views, that all have the same associated timepoint
         SetVarArray sameTimeViews(home, numberOfFluents);
+        // This array contains the cardinalites of the 'sameTimeViews'
         IntVarArray cardinalities(home, numberOfFluents, 0, 1);
         for(size_t fluentIdx = 0; fluentIdx < numberOfFluents; ++fluentIdx)
         {
             // Allowed target nodes are forward in time
-            int from = (timeIdx+1)*numberOfFluents;
-            int to = from + numberOfFluents;
+            // otherwise they are constrained to the empty set
+            int lowerBoundTo = (timeIdx+1)*numberOfFluents;
+            int upperBoundTo = lowerBoundTo + numberOfFluents;
             SetVar allowedTargets;
             if(timeIdx != numberOfTimepoints -1)
             {
-                allowedTargets = SetVar(home, Gecode::IntSet::empty, Gecode::IntSet(from,to),0,1);
+                allowedTargets = SetVar(home, Gecode::IntSet::empty, Gecode::IntSet(lowerBoundTo,upperBoundTo),0,1);
             } else {
                 allowedTargets = SetVar(home, Gecode::IntSet::empty, Gecode::IntSet::empty,0,0);
             }
 
-            LOG_DEBUG_S << "FROM: " << from << ", TO: " << to << "  timeIdx: " << timeIdx << ", mNumberOfFluents: " << numberOfFluents;
+            LOG_DEBUG_S << "Lower bound to: " << lowerBoundTo << ", upper bound to: " << upperBoundTo << "  timeIdx: " << timeIdx << ", mNumberOfFluents: " << numberOfFluents;
             LOG_DEBUG_S << (timeIdx*numberOfFluents + fluentIdx) << " -- ALLOWED TARGET: " << allowedTargets;
 
             int currentIdx = timeIdx*numberOfFluents + fluentIdx;
-
             assert(currentIdx < numberOfVertices);
 
-            Gecode::SetVar currentView(xv[currentIdx]);
+            Gecode::SetVar currentView(x[currentIdx]);
             Gecode::rel(home, currentView <= allowedTargets);
 
+            // Cache or channel values
             sameTimeViews[fluentIdx] = currentView;
             Gecode::cardinality(home, currentView, cardinalities[fluentIdx]);
-
             all[timeIdx*numberOfFluents+fluentIdx] = currentView;
         }
 
@@ -100,11 +104,25 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, ViewArray<Set::SetView>& xv
     Gecode::SetVar allUnion(home);
     Gecode::rel(home, SOT_UNION, all, allUnion);
 
-    // 3. There should be a minimum of one edge
-    Gecode::IntVar allUnionCardinality(home, 0, numberOfVertices);
+    Gecode::SetVar z(home);
+    Gecode::element(home, SOT_UNION, x, allUnion, z);
+
+    Gecode::IntVar expectedTargetsCardinality(home, 0, numberOfTimepoints);
+    Gecode::cardinality(home, z, expectedTargetsCardinality);
+
+    // 3. There should be a minimum of one edge, i.e. the union across all sets
+    // should have a cardinality that corresponds to the pathlength
+    Gecode::IntVar allUnionCardinality(home, 0, numberOfTimepoints);
     Gecode::cardinality(home, allUnion, allUnionCardinality);
     Gecode::rel(home, allUnionCardinality >= std::min(numberOfTimepoints - 1, minPathLength) );
     Gecode::rel(home, allUnionCardinality <= std::min(numberOfTimepoints - 1, maxPathLength) );
+
+    // 3.a The path should be consistent, from-0 --> to-0, from-1 --> to-1
+    // , where to-0 == from-1
+    //Gecode::IntVar pathCardinality(home, 0, numberOfTimepoints);
+    //Gecode::cardinality(home, path, pathCardinality);
+    //Gecode::rel(home, allUnionCardinality == (pathCardinality + 1));
+    Gecode::rel(home, allUnionCardinality <= (expectedTargetsCardinality+1));
 
     // 4. The path should be without holes
     Gecode::IntVar minAll(home, 0, numberOfVertices);
@@ -121,7 +139,8 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, ViewArray<Set::SetView>& xv
     // documentation. 4.3.1 Post functions are clever
     // A constraint post function carefully analyzes its arguments. Based on
     // this analysis, the constraint post function chooses the best possible propagator for the constraint
-    (void) new (home) IsPath(home, xv, numberOfTimepoints, numberOfFluents);
+    ViewArray<Set::SetView> viewArray(home, x);
+    (void) new (home) IsPath(home, viewArray, numberOfTimepoints, numberOfFluents);
     return ES_OK;
 }
 

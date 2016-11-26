@@ -36,7 +36,7 @@ public:
 
     IsPath(Gecode::Space& home, bool share, IsPath& p);
 
-    static Gecode::ExecStatus post(Gecode::Space& home, SetVarArrayView& x0, uint32_t numberOfTimepoints, uint32_t numberOfFluents, uint32_t minPathLength = 1, uint32_t maxPathLength = std::numeric_limits<uint32_t>::max());
+    static Gecode::ExecStatus post(Gecode::Space& home, const Gecode::SetVarArgs& x0, uint32_t numberOfTimepoints, uint32_t numberOfFluents, uint32_t minPathLength = 1, uint32_t maxPathLength = std::numeric_limits<uint32_t>::max());
 
     /**
      * Cancels that subscription of the view
