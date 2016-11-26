@@ -79,15 +79,27 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
             const Role& role = mRoles[roleIdx];
             organization_model::facets::Robot robot(role.getModel(), mAsk);
             int32_t supplyDemand = robot.getPayloadTransportSupplyDemand();
+            if(supplyDemand == 0)
+            {
+                throw std::invalid_argument("templ::propagators::MultiCommodityFlow: " +  role.getModel().toString() + "has"
+                        " a transportSupplyDemand of 0 -- must be either positive of negative integer");
+            }
             mRoleSupplyDemand.push_back(supplyDemand);
 
             LOG_WARN_S << "SupplyDemand: " << role.toString()   << " " << supplyDemand;
+
             for(uint32_t i = 0; i < mLocationTimeSize; ++i)
             {
-                // the current role idx (in the concatenated list of timelines)
+                // the current roles timeline is in the
+                // concatenated list of timelines, thus we use
+                // the start offset: roleIdx*mLocationTimeSize
+                // to then interate over the timeline values
                 size_t idx = roleIdx*mLocationTimeSize + i;
 
                 // the target index (in the local timeline)
+                // -- the set is actually an adjacency list, so the index
+                // identifies the source space-time and the set value the
+                // target's space-time (if there is a target)
                 SetVar var(xv[idx]);
                 if(!var.assigned())
                 {
@@ -95,11 +107,16 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
                 }
 
                 LOG_INFO_S << "Role " << roleIdx << " pos: " << i << " val glbSize: " << var.glbSize() << "  lubSize: " << var.lubSize() << " cardMax: " << var.cardMax() << " cardMin: " << var.cardMin();
+                // Check that the value is assigned, by checking that
+                // the set has cardinality 1
                 if(var.cardMax() == 1 && var.cardMin() == 1)
                 {
                     Gecode::SetVarGlbValues currentVar(var);
                     std::pair<uint32_t, uint32_t> key(i, currentVar.val());
 
+                    // here we assign the supply demand of the role to the
+                    // current timeline value -- i will identify the same
+                    // space-time in all role timelines
                     std::vector<int32_t>& supplyDemandVector = mCapacityGraph[key];
                     supplyDemandVector.push_back( supplyDemand );
                 }
@@ -112,10 +129,10 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
     {
         const CapacityGraphKey& key = cit->first;
         const std::vector<int32_t>& supplyDemand = cit->second;
-        if(key.second - key.first == mNumberOfFluents)
+        if(isLocalTransition(key))
         {
             // this is a local transition with no capacity restriction
-            LOG_WARN_S << "This is a local transition at: " << key.second << " " << key.first;
+            LOG_WARN_S << "This is a local transition: from " << key.first << " to " << key.second;
         } else {
             int32_t sum = 0;
             std::vector<int32_t>::const_iterator vit = supplyDemand.begin();
@@ -187,9 +204,9 @@ Gecode::ExecStatus MultiCommodityFlow::propagate(Gecode::Space& home, const Geco
     }
 }
 
-bool MultiCommodityFlow::isLocalTransition(uint32_t timelineEdgeIdx) const
+bool MultiCommodityFlow::isLocalTransition(const CapacityGraphKey& key) const
 {
-    //if (mCapacityGraph[timelineEdgeIdx] != 0)
+    if (key.second - key.first == mNumberOfFluents)
     {
         return true;
     }

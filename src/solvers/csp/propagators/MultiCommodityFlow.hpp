@@ -21,6 +21,9 @@ class MultiCommodityFlow : public Gecode::NaryPropagator<Gecode::Set::SetView, G
 {
 public:
     typedef Gecode::ViewArray<Gecode::Set::SetView> SetViewViewArray;
+    typedef std::pair<uint32_t,uint32_t> CapacityGraphKey;
+    typedef std::map< CapacityGraphKey , std::vector<int32_t> > CapacityGraph;
+
     // Input
     //     --> TupleSet: defining what types of Systems of combinations are
     // required
@@ -61,7 +64,7 @@ public:
 
     virtual Gecode::ExecStatus propagate(Gecode::Space& home, const Gecode::ModEventDelta&);
 
-    bool isLocalTransition(uint32_t timelineEdgeIdx) const;
+    bool isLocalTransition(const CapacityGraphKey& key) const;
 protected:
     Role::List mRoles;
     uint32_t mNumberOfTimepoints;
@@ -74,8 +77,6 @@ protected:
     // The elements in the wrapped array a are accessed in row-major order
     // as it is for all array in Gecode
     // http://www.gecode.org/doc-latest/reference/classGecode_1_1Matrix.html#_details
-    typedef std::pair<uint32_t,uint32_t> CapacityGraphKey;
-    typedef std::map< CapacityGraphKey , std::vector<int32_t> > CapacityGraph;
     CapacityGraph mCapacityGraph;
 
     // Map the role index to the transport supply/demand
