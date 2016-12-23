@@ -205,7 +205,7 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
             throw std::runtime_error("templ::solvers::transshipment::MinCostFlow::computeFlaws: "
                     " failed to find role timeline for affectedRole: " + affectedRole.toString());
         }
-        const csp::RoleTimeline& roleTimeline = rit->second;  
+        const csp::RoleTimeline& roleTimeline = rit->second;
 
         Flaw flaw(violation, affectedRole);
 
@@ -237,7 +237,7 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
                 {
                     // More transport availability needed
                     // TODO: quantify request, e.g. for 1 more Payload
-                    Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mission), vocabulary::OM::resolve("TransportService")));
+                    Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mission), vocabulary::OM::resolve("TransportProvider")));
                     state->addResolver(functionalityRequest);
                 }
 
@@ -269,10 +269,10 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
                 organization_model::facets::Robot robot(affectedRole.getModel(), mOrganizationModelAsk);
                 if(!robot.isMobile())
                 {
-                    std::cout << "Robot is not mobile thus requesting a TransportService" << std::endl;
+                    std::cout << "Robot is not mobile thus requesting a TransportProvider" << std::endl;
                    // More transport availability needed
                    // TODO: quantify request, e.g. for 1 more Payload
-                   Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mission), vocabulary::OM::resolve("TransportService")));
+                   Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mission), vocabulary::OM::resolve("TransportProvider")));
                    state->addResolver(functionalityRequest);
                 }
 
@@ -337,7 +337,7 @@ std::vector<csp::FluentTimeResource>::const_iterator MinCostFlow::getFluent(cons
             return fit;
         }
     }
-    throw std::invalid_argument("MissionPlanner::getFluent: could not retrieve corresponding fluent in timeline: '" 
+    throw std::invalid_argument("MissionPlanner::getFluent: could not retrieve corresponding fluent in timeline: '"
             + roleTimeline.toString() + "' from tuple '" + tuple->toString());
 }
 
