@@ -2,6 +2,7 @@
 #include <base-logging/Logging.hpp>
 #include <numeric/Combinatorics.hpp>
 #include <gecode/minimodel.hh>
+#include <gecode/set.hh>
 
 #include <gecode/gist.hh>
 #include <organization_model/Algebra.hpp>
@@ -112,11 +113,10 @@ TransportNetwork::SearchState TransportNetwork::SearchState::next() const
 
 TransportNetwork::Solution TransportNetwork::getSolution() const
 {
-    assert(false);
     Solution solution;
     solution.mModelDistribution = getModelDistribution();
     solution.mRoleDistribution = getRoleDistribution();
-    //solution.mTimelines = getTimelines();
+    solution.mTimelines = getTimelines();
     return solution;
 }
 
@@ -182,12 +182,45 @@ TransportNetwork::RoleDistribution TransportNetwork::getRoleDistribution() const
 TransportNetwork::Timelines TransportNetwork::getTimelines() const
 {
     LOG_WARN_S << "GET TIMELINES";
+    for(size_t i = 0; i < mTimelines.size(); ++i)
+    {
+        std::cout << mActiveRoleList[i].toString() << " #" << i << mTimelines[i] << std::endl;
+        Gecode::SetVarArray::const_iterator cit = mTimelines[i].begin();
+        size_t index = 0;
+        for(; cit != mTimelines[i].end(); ++cit, ++index)
+        {
+            const Gecode::SetVar& var = *cit;
+            if(!var.assigned())
+            {
+                throw std::invalid_argument("TransportNetwork::getTimelines: value is not assigned");
+            } else {
+                if(var.cardMax() == 1 && var.cardMin() == 1)
+                {
+                    Gecode::SetVarGlbValues currentVar(var);
+                     std::cout << "    from: " << index << "    to: " << currentVar.val() << std::endl;
+                     // index = timepointIdx*#locations + location
+                     size_t fromLocationIdx = index % mLocations.size();
+                     assert( mLocations.size() > fromLocationIdx );
+                     symbols::constants::Location::Ptr fromLocation = mLocations[fromLocationIdx];
+
+                     size_t  toLocationIdx = currentVar.val() % mLocations.size();
+
+                     std::cout << "Locations: " << mLocations.size() << " to requested: " << toLocationIdx << std::endl;
+
+                     assert( mLocations.size() > toLocationIdx );
+                     symbols::constants::Location::Ptr toLocation = mLocations[toLocationIdx];
+
+                     std::cout << "Readable" << std::endl;
+                     std::cout<< "     from: " << fromLocation->toString() << "    to: " << toLocation->toString() << std::endl;
+                }
+            }
+        }
+    }
     //LOG_WARN_S << std::endl << toString(mTimelines) << std::endl;
 
     //size_t locationTimeSize = mLocations.size()*mTimepoints.size();
 
     TransportNetwork::Timelines timelines;
-
     //std::vector<int32_t> capacities;
     //for(size_t r = 0; r < locationTimeSize; ++r)
     //{
@@ -657,36 +690,65 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
     TransportNetwork* distribution = new TransportNetwork(mission);
     {
-        Gecode::BAB<TransportNetwork> searchEngine(distribution);
-        //Gecode::DFS<TransportNetwork> searchEngine(this);
+            Gecode::Search::Options options;
+            options.threads = 0;
+            Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(70000);
+            options.cutoff = c;
 
-        TransportNetwork* best = NULL;
-        while(TransportNetwork* current = searchEngine.next())
-        {
-            delete best;
-            best = current;
+            //Gecode::BAB<TransportNetwork> searchEngine(distribution,options);
+            //Gecode::DFS<TransportNetwork> searchEngine(this);
+            Gecode::RBS< Gecode::BAB, TransportNetwork> searchEngine(distribution, options);
 
-            using namespace organization_model;
-
-            LOG_INFO_S << "Solution found:" << current->toString();
-            solutions.push_back(current->getSolution());
-            if(minNumberOfSolutions != 0)
+        try {
+            TransportNetwork* best = NULL;
+            while(TransportNetwork* current = searchEngine.next())
             {
-                if(solutions.size() == minNumberOfSolutions)
+                delete best;
+                best = current;
+
+                using namespace organization_model;
+
+                LOG_INFO_S << "Solution found:" << current->toString();
+                solutions.push_back(current->getSolution());
+                if(minNumberOfSolutions != 0)
                 {
-                    LOG_INFO_S << "Found minimum required number of solutions: " << solutions.size();
-                    break;
+                    if(solutions.size() == minNumberOfSolutions)
+                    {
+                        LOG_INFO_S << "Found minimum required number of solutions: " << solutions.size();
+                        break;
+                    }
                 }
             }
-        }
 
-        if(best == NULL)
+            if(best == NULL)
+            {
+                delete distribution;
+                throw std::runtime_error("templ::solvers::csp::TransportNetwork::solve: no solution found");
+            }
+        //    delete best;
+            best = NULL;
+
+            std::cout << "Statistics: " << std::endl;
+            std::cout << "    propagate " << searchEngine.statistics().propagate << std::endl;
+
+            std::cout << "    fail " << searchEngine.statistics().fail << std::endl;
+            std::cout << "    node " << searchEngine.statistics().node << std::endl;
+            std::cout << "    depth" << searchEngine.statistics().depth << std::endl;
+            std::cout << "    restart " << searchEngine.statistics().restart << std::endl;
+            std::cout << "    nogoods " << searchEngine.statistics().nogood << std::endl;
+        } catch(const std::exception& e)
         {
-            delete distribution;
-            throw std::runtime_error("templ::solvers::csp::TransportNetwork::solve: no solution found");
+            std::cout << "Statistics: " << std::endl;
+            std::cout << "    propagate " << searchEngine.statistics().propagate << std::endl;
+
+            std::cout << "    fail " << searchEngine.statistics().fail << std::endl;
+            std::cout << "    node " << searchEngine.statistics().node << std::endl;
+            std::cout << "    depth" << searchEngine.statistics().depth << std::endl;
+            std::cout << "    restart " << searchEngine.statistics().restart << std::endl;
+            std::cout << "    nogoods " << searchEngine.statistics().nogood << std::endl;
+
+            throw;
         }
-    //    delete best;
-        best = NULL;
     }
 
     delete distribution;
@@ -993,6 +1055,14 @@ void TransportNetwork::postRoleAssignments()
 
     LOG_INFO_S << "Adjacency list (locationTime) size: " << locationTimeSize << " -- for " << mRoles.size() << " roles; " << mActiveRoles.size() << " are active roles";
 
+    // Collect all relevant location time values
+    std::vector<int> allowedLocationTimeValues;
+    std::sort(mResourceRequirements.begin(), mResourceRequirements.end(), [](const FluentTimeResource& a,const FluentTimeResource& b) -> bool
+            {
+                return a.getInterval().getFrom() > b.getInterval().getFrom();
+            });
+
+
     Role::List activeRoles;
     for(uint32_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
     {
@@ -1031,6 +1101,10 @@ void TransportNetwork::postRoleAssignments()
         {
             LOG_DEBUG_S << "Locations: " << mLocations[i]->toString();
         }
+
+        uint32_t prevTimeIdx = 0;
+        uint32_t prevLocationIdx = 0;
+
         // Link the edge activation to the role requirement, i.e. make sure that
         // for each requirement the interval is 'activated'
         for(uint32_t requirementIndex = 0; requirementIndex < mResourceRequirements.size(); ++requirementIndex)
@@ -1041,7 +1115,7 @@ void TransportNetwork::postRoleAssignments()
                 throw std::runtime_error("TransportNetwork: roleRequirement is not assigned");
             }
             Gecode::IntVarValues var(roleRequirement);
-            // maps to the interval
+            // Check if role is required, i.e., does it maps to the interval
             if(var.val() == 1)
             {
                 const FluentTimeResource& fts = mResourceRequirements[requirementIndex];
@@ -1054,8 +1128,12 @@ void TransportNetwork::postRoleAssignments()
 
                 uint32_t fromIndex = fromIt - mTimepoints.begin();
                 uint32_t toIndex = toIt - mTimepoints.begin();
+
                 for(uint32_t timeIndex = fromIndex; timeIndex < toIndex; ++timeIndex)
                 {
+                    int allowed = timeIndex*mLocations.size() + fts.fluent;
+
+                    allowedLocationTimeValues.push_back(allowed);
                     // index of the location is fts.fluent
                     // edge index:
                     // row = timepointIdx*#ofLocations + from-location-offset
@@ -1083,7 +1161,38 @@ void TransportNetwork::postRoleAssignments()
                     v.cardMin(*this, 1);
                     v.cardMax(*this, 1);
                 }
+                allowedLocationTimeValues.push_back(toIndex*mLocations.size() + fts.fluent);
+
+                // Collect allowed waypoints
+                if(prevTimeIdx != 0)
+                {
+                    for(uint32_t timeIndex = prevTimeIdx + 1; timeIndex < toIndex; ++timeIndex)
+                    {
+                        int allowed = timeIndex*mLocations.size() + fts.fluent;
+                        allowedLocationTimeValues.push_back(allowed);
+                        allowed = timeIndex*mLocations.size() + prevLocationIdx;
+                        allowedLocationTimeValues.push_back(allowed);
+                    }
+                }
+
+                prevTimeIdx = toIndex;
+                prevLocationIdx = fts.fluent;
             }
+        }
+    }
+
+    Gecode::IntSet allowedIntSetValues(allowedLocationTimeValues.data(), allowedLocationTimeValues.size());
+    //Gecode::SetVar allowedSetValues(*this,Gecode::IntSet::empty, allowedIntSetValues,0,1);
+
+
+    for(size_t t = 0; t < mTimelines.size(); ++t)
+    {
+        Gecode::SetVarArray& timeline = mTimelines[t];
+        Gecode::SetVarArray::iterator it = timeline.begin();
+        for(; it != timeline.end(); ++it)
+        {
+            Gecode::SetVar& var = *it;
+            rel(*this, var <= allowedIntSetValues || var == Gecode::IntSet::empty);
         }
 
         // Make sure that the timeline for each role forms a path
@@ -1404,11 +1513,10 @@ std::string TransportNetwork::toString() const
     ss << "Current model usage: " << mModelUsage << std::endl;
     ss << "Current model usage: " << resourceDistribution << std::endl;
     ss << "Current role usage: " << mRoleUsage << std::endl;
-    ss << "Current timelines:" << std::endl << toString(mTimelines) << std::endl;
-    ss << "Capacities: " << std::endl << Formatter::toString(mCapacities,
-            toPtrList<Symbol,symbols::constants::Location>(mLocations),
-            toPtrList<Variable, temporal::point_algebra::TimePoint>(mTimepoints)
-            ) << std::endl;
+
+    Timelines timelines = convertToTimelines(mActiveRoleList, mTimelines);
+    ss << "Number of timelines: " << timelines.size() << " active roles -- " << mActiveRoleList.size();
+    ss << "Current timelines:" << std::endl << toString(timelines) << std::endl;
 
     return ss.str();
 }
@@ -1463,15 +1571,69 @@ std::string TransportNetwork::toString(const Timelines& timelines, size_t indent
     return ss.str();
 }
 
-std::string TransportNetwork::toString(const AdjacencyList& list, size_t indent)
+TransportNetwork::Timeline TransportNetwork::convertToTimeline(const AdjacencyList& list) const
 {
-    return std::string("TBD: ADJECENCY LIST");
-}
-std::string TransportNetwork::toString(const ListOfAdjacencyLists& lists, size_t indent)
-{
-    return std::string("TBD: LIST OF ADJECENCY LIST");
+    Timeline timeline;
+    int expectedTargetIdx;
+    for(int idx = 0; idx < list.size(); ++idx)
+    {
+        const Gecode::SetVar& var = list[idx];
+        if(!var.assigned())
+        {
+            throw std::invalid_argument("templ::solvers::csp::TransportNetwork::toString: cannot compute timeline, value is not assigned");
+        }
+        if(var.cardMax() == 1 && var.cardMin() == 1)
+        {
+            if(!timeline.empty())
+            {
+                if(expectedTargetIdx != idx)
+                {
+                    std::stringstream ss;
+                    ss << "templ::solvers::csp::TransportNetwork::toString: timeline is invalid: ";
+                    ss << " expected idx " << expectedTargetIdx << ", but got " << idx;
+                    throw std::runtime_error(ss.str());
+                }
+            }
+            Gecode::SetVarGlbValues value(var);
+            uint32_t targetIdx = value.val();
+            expectedTargetIdx = targetIdx;
+
+            uint32_t fromLocationIdx = idx % mLocations.size();
+            uint32_t fromTimeIdx = (idx - fromLocationIdx)/mLocations.size();
+
+            uint32_t toLocationIdx = targetIdx % mLocations.size();
+            uint32_t toTimeIdx = (targetIdx - fromLocationIdx)/mLocations.size();
+
+            //if(timeline.empty())
+            //{
+                SpaceTimePoint sourceStp(mLocations[fromLocationIdx], mTimepoints[fromTimeIdx]);
+                timeline.push_back(sourceStp);
+            //}
+
+            SpaceTimePoint targetStp(mLocations[toLocationIdx], mTimepoints[toTimeIdx]);
+            timeline.push_back(targetStp);
+        } else {
+            // empty set
+            continue;
+        }
+    }
+    return timeline;
 }
 
+TransportNetwork::Timelines TransportNetwork::convertToTimelines(const Role::List& roles, const ListOfAdjacencyLists& lists) const
+{
+    Timelines timelines;
+    if(roles.size() != lists.size())
+    {
+        throw std::invalid_argument("templ::solvers::csp::TransportNetwork::convertToTimelines: size of roles does not equal size of adjacency lists");
+    }
+
+    for(size_t i = 0; i < roles.size(); ++i)
+    {
+        timelines[ roles[i] ] = convertToTimeline(lists[i]);
+    }
+    return timelines;
+}
 
 std::ostream& operator<<(std::ostream& os, const TransportNetwork::Solution& solution)
 {

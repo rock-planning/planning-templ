@@ -265,8 +265,8 @@ protected:
     static std::string toString(const Timeline& timeline, size_t indent = 0);
     static std::string toString(const Timelines& timelines, size_t indent = 0);
 
-    static std::string toString(const AdjacencyList& list, size_t ident = 0);
-    static std::string toString(const ListOfAdjacencyLists& lists, size_t ident = 0);
+    Timeline convertToTimeline(const AdjacencyList& list) const;
+    Timelines convertToTimelines(const Role::List& roles, const ListOfAdjacencyLists& lists) const;
 
     std::string toString(const std::vector<Gecode::IntVarArray>& timelines) const;
 
