@@ -1,8 +1,7 @@
 <mission>
-<name>Immobile and mobile system deployment</name>
+<name>Utah Mission v.01</name>
 <description>    
-    Immobile system needs a transport, but the mobile system is not dedicated to transport the 
-    device
+    Simle soil sampling mission and provisioning of image data from a certain location
 </description>
 <resources>
     <resource>
@@ -10,7 +9,23 @@
         <maxCardinality>1</maxCardinality>
     </resource>
     <resource>
-        <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+        <maxCardinality>1</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#PayloadCamera</model>
+        <maxCardinality>2</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#PayloadSoilSampler</model>
+        <maxCardinality>2</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#PayloadBattery</model>
+        <maxCardinality>2</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#BaseCamp</model>
         <maxCardinality>1</maxCardinality>
     </resource>
 </resources>
@@ -97,48 +112,64 @@
                 <minCardinality>1</minCardinality>
             </resource>
             <resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#PayloadCamera</model>
+                <minCardinality>2</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#PayloadSoilSampler</model>
+                <minCardinality>2</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#PayloadBattery</model>
+                <minCardinality>2</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#BaseCamp</model>
                 <minCardinality>1</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>
     <requirement>
         <spatial-requirement>
+            <!-- where it is required -->
             <location>
-                <id>base1</id>
+                <id>b1</id>
             </location>
         </spatial-requirement>
+        <!-- when it is required / mixing qualitative and quantitative
+        information -->
         <temporal-requirement type="persistence-condition | event" >
             <from>t2</from>
             <to>t3</to>
         </temporal-requirement>
-        <resource-requirement>
-            <resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-                <minCardinality>1</minCardinality>
-            </resource>
-            <!--<resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
-                <minCardinality>1</minCardinality>
-            </resource>-->
-        </resource-requirement>
+        <!-- what is required at this very position -->
+        <service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#SoilSamplingProvider</service>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#ManipulationProvider</service>
+        </service-requirement>
     </requirement>
     <requirement>
         <spatial-requirement>
+            <!-- where it is required -->
             <location>
-                <id>base2</id>
+                <id>b3</id>
             </location>
         </spatial-requirement>
+        <!-- when it is required / mixing qualitative and quantitative
+        information -->
         <temporal-requirement type="persistence-condition | event" >
-            <from>t4</from>
-            <to>t5</to>
+            <from>t2</from>
+            <to>t6</to>
         </temporal-requirement>
-        <resource-requirement>
-            <resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
-                <minCardinality>1</minCardinality>
-            </resource>
-        </resource-requirement>
+        <!-- what is required at this very position -->
+        <service-requirement>
+            <service>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</service>
+        </service-requirement>
     </requirement>
 </requirements>
 <constraints>
@@ -147,7 +178,6 @@
         <greaterThan lval="t3" rval="t2" />
         <greaterThan lval="t4" rval="t3" />
         <greaterThan lval="t5" rval="t4" />
-        <!--
         <greaterThan lval="t6" rval="t5" />
         <greaterThan lval="t7" rval="t6" />
         <greaterThan lval="t8" rval="t7" />
@@ -157,9 +187,9 @@
         <greaterThan lval="t12" rval="t11" />
         <greaterThan lval="t13" rval="t12" />
         <greaterThan lval="t14" rval="t13" />
-        -->
     </temporal-constraints>
 </constraints>
+
 </mission>
 
 
