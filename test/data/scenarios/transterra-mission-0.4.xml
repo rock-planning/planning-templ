@@ -21,7 +21,7 @@
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-        <maxCardinality>25</maxCardinality>
+        <maxCardinality>5</maxCardinality>
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#BaseCamp</model>
@@ -126,7 +126,7 @@
             </resource>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-                <minCardinality>25</minCardinality>
+                <minCardinality>5</minCardinality>
             </resource>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#BaseCamp</model>
@@ -156,7 +156,7 @@
         <resource-requirement>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-                <minCardinality>3</minCardinality>
+                <minCardinality>1</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>
@@ -184,7 +184,7 @@
         <resource-requirement>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-                <minCardinality>5</minCardinality>
+                <minCardinality>2</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>
@@ -232,7 +232,7 @@
         <resource-requirement>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-                <minCardinality>3</minCardinality>
+                <minCardinality>1</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>

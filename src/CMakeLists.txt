@@ -13,6 +13,8 @@ rock_library(templ
         Role.cpp
         Symbol.cpp
         io/MissionReader.cpp
+        io/MissionRequirements.cpp
+        io/FluentTypes.cpp
         problems/Scheduling.cpp
         solvers/Constraint.cpp
         solvers/ConstraintNetwork.cpp
@@ -71,6 +73,8 @@ rock_library(templ
         Tuple.hpp
         Variable.hpp
         io/MissionReader.hpp
+        io/MissionRequirements.hpp
+        io/FluentTypes.hpp
         solvers/Constraint.hpp
         solvers/ConstraintNetwork.hpp
         solvers/GQReasoner.hpp

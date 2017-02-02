@@ -8,69 +8,11 @@
 #include <libxml/tree.h>
 #include <templ/Mission.hpp>
 
+#include "MissionRequirements.hpp"
+
+
 namespace templ {
 namespace io {
-
-struct Location
-{
-    std::string id;
-    int32_t x;
-    int32_t y;
-    int32_t z;
-
-    std::string toString() const;
-};
-
-struct SpatialRequirement
-{
-    Location location;
-
-    std::string toString() const;
-};
-
-struct TemporalRequirement
-{
-    std::string from;
-    std::string to;
-
-    std::string toString() const;
-};
-
-struct ServiceRequirement
-{
-    owlapi::model::IRIList services;
-
-    std::string toString() const;
-};
-
-struct Requirement
-{
-    SpatialRequirement spatial;
-    TemporalRequirement temporal;
-    ServiceRequirement functional;
-    organization_model::ModelPool resources;
-
-    std::string toString() const;
-};
-
-struct TemporalConstraint
-{
-    templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type type;
-
-    std::string rval;
-    std::string lval;
-
-    static templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type getTemporalConstraintType(const std::string& name);
-
-    std::string toString() const;
-};
-
-struct Constraints
-{
-    std::vector<TemporalConstraint> temporal;
-
-    std::string toString() const;
-};
 
 class MissionReader
 {
@@ -78,7 +20,9 @@ public:
     static Mission fromFile(const std::string& url, const organization_model::OrganizationModel::Ptr& organizationModel);
 
 private:
-    static bool nameMatches(xmlNodePtr node, const std::string& name);
+    static bool nameMatches(xmlNodePtr node, const std::string& name, bool useNamespace = false);
+
+    static std::string resolveNamespacePrefix(xmlDocPtr doc, xmlNodePtr node, const std::string& prefix);
 
     static std::string getContent(xmlDocPtr doc, xmlNodePtr node, size_t count = 1);
 
@@ -95,15 +39,38 @@ private:
 
     static std::pair<owlapi::model::IRI, size_t> parseResource(xmlDocPtr doc, xmlNodePtr current);
 
+    /**
+     * Extrac the set of available resources
+     */
     static organization_model::ModelPool parseResources(xmlDocPtr doc, xmlNodePtr current);
 
     static SpatialRequirement parseSpatialRequirement(xmlDocPtr doc, xmlNodePtr current);
 
     static TemporalRequirement parseTemporalRequirement(xmlDocPtr doc, xmlNodePtr current);
 
-    static ServiceRequirement parseServiceRequirement(xmlDocPtr doc, xmlNodePtr current);
+    /**
+     *
+     *\verbatim
+        <resource-requirement>
+            <resource>
+                <model>om:TransportProvider</model>
+                <minCardinality>1</minCardinality>
+                <attributes>
+                    <numericAttribute name=om:payloadTransportCapacity>
+                        <xsd:restriction>
+                            <xsd:minInclusive>1</xsd:minInclusive>
+                        </xsd:restriction>
+                    </numericAttribute>
+                </attributes>
+            </resource>
+        </resource-requirement>
+     \endverbatim
+     */
+    static ResourceRequirement parseResourceRequirement(xmlDocPtr doc, xmlNodePtr current);
 
-    static organization_model::ModelPool parseResourceRequirement(xmlDocPtr doc, xmlNodePtr current);
+    static ResourceReificationRequirement parseResourceReificationRequirement(xmlDocPtr doc, xmlNodePtr current);
+
+    static NumericAttributeRequirements parseAttributes(xmlDocPtr doc, xmlNodePtr current);
 
     static Requirement parseRequirement(xmlDocPtr doc, xmlNodePtr current);
 

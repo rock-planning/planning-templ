@@ -2,100 +2,27 @@
 
 #include <sstream>
 #include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string.hpp>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <base-logging/Logging.hpp>
 #include <templ/SharedPtr.hpp>
 #include <templ/symbols/constants/Location.hpp>
 #include <templ/utils/CartographicMapping.hpp>
+#include <owlapi/vocabularies/XSD.hpp>
 
 namespace templ {
 namespace io {
 
-std::string Location::toString() const
+bool MissionReader::nameMatches(xmlNodePtr node, const std::string& name, bool useNamespace)
 {
-    std::stringstream ss;
-    ss << "Location: " << id;
-    return ss.str();
-}
-
-
-std::string SpatialRequirement::toString() const
-{
-    std::stringstream ss;
-    ss << "SpatialRequirement:" << std::endl;
-    ss << "    location: " << location.toString() << std::endl;
-    return ss.str();
-}
-
-std::string TemporalRequirement::toString() const
-{
-    std::stringstream ss;
-    ss << "TemporalRequirement:" << std::endl;
-    ss << "    from: " << from << std::endl;
-    ss << "    to:   " << to << std::endl;
-    return ss.str();
-}
-
-
-std::string ServiceRequirement::toString() const
-{
-    return owlapi::model::IRI::toString(services);
-}
-
-
-std::string Requirement::toString() const
-{
-    std::stringstream ss;
-    ss << "Requirement: " << std::endl;
-    ss << spatial.toString();
-    ss << temporal.toString();
-    ss << "Services: ";
-    ss << functional.toString() << std::endl;
-    ss << resources.toString();
-    return ss.str();
-}
-
-templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type TemporalConstraint::getTemporalConstraintType(const std::string& name)
-{
-    using namespace templ::solvers::temporal::point_algebra;
-    //return Empty, Greater, Less, Equal, Distinct, GreaterOrEqual, LessOrEqual, Universal,
-    if(name == "greaterThan")
+    std::string nodeName;
+    if(node->ns && useNamespace)
     {
-        return QualitativeTimePointConstraint::Greater;
-    } else if(name == "lessThan")
-    {
-        return QualitativeTimePointConstraint::Less;
-    } else if(name == "equals")
-    {
-        return QualitativeTimePointConstraint::Equal;
-    } else if(name == "distinct")
-    {
-        return QualitativeTimePointConstraint::Distinct;
-    } else if(name == "greaterOrEqual")
-    {
-        return QualitativeTimePointConstraint::GreaterOrEqual;
-    } else if(name == "lessOrEqual")
-    {
-        return QualitativeTimePointConstraint::LessOrEqual;
+        nodeName = std::string( (const char*) node->ns->href);
     }
-
-    throw std::invalid_argument("templ::io::MissionReader::getTemporalConstraintType: unknown temporal constraint type: '" + name + "'");
-}
-
-std::string TemporalConstraint::toString() const
-{
-    std::stringstream ss;
-    ss << "TemporalConstraint:" << std::endl;
-    ss << "    type:" << templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::TypeTxt[type];
-    ss << "    lval:" << lval;
-    ss << "    rval:" << rval;
-    return ss.str();
-}
-
-bool MissionReader::nameMatches(xmlNodePtr node, const std::string& name)
-{
-    return xmlStrcmp(node->name, (const xmlChar*) name.c_str()) == 0;
+    nodeName += std::string((const char*) node->name);
+    return nodeName == name;
 }
 
 std::string MissionReader::getContent(xmlDocPtr doc, xmlNodePtr node, size_t count)
@@ -106,9 +33,56 @@ std::string MissionReader::getContent(xmlDocPtr doc, xmlNodePtr node, size_t cou
         std::string content((const char*) key);
         xmlFree(key);
 
+        size_t found = content.find_first_of(':');
+        if(found != std::string::npos)
+        {
+            std::string prefix = content.substr(0,found);
+            std::string ns = resolveNamespacePrefix(doc, node, prefix);
+            std::string core = content.substr(found+1);
+            content = ns + core;
+        }
         return content;
     } else {
         return std::string();
+    }
+}
+
+std::string MissionReader::resolveNamespacePrefix(xmlDocPtr doc, xmlNodePtr node, const std::string& prefix)
+{
+    xmlNsPtr *nsList = xmlGetNsList(doc,node);
+    xmlNsPtr *deleteRef = nsList;
+
+    std::string href;
+    bool found = false;
+
+    // Walk list and register xpath
+    while( nsList != NULL && (*nsList)->next)
+    {
+        if( (*nsList)->prefix != NULL)
+        {
+            std::string content((const char*) (*nsList)->prefix);
+            if(content == prefix && (*nsList)->href != NULL)
+            {
+                std::string content((const char*) (*nsList)->href);
+                href = content;
+                found = true;
+                break;
+            }
+        }
+        ++nsList; // Next
+    }
+    if(deleteRef != NULL)
+    {
+        xmlFree(deleteRef);
+    }
+    if(found)
+    {
+        return href;
+    } else {
+        std::stringstream ss;
+        ss << "templ::MissionReader::resolveNamespacePrefix: could not resolve namespace ";
+        ss << "'" << prefix << "' at line: " << xmlGetLineNo(node);
+        throw std::invalid_argument(ss.str());
     }
 }
 
@@ -124,7 +98,10 @@ std::string MissionReader::getProperty(xmlNodePtr node, const std::string& name)
         xmlFree(value);
         return property;
     }
-    throw std::invalid_argument("templ::io::MissionReader::getProperty: could not find property '" + name + "'");
+    std::stringstream ss;
+    ss << "templ::io::MissionReader::getProperty: could not find property ";
+    ss << "'" << name << "' at line " << xmlGetLineNo(node);
+    throw std::invalid_argument(ss.str());
 }
 
 std::string MissionReader::getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, const std::string& name)
@@ -139,7 +116,11 @@ std::string MissionReader::getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, con
 
         subNode = subNode->next;
     }
-    throw std::invalid_argument("templ::io::MissionReader::getSubNodeContent: could not find subnode '" + name + "' in node '" + std::string((const char*) node->name) + "'");
+    std::stringstream ss;
+    ss << "templ::io::MissionReader::getSubNodeContent: could not find subnode ";
+    ss << "'" << name << "' in node '" << std::string((const char*) node->name) << "'";
+    ss << " at line " << xmlGetLineNo(node);
+    throw std::invalid_argument(ss.str());
 }
 
 Mission MissionReader::fromFile(const std::string& url, const organization_model::OrganizationModel::Ptr& om)
@@ -157,7 +138,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
     // The resulting document tree
     xmlDocPtr doc;
 
-    xmlParserOption options = (xmlParserOption) 0;
+    xmlParserOption options =  XML_PARSE_NOENT; // http://xmlsoft.org/html/libxml-parser.html#xmlParserOption
 
     try {
         // xmlReadFile can take filename or url
@@ -219,22 +200,16 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                                 " and to '" + requirement.temporal.to + "'");
                     }
 
-                    owlapi::model::IRIList::const_iterator sit = requirement.functional.services.begin();
-                    for(; sit != requirement.functional.services.end(); ++sit)
-                    {
-                        const owlapi::model::IRI& model = *sit;
-                        mission.addResourceLocationCardinalityConstraint(location, from, to, model);
-                    }
+                    // FIXMET
+                    //organization_model::ModelPool::const_iterator mit = requirement.resources.resources.begin();
+                    //for(; mit != requirement.resources.resources.end(); ++mit)
+                    //{
+                    //    const owlapi::model::IRI& model = mit->first;
+                    //    uint32_t cardinality = mit->second;
 
-                    organization_model::ModelPool::const_iterator mit = requirement.resources.begin();
-                    for(; mit != requirement.resources.end(); ++mit)
-                    {
-                        const owlapi::model::IRI& model = mit->first;
-                        uint32_t cardinality = mit->second;
-
-                        // setting the min cardinality by default
-                        mission.addResourceLocationCardinalityConstraint(location, from, to, model, cardinality);
-                    }
+                    //    // setting the min cardinality by default
+                    //    mission.addResourceLocationCardinalityConstraint(location, from, to, model, cardinality);
+                    //}
                 }
             } else if(nameMatches(firstLevelChild, "constraints"))
             {
@@ -290,6 +265,8 @@ std::pair<owlapi::model::IRI, size_t> MissionReader::parseResource(xmlDocPtr doc
         LOG_INFO_S << "Parsing: " << current->name;
         std::string model = getSubNodeContent(doc, current, "model");
         std::string maxCardinalityTxt = getSubNodeContent(doc, current, "maxCardinality");
+
+        //model = "http://www.rock-robotics.org/2014/01/om-schema#Payload";
 
         owlapi::model::IRI modelIRI(model);
         int32_t cardinality = ::boost::lexical_cast<int32_t>(maxCardinalityTxt);
@@ -364,41 +341,135 @@ TemporalRequirement MissionReader::parseTemporalRequirement(xmlDocPtr doc, xmlNo
     return requirement;
 }
 
-ServiceRequirement MissionReader::parseServiceRequirement(xmlDocPtr doc, xmlNodePtr current)
+ResourceRequirement MissionReader::parseResourceRequirement(xmlDocPtr doc, xmlNodePtr current)
 {
-    ServiceRequirement requirement;
+    ResourceRequirement resourceRequirement;
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(nameMatches(current, "service"))
+        if(nameMatches(current, "resource"))
         {
-            std::string service = getContent(doc, current);
-            requirement.services.push_back( owlapi::model::IRI(service) );
+            resourceRequirement.model = getSubNodeContent(doc, current, "model");
+
+            std::string minCardinalityTxt = getSubNodeContent(doc, current, "minCardinality");
+            resourceRequirement.minCardinality = ::boost::lexical_cast<uint32_t>(minCardinalityTxt);
+
+            try {
+                std::string maxCardinalityTxt = getSubNodeContent(doc, current, "maxCardinality");
+                resourceRequirement.maxCardinality = ::boost::lexical_cast<uint32_t>(maxCardinalityTxt);
+            } catch(...)
+            {
+                // no maxCardinality requirement available
+            }
+
+            resourceRequirement.numericAttributeRequirements = parseAttributes(doc, current);
         }
         current = current->next;
     }
-    return requirement;
+    return resourceRequirement;
 }
 
-organization_model::ModelPool MissionReader::parseResourceRequirement(xmlDocPtr doc, xmlNodePtr current)
+NumericAttributeRequirements MissionReader::parseAttributes(xmlDocPtr doc, xmlNodePtr current)
 {
-    organization_model::ModelPool modelPool;
+    NumericAttributeRequirements numericAttributeRequirements;
+
+    xmlNodePtr subNode = current->xmlChildrenNode;
+    while(subNode != NULL)
+    {
+        if( nameMatches(subNode, "attributes") )
+        {
+            xmlNodePtr numericAttributeNode = subNode->xmlChildrenNode;
+            while(numericAttributeNode != NULL)
+            {
+                if( nameMatches(numericAttributeNode, "attribute") )
+                {
+                    NumericAttributeRequirement requirement;
+                    requirement.model = getProperty(numericAttributeNode, "name");
+
+                    xmlNodePtr restrictionNode = numericAttributeNode->xmlChildrenNode;
+                    while(restrictionNode != NULL)
+                    {
+                        if( nameMatches(restrictionNode, owlapi::vocabulary::XSD::restriction().toString(), true) )
+                        {
+                            xmlNodePtr actualRestriction = restrictionNode->xmlChildrenNode;
+                            while(actualRestriction != NULL)
+                            {
+                                if(nameMatches(actualRestriction, owlapi::vocabulary::XSD::minInclusive().toString(), true))
+                                {
+                                    std::string minInclusiveTxt = getContent(doc,actualRestriction);
+                                    requirement.minInclusive = ::boost::lexical_cast<int32_t>(minInclusiveTxt);
+                                } else if( nameMatches(actualRestriction, owlapi::vocabulary::XSD::maxInclusive().toString(), true) )
+                                {
+                                    std::string maxInclusiveTxt = getContent(doc,actualRestriction);
+                                    requirement.maxInclusive = ::boost::lexical_cast<int32_t>(maxInclusiveTxt);
+                                }
+                                actualRestriction = actualRestriction->next;
+                            }
+                        }
+
+                        restrictionNode = restrictionNode->next;
+                    }
+
+                    LOG_DEBUG_S << "Add requirement: " << requirement.toString();
+                    numericAttributeRequirements.push_back(requirement);
+                }
+                numericAttributeNode = numericAttributeNode->next;
+            }
+        }
+        subNode = subNode->next;
+    }
+    return numericAttributeRequirements;
+}
+
+ResourceReificationRequirement MissionReader::parseResourceReificationRequirement(xmlDocPtr doc, xmlNodePtr current)
+{
+    ResourceReificationRequirement requirement;
+
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
         if(nameMatches(current, "resource"))
         {
             std::string model = getSubNodeContent(doc, current, "model");
-            std::string minCardinalityTxt = getSubNodeContent(doc, current, "minCardinality");
+            std::string ids;
+            try {
+                ids = getSubNodeContent(doc, current, "ids");
+            } catch(...)
+            {
+                // no id constraint present
+            }
 
-            uint32_t minCardinality = ::boost::lexical_cast<uint32_t>(minCardinalityTxt);
-            modelPool[ owlapi::model::IRI(model) ] = minCardinality;
+            if(!ids.empty())
+            {
+                std::vector<std::string> listOfIds;
+                ::boost::split(listOfIds, ids, boost::is_any_of(",;"));
+
+                std::string minCardinalityTxt = getSubNodeContent(doc, current, "minCardinality");
+                uint32_t minCardinality = ::boost::lexical_cast<uint32_t>(minCardinalityTxt);
+                if(minCardinality < listOfIds.size())
+                {
+                    throw std::invalid_argument("templ::io::MissionReader: invalid specification of reificiation constraint "
+                            "minCardinality of model '" + model + "' must be at minimum of same size as the id list");
+                }
+
+                std::vector<std::string>::const_iterator cit = listOfIds.begin();
+                for(; cit != listOfIds.end(); ++cit)
+                {
+                    uint32_t id = ::boost::lexical_cast<uint32_t>(*cit);
+
+                    ResourceReification reification(model,id);
+                    requirement.reifications.push_back(reification);
+                    LOG_DEBUG_S << "Adding reification requirement" << model << " id: " << id;
+
+                }
+            }
         }
         current = current->next;
     }
 
-    return modelPool;
+    return requirement;
 }
+
 
 Requirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNodePtr current)
 {
@@ -421,16 +492,17 @@ Requirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNodePtr current)
                 LOG_DEBUG_S << "Parse temporal requirement";
                 requirement.temporal = parseTemporalRequirement(doc, requirementNode);
                 LOG_DEBUG_S << "Parsed temporal requirement: " << requirement.temporal.toString();
-            } else if(nameMatches(requirementNode, "service-requirement"))
-            {
-                LOG_DEBUG_S << "Parse functional requirement";
-                requirement.functional = parseServiceRequirement(doc, requirementNode);
-                LOG_DEBUG_S << "Parsed service requirement: " << requirement.functional.toString();
             } else if(nameMatches(requirementNode, "resource-requirement"))
             {
                 LOG_DEBUG_S << "Parse resource requirement";
+                xmlNodePtr current = requirementNode;
                 requirement.resources = parseResourceRequirement(doc, requirementNode);
                 LOG_DEBUG_S << "Parsed resource requirement: " << requirement.resources.toString();
+
+                LOG_DEBUG_S << "Parse resource reification requirement";
+                requirementNode = current;
+                requirement.resourcesReification = parseResourceReificationRequirement(doc, requirementNode);
+                LOG_DEBUG_S << "Parsed resource reification requirement";
             }
             requirementNode = requirementNode->next;
         }

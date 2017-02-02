@@ -1,4 +1,8 @@
-<mission>
+<!-- <!xml version="1.0"?> -->
+<mission xmlns="http://www.rock-robotics.org/missions#"
+    xmlns:om="http://www.rock-robotics.org/2014/01/om-schema#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+>
 <name>Immobile and mobile system deployment</name>
 <description>    
     Immobile system needs a transport, but the mobile system is not dedicated to transport the 
@@ -6,7 +10,7 @@
 </description>
 <resources>
     <resource>
-        <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+        <model>om:Sherpa</model>
         <maxCardinality>3</maxCardinality>
     </resource>
 </resources>
@@ -67,8 +71,12 @@
         </temporal-requirement>
         <resource-requirement>
             <resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+                <model>om:Sherpa</model>
                 <minCardinality>3</minCardinality>
+            </resource>
+            <resource>
+                <model>om:TransportProvider</model>
+                <minCardinality>1</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>
@@ -84,9 +92,8 @@
         </temporal-requirement>
         <resource-requirement>
             <resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+                <model>om:TransportProvider</model>
                 <minCardinality>1</minCardinality>
-                <ids>0</ids>
             </resource>
         </resource-requirement>
     </requirement>
@@ -102,9 +109,16 @@
         </temporal-requirement>
         <resource-requirement>
             <resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+                <model>om:TransportProvider</model>
                 <minCardinality>1</minCardinality>
-                <ids>0</ids>
+                <attributes>
+                    <attribute name="payloadTransportCapacity">
+                        <xsd:restriction>
+                            <xsd:minInclusive>1</xsd:minInclusive>
+                            <xsd:maxInclusive>100</xsd:maxInclusive>
+                        </xsd:restriction>
+                    </attribute>
+                </attributes>
             </resource>
         </resource-requirement>
     </requirement>
@@ -118,5 +132,3 @@
     </temporal-constraints>
 </constraints>
 </mission>
-
-
