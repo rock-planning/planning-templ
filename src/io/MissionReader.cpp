@@ -477,6 +477,8 @@ Requirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNodePtr current)
     if(nameMatches(current, "requirement"))
     {
         LOG_INFO_S << "Parsing: " << current->name;
+        std::string id = getProperty(current, "id");
+        requirement.id = boost::lexical_cast<uint32_t>(id);
 
         xmlNodePtr requirementNode = current->xmlChildrenNode;
         while(requirementNode != NULL)

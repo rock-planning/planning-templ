@@ -80,6 +80,7 @@ struct ResourceReificationRequirement
 
 struct Requirement
 {
+    uint32_t id;
     SpatialRequirement spatial;
     TemporalRequirement temporal;
     ResourceRequirement resources;

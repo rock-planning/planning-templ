@@ -75,7 +75,7 @@ std::string Requirement::toString(uint32_t indent) const
 {
     std::string hspace(indent,' ');
     std::stringstream ss;
-    ss << std::endl << hspace << "Requirement: " << std::endl;
+    ss << std::endl << hspace << "Requirement (id:" << id << ")" << std::endl;
     ss << spatial.toString(indent + 4);
     ss << temporal.toString(indent + 4);
     ss << hspace << "Resources: " << std::endl;
