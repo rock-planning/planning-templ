@@ -608,14 +608,20 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
                     utils::CartographicMapping mapping(radius);
                     base::Point point(latitude, longitude, 0.0);
                     position = mapping.latitudeLongitudeToMetric(point);
-                    LOG_INFO_S << "LatitudeLongitude information: " << point;
+                    LOG_INFO_S << "LatitudeLongitude information: "
+                        << "x: " << point.x()
+                        << " , y: " << point.y()
+                        << " , z: " << point.z();
                 } catch(const std::exception& e)
                 {
                     throw std::runtime_error("templ::io::MissionReader::parseConstants: failed to extract location: " + std::string(e.what()));
                 }
             }
 
-            LOG_INFO_S << "Metric location information: " << position;
+            LOG_INFO_S << "Metric location information: "
+                << "x: " << position.x()
+                << " , y: " << position.y()
+                << " , z" << position.z();
             using namespace ::templ::symbols;
             constants::Location::Ptr location(new constants::Location( name, position));
             constants.insert(location);

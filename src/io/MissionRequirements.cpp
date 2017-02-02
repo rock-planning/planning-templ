@@ -8,7 +8,7 @@ std::string SpatialRequirement::toString(uint32_t indent) const
     std::string hspace(indent,' ');
     std::stringstream ss;
     ss << hspace << "SpatialRequirement:" << std::endl;
-    ss << hspace << "    location: " << location.toString() << std::endl;
+    ss << hspace << "    " << location.toString() << std::endl;
     return ss.str();
 }
 
@@ -51,9 +51,9 @@ std::string ResourceRequirement::toString(uint32_t indent) const
     std::string hspace(indent,' ');
     std::stringstream ss;
     ss << hspace << model.toString() << std::endl;
-    ss << hspace << "minCardinality: " << minCardinality << std::endl;
-    ss << hspace << "maxCardinality: " << maxCardinality << std::endl;
-    ss << hspace << NumericAttributeRequirement::toString(numericAttributeRequirements) << std::endl;
+    ss << hspace << "    minCardinality: " << minCardinality << std::endl;
+    ss << hspace << "    maxCardinality: " << maxCardinality << std::endl;
+    ss << NumericAttributeRequirement::toString(numericAttributeRequirements, indent + 4) << std::endl;
     return ss.str();
 }
 
@@ -75,10 +75,10 @@ std::string Requirement::toString(uint32_t indent) const
 {
     std::string hspace(indent,' ');
     std::stringstream ss;
-    ss << hspace << "Requirement: " << std::endl;
+    ss << std::endl << hspace << "Requirement: " << std::endl;
     ss << spatial.toString(indent + 4);
     ss << temporal.toString(indent + 4);
-    ss << hspace << "Resources: ";
+    ss << hspace << "Resources: " << std::endl;
     ss << resources.toString(indent + 4);
     ss << hspace << "ResourcesReification: ";
     ss << resourcesReification.toString(indent + 4);
