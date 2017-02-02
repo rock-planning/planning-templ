@@ -59,7 +59,7 @@
     </location>
 </constants>
 <requirements>
-    <requirement>
+    <requirement id='0'>
         <spatial-requirement>
             <location>
                 <id>b1</id>
@@ -80,7 +80,7 @@
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement>
+    <requirement id='1'>
         <spatial-requirement>
             <location>
                 <id>b2</id>
@@ -97,7 +97,7 @@
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement>
+    <requirement id='2'>
         <spatial-requirement>
             <location>
                 <id>b3</id>
@@ -124,6 +124,17 @@
     </requirement>
 </requirements>
 <constraints>
+    <!-- in order to define that instances have to be indentical 
+         across multiple requirements
+    -->
+    <shared-instance>
+        <requirements>1,2,3</requirements>
+        <resource>
+            <model>om:TransportProvider</model>
+            <minCardinality>1</minCardinality>
+            <!--<maxCardinality>1</maxCardinality>-->
+        </resource>
+    </shared-instance>
     <temporal-constraints>
         <greaterThan lval="t2" rval="t1" />
         <greaterThan lval="t3" rval="t2" />
