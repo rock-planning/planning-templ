@@ -66,7 +66,7 @@ private:
         </resource-requirement>
      \endverbatim
      */
-    static ResourceRequirement parseResourceRequirement(xmlDocPtr doc, xmlNodePtr current);
+    static std::vector<ResourceRequirement> parseResourceRequirements(xmlDocPtr doc, xmlNodePtr current);
 
     static ResourceReificationRequirement parseResourceReificationRequirement(xmlDocPtr doc, xmlNodePtr current);
 

@@ -200,16 +200,17 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                                 " and to '" + requirement.temporal.to + "'");
                     }
 
-                    // FIXMET
-                    //organization_model::ModelPool::const_iterator mit = requirement.resources.resources.begin();
-                    //for(; mit != requirement.resources.resources.end(); ++mit)
-                    //{
-                    //    const owlapi::model::IRI& model = mit->first;
-                    //    uint32_t cardinality = mit->second;
+                    LOG_WARN_S << "Handle: requirement: " << requirement.toString();
+                    std::vector<ResourceRequirement>::const_iterator cit = requirement.resources.begin();
+                    for(; cit != requirement.resources.end(); ++cit)
+                    {
+                        const ResourceRequirement& resource = *cit;
+                        // setting the min cardinality by default
+                        mission.addResourceLocationCardinalityConstraint(location, from, to, resource.model, resource.minCardinality);
 
-                    //    // setting the min cardinality by default
-                    //    mission.addResourceLocationCardinalityConstraint(location, from, to, model, cardinality);
-                    //}
+                        // setting the max cardinality
+                        mission.addResourceLocationCardinalityConstraint(location, from, to, resource.model, resource.maxCardinality, owlapi::model::OWLCardinalityRestriction::MAX);
+                    }
                 }
             } else if(nameMatches(firstLevelChild, "constraints"))
             {
@@ -341,14 +342,15 @@ TemporalRequirement MissionReader::parseTemporalRequirement(xmlDocPtr doc, xmlNo
     return requirement;
 }
 
-ResourceRequirement MissionReader::parseResourceRequirement(xmlDocPtr doc, xmlNodePtr current)
+std::vector<ResourceRequirement> MissionReader::parseResourceRequirements(xmlDocPtr doc, xmlNodePtr current)
 {
-    ResourceRequirement resourceRequirement;
+    std::vector<ResourceRequirement> requirements;
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
         if(nameMatches(current, "resource"))
         {
+            ResourceRequirement resourceRequirement;
             resourceRequirement.model = getSubNodeContent(doc, current, "model");
 
             std::string minCardinalityTxt = getSubNodeContent(doc, current, "minCardinality");
@@ -363,10 +365,11 @@ ResourceRequirement MissionReader::parseResourceRequirement(xmlDocPtr doc, xmlNo
             }
 
             resourceRequirement.numericAttributeRequirements = parseAttributes(doc, current);
+            requirements.push_back(resourceRequirement);
         }
         current = current->next;
     }
-    return resourceRequirement;
+    return requirements;
 }
 
 NumericAttributeRequirements MissionReader::parseAttributes(xmlDocPtr doc, xmlNodePtr current)
@@ -496,15 +499,9 @@ Requirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNodePtr current)
                 LOG_DEBUG_S << "Parsed temporal requirement: " << requirement.temporal.toString();
             } else if(nameMatches(requirementNode, "resource-requirement"))
             {
-                LOG_DEBUG_S << "Parse resource requirement";
-                xmlNodePtr current = requirementNode;
-                requirement.resources = parseResourceRequirement(doc, requirementNode);
-                LOG_DEBUG_S << "Parsed resource requirement: " << requirement.resources.toString();
-
-                LOG_DEBUG_S << "Parse resource reification requirement";
-                requirementNode = current;
-                requirement.resourcesReification = parseResourceReificationRequirement(doc, requirementNode);
-                LOG_DEBUG_S << "Parsed resource reification requirement";
+                LOG_DEBUG_S << "Parse resources requirement";
+                requirement.resources = parseResourceRequirements(doc, requirementNode);
+                LOG_WARN_S << "Parsed resources requirement";
             }
             requirementNode = requirementNode->next;
         }
@@ -624,6 +621,7 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
                 << "x: " << position.x()
                 << " , y: " << position.y()
                 << " , z" << position.z();
+
             using namespace ::templ::symbols;
             constants::Location::Ptr location(new constants::Location( name, position));
             constants.insert(location);

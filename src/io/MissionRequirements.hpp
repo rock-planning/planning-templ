@@ -83,8 +83,7 @@ struct Requirement
     uint32_t id;
     SpatialRequirement spatial;
     TemporalRequirement temporal;
-    ResourceRequirement resources;
-    ResourceReificationRequirement resourcesReification;
+    std::vector<ResourceRequirement> resources;
 
     std::string toString(uint32_t indent = 0) const;
 };

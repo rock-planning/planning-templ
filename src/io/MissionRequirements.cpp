@@ -79,9 +79,11 @@ std::string Requirement::toString(uint32_t indent) const
     ss << spatial.toString(indent + 4);
     ss << temporal.toString(indent + 4);
     ss << hspace << "Resources: " << std::endl;
-    ss << resources.toString(indent + 4);
-    ss << hspace << "ResourcesReification: ";
-    ss << resourcesReification.toString(indent + 4);
+    std::vector<ResourceRequirement>::const_iterator cit = resources.begin();
+    for(; cit != resources.end(); ++cit)
+    {
+        ss << cit->toString(indent + 4);
+    }
     return ss.str();
 }
 
