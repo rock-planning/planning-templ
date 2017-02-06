@@ -8,7 +8,8 @@ namespace solvers {
 namespace temporal {
 
 TemporalAssertion::TemporalAssertion(const symbols::StateVariable& stateVariable, TemporalAssertion::Type type)
-    : mType(type)
+    : graph_analysis::Vertex()
+    , mType(type)
     , mStateVariable(stateVariable)
 {}
 

@@ -21,7 +21,7 @@ class Event : public TemporalAssertion
 protected:
     Symbol::Ptr mpFromValue;
     Symbol::Ptr mpToValue;
-    
+
     // Time constant or time variable
     point_algebra::TimePoint::Ptr mpTimepoint;
 
@@ -44,12 +44,26 @@ public:
             const Symbol::Ptr& to,
             const point_algebra::TimePoint::Ptr& timepoint);
 
+    virtual ~Event() {}
+
     Symbol::Ptr getFromValue() const { return mpFromValue; }
     Symbol::Ptr getToValue() const { return mpToValue; }
 
     point_algebra::TimePoint::Ptr getTimePoint() const { return mpTimepoint; }
 
-    std::string toString() const;
+    virtual std::string toString() const;
+
+    /**
+     * Get the class name of this constraint
+     * \return classname
+     */
+    virtual std::string getClassName() const { return "Event"; }
+
+protected:
+    /// Make sure cloning works
+    virtual graph_analysis::Vertex* doClone() { return new Event(*this); }
+
+
 };
 
 } // end namespace temporal

@@ -12,6 +12,7 @@ namespace pa = solvers::temporal::point_algebra;
 
 Mission::Mission(organization_model::OrganizationModel::Ptr om, const std::string& name)
     : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
+    , mpRelations(graph_analysis::BaseGraph::getInstance())
     , mpOrganizationModel(om)
     , mAsk(om)
     , mName(name)
@@ -20,6 +21,7 @@ Mission::Mission(organization_model::OrganizationModel::Ptr om, const std::strin
 
 Mission::Mission(const Mission& other)
     : mpTemporalConstraintNetwork()
+    , mpRelations()
     , mpOrganizationModel(other.mpOrganizationModel)
     , mAsk(other.mAsk)
     , mName(other.mName)
@@ -35,6 +37,12 @@ Mission::Mission(const Mission& other)
     , mScenarioFile(other.mScenarioFile)
     , mpLogger(other.mpLogger)
 {
+
+    if(other.mpRelations)
+    {
+        mpRelations = other.mpRelations->clone();
+    }
+
     if(other.mpTemporalConstraintNetwork)
     {
         solvers::ConstraintNetwork::Ptr constraintNetwork = other.mpTemporalConstraintNetwork->clone();
@@ -196,7 +204,7 @@ solvers::temporal::point_algebra::TimePoint::Ptr Mission::getOrCreateTimePoint(c
     throw std::runtime_error("templ::Mission::getOrCreateTimePoint: timepoint with label/value '" + name + "' could neither be found nor created");
 }
 
-void Mission::addResourceLocationCardinalityConstraint(
+solvers::temporal::TemporalAssertion::Ptr Mission::addResourceLocationCardinalityConstraint(
             const symbols::constants::Location::Ptr& location,
             const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
             const solvers::temporal::point_algebra::TimePoint::Ptr& toTp,
@@ -207,7 +215,7 @@ void Mission::addResourceLocationCardinalityConstraint(
 {
     if(!mpOrganizationModel)
     {
-        throw std::runtime_error("templ::Mission::addConstraint: mission has not been initialized with organization model");
+        throw std::runtime_error("templ::Mission::addResourceLocationCardinalityConstraint: mission has not been initialized with organization model");
     }
 
     using namespace owlapi;
@@ -221,7 +229,7 @@ void Mission::addResourceLocationCardinalityConstraint(
     symbols::StateVariable rloc(ObjectVariable::TypeTxt[ObjectVariable::LOCATION_CARDINALITY],
             resourceModel.toString());
 
-    addConstraint(rloc, locationCardinality, fromTp, toTp);
+    solvers::temporal::TemporalAssertion::Ptr temporalAssertion = addTemporalAssertion(rloc, locationCardinality, fromTp, toTp);
 
     owlapi::model::IRIList::const_iterator rit =  std::find(mRequestedResources.begin(),
             mRequestedResources.end(),
@@ -232,9 +240,10 @@ void Mission::addResourceLocationCardinalityConstraint(
     }
 
     mObjectVariables.insert(locationCardinality);
+    return temporalAssertion;
 }
 
-void Mission::addConstraint(const symbols::StateVariable& stateVariable,
+solvers::temporal::TemporalAssertion::Ptr Mission::addTemporalAssertion(const symbols::StateVariable& stateVariable,
         const symbols::ObjectVariable::Ptr& objectVariable,
         const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
         const solvers::temporal::point_algebra::TimePoint::Ptr& toTp)
@@ -257,20 +266,21 @@ void Mission::addConstraint(const symbols::StateVariable& stateVariable,
         mPersistenceConditions.push_back(persistenceCondition);
     } else {
         LOG_DEBUG_S << "Already existing: " << (*pit)->toString();
-        throw std::invalid_argument("templ::Mission::addConstraint: trying to re-add constraint or"
-                "trying to add redundant constraint: '" + persistenceCondition->toString() + "'");
+        throw std::invalid_argument("templ::Mission::addTemporalAssertion: trying to re-add temporal assertion or"
+                "trying to add redundant temporal assertion: '" + persistenceCondition->toString() + "'");
     }
 
     LOG_DEBUG_S << "Adding implicitly defined temporal constraint for time interval";
     mpTemporalConstraintNetwork->addQualitativeConstraint(fromTp, toTp, pa::QualitativeTimePointConstraint::Less);
+    return persistenceCondition;
 }
 
-void Mission::addTemporalConstraint(const pa::TimePoint::Ptr& t1,
+solvers::Constraint::Ptr Mission::addTemporalConstraint(const pa::TimePoint::Ptr& t1,
         const pa::TimePoint::Ptr& t2,
         pa::QualitativeTimePointConstraint::Type constraint)
 {
     LOG_DEBUG_S << "Adding temporal constraint: " << t1->toString() << " --> " << t2->toString() << pa::QualitativeTimePointConstraint::TypeTxt[constraint];
-    mpTemporalConstraintNetwork->addQualitativeConstraint(t1, t2, constraint);
+    return mpTemporalConstraintNetwork->addQualitativeConstraint(t1, t2, constraint);
 }
 
 void Mission::addConstraint(const solvers::Constraint::Ptr& constraint)
@@ -394,6 +404,16 @@ const symbols::Constant::Ptr& Mission::getConstant(const std::string& id, symbol
         }
     }
     throw std::invalid_argument("templ::Mission: no constant named '" + id + "' of type '" + symbols::Constant::TypeTxt[type] + "' known");
+}
+
+graph_analysis::Edge::Ptr Mission::addRelation(graph_analysis::Vertex::Ptr source,
+        const std::string& label,
+        graph_analysis::Vertex::Ptr target)
+{
+    using namespace graph_analysis;
+    Edge::Ptr edge(new Edge(source, target, label));
+    mpRelations->addEdge(edge);
+    return edge;
 }
 
 } // end namespace templ

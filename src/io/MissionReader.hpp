@@ -72,9 +72,9 @@ private:
 
     static NumericAttributeRequirements parseAttributes(xmlDocPtr doc, xmlNodePtr current);
 
-    static Requirement parseRequirement(xmlDocPtr doc, xmlNodePtr current);
+    static SpatioTemporalRequirement parseRequirement(xmlDocPtr doc, xmlNodePtr current);
 
-    static std::vector<Requirement> parseRequirements(xmlDocPtr doc, xmlNodePtr current);
+    static std::vector<SpatioTemporalRequirement> parseRequirements(xmlDocPtr doc, xmlNodePtr current);
 
     static std::vector<TemporalConstraint> parseTemporalConstraints(xmlDocPtr doc, xmlNodePtr current);
 

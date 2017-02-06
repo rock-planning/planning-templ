@@ -32,7 +32,9 @@ class Mission
     friend class MissionPlanner;
     friend class io::MissionReader;
     friend class PlanningState;
+
     solvers::temporal::TemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
+    graph_analysis::BaseGraph::Ptr mpRelations;
 
 public:
     typedef shared_ptr<Mission> Ptr;
@@ -49,11 +51,33 @@ public:
     void setName(const std::string& name) { mName = name; }
     const std::string& getName() const { return mName; }
 
+    graph_analysis::BaseGraph::Ptr getRelations() const { return mpRelations; }
+
     /**
      * Set the known timeintervals from the set of persistence conditions
      */
     void prepareTimeIntervals();
 
+     /**
+      * Add general constraint
+      * \param constraint
+      */
+    void addConstraint(const solvers::Constraint::Ptr& constraint);
+
+    /**
+     * \param stateVariable
+     * \param objectVariable
+     * \param fromTp
+     * \param toTp
+     * \return the constraint that had been added
+     */
+    solvers::temporal::TemporalAssertion::Ptr addTemporalAssertion(const symbols::StateVariable& stateVariable,
+            const symbols::ObjectVariable::Ptr& objectVariable,
+            const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
+            const solvers::temporal::point_algebra::TimePoint::Ptr& toTp);
+
+    // Methods to add of specialized constraints
+    //
     /**
      * Add a constraint that bind a resource (Service or Actor) to a specific
      * location with a given cardinality
@@ -64,8 +88,9 @@ public:
      * \param resourceModel,
      * \param cardinality
      * \param type
+     * \return the constraint that has been added
      */
-    void addResourceLocationCardinalityConstraint(
+    solvers::temporal::TemporalAssertion::Ptr addResourceLocationCardinalityConstraint(
             const symbols::constants::Location::Ptr& location,
             const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
             const solvers::temporal::point_algebra::TimePoint::Ptr& toTp,
@@ -74,18 +99,11 @@ public:
             owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType type = owlapi::model::OWLCardinalityRestriction::MIN
             );
 
-    /**
-     */
-    void addConstraint(const symbols::StateVariable& stateVariable,
-            const symbols::ObjectVariable::Ptr& objectVariable,
-            const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
-            const solvers::temporal::point_algebra::TimePoint::Ptr& toTp);
-
-    void addTemporalConstraint(const solvers::temporal::point_algebra::TimePoint::Ptr& t1,
+    solvers::Constraint::Ptr addTemporalConstraint(const solvers::temporal::point_algebra::TimePoint::Ptr& t1,
             const solvers::temporal::point_algebra::TimePoint::Ptr& t2,
             solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type constraint);
 
-    void addConstraint(const solvers::Constraint::Ptr& contraint);
+    //void addReificationConstraint(const
 
     /**
      * Set the available resources
@@ -183,6 +201,13 @@ public:
      * \throws std::runtime_error if mission is not ready to be used for planning
      */
     void validateForPlanning() const;
+
+    /**
+     * Add relation
+     */
+    graph_analysis::Edge::Ptr addRelation(graph_analysis::Vertex::Ptr source,
+            const std::string& label,
+            graph_analysis::Vertex::Ptr target);
 
 protected:
     /**

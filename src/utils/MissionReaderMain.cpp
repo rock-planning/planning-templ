@@ -1,4 +1,5 @@
 #include <templ/io/MissionReader.hpp>
+#include <graph_analysis/GraphIO.hpp>
 
 /// Simple reader utility
 int main(int argc, char** argv)
@@ -18,6 +19,11 @@ int main(int argc, char** argv)
     mission.prepareTimeIntervals();
 
     printf("%s\n",mission.toString().c_str());
+
+    std::string dotFilename = "/tmp/templ-mission-relations.dot";
+    graph_analysis::io::GraphIO::write(dotFilename, mission.getRelations());
+    dotFilename = "Written '" + dotFilename + "'";
+    printf("%s\n", dotFilename.c_str() );
 
     return 0;
 }

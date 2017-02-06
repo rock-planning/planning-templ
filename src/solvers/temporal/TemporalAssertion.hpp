@@ -5,6 +5,7 @@
 #include <map>
 #include <templ/symbols/StateVariable.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
+#include <graph_analysis/Vertex.hpp>
 
 namespace templ {
 namespace solvers {
@@ -18,13 +19,13 @@ class PersistenceCondition;
  * \brief A temporal assertion is part of a Chronicle or a Timeline
  * It can be either an Event or a PersistenceCondition
  */
-class TemporalAssertion
+class TemporalAssertion : public graph_analysis::Vertex
 {
 public:
     enum Type { UNKNOWN = 0,
         /// Type of an Event
         EVENT,
-        /// Type of a PersistenceCondition 
+        /// Type of a PersistenceCondition
         PERSISTENCE_CONDITION
     };
 
@@ -70,7 +71,7 @@ public:
     bool isDisjointFrom(const TemporalAssertion::Ptr& other, const point_algebra::TimePointComparator& comparator) const;
 
     /**
-     * Check if this TemporalAssertion refers to the same value and/or same timepoint 
+     * Check if this TemporalAssertion refers to the same value and/or same timepoint
      * as the other TemporalAssertion
      * \throw std::invalid_argument if invalid type is used
      */
@@ -78,9 +79,18 @@ public:
 
     virtual std::string toString() const;
 
+    /**
+     * Get the class name of this constraint
+     * \return classname
+     */
+    virtual std::string getClassName() const { return "TemporalAssertion"; }
+
 protected:
     Type mType;
     symbols::StateVariable mStateVariable;
+
+    /// Make sure cloning works
+    virtual graph_analysis::Vertex* doClone() { return new TemporalAssertion(*this); }
 };
 
 typedef std::vector<TemporalAssertion::Ptr> TemporalAssertionList;

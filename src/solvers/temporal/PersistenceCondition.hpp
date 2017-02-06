@@ -13,7 +13,7 @@ class Event;
 
 /**
  * \class PersistenceCondition
- * \brief Specifies that a value persists and being equal to a given 
+ * \brief Specifies that a value persists and being equal to a given
  * value over an time interval
  * \see "Automated Planning - Theory and Practice" p. 329
  */
@@ -45,6 +45,8 @@ public:
             const point_algebra::TimePoint::Ptr& fromTimepoint,
             const point_algebra::TimePoint::Ptr& toTimepoint);
 
+    virtual ~PersistenceCondition() {}
+
     Symbol::Ptr getValue() const { return mpValue; }
 
     point_algebra::TimePoint::Ptr getFromTimePoint() const { return mpFromTimepoint; }
@@ -53,6 +55,16 @@ public:
     virtual std::string toString() const;
 
     virtual bool operator==(const PersistenceCondition& other) const;
+
+    /**
+     * Get the class name of this constraint
+     * \return classname
+     */
+    virtual std::string getClassName() const { return "PersistenceCondition"; }
+
+protected:
+    /// Make sure cloning works
+    virtual graph_analysis::Vertex* doClone() { return new PersistenceCondition(*this); }
 };
 
 } // end namespace temporal

@@ -70,12 +70,18 @@ std::string ResourceReificationRequirement::toString(uint32_t indent) const
     return ss.str();
 }
 
+SpatioTemporalRequirement::SpatioTemporalRequirement()
+    : graph_analysis::Vertex()
+{}
 
-std::string Requirement::toString(uint32_t indent) const
+SpatioTemporalRequirement::~SpatioTemporalRequirement()
+{}
+
+std::string SpatioTemporalRequirement::toString(uint32_t indent) const
 {
     std::string hspace(indent,' ');
     std::stringstream ss;
-    ss << std::endl << hspace << "Requirement (id:" << id << ")" << std::endl;
+    ss << std::endl << hspace << "SpatioTemporalRequirement (id:" << id << ")" << std::endl;
     ss << spatial.toString(indent + 4);
     ss << temporal.toString(indent + 4);
     ss << hspace << "Resources: " << std::endl;

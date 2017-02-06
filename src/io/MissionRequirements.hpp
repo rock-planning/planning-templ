@@ -4,6 +4,7 @@
 #include <owlapi/OWLApi.hpp>
 #include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
 #include "FluentTypes.hpp"
+#include <graph_analysis/Vertex.hpp>
 
 namespace templ {
 namespace io {
@@ -78,14 +79,29 @@ struct ResourceReificationRequirement
     std::string toString(uint32_t indent = 0) const;
 };
 
-struct Requirement
+
+class SpatioTemporalRequirement : public graph_analysis::Vertex
 {
+public:
+    typedef shared_ptr<SpatioTemporalRequirement> Ptr;
+
+    SpatioTemporalRequirement();
+    virtual ~SpatioTemporalRequirement();
+
+    virtual std::string getClassName() const { return "SpatioTemporalRequirement"; }
+
+    virtual std::string toString() const { return toString(0); }
+
+    virtual std::string toString(uint32_t indent) const;
+
     uint32_t id;
     SpatialRequirement spatial;
     TemporalRequirement temporal;
     std::vector<ResourceRequirement> resources;
 
-    std::string toString(uint32_t indent = 0) const;
+protected:
+    /// Make sure cloning works
+    virtual graph_analysis::Vertex* doClone() { return new SpatioTemporalRequirement(*this); }
 };
 
 struct TemporalConstraint

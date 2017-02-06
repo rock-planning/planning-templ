@@ -177,11 +177,13 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
             } else if(nameMatches(firstLevelChild, "requirements"))
             {
                 LOG_DEBUG_S << "Found first level node: 'requirements' ";
-                std::vector<Requirement> requirements = parseRequirements(doc, firstLevelChild);
-                std::vector<Requirement>::const_iterator cit = requirements.begin();
+                std::vector<SpatioTemporalRequirement> requirements = parseRequirements(doc, firstLevelChild);
+                std::vector<SpatioTemporalRequirement>::const_iterator cit = requirements.begin();
                 for(;cit != requirements.end(); ++cit)
                 {
-                    const Requirement& requirement = *cit;
+                    const SpatioTemporalRequirement& requirement = *cit;
+
+                    SpatioTemporalRequirement::Ptr requirementPtr(new SpatioTemporalRequirement(requirement));
 
                     std::string locationId = requirement.spatial.location.id;
                     symbols::Constant::Ptr constant = mission.getConstant(locationId, symbols::Constant::LOCATION);
@@ -205,11 +207,26 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                     for(; cit != requirement.resources.end(); ++cit)
                     {
                         const ResourceRequirement& resource = *cit;
-                        // setting the min cardinality by default
-                        mission.addResourceLocationCardinalityConstraint(location, from, to, resource.model, resource.minCardinality);
+                        {
+                            // setting the min cardinality by default
+                            solvers::temporal::TemporalAssertion::Ptr temporalAssertion = mission.addResourceLocationCardinalityConstraint(location, from, to,
+                                    resource.model,
+                                    resource.minCardinality,
+                                    owlapi::model::OWLCardinalityRestriction::MIN);
+                            // Keep track for explanation
+                            // TODO: we should add that to an ontology
+                            mission.addRelation(temporalAssertion, "inducedBy", requirementPtr);
+                        }
 
-                        // setting the max cardinality
-                        mission.addResourceLocationCardinalityConstraint(location, from, to, resource.model, resource.maxCardinality, owlapi::model::OWLCardinalityRestriction::MAX);
+                        {
+                            // setting the max cardinality
+                            solvers::temporal::TemporalAssertion::Ptr temporalAssertion = mission.addResourceLocationCardinalityConstraint(location, from, to,
+                                    resource.model,
+                                    resource.maxCardinality,
+                                    owlapi::model::OWLCardinalityRestriction::MAX);
+                            // Keep track for explanation
+                            mission.addRelation(temporalAssertion, "inducedBy", requirementPtr);
+                        }
                     }
                 }
             } else if(nameMatches(firstLevelChild, "constraints"))
@@ -474,9 +491,9 @@ ResourceReificationRequirement MissionReader::parseResourceReificationRequiremen
 }
 
 
-Requirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNodePtr current)
+SpatioTemporalRequirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNodePtr current)
 {
-    Requirement requirement;
+    SpatioTemporalRequirement requirement;
     if(nameMatches(current, "requirement"))
     {
         LOG_INFO_S << "Parsing: " << current->name;
@@ -511,16 +528,16 @@ Requirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNodePtr current)
     return requirement;
 }
 
-std::vector<Requirement> MissionReader::parseRequirements(xmlDocPtr doc, xmlNodePtr current)
+std::vector<SpatioTemporalRequirement> MissionReader::parseRequirements(xmlDocPtr doc, xmlNodePtr current)
 {
     LOG_INFO_S << "Parsing: " << current->name;
-    std::vector<Requirement> requirements;
+    std::vector<SpatioTemporalRequirement> requirements;
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
         if(nameMatches(current, "requirement"))
         {
-            Requirement requirement = parseRequirement(doc, current);
+            SpatioTemporalRequirement requirement = parseRequirement(doc, current);
             LOG_INFO_S << "Parsed requirement: " << requirement.toString();
             requirements.push_back(requirement);
         }
