@@ -270,6 +270,31 @@ protected:
 
     std::string toString(const std::vector<Gecode::IntVarArray>& timelines) const;
 
+    /**
+     * Set the cardinality constraints
+     */
+    void initializeMinMaxConstraints();
+
+    /**
+     * Identify overlapping constraints and set and upper resource bound
+     */
+    void setUpperBoundForConcurrentRequirements();
+
+    /**
+     * Require the number of active instances/roles to equal the number of required model instances
+     *
+     */
+    void initializeRoleDistributionConstraints();
+
+    /**
+     * Limit the usage of instances/roles to 1 for concurrent requirements
+     *
+     * That guarantees that one role can only be use at a time
+     */
+    void enforceUnaryResourceUsage();
+
+    Gecode::Symmetries identifySymmetries();
+
 public:
     TransportNetwork(const templ::Mission::Ptr& mission);
 

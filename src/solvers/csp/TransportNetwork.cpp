@@ -386,8 +386,6 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
 
-    ConstraintMatrix constraintMatrix(mAvailableModels);
-
     if(mResourceRequirements.empty())
     {
         throw std::invalid_argument("templ::solvers::csp::TransportNetwork: no resource requirements given");
@@ -433,19 +431,55 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     // Outline:
     // (A) for each requirement add the min/max and existential constraints
     // for all overlapping requirements create maximum resource constraints
-    //
+    initializeMinMaxConstraints();
+
     // (B) General resource constraints
     //     - identify overlapping fts, limit resources for these (TODO: better
     //     indentification of overlapping requirements)
     //
+    setUpperBoundForConcurrentRequirements();
+
+    initializeRoleDistributionConstraints();
+    enforceUnaryResourceUsage();
+
+    // (C) Avoid computation of solutions that are redunant
+    // Gecode documentation says however in 8.10.2 that "Symmetry breaking by
+    // LDSB is not guaranteed to be complete. That is, a search may still return
+    // two distinct solutions that are symmetric."
     //
-    // (C) Minimal resource constraints associated with Time-Location
+    Gecode::Symmetries symmetries = identifySymmetries();
+
+    branch(*this, mModelUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());
+    branch(*this, mModelUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_SPLIT_MIN());
+    branch(*this, mModelUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_SPLIT_MIN());
+
+    branch(*this, mRoleUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_MIN(), symmetries);
+    branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN(), symmetries);
+    branch(*this, mRoleUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_MIN(), symmetries);
+
+    // see 8.14 Executing code between branchers
+    branch(*this, &TransportNetwork::postRoleAssignments);
+
+    //Gecode::Gist::Print<TransportNetwork> p("Print solution");
+    //Gecode::Gist::Options o;
+    //o.inspect.click(&p);
+    //Gecode::Gist::bab(this, o);
+
+}
+
+
+void TransportNetwork::initializeMinMaxConstraints()
+{
+    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mpMission->getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
+
+    // For debugging purposes
+    ConstraintMatrix constraintMatrix(mAvailableModels);
+
     // Part (A)
     {
         using namespace solvers::temporal;
         LOG_INFO_S << mAsk.toString();
         LOG_DEBUG_S << "Involved services: " << owlapi::model::IRI::toString(mServices, true);
-
         {
             std::vector<FluentTimeResource>::const_iterator fit = mResourceRequirements.begin();
             for(; fit != mResourceRequirements.end(); ++fit)
@@ -464,13 +498,13 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
                     {
                         // default min requirement is 0
                         uint32_t minCardinality = 0;
-                        /// Consider additional resource cardinality constraint
-                        LOG_DEBUG_S << "Check extra min cardinality for " << mAvailableModels[mi];
+                        /// Consider resource cardinality constraint
+                        LOG_DEBUG_S << "Check min cardinality for " << mAvailableModels[mi];
                         organization_model::ModelPool::const_iterator cardinalityIt = fts.minCardinalities.find( mAvailableModels[mi] );
                         if(cardinalityIt != fts.minCardinalities.end())
                         {
                             minCardinality = cardinalityIt->second;
-                            LOG_DEBUG_S << "Found extra resource cardinality constraint: " << std::endl
+                            LOG_DEBUG_S << "Found resource cardinality constraint: " << std::endl
                                 << "    " << mAvailableModels[mi] << ": minCardinality " << minCardinality;
                         }
                         constraintMatrix.setMin(requirementIndex, mi, minCardinality);
@@ -487,12 +521,12 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
                     rel(*this, v, Gecode::IRT_LQ, maxCardinality);
                 }
 
-                // Extensional constraints, i.e. specifying the allowed
+                // Prepare the extensional constraints, i.e. specifying the allowed
                 // combinations
                 organization_model::ModelPoolSet allowedCombinations = fts.getDomain();
                 appendToTupleSet(mExtensionalConstraints[requirementIndex], allowedCombinations);
 
-                // there can be no empty assignment for a service
+                // there can be no empty assignment for resource requirement
                 rel(*this, sum( resourceDistribution.row(requirementIndex) ) > 0);
 
                 // This can be equivalently modelled using a linear constraint
@@ -503,6 +537,8 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
             }
         }
 
+        // use the prepared list of extensional constraints to activate the
+        // constraints
         for(auto pair : mExtensionalConstraints)
         {
             uint32_t requirementIndex = pair.first;
@@ -514,6 +550,13 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
 
         LOG_INFO_S << constraintMatrix.toString();
     }
+}
+
+
+void TransportNetwork::setUpperBoundForConcurrentRequirements()
+{
+    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mpMission->getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
+
     // Part (B) General resource constraints
     // - identify overlapping fts, limit resources for these
     {
@@ -547,9 +590,13 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
             }
         }
     }
+}
 
-
+void TransportNetwork::initializeRoleDistributionConstraints()
+{
     // Role distribution
+    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mpMission->getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
+
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
     {
         // Sum of all role instances has to correspond to the model count
@@ -571,44 +618,50 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
             }
         }
     }
+}
+
+void TransportNetwork::enforceUnaryResourceUsage()
+{
+    // Role distribution
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
+
+    // Set of available models: mModelPool
+    // Make sure the assignments are within resource bounds for concurrent requirements
+    std::vector< std::vector<FluentTimeResource> > concurrentRequirements = FluentTimeResource::getConcurrent(mResourceRequirements, mIntervals);
+
+    std::vector< std::vector<FluentTimeResource> >::const_iterator cit = concurrentRequirements.begin();
+    if(!concurrentRequirements.empty())
     {
-        // Set of available models: mModelPool
-        // Make sure the assignments are within resource bounds for concurrent requirements
-        std::vector< std::vector<FluentTimeResource> > concurrentRequirements = FluentTimeResource::getConcurrent(mResourceRequirements, mIntervals);
-
-        std::vector< std::vector<FluentTimeResource> >::const_iterator cit = concurrentRequirements.begin();
-        if(!concurrentRequirements.empty())
+        for(; cit != concurrentRequirements.end(); ++cit)
         {
-            for(; cit != concurrentRequirements.end(); ++cit)
+            LOG_DEBUG_S << "Concurrent roles requirements: " << mRoles.size();
+            const std::vector<FluentTimeResource>& concurrentFluents = *cit;
+
+            for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
             {
-                LOG_DEBUG_S << "Concurrent roles requirements: " << mRoles.size();
-                const std::vector<FluentTimeResource>& concurrentFluents = *cit;
+                Gecode::IntVarArgs args;
 
-                for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
+                std::vector<FluentTimeResource>::const_iterator fit = concurrentFluents.begin();
+                for(; fit != concurrentFluents.end(); ++fit)
                 {
-                    Gecode::IntVarArgs args;
-
-                    std::vector<FluentTimeResource>::const_iterator fit = concurrentFluents.begin();
-                    for(; fit != concurrentFluents.end(); ++fit)
-                    {
-                        size_t row = getFluentIndex(*fit);
-                        LOG_DEBUG_S << "    index: " << roleIndex << "/" << row;
-                        Gecode::IntVar v = roleDistribution(roleIndex, row);
-                        args << v;
-                    }
-                    rel(*this, sum(args) <= 1);
+                    size_t row = getFluentIndex(*fit);
+                    LOG_DEBUG_S << "    index: " << roleIndex << "/" << row;
+                    Gecode::IntVar v = roleDistribution(roleIndex, row);
+                    args << v;
                 }
+                // there can only be one role active
+                rel(*this, sum(args) <= 1);
             }
-        } else {
-            LOG_DEBUG_S << "No concurrent requirements found";
         }
+    } else {
+        LOG_DEBUG_S << "No concurrent requirements found";
     }
+}
 
-    // Avoid computation of solutions that are redunant
-    // Gecode documentation says however in 8.10.2 that "Symmetry breaking by
-    // LDSB is not guaranteed to be complete. That is, a search may still return
-    // two distinct solutions that are symmetric."
-    //
+Gecode::Symmetries TransportNetwork::identifySymmetries()
+{
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
+
     Gecode::Symmetries symmetries;
     // define interchangeable columns for roles of the same model type
     owlapi::model::IRIList::const_iterator ait = mAvailableModels.begin();
@@ -628,22 +681,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
         symmetries << VariableSequenceSymmetry(sameModelColumns, roleDistribution.height());
     }
 
-    branch(*this, mModelUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());
-    branch(*this, mModelUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_SPLIT_MIN());
-    branch(*this, mModelUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_SPLIT_MIN());
-
-    branch(*this, mRoleUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_MIN(), symmetries);
-    branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN(), symmetries);
-    branch(*this, mRoleUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_MIN(), symmetries);
-
-    // see 8.14 Executing code between branchers
-    branch(*this, &TransportNetwork::postRoleAssignments);
-
-    //Gecode::Gist::Print<TransportNetwork> p("Print solution");
-    //Gecode::Gist::Options o;
-    //o.inspect.click(&p);
-    //Gecode::Gist::bab(this, o);
-
+    return symmetries;
 }
 
 TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
@@ -975,6 +1013,7 @@ bool TransportNetwork::isRoleForModel(uint32_t roleIndex, uint32_t modelIndex) c
 
 void TransportNetwork::postRoleAssignments(Gecode::Space& home)
 {
+    LOG_WARN_S << "POST ROLE ASSIGNMENTS";
     static_cast<TransportNetwork&>(home).postRoleAssignments();
 }
 
@@ -1013,7 +1052,7 @@ std::vector<uint32_t> TransportNetwork::getActiveRoles() const
 
 void TransportNetwork::postRoleAssignments()
 {
-    LOG_WARN_S << "POST ROLE ASSIGNMENTS";
+    LOG_WARN_S << "POST ROLE ASSIGNMENTS: request status";
     (void) status();
 
     std::stringstream ss;
@@ -1132,6 +1171,8 @@ void TransportNetwork::postRoleAssignments()
                 for(uint32_t timeIndex = fromIndex; timeIndex < toIndex; ++timeIndex)
                 {
                     int allowed = timeIndex*mLocations.size() + fts.fluent;
+                    std::cout << "ADDING: (fromTime: " << fromIndex << " toTime: " << toIndex <<") " << allowed << std::endl;
+                    std::cout << "     location: " << fts.fluent << std::endl;
 
                     allowedLocationTimeValues.push_back(allowed);
                     // index of the location is fts.fluent
@@ -1166,11 +1207,14 @@ void TransportNetwork::postRoleAssignments()
                 // Collect allowed waypoints
                 if(prevTimeIdx != 0)
                 {
+                    std::cout << "PrevTime: " << prevTimeIdx << " toTime " << toIndex << std::endl;
                     for(uint32_t timeIndex = prevTimeIdx + 1; timeIndex < toIndex; ++timeIndex)
                     {
                         int allowed = timeIndex*mLocations.size() + fts.fluent;
+                        std::cout << "ADDING: " << allowed << std::endl;
                         allowedLocationTimeValues.push_back(allowed);
                         allowed = timeIndex*mLocations.size() + prevLocationIdx;
+                        std::cout << "ADDING: " << allowed << std::endl;
                         allowedLocationTimeValues.push_back(allowed);
                     }
                 }
@@ -1192,6 +1236,7 @@ void TransportNetwork::postRoleAssignments()
         for(; it != timeline.end(); ++it)
         {
             Gecode::SetVar& var = *it;
+            //std::cout << "SUBSET of" << allowedIntSetValues << std::endl;
             rel(*this, var <= allowedIntSetValues || var == Gecode::IntSet::empty);
         }
 
@@ -1371,6 +1416,7 @@ void TransportNetwork::postFlowCapacities(Gecode::Space& home)
 
 void TransportNetwork::postFlowCapacities()
 {
+    LOG_WARN_S << "GET STATUS FLOW FLOW CAPACITIES";
     (void) status();
     LOG_WARN_S << "POST FLOW CAPACITIES";
     for(size_t i = 0; i < mTimelines.size(); ++i)
@@ -1518,6 +1564,11 @@ std::string TransportNetwork::toString() const
     ss << "Number of timelines: " << timelines.size() << " active roles -- " << mActiveRoleList.size();
     ss << "Current timelines:" << std::endl << toString(timelines) << std::endl;
 
+    //ss << "Capacities: " << std::endl << Formatter::toString(mCapacities,
+    //        toPtrList<Symbol,symbols::constants::Location>(mLocations),
+    //        toPtrList<Variable, temporal::point_algebra::TimePoint>(mTimepoints)
+    //        ) << std::endl;
+
     return ss.str();
 }
 
@@ -1591,6 +1642,7 @@ TransportNetwork::Timeline TransportNetwork::convertToTimeline(const AdjacencyLi
                     std::stringstream ss;
                     ss << "templ::solvers::csp::TransportNetwork::toString: timeline is invalid: ";
                     ss << " expected idx " << expectedTargetIdx << ", but got " << idx;
+                    //LOG_WARN_S << ss.str();
                     throw std::runtime_error(ss.str());
                 }
             }
@@ -1617,6 +1669,7 @@ TransportNetwork::Timeline TransportNetwork::convertToTimeline(const AdjacencyLi
             continue;
         }
     }
+    LOG_WARN_S << "TIMELINE OF SIZE: " << timeline.size();
     return timeline;
 }
 
@@ -1632,6 +1685,7 @@ TransportNetwork::Timelines TransportNetwork::convertToTimelines(const Role::Lis
     {
         timelines[ roles[i] ] = convertToTimeline(lists[i]);
     }
+    LOG_WARN_S << "TIMELINES OF SIZE: " << timelines.size();
     return timelines;
 }
 
