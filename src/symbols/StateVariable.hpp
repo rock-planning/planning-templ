@@ -16,7 +16,7 @@ class StateVariable : public Symbol
     /// resource: e.g. robot -> Sherpa
 
 public:
-    StateVariable(const std::string function, const std::string resource);
+    StateVariable(const std::string& function, const std::string& resource);
     virtual ~StateVariable() {}
 
     const std::string& getResource() const { return getInstanceName(); }

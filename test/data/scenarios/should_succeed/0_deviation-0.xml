@@ -1,4 +1,8 @@
-<mission>
+<!-- <!xml version="1.0"?> -->
+<mission xmlns="http://www.rock-robotics.org/missions#"
+    xmlns:om="http://www.rock-robotics.org/2014/01/om-schema#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+>
 <name>Immobile and mobile system deployment</name>
 <description>    
     Immobile system needs a transport, but the mobile system is not dedicated to transport the 
@@ -77,7 +81,7 @@
     </location>
 </constants>
 <requirements>
-    <requirement>
+    <requirement id='0'>
         <spatial-requirement>
             <!-- where it is required -->
             <location>
@@ -102,7 +106,7 @@
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement>
+    <requirement id='1'>
         <spatial-requirement>
             <location>
                 <id>base1</id>
@@ -123,7 +127,7 @@
             </resource>-->
         </resource-requirement>
     </requirement>
-    <requirement>
+    <requirement id='2'>
         <spatial-requirement>
             <location>
                 <id>base2</id>

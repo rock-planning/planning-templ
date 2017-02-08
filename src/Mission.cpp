@@ -5,6 +5,7 @@
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 #include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
 #include <templ/symbols/object_variables/LocationCardinality.hpp>
+#include <templ/symbols/object_variables/LocationNumericAttribute.hpp>
 
 namespace templ {
 
@@ -240,6 +241,38 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addResourceLocationCardinalit
     }
 
     mObjectVariables.insert(locationCardinality);
+    return temporalAssertion;
+}
+
+solvers::temporal::TemporalAssertion::Ptr Mission::addResourceLocationNumericAttributeConstraint(
+        const symbols::constants::Location::Ptr& location,
+        const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
+        const solvers::temporal::point_algebra::TimePoint::Ptr& toTp,
+        const owlapi::model::IRI& resourceModel,
+        const owlapi::model::IRI& attribute,
+        int32_t minInclusive,
+        int32_t maxInclusive
+        )
+{
+    using namespace owlapi;
+    using namespace ::templ::symbols;
+
+    addConstant(location);
+    ObjectVariable::Ptr numericAttribute(new object_variables::LocationNumericAttribute(
+                location,
+                attribute,
+                minInclusive,
+                maxInclusive));
+
+    symbols::StateVariable rloc(ObjectVariable::TypeTxt[ObjectVariable::LOCATION_NUMERIC_ATTRIBUTE],
+            resourceModel.toString());
+
+    solvers::temporal::TemporalAssertion::Ptr temporalAssertion = addTemporalAssertion(rloc,
+            numericAttribute,
+            fromTp,
+            toTp);
+
+    mObjectVariables.insert(numericAttribute);
     return temporalAssertion;
 }
 

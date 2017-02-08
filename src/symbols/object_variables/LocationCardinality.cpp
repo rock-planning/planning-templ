@@ -5,7 +5,7 @@ namespace templ {
 namespace symbols {
 namespace object_variables {
 
-LocationCardinality::LocationCardinality(const constants::Location::Ptr location,
+LocationCardinality::LocationCardinality(const constants::Location::Ptr& location,
         uint32_t cardinality,
         owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType type
 )
@@ -22,8 +22,8 @@ bool LocationCardinality::equals(const Symbol::Ptr& symbol) const
     LocationCardinality::Ptr other = dynamic_pointer_cast<LocationCardinality>(symbol);
     if(other)
     {
-        return mLocation == other->mLocation && 
-            mCardinality == other->mCardinality && 
+        return mLocation == other->mLocation &&
+            mCardinality == other->mCardinality &&
             mCardinalityRestrictionType == other->mCardinalityRestrictionType;
     }
     return false;

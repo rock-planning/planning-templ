@@ -55,6 +55,7 @@ rock_library(templ
         symbols/StateVariable.cpp
         symbols/Value.cpp
         symbols/object_variables/LocationCardinality.cpp
+        symbols/object_variables/LocationNumericAttribute.cpp
         utils/CartographicMapping.cpp
     HEADERS
         CapacityLink.hpp
@@ -116,6 +117,7 @@ rock_library(templ
         symbols/Value.hpp
         symbols/constants/Location.hpp
         symbols/object_variables/LocationCardinality.hpp
+        symbols/object_variables/LocationNumericAttribute.hpp
         symbols/values/Int.hpp
         utils/CartographicMapping.hpp
     LIBS gecodesearch

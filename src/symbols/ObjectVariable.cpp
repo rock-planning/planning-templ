@@ -7,6 +7,7 @@ namespace symbols {
 std::map<ObjectVariable::Type, std::string> ObjectVariable::TypeTxt = boost::assign::map_list_of
     (UNKNOWN, "UNKNOWN")
     (LOCATION_CARDINALITY, "LocationCardinality")
+    (LOCATION_NUMERIC_ATTRIBUTE, "LocationNumericAttribute")
     ;
 
 ObjectVariable::ObjectVariable(const std::string& name, Type type)

@@ -3,7 +3,7 @@
 namespace templ {
 namespace symbols{
 
-StateVariable::StateVariable(const std::string function, const std::string resource)
+StateVariable::StateVariable(const std::string& function, const std::string& resource)
         : Symbol(resource, function, Symbol::STATE_VARIABLE)
 {}
 

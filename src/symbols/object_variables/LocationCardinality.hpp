@@ -18,7 +18,7 @@ class LocationCardinality : public ObjectVariable
 public:
     typedef shared_ptr<LocationCardinality> Ptr;
 
-    LocationCardinality(const constants::Location::Ptr location,
+    LocationCardinality(const constants::Location::Ptr& location,
             uint32_t cardinality = 1,
             owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType type = owlapi::model::OWLCardinalityRestriction::MIN
     );
@@ -30,7 +30,7 @@ public:
     owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType getCardinalityRestrictionType() const { return mCardinalityRestrictionType; }
 
     virtual bool equals(const Symbol::Ptr& symbol) const;
-    virtual std::string toString() const; 
+    virtual std::string toString() const;
 };
 
 } // end namespace object_variables

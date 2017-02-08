@@ -99,6 +99,18 @@ public:
             owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType type = owlapi::model::OWLCardinalityRestriction::MIN
             );
 
+    solvers::temporal::TemporalAssertion::Ptr addResourceLocationNumericAttributeConstraint(
+            const symbols::constants::Location::Ptr& location,
+            const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
+            const solvers::temporal::point_algebra::TimePoint::Ptr& toTp,
+            const owlapi::model::IRI& resourceModel,
+            const owlapi::model::IRI& attribute,
+            int32_t minInclusive,
+            int32_t maxInclusive
+            );
+
+
+
     solvers::Constraint::Ptr addTemporalConstraint(const solvers::temporal::point_algebra::TimePoint::Ptr& t1,
             const solvers::temporal::point_algebra::TimePoint::Ptr& t2,
             solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type constraint);

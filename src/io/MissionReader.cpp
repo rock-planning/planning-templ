@@ -33,13 +33,18 @@ std::string MissionReader::getContent(xmlDocPtr doc, xmlNodePtr node, size_t cou
         std::string content((const char*) key);
         xmlFree(key);
 
-        size_t found = content.find_first_of(':');
-        if(found != std::string::npos)
+        std::string http = "http://";
+        std::string prefix = content.substr(0,http.size());
+        if(prefix != http)
         {
-            std::string prefix = content.substr(0,found);
-            std::string ns = resolveNamespacePrefix(doc, node, prefix);
-            std::string core = content.substr(found+1);
-            content = ns + core;
+            size_t found = content.find_first_of(':');
+            if(found != std::string::npos)
+            {
+                std::string prefix = content.substr(0,found);
+                std::string ns = resolveNamespacePrefix(doc, node, prefix);
+                std::string core = content.substr(found+1);
+                content = ns + core;
+            }
         }
         return content;
     } else {
@@ -216,6 +221,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                             // Keep track for explanation
                             // TODO: we should add that to an ontology
                             mission.addRelation(temporalAssertion, "inducedBy", requirementPtr);
+
                         }
 
                         {
@@ -227,6 +233,24 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                             // Keep track for explanation
                             mission.addRelation(temporalAssertion, "inducedBy", requirementPtr);
                         }
+
+                        if(!resource.numericAttributeRequirements.empty())
+                        {
+                            NumericAttributeRequirements::const_iterator cit = resource.numericAttributeRequirements.begin();
+                            for(; cit != resource.numericAttributeRequirements.end(); ++cit)
+                            {
+                                const NumericAttributeRequirement& nar = *cit;
+                                mission.addResourceLocationNumericAttributeConstraint(location,
+                                        from,
+                                        to,
+                                        resource.model,
+                                        nar.model,
+                                        nar.minInclusive,
+                                        nar.maxInclusive
+                                );
+                            }
+                        }
+
                     }
                 }
             } else if(nameMatches(firstLevelChild, "constraints"))

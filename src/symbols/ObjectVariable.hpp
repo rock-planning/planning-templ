@@ -13,7 +13,7 @@ class ObjectVariable : public Symbol
 public:
     typedef shared_ptr<ObjectVariable> Ptr;
 
-    enum Type { UNKNOWN, LOCATION_CARDINALITY };
+    enum Type { UNKNOWN, LOCATION_CARDINALITY, LOCATION_NUMERIC_ATTRIBUTE };
     static std::map<Type, std::string> TypeTxt;
 
     ObjectVariable(const std::string& name, Type type = ObjectVariable::UNKNOWN);
