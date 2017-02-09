@@ -221,6 +221,10 @@ private:
     const owlapi::model::IRI& getResourceModelFromIndex(size_t index) const;
     size_t getResourceModelMaxCardinality(size_t model) const;
 
+    /**
+     * Return the list of resource requirements
+     * Requirements are sorted based on the from value
+     */
     std::vector<FluentTimeResource> getResourceRequirements() const;
 
     size_t getMaxResourceCount(const organization_model::ModelPool& model) const;
@@ -267,6 +271,7 @@ protected:
 
     Timeline convertToTimeline(const AdjacencyList& list) const;
     Timelines convertToTimelines(const Role::List& roles, const ListOfAdjacencyLists& lists) const;
+    uint32_t getTimepointIndex(const temporal::point_algebra::TimePoint::Ptr& timePoint) const;
 
     std::string toString(const std::vector<Gecode::IntVarArray>& timelines) const;
 

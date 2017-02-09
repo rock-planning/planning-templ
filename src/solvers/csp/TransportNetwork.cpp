@@ -958,6 +958,12 @@ std::vector<FluentTimeResource> TransportNetwork::getResourceRequirements() cons
     }
 
     compact(requirements);
+
+    // Sort them base on the start timepoint
+    std::sort(requirements.begin(), requirements.end(), [&timepointComparator](const FluentTimeResource& a,const FluentTimeResource& b) -> bool
+            {
+                return timepointComparator.lessThan(a.getInterval().getFrom(), b.getInterval().getFrom());
+            });
     return requirements;
 }
 
@@ -1098,7 +1104,7 @@ void TransportNetwork::postRoleAssignments()
     //
     // i.e.
     //
-    //        l0-t0  l0-t1 ... l0-tn l1-t1 l1-t1
+    //        l0-t0  l0-t1 ... l0-tn l1-t0 l1-t1 ... l1-tn
     // l0-t0
     // l0-t1
     // ...
@@ -1112,12 +1118,6 @@ void TransportNetwork::postRoleAssignments()
 
     // Collect all relevant location time values
     std::vector<int> allowedLocationTimeValues;
-    std::sort(mResourceRequirements.begin(), mResourceRequirements.end(), [](const FluentTimeResource& a,const FluentTimeResource& b) -> bool
-            {
-                return a.getInterval().getFrom() > b.getInterval().getFrom();
-            });
-
-
     Role::List activeRoles;
     for(uint32_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
     {
@@ -1137,15 +1137,12 @@ void TransportNetwork::postRoleAssignments()
         // to the next -- given some temporal constraints
         // An empty list assignment means, there is no transition and at
         // maximum there can be one transition
-        {
-            // Initialize timelines for all roles, i.e. here the current one
-            //
-            Gecode::SetVarArray timeline(*this, locationTimeSize, Gecode::IntSet::empty, Gecode::IntSet(0,locationTimeSize-1),0,1);
-            mTimelines.push_back(timeline);
-        }
 
-        Gecode::SetVarArray& timeline = mTimelines.back();
+        // Initialize timelines for all roles, i.e. here the current one
+        Gecode::SetVarArray timeline(*this, locationTimeSize, Gecode::IntSet::empty, Gecode::IntSet(0,locationTimeSize-1),0,1);
+        mTimelines.push_back(timeline);
 
+        // DEBUG BEGIN
         using namespace solvers::temporal;
         std::vector<point_algebra::TimePoint::Ptr>::const_iterator cit = mTimepoints.begin();
         for(; cit != mTimepoints.end(); ++cit)
@@ -1156,7 +1153,9 @@ void TransportNetwork::postRoleAssignments()
         {
             LOG_DEBUG_S << "Locations: " << mLocations[i]->toString();
         }
+        // DEBUG END
 
+        bool prevTimeIdxAvailable = false;
         uint32_t prevTimeIdx = 0;
         uint32_t prevLocationIdx = 0;
 
@@ -1164,26 +1163,26 @@ void TransportNetwork::postRoleAssignments()
         // for each requirement the interval is 'activated'
         for(uint32_t requirementIndex = 0; requirementIndex < mResourceRequirements.size(); ++requirementIndex)
         {
+            // Check if the particular role, is required to fulfil the
+            // requirement
             Gecode::IntVar roleRequirement = roleDistribution(roleIndex, requirementIndex);
             if(!roleRequirement.assigned())
             {
                 throw std::runtime_error("TransportNetwork: roleRequirement is not assigned");
             }
             Gecode::IntVarValues var(roleRequirement);
-            // Check if role is required, i.e., does it maps to the interval
+            // Check if role is required, i.e., does it map to the interval
             if(var.val() == 1)
             {
                 const FluentTimeResource& fts = mResourceRequirements[requirementIndex];
                 // index of the location is: fts.fluent
-                //
                 point_algebra::TimePoint::Ptr from = fts.getInterval().getFrom();
                 point_algebra::TimePoint::Ptr to = fts.getInterval().getTo();
-                std::vector<point_algebra::TimePoint::Ptr>::const_iterator fromIt = std::find(mTimepoints.begin(), mTimepoints.end(), from);
-                std::vector<point_algebra::TimePoint::Ptr>::const_iterator toIt = std::find(mTimepoints.begin(), mTimepoints.end(), to);
+                uint32_t fromIndex = getTimepointIndex( from );
+                uint32_t toIndex = getTimepointIndex( to );
 
-                uint32_t fromIndex = fromIt - mTimepoints.begin();
-                uint32_t toIndex = toIt - mTimepoints.begin();
-
+                // The timeline is now update for the full interval the
+                // requirement is covering
                 for(uint32_t timeIndex = fromIndex; timeIndex < toIndex; ++timeIndex)
                 {
                     int allowed = timeIndex*mLocations.size() + fts.fluent;
@@ -1213,7 +1212,11 @@ void TransportNetwork::postRoleAssignments()
                     // else edgeActivation = -1
                     LOG_DEBUG_S << "Set SetVar in col: " << col << " and row " << row;
                     Gecode::SetVar& edgeActivation = timeline[row];
+                    // Use SetView to manipulate the edgeActivation in the
+                    // timeline
                     Gecode::Set::SetView v(edgeActivation);
+                    // http://www.gecode.org/doc-latest/reference/classGecode_1_1Set_1_1SetView.html
+                    // set value to 'col'
                     v.intersect(*this, col,col);
                     v.cardMin(*this, 1);
                     v.cardMax(*this, 1);
@@ -1221,22 +1224,25 @@ void TransportNetwork::postRoleAssignments()
                 allowedLocationTimeValues.push_back(toIndex*mLocations.size() + fts.fluent);
 
                 // Collect allowed waypoints
-                if(prevTimeIdx != 0)
+                if(prevTimeIdxAvailable)
                 {
                     std::cout << "PrevTime: " << prevTimeIdx << " toTime " << toIndex << std::endl;
                     for(uint32_t timeIndex = prevTimeIdx + 1; timeIndex < toIndex; ++timeIndex)
                     {
                         int allowed = timeIndex*mLocations.size() + fts.fluent;
-                        std::cout << "ADDING: " << allowed << std::endl;
+                        std::cout << "ADDING: waypoint" << allowed << std::endl;
                         allowedLocationTimeValues.push_back(allowed);
+
                         allowed = timeIndex*mLocations.size() + prevLocationIdx;
-                        std::cout << "ADDING: " << allowed << std::endl;
+                        std::cout << "ADDING: waypoint" << allowed << std::endl;
                         allowedLocationTimeValues.push_back(allowed);
                     }
                 }
 
                 prevTimeIdx = toIndex;
                 prevLocationIdx = fts.fluent;
+
+                prevTimeIdxAvailable = true;
             }
         }
     }
@@ -1703,6 +1709,18 @@ TransportNetwork::Timelines TransportNetwork::convertToTimelines(const Role::Lis
     }
     LOG_WARN_S << "TIMELINES OF SIZE: " << timelines.size();
     return timelines;
+}
+
+uint32_t TransportNetwork::getTimepointIndex(const temporal::point_algebra::TimePoint::Ptr& timePoint) const
+{
+    using namespace templ::solvers::temporal;
+
+    std::vector<point_algebra::TimePoint::Ptr>::const_iterator timepointIt = std::find(mTimepoints.begin(), mTimepoints.end(), timePoint);
+    if(timepointIt != mTimepoints.end())
+    {
+        return timepointIt - mTimepoints.begin();
+    }
+    throw std::invalid_argument("templ::solvers::csp::TransportNetwork::getTimepointIdx: unknown timepoint given");
 }
 
 std::ostream& operator<<(std::ostream& os, const TransportNetwork::Solution& solution)
