@@ -61,7 +61,7 @@ std::string FluentTimeResource::toString(uint32_t indent) const
     ss << hspace << "    time: #" << time << std::endl;
     ss << getInterval().toString(indent + 8) << std::endl;
     ss << hspace << "    fluent: #" << fluent << std::endl;
-    ss << hspace << "        " << mission->getLocations()[fluent]->toString();
+    ss << hspace << "        " << mission->getLocations()[fluent]->toString() << std::endl;
     ss << hspace << "    max cardinalities: " << std::endl
         << maxCardinalities.toString(indent + 8) << std::endl;
     ss << hspace << "    min cardinalities: " << std::endl
@@ -168,18 +168,20 @@ organization_model::ModelPoolSet FluentTimeResource::getDomain() const
     // Collect functionality requirements
     std::set<organization_model::Functionality> functionalities = getFunctionalities();
 
-    // When retrieving combinations for services, then this is not the
+    // When retrieving combinations for requested functionality, then this is not the
     // complete set since this might conflict with the minCardinalities
     // constraint -- thus we need to first derive the functionalBound and then
     // apply the minCardinalities by expanding the set of model if required
     organization_model::ModelPoolSet combinations = mission->getOrganizationModelAsk().getResourceSupport(functionalities);
     LOG_INFO_S << "Resources: " << organization_model::ModelPool::toString(combinations);
+    LOG_INFO_S << "    max cardinalities: " << maxCardinalities.toString(8);
     combinations = mission->getOrganizationModelAsk().applyUpperBound(combinations, maxCardinalities);
     LOG_INFO_S << "Bounded resources (upper bound): " << organization_model::ModelPool::toString(combinations);
 
     // The minimum resource requirements are accounted here by enforcing the
     // lower bound -- the given combinations are guaranteed to support the
     // services due upperBound which is derived from the functionalSaturationBound
+    LOG_INFO_S << "    min cardinalities: " << minCardinalities.toString(8);
     combinations = mission->getOrganizationModelAsk().expandToLowerBound(combinations, minCardinalities);
     LOG_INFO_S << "Expanded resource (lower bound enforced): " << organization_model::ModelPool::toString(combinations);
 
