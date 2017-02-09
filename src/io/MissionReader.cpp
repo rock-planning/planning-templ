@@ -394,8 +394,16 @@ std::vector<ResourceRequirement> MissionReader::parseResourceRequirements(xmlDoc
             ResourceRequirement resourceRequirement;
             resourceRequirement.model = getSubNodeContent(doc, current, "model");
 
-            std::string minCardinalityTxt = getSubNodeContent(doc, current, "minCardinality");
-            resourceRequirement.minCardinality = ::boost::lexical_cast<uint32_t>(minCardinalityTxt);
+            try {
+                std::string minCardinalityTxt = getSubNodeContent(doc, current, "minCardinality");
+                resourceRequirement.minCardinality = ::boost::lexical_cast<uint32_t>(minCardinalityTxt);
+            } catch(...)
+            {
+                std::stringstream ss;
+                ss <<  "templ::io::MissionReader::parseResourceRequirements: ";
+                ss << "missing 'minCardinality' in resource at line: " << xmlGetLineNo(current);
+                throw std::invalid_argument(ss.str());
+            }
 
             try {
                 std::string maxCardinalityTxt = getSubNodeContent(doc, current, "maxCardinality");
@@ -403,6 +411,7 @@ std::vector<ResourceRequirement> MissionReader::parseResourceRequirements(xmlDoc
             } catch(...)
             {
                 // no maxCardinality requirement available
+                resourceRequirement.maxCardinality = std::numeric_limits<uint32_t>::max();
             }
 
             resourceRequirement.numericAttributeRequirements = parseAttributes(doc, current);

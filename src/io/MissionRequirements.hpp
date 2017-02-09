@@ -57,6 +57,8 @@ struct ResourceRequirement
 
     NumericAttributeRequirements numericAttributeRequirements;
 
+    ResourceRequirement();
+
     std::string toString(uint32_t indent = 0) const;
 };
 

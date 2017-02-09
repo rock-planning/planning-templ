@@ -45,6 +45,10 @@ std::string NumericAttributeRequirement::toString(const std::vector<NumericAttri
     return ss.str();
 }
 
+ResourceRequirement::ResourceRequirement()
+    : minCardinality(std::numeric_limits<uint32_t>::min())
+    , maxCardinality(std::numeric_limits<uint32_t>::max())
+{}
 
 std::string ResourceRequirement::toString(uint32_t indent) const
 {

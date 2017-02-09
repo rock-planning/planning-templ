@@ -929,7 +929,23 @@ std::vector<FluentTimeResource> TransportNetwork::getResourceRequirements() cons
 
             } else if(mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Actor()))
             {
-                ftr.minCardinalities[ resourceModel ] = locationCardinality->getCardinality();
+                switch(locationCardinality->getCardinalityRestrictionType())
+                {
+                    case owlapi::model::OWLCardinalityRestriction::MIN :
+                    {
+                        size_t min = ftr.minCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::min());
+                        ftr.minCardinalities[ resourceModel ] = std::max(min, (size_t) locationCardinality->getCardinality());
+                        break;
+                    }
+                    case owlapi::model::OWLCardinalityRestriction::MAX :
+                    {
+                        size_t max = ftr.maxCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::max());
+                        ftr.maxCardinalities[ resourceModel ] = std::min(max, (size_t) locationCardinality->getCardinality());
+                        break;
+                    }
+                    default:
+                        break;
+                }
             } else {
                 LOG_WARN_S << "Unsupported state variable: " << resourceModel;
                 continue;
