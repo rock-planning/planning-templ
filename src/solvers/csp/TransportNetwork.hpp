@@ -227,6 +227,10 @@ private:
      */
     std::vector<FluentTimeResource> getResourceRequirements() const;
 
+
+    FluentTimeResource fromLocationCardinality(const temporal::PersistenceCondition::Ptr& persistenceCondition) const;
+    //FluentTimeResource fromLocationNumericAttribute(const PersistenceCondition::Ptr& persistenceCondition) const;
+
     size_t getMaxResourceCount(const organization_model::ModelPool& model) const;
 
     /**

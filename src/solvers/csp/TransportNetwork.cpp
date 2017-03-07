@@ -449,21 +449,23 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     //
     Gecode::Symmetries symmetries = identifySymmetries();
 
-    branch(*this, mModelUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_SPLIT_MIN());
-    branch(*this, mModelUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_SPLIT_MIN());
-    branch(*this, mModelUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_SPLIT_MIN());
+    Gecode::IntAFC afc(*this, mModelUsage, 0.99);
+    afc.decay(*this, 0.95);
 
+    Gecode::Gist::stopBranch(*this);
     branch(*this, mRoleUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_MIN(), symmetries);
-    branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN(), symmetries);
-    branch(*this, mRoleUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_MIN(), symmetries);
+    //branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN(), symmetries);
+    //branch(*this, mRoleUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_MIN(), symmetries);
+    //branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(afc), Gecode::INT_VAL_MIN());
 
+    Gecode::Gist::stopBranch(*this);
     // see 8.14 Executing code between branchers
     branch(*this, &TransportNetwork::postRoleAssignments);
 
-    //Gecode::Gist::Print<TransportNetwork> p("Print solution");
-    //Gecode::Gist::Options o;
-    //o.inspect.click(&p);
-    //Gecode::Gist::bab(this, o);
+    Gecode::Gist::Print<TransportNetwork> p("Print solution");
+    Gecode::Gist::Options o;
+    o.inspect.click(&p);
+    Gecode::Gist::bab(this, o);
 
 }
 
@@ -859,6 +861,77 @@ size_t TransportNetwork::getResourceModelMaxCardinality(size_t index) const
     throw std::invalid_argument("templ::solvers::csp::TransportNetwork::getResourceModelMaxCardinality: model not found");
 }
 
+FluentTimeResource TransportNetwork::fromLocationCardinality(const temporal::PersistenceCondition::Ptr& p) const
+{
+    using namespace templ::solvers::temporal;
+    point_algebra::TimePointComparator timepointComparator(mpMission->getTemporalConstraintNetwork());
+
+    const symbols::StateVariable& stateVariable = p->getStateVariable();
+    owlapi::model::IRI resourceModel(stateVariable.getResource());
+    symbols::ObjectVariable::Ptr objectVariable = dynamic_pointer_cast<symbols::ObjectVariable>(p->getValue());
+    symbols::object_variables::LocationCardinality::Ptr locationCardinality = dynamic_pointer_cast<symbols::object_variables::LocationCardinality>(objectVariable);
+
+    Interval interval(p->getFromTimePoint(), p->getToTimePoint(), timepointComparator);
+    std::vector<Interval>::const_iterator iit = std::find(mIntervals.begin(), mIntervals.end(), interval);
+    if(iit == mIntervals.end())
+    {
+        LOG_INFO_S << "Size of intervals: " << mIntervals.size();
+        throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find interval: '" + interval.toString() + "'");
+    }
+
+    owlapi::model::IRIList::const_iterator sit = std::find(mResources.begin(), mResources.end(), resourceModel);
+    if(sit == mResources.end())
+    {
+        throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find service: '" + resourceModel.toString() + "'");
+    }
+
+    symbols::constants::Location::Ptr location = locationCardinality->getLocation();
+    std::vector<symbols::constants::Location::Ptr>::const_iterator lit = std::find(mLocations.begin(), mLocations.end(), location);
+    if(lit == mLocations.end())
+    {
+        throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find location: '" + location->toString() + "'");
+    }
+
+    // Map objects to numeric indices -- the indices can be mapped
+    // backed using the mission they were created from
+    uint32_t timeIndex = iit - mIntervals.begin();
+    FluentTimeResource ftr(mpMission,
+            (int) (sit - mResources.begin())
+            , timeIndex
+            , (int) (lit - mLocations.begin()));
+
+    if(mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
+    {
+        // retrieve upper bound
+        ftr.maxCardinalities = mAsk.getFunctionalSaturationBound(resourceModel);
+
+    } else if(mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Actor()))
+    {
+        switch(locationCardinality->getCardinalityRestrictionType())
+        {
+            case owlapi::model::OWLCardinalityRestriction::MIN :
+            {
+                size_t min = ftr.minCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::min());
+                ftr.minCardinalities[ resourceModel ] = std::max(min, (size_t) locationCardinality->getCardinality());
+                break;
+            }
+            case owlapi::model::OWLCardinalityRestriction::MAX :
+            {
+                size_t max = ftr.maxCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::max());
+                ftr.maxCardinalities[ resourceModel ] = std::min(max, (size_t) locationCardinality->getCardinality());
+                break;
+            }
+            default:
+                break;
+        }
+    } else {
+        throw std::invalid_argument("Unsupported state variable: " + resourceModel.toString());
+    }
+
+    ftr.maxCardinalities = organization_model::Algebra::max(ftr.maxCardinalities, ftr.minCardinalities);
+    return ftr;
+}
+
 std::vector<FluentTimeResource> TransportNetwork::getResourceRequirements() const
 {
     if(mIntervals.empty())
@@ -867,99 +940,38 @@ std::vector<FluentTimeResource> TransportNetwork::getResourceRequirements() cons
                 " -- make sure you called prepareTimeIntervals() on the mission instance");
     }
 
-
     std::vector<FluentTimeResource> requirements;
-
-    using namespace templ::solvers::temporal;
-    point_algebra::TimePointComparator timepointComparator(mpMission->getTemporalConstraintNetwork());
 
     // Iterate over all existing persistence conditions
     // -- pick the ones relating to location-cardinality function
+    using namespace templ::solvers::temporal;
     const std::vector<PersistenceCondition::Ptr>& conditions = mpMission->getPersistenceConditions();
     std::vector<PersistenceCondition::Ptr>::const_iterator cit = conditions.begin();
     for(; cit != conditions.end(); ++cit)
     {
         PersistenceCondition::Ptr p = *cit;
 
-
         symbols::StateVariable stateVariable = p->getStateVariable();
-        if(stateVariable.getFunction() != symbols::ObjectVariable::TypeTxt[symbols::ObjectVariable::LOCATION_CARDINALITY] )
+        if(stateVariable.getFunction() == symbols::ObjectVariable::TypeTxt[symbols::ObjectVariable::LOCATION_CARDINALITY] )
         {
-            continue;
-        }
-
-        owlapi::model::IRI resourceModel(stateVariable.getResource());
-        symbols::ObjectVariable::Ptr objectVariable = dynamic_pointer_cast<symbols::ObjectVariable>(p->getValue());
-        symbols::object_variables::LocationCardinality::Ptr locationCardinality = dynamic_pointer_cast<symbols::object_variables::LocationCardinality>(objectVariable);
-
-        Interval interval(p->getFromTimePoint(), p->getToTimePoint(),timepointComparator);
-        {
-            std::vector<Interval>::const_iterator iit = std::find(mIntervals.begin(), mIntervals.end(), interval);
-            if(iit == mIntervals.end())
+            try {
+                FluentTimeResource ftr = fromLocationCardinality( p );
+                requirements.push_back(ftr);
+                LOG_DEBUG_S << ftr.toString();
+            } catch(const std::invalid_argument& e)
             {
-                LOG_INFO_S << "Size of intervals: " << mIntervals.size();
-                throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find interval: '" + interval.toString() + "'");
+                LOG_WARN_S << e.what();
             }
-
-            owlapi::model::IRIList::const_iterator sit = std::find(mResources.begin(), mResources.end(), resourceModel);
-            if(sit == mResources.end())
-            {
-                throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find service: '" + resourceModel.toString() + "'");
-            }
-
-            symbols::constants::Location::Ptr location = locationCardinality->getLocation();
-            std::vector<symbols::constants::Location::Ptr>::const_iterator lit = std::find(mLocations.begin(), mLocations.end(), location);
-            if(lit == mLocations.end())
-            {
-                throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find location: '" + location->toString() + "'");
-            }
-
-            // Map objects to numeric indices -- the indices can be mapped
-            // backed using the mission they were created from
-            uint32_t timeIndex = iit - mIntervals.begin();
-            FluentTimeResource ftr(mpMission,
-                    (int) (sit - mResources.begin())
-                    , timeIndex
-                    , (int) (lit - mLocations.begin()));
-
-            if(mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
-            {
-                // retrieve upper bound
-                ftr.maxCardinalities = mAsk.getFunctionalSaturationBound(resourceModel);
-
-            } else if(mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Actor()))
-            {
-                switch(locationCardinality->getCardinalityRestrictionType())
-                {
-                    case owlapi::model::OWLCardinalityRestriction::MIN :
-                    {
-                        size_t min = ftr.minCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::min());
-                        ftr.minCardinalities[ resourceModel ] = std::max(min, (size_t) locationCardinality->getCardinality());
-                        break;
-                    }
-                    case owlapi::model::OWLCardinalityRestriction::MAX :
-                    {
-                        size_t max = ftr.maxCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::max());
-                        ftr.maxCardinalities[ resourceModel ] = std::min(max, (size_t) locationCardinality->getCardinality());
-                        break;
-                    }
-                    default:
-                        break;
-                }
-            } else {
-                LOG_WARN_S << "Unsupported state variable: " << resourceModel;
-                continue;
-            }
-
-            ftr.maxCardinalities = organization_model::Algebra::max(ftr.maxCardinalities, ftr.minCardinalities);
-            requirements.push_back(ftr);
-            LOG_DEBUG_S << ftr.toString();
         }
     }
 
+    // If multiple requirement exists that have the same interval
+    // they can be compacted into one requirement
     compact(requirements);
 
-    // Sort them base on the start timepoint
+    // Sort the requirements based on the start timepoint, i.e. the from
+    using namespace templ::solvers::temporal;
+    point_algebra::TimePointComparator timepointComparator(mpMission->getTemporalConstraintNetwork());
     std::sort(requirements.begin(), requirements.end(), [&timepointComparator](const FluentTimeResource& a,const FluentTimeResource& b) -> bool
             {
                 return timepointComparator.lessThan(a.getInterval().getFrom(), b.getInterval().getFrom());
@@ -1081,14 +1093,10 @@ void TransportNetwork::postRoleAssignments()
     ss << "Role usage:" << std::endl;
     for(size_t i = 0; i < mRoles.size(); ++i)
     {
-        ss << mRoles[i].toString() << " ";
-    }
-    ss << std::endl;
-    for(size_t r = 0; r < mResourceRequirements.size(); ++r)
-    {
-        for(size_t i = 0; i < mRoles.size(); ++i)
+        ss << std::setw(30) << std::left << mRoles[i].toString() << ": ";
+        for(size_t r = 0; r < mResourceRequirements.size(); ++r)
         {
-            ss << mRoleUsage[r*mRoles.size() + i] << " ";
+            ss << std::setw(10) << mRoleUsage[r*mRoles.size() + i] << " ";
         }
         ss << std::endl;
     }
@@ -1117,6 +1125,7 @@ void TransportNetwork::postRoleAssignments()
     LOG_INFO_S << "Adjacency list (locationTime) size: " << locationTimeSize << " -- for " << mRoles.size() << " roles; " << mActiveRoles.size() << " are active roles";
 
     // Collect all relevant location time values
+    // which represents a superset of the final timeline
     std::vector<int> allowedLocationTimeValues;
     Role::List activeRoles;
     for(uint32_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
@@ -1158,6 +1167,38 @@ void TransportNetwork::postRoleAssignments()
         bool prevTimeIdxAvailable = false;
         uint32_t prevTimeIdx = 0;
         uint32_t prevLocationIdx = 0;
+
+        for(int t = 0; t < mTimepoints.size(); ++t)
+        {
+            Gecode::SetVarArray timestep(*this, mLocations.size());
+            std::stringstream ss;
+            for(int l = 0; l < mLocations.size(); ++l)
+            {
+                int idx = t*mLocations.size() + l;
+                Gecode::SetVar& edgeActivation = timeline[idx];
+                // Use SetView to manipulate the edgeActivation in the
+                // timeline
+                Gecode::Set::SetView v(edgeActivation);
+                // http://www.gecode.org/doc-latest/reference/classGecode_1_1Set_1_1SetView.html
+                // set value to 'col'
+                v.cardMin(*this, 0);
+                v.cardMax(*this, 1);
+                v.exclude(*this, 0, t*mLocations.size());
+                v.exclude(*this, (t+2)*mLocations.size(), mTimepoints.size()*mLocations.size());
+                ss << std::setw(25) << v;
+
+                timestep[l] = edgeActivation;
+            }
+
+            Gecode::SetVar allUnion(*this);
+            Gecode::rel(*this, Gecode::SOT_UNION, timestep, allUnion);
+            Gecode::cardinality(*this, allUnion, 0,1);
+
+            ss << std::endl;
+            LOG_WARN_S << ss.str();
+        }
+
+        LOG_WARN_S << "TIMELINE DONE FOR " << role.toString();
 
         // Link the edge activation to the role requirement, i.e. make sure that
         // for each requirement the interval is 'activated'
@@ -1220,22 +1261,41 @@ void TransportNetwork::postRoleAssignments()
                     v.intersect(*this, col,col);
                     v.cardMin(*this, 1);
                     v.cardMax(*this, 1);
+                    v.exclude(*this, 0, timeIndex*mLocations.size());
+                    v.exclude(*this, (timeIndex+2)*mLocations.size(), mTimepoints.size()*mLocations.size());
+                    //std::cout << "restricted to: " << edgeActivation << std::endl;
+                    //std::cout << timeline << std::endl;
                 }
                 allowedLocationTimeValues.push_back(toIndex*mLocations.size() + fts.fluent);
 
-                // Collect allowed waypoints
+                // Handle the transition between two requirements
+                // Collect allowed waypoints: actually
+                // For the transition interval allow also the source or the
+                // target location (and any close? location)
                 if(prevTimeIdxAvailable)
                 {
-                    std::cout << "PrevTime: " << prevTimeIdx << " toTime " << toIndex << std::endl;
-                    for(uint32_t timeIndex = prevTimeIdx + 1; timeIndex < toIndex; ++timeIndex)
+                    std::cout << "PrevTime: " << prevTimeIdx << " toTime " << fromIndex << std::endl;
+                    for(uint32_t timeIndex = prevTimeIdx + 1; timeIndex < fromIndex; ++timeIndex)
                     {
-                        int allowed = timeIndex*mLocations.size() + fts.fluent;
-                        std::cout << "ADDING: waypoint" << allowed << std::endl;
-                        allowedLocationTimeValues.push_back(allowed);
+                        // Most general approach
+                        for(uint32_t fluentIdx = 0; fluentIdx < mLocations.size(); ++fluentIdx)
+                        {
+                            int allowed = timeIndex*mLocations.size() + fluentIdx;
+                            std::cout << "ADDING: waypoint" << allowed << std::endl;
+                            allowedLocationTimeValues.push_back(allowed);
+                        }
 
-                        allowed = timeIndex*mLocations.size() + prevLocationIdx;
-                        std::cout << "ADDING: waypoint" << allowed << std::endl;
-                        allowedLocationTimeValues.push_back(allowed);
+                        //int allowed = timeIndex*mLocations.size() + fts.fluent;
+                        //std::cout << "ADDING: waypoint" << allowed << std::endl;
+                        //allowedLocationTimeValues.push_back(allowed);
+
+                        //allowed = timeIndex*mLocations.size() + prevLocationIdx;
+                        //std::cout << "ADDING: waypoint" << allowed << std::endl;
+                        //allowedLocationTimeValues.push_back(allowed);
+
+                        //allowed = timeIndex*mLocations.size() + mLocations.size() - 1;
+                        //std::cout << "ADDING: waypoint" << allowed << std::endl;
+                        //allowedLocationTimeValues.push_back(allowed);
                     }
                 }
 
@@ -1247,57 +1307,89 @@ void TransportNetwork::postRoleAssignments()
         }
     }
 
+
+    // Now allow role timelines can be restricted to the given superset
     Gecode::IntSet allowedIntSetValues(allowedLocationTimeValues.data(), allowedLocationTimeValues.size());
-    //Gecode::SetVar allowedSetValues(*this,Gecode::IntSet::empty, allowedIntSetValues,0,1);
-
-
     for(size_t t = 0; t < mTimelines.size(); ++t)
     {
         Gecode::SetVarArray& timeline = mTimelines[t];
-        Gecode::SetVarArray::iterator it = timeline.begin();
-        for(; it != timeline.end(); ++it)
-        {
-            Gecode::SetVar& var = *it;
-            //std::cout << "SUBSET of" << allowedIntSetValues << std::endl;
-            rel(*this, var <= allowedIntSetValues || var == Gecode::IntSet::empty);
-        }
+        //Gecode::SetVarArray::iterator it = timeline.begin();
+        //for(; it != timeline.end(); ++it)
+        //{
+        //    Gecode::SetVar& var = *it;
+        //    std::cout << var << " should be a subset of " << allowedIntSetValues << std::endl;
+        //    // Variable should be a subset of the allowedIntSetValue
+        //    rel(*this, var <= allowedIntSetValues || var == Gecode::IntSet::empty);
+        //}
 
         // Make sure that the timeline for each role forms a path
         // This allows to account for feasible paths for immobile units as well
         // as mobile units to cover this area
-        LOG_WARN_S << "POST TIMELINE";
-        propagators::isPath(*this, timeline, mTimepoints.size(), mLocations.size());
-        LOG_WARN_S << "POSTED TIMELINE: " << timeline;
+        std::stringstream ss;
+        {
+            for(size_t t = 0; t < mTimepoints.size(); ++t)
+            {
+                for(size_t l = 0; l < mLocations.size(); ++l)
+                {
+                    ss << std::setw(25) << timeline[t*mLocations.size() + l] << " ";
+                }
+                ss << std::endl;
+            }
+            LOG_WARN_S << "POST TIMELINE: " << std::endl << ss.str() << std::endl;
+        }
+        //propagators::isPath(*this, timeline, mTimepoints.size(), mLocations.size());
+
+        {
+            std::stringstream ss;
+            for(size_t t = 0; t < mTimepoints.size(); ++t)
+            {
+                for(size_t l = 0; l < mLocations.size(); ++l)
+                {
+                    ss << std::setw(25) << timeline[t*mLocations.size() + l] << " ";
+                }
+                ss << std::endl;
+            }
+            LOG_WARN_S << "POST TIMELINE: " << std::endl << ss.str() << std::endl;
+        }
     }
 
     LOG_WARN_S << "COMPLETED TIMELINE POSTING";
 
     mActiveRoleList = activeRoles;
 
-    //// Construct the basic timeline
-    ////
-    //// Map role requirements back to activation in general network
-    //// requirement = location t0--tN, role-0, role-1
-    ////
-    //// foreach involved role
-    ////     foreach requirement
-    ////          from lX,t0 --> tN
-    ////              request edge activation (referring to the role is active during that interval)
-    ////              by >= value of the requirement( which is typically 0 or 1),
-    ////              whereas activation can be 0 or 1 as well
-    ////
-    //// Compute a network with proper activation
+    // Construct the basic timeline
+    //
+    // Map role requirements back to activation in general network
+    // requirement = location t0--tN, role-0, role-1
+    //
+    // foreach involved role
+    //     foreach requirement
+    //          from lX,t0 --> tN
+    //              request edge activation (referring to the role is active during that interval)
+    //              by >= value of the requirement( which is typically 0 or 1),
+    //              whereas activation can be 0 or 1 as well
+    //
+    // Compute a network with proper activation
     //branch(*this, &TransportNetwork::postRoleTimelines);
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
+        Gecode::SetAFC afc(*this, mTimelines[i], 0.99);
+        afc.decay(*this, 0.95);
+
+        Gecode::Gist::stopBranch(*this);
+
+        // http://www.gecode.org/doc-latest/reference/group__TaskModelSetBranchVar.html
+        //branch(*this, mTimelines[i], Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
         branch(*this, mTimelines[i], Gecode::SET_VAR_MAX_MAX(), Gecode::SET_VAL_MAX_EXC());
-        branch(*this, mTimelines[i], Gecode::SET_VAR_MIN_MIN(), Gecode::SET_VAL_MAX_INC());
-        branch(*this, mTimelines[i], Gecode::SET_VAR_NONE(), Gecode::SET_VAL_MED_INC());
+        Gecode::Gist::stopBranch(*this);
+        //branch(*this, mTimelines[i], Gecode::SET_VAR_MIN_MIN(), Gecode::SET_VAL_MAX_INC());
+        //branch(*this, mTimelines[i], Gecode::SET_VAR_NONE(), Gecode::SET_VAL_MED_INC());
     }
 
-    LOG_WARN_S << mTimelines[0];
+    //LOG_WARN_S << mTimelines[0];
 
-    branch(*this, &TransportNetwork::postFlowCapacities);
+    //LOG_WARN_S << "POST FLOW CAPACITIES";
+    //branch(*this, &TransportNetwork::postFlowCapacities);
 }
 
 void TransportNetwork::postRoleTimelines(Gecode::Space& home)
@@ -1555,6 +1647,16 @@ std::string TransportNetwork::toString() const
     std::stringstream ss;
     ss << "TransportNetwork: #" << std::endl;
     Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mModelPool.size(), mResourceRequirements.size());
+    for(size_t m = 0; m < mModelPool.size(); ++m)
+    {
+        const owlapi::model::IRI& model = getResourceModelFromIndex(m);
+        ss << std::setw(30) << std::left << model.getFragment() << ": ";
+        for(size_t i = 0; i < mResourceRequirements.size(); ++i)
+        {
+            ss << std::setw(10) << std::left << resourceDistribution(m,i);
+        }
+        ss << std::endl;
+    }
 
     //// Check if resource requirements holds
     //for(size_t i = 0; i < mResourceRequirements.size(); ++i)
@@ -1578,13 +1680,35 @@ std::string TransportNetwork::toString() const
     //    }
     //}
     // ss << "Array: " << resourceDistribution;
-    ss << "Current model usage: " << mModelUsage << std::endl;
-    ss << "Current model usage: " << resourceDistribution << std::endl;
-    ss << "Current role usage: " << mRoleUsage << std::endl;
 
-    Timelines timelines = convertToTimelines(mActiveRoleList, mTimelines);
-    ss << "Number of timelines: " << timelines.size() << " active roles -- " << mActiveRoleList.size();
-    ss << "Current timelines:" << std::endl << toString(timelines) << std::endl;
+    Gecode::Matrix<Gecode::IntVarArray> rolesDistribution(mRoleUsage, mRoles.size(), mResourceRequirements.size());
+    for(size_t m = 0; m < mRoles.size(); ++m)
+    {
+        ss << std::setw(30) << mRoles[m].toString() << ": ";
+        for(size_t i = 0; i < mResourceRequirements.size(); ++i)
+        {
+            ss << std::setw(10) << std::left << rolesDistribution(m,i);
+        }
+        ss << std::endl;
+    }
+    //ss << "Current model usage: " << std::endl << resourceDistribution << std::endl;
+    //ss << "Current role usage: " << std::endl << rolesDistribution << std::endl;
+
+    try {
+        for(int i = 0; i < mTimelines.size(); ++i)
+        {
+            const Gecode::SetVarArray& timeline = mTimelines[i];
+            ss << timeline << std::endl;
+        }
+
+        Timelines timelines = convertToTimelines(mActiveRoleList, mTimelines);
+        ss << "Number of timelines: " << timelines.size() << " active roles -- " << mActiveRoleList.size() << std::endl;
+        ss << "Current timelines:" << std::endl << toString(timelines) << std::endl;
+    } catch(const std::exception& e)
+    {
+        ss << "Number of timelines: n/a -- " << e.what() << std::endl;
+        ss << "Current timelines: n/a " << std::endl;
+    }
 
     //ss << "Capacities: " << std::endl << Formatter::toString(mCapacities,
     //        toPtrList<Symbol,symbols::constants::Location>(mLocations),
@@ -1618,9 +1742,20 @@ std::string TransportNetwork::toString(const Timeline& timeline, size_t indent)
     {
         const SpaceTimePoint& stp = *cit;
         assert(stp.first);
-        ss << hspace <<  stp.first->toString();
-        assert(stp.second);
-        ss << " -- " << stp.second->toString();
+        if(stp.first)
+        {
+            ss << hspace <<  stp.first->toString();
+        } else {
+            ss << " -- " << "unknown location";
+        }
+
+        if(stp.second)
+        {
+            ss << " -- " << stp.second->toString();
+        } else {
+            ss << " -- " << "unknown timepoint";
+        }
+
         ss << std::endl;
     }
     return ss.str();
@@ -1646,6 +1781,8 @@ std::string TransportNetwork::toString(const Timelines& timelines, size_t indent
 
 TransportNetwork::Timeline TransportNetwork::convertToTimeline(const AdjacencyList& list) const
 {
+    assert(!list.empty());
+
     Timeline timeline;
     int expectedTargetIdx;
     for(int idx = 0; idx < list.size(); ++idx)
@@ -1653,8 +1790,10 @@ TransportNetwork::Timeline TransportNetwork::convertToTimeline(const AdjacencyLi
         const Gecode::SetVar& var = list[idx];
         if(!var.assigned())
         {
-            throw std::invalid_argument("templ::solvers::csp::TransportNetwork::toString: cannot compute timeline, value is not assigned");
+            SpaceTimePoint stp();
+        //    throw std::invalid_argument("templ::solvers::csp::TransportNetwork::toString: cannot compute timeline, value is not assigned");
         }
+
         if(var.cardMax() == 1 && var.cardMin() == 1)
         {
             if(!timeline.empty())
@@ -1664,8 +1803,8 @@ TransportNetwork::Timeline TransportNetwork::convertToTimeline(const AdjacencyLi
                     std::stringstream ss;
                     ss << "templ::solvers::csp::TransportNetwork::toString: timeline is invalid: ";
                     ss << " expected idx " << expectedTargetIdx << ", but got " << idx;
-                    //LOG_WARN_S << ss.str();
-                    throw std::runtime_error(ss.str());
+                    LOG_WARN_S << ss.str();
+                    //throw std::runtime_error(ss.str());
                 }
             }
             Gecode::SetVarGlbValues value(var);
@@ -1697,6 +1836,8 @@ TransportNetwork::Timeline TransportNetwork::convertToTimeline(const AdjacencyLi
 
 TransportNetwork::Timelines TransportNetwork::convertToTimelines(const Role::List& roles, const ListOfAdjacencyLists& lists) const
 {
+    assert(!roles.empty());
+
     Timelines timelines;
     if(roles.size() != lists.size())
     {

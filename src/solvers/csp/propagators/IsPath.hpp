@@ -12,7 +12,10 @@ namespace csp {
 namespace propagators {
 
 /**
- * Check if a given array of the form [srcTimepointFluentIdx*#timepointFluents + targetTimepointFluentIdx]
+ * Check if a given array of the form
+ * t0-l0 --> [ t1-l1, ... ]
+ * t0-l1 --> [ t1-l1, ... ]
+ * [srcTimepointFluentIdx*#timepointFluents + targetTimepointFluentIdx]
  * is representing a path that conforms to temporal constraints
  */
 class IsPath : public Gecode::NaryPropagator<Gecode::Set::SetView, Gecode::Set::PC_SET_ANY>

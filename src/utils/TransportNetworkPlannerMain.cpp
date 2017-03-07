@@ -1,5 +1,6 @@
 #include <templ/io/MissionReader.hpp>
 #include <templ/solvers/csp/TransportNetwork.hpp>
+#include <graph_analysis/GraphIO.hpp>
 
 using namespace templ;
 
@@ -26,8 +27,14 @@ int main(int argc, char** argv)
     Mission baseMission = io::MissionReader::fromFile(missionFilename, organizationModel);
     baseMission.prepareTimeIntervals();
 
+    std::string dotFilename = "/tmp/templ-mission-relations.dot";
+    graph_analysis::io::GraphIO::write(dotFilename, baseMission.getRelations());
+    dotFilename = "Written '" + dotFilename + "'";
+    printf("%s\n", dotFilename.c_str() );
+
     printf("%s\n",baseMission.toString().c_str());
     Mission::Ptr mission(new Mission(baseMission));
+
 
     std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission,minimumNumberOfSolutions);
     if(solutions.empty())

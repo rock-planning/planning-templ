@@ -52,17 +52,19 @@ private:
      *
      *\verbatim
         <resource-requirement>
-            <resource>
-                <model>om:TransportProvider</model>
-                <minCardinality>1</minCardinality>
-                <attributes>
-                    <numericAttribute name=om:payloadTransportCapacity>
-                        <xsd:restriction>
-                            <xsd:minInclusive>1</xsd:minInclusive>
-                        </xsd:restriction>
-                    </numericAttribute>
-                </attributes>
-            </resource>
+            <resources>
+                <resource>
+                    <model>om:TransportProvider</model>
+                    <minCardinality>1</minCardinality>
+                    <attributes>
+                        <numericAttribute name=om:payloadTransportCapacity>
+                            <xsd:restriction>
+                                <xsd:minInclusive>1</xsd:minInclusive>
+                            </xsd:restriction>
+                        </numericAttribute>
+                    </attributes>
+                </resource>
+            </resources>
         </resource-requirement>
      \endverbatim
      */
