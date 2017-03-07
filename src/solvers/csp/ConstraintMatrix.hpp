@@ -8,6 +8,11 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
+/**
+ * \class ConstraintMatrix
+ * \brief A matrix that stores min/max values
+ * \details For debugging purposes due to the use of std::map the matrix offers lazy initialization
+ */
 class ConstraintMatrix
 {
     struct MinMax
@@ -26,6 +31,9 @@ class ConstraintMatrix
     owlapi::model::IRIList mAvailableModels;
 public:
 
+    /**
+     * Default constructor of the constraint matrix
+     */
     ConstraintMatrix(const owlapi::model::IRIList& availableModels);
 
     void setMax(RowId row, ColumnId col, uint32_t max) {  mMatrix[row][col].max = max; }
