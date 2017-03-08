@@ -130,8 +130,14 @@ rock_library(templ
         gecodegist
         ${Boost_LIBRARIES}
         proj
-    DEPS_PKGCONFIG graph_analysis numeric organization_model
-        libxml-2.0 base-types gqr eigen3
+    DEPS_PKGCONFIG graph_analysis
+        numeric
+        owlapi
+        organization_model
+        libxml-2.0
+        base-types
+        gqr
+        eigen3
 )
 
 rock_executable(templ_bin Main.cpp
