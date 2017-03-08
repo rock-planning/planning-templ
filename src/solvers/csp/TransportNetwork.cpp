@@ -1781,8 +1781,6 @@ std::string TransportNetwork::toString(const Timelines& timelines, size_t indent
 
 TransportNetwork::Timeline TransportNetwork::convertToTimeline(const AdjacencyList& list) const
 {
-    assert(!list.empty());
-
     Timeline timeline;
     int expectedTargetIdx;
     for(int idx = 0; idx < list.size(); ++idx)
