@@ -19,6 +19,13 @@ rock_library(templ
         solvers/Constraint.cpp
         solvers/ConstraintNetwork.cpp
         solvers/Variable.cpp
+        solvers/agent_routing/AgentType.cpp
+        solvers/agent_routing/AgentTask.cpp
+        solvers/agent_routing/AgentRoutingProblem.cpp
+        solvers/agent_routing/AgentIntegerAttribute.cpp
+        solvers/agent_routing/ArpIO.cpp
+        solvers/agent_routing/io/XMLWriter.cpp
+        solvers/agent_routing/io/XMLReader.cpp
         solvers/csp/ConstraintMatrix.cpp
         solvers/csp/ModelDistribution.cpp
         solvers/csp/Resolver.cpp
@@ -54,6 +61,7 @@ rock_library(templ
         symbols/ObjectVariable.cpp
         symbols/StateVariable.cpp
         symbols/Value.cpp
+        symbols/constants/Location.cpp
         symbols/object_variables/LocationCardinality.cpp
         symbols/object_variables/LocationNumericAttribute.cpp
         utils/CartographicMapping.cpp
@@ -80,6 +88,13 @@ rock_library(templ
         solvers/ConstraintNetwork.hpp
         solvers/GQReasoner.hpp
         solvers/Variable.hpp
+        solvers/agent_routing/ArpIO.hpp
+        solvers/agent_routing/io/XMLWriter.hpp
+        solvers/agent_routing/io/XMLReader.hpp
+        solvers/agent_routing/AgentType.hpp
+        solvers/agent_routing/AgentTask.hpp
+        solvers/agent_routing/AgentRoutingProblem.hpp
+        solvers/agent_routing/AgentIntegerAttribute.hpp
         solvers/csp/ConstraintMatrix.hpp
         solvers/csp/FluentTimeResource.hpp
         solvers/csp/ModelDistribution.hpp

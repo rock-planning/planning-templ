@@ -6,6 +6,11 @@ namespace templ {
 namespace solvers {
 namespace temporal {
 
+Interval::Interval()
+    : mpFrom()
+    , mpTo()
+{}
+
 Interval::Interval(const point_algebra::TimePoint::Ptr& from,
         const point_algebra::TimePoint::Ptr& to,
         const point_algebra::TimePointComparator& comparator)
@@ -13,6 +18,14 @@ Interval::Interval(const point_algebra::TimePoint::Ptr& from,
     , mpTo(to)
     , mTimePointComparator(comparator)
 {}
+
+void Interval::validate() const
+{
+    if(!mpFrom || !mpTo)
+    {
+        throw std::invalid_argument("templ::solvers::temporal::Interval::validate: interval is not fully initialized");
+    }
+}
 
 bool Interval::before(const Interval& other) const
 {
@@ -64,8 +77,18 @@ std::string Interval::toString(uint32_t indent) const
     std::stringstream ss;
     std::string hspace(indent, ' ');
     ss << hspace << "Interval: " << std::endl;
-    ss << hspace << "    from: " << mpFrom->toString() << std::endl;
-    ss << hspace << "    to: " << mpTo->toString() << std::endl;
+    if(mpFrom)
+    {
+        ss << hspace << "    from: " << mpFrom->toString() << std::endl;
+    } else {
+        ss << hspace << "    from: n/a" << std::endl;
+    }
+    if(mpTo)
+    {
+        ss << hspace << "    to: " << mpTo->toString() << std::endl;
+    } else {
+        ss << hspace << "    to: n/a" << std::endl;
+    }
     return ss.str();
 }
 

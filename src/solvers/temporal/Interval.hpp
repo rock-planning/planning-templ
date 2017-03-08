@@ -1,8 +1,8 @@
 #ifndef TEMPL_PLANNING_SOLVERS_TEMPORAL_INTERVAL_HPP
 #define TEMPL_PLANNING_SOLVERS_TEMPORAL_INTERVAL_HPP
 
-#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
-#include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
+#include "point_algebra/TimePoint.hpp"
+#include "point_algebra/TimePointComparator.hpp"
 #include <set>
 
 namespace templ {
@@ -22,13 +22,26 @@ class Interval
     point_algebra::TimePointComparator mTimePointComparator;
 
 public:
+    Interval();
+
     Interval(const point_algebra::TimePoint::Ptr& from,
             const point_algebra::TimePoint::Ptr& to,
             const point_algebra::TimePointComparator& comparator);
 
+    /**
+     * Check the valid initialization of this interval
+     * \throw std::invalid_argument Throw if interval is not properly initialized
+     */
+    void validate() const;
+
+    void setFrom(const point_algebra::TimePoint::Ptr& from) { mpFrom = from; }
     const point_algebra::TimePoint::Ptr& getFrom() const { return mpFrom; }
+
+    void setTo(const point_algebra::TimePoint::Ptr& to) { mpTo = to; }
     const point_algebra::TimePoint::Ptr& getTo() const { return mpTo; }
 
+
+    void setTimePointComparator(const point_algebra::TimePointComparator& comparator) { mTimePointComparator = comparator; }
     const point_algebra::TimePointComparator& getTimePointComparator() const { return mTimePointComparator; }
 
     bool operator==(const Interval& other) const { return equals(other); }

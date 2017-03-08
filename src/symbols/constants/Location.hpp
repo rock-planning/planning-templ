@@ -15,10 +15,9 @@ class Location : public Constant
 public:
     typedef shared_ptr<Location> Ptr;
 
-    Location(const std::string& name, const base::Point& position = base::Point())
-        : Constant(name, Constant::LOCATION)
-        , mPosition(position)
-    {}
+    Location();
+
+    Location(const std::string& name, const base::Point& position = base::Point());
 
     virtual ~Location() {}
 
