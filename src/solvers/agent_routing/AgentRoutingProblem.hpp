@@ -14,6 +14,10 @@ class AgentRoutingProblem
 public:
     AgentRoutingProblem();
 
+    const std::vector<AgentType>& getAgentTypes() const { return mAgentTypes;  }
+    const std::vector<AgentIntegerAttribute>& getAgentIntegerAttributes() const { return mIntegerAttributes; }
+    const std::vector<AgentInstanceRequirement>& getAgentInstanceRequirements() const { return mAgentInstanceRequirements; }
+
     /**
      * Register an Integer Attribute
      *

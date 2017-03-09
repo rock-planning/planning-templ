@@ -23,6 +23,7 @@ rock_library(templ
         solvers/agent_routing/AgentTask.cpp
         solvers/agent_routing/AgentRoutingProblem.cpp
         solvers/agent_routing/AgentIntegerAttribute.cpp
+        solvers/agent_routing/AgentInstanceRequirement.cpp
         solvers/agent_routing/ArpIO.cpp
         solvers/agent_routing/io/XMLWriter.cpp
         solvers/agent_routing/io/XMLReader.cpp
@@ -95,6 +96,7 @@ rock_library(templ
         solvers/agent_routing/AgentTask.hpp
         solvers/agent_routing/AgentRoutingProblem.hpp
         solvers/agent_routing/AgentIntegerAttribute.hpp
+        solvers/agent_routing/AgentInstanceRequirement.hpp
         solvers/csp/ConstraintMatrix.hpp
         solvers/csp/FluentTimeResource.hpp
         solvers/csp/ModelDistribution.hpp

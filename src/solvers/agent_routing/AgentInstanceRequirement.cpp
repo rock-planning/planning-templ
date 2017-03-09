@@ -3,7 +3,7 @@
 namespace templ {
 namespace agent_routing {
 
-void AgentInstanceRequirements::addTask(const AgentTask& task)
+void AgentInstanceRequirement::addTask(const AgentTask& task)
 {
     mTasks.push_back(task);
 }

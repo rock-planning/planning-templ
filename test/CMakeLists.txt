@@ -1,5 +1,6 @@
 rock_testsuite(test_suite suite.cpp
     #test_Scheduling.cpp
+    solvers/test_AgentRoutingProblem.cpp
     solvers/test_CSP.cpp
     solvers/test_Propagators.cpp
     solvers/test_TransportNetwork.cpp

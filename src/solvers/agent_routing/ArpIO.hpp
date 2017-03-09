@@ -46,7 +46,12 @@ public:
 
     static void write(const std::string& path, const AgentRoutingProblem& arp, representation::Type representation = representation::XML);
 
-    static void read(const std::string& path, const AgentRoutingProblem& arp, representation::Type representation = representation::XML);
+    static void read(const std::string& path, AgentRoutingProblem& arp, representation::Type representation = representation::XML);
+
+    static representation::Type getTypeFromSuffix(representation::Suffix suffix);
+    static representation::Suffix getSuffix(representation::Type format);
+    static std::string appendSuffix(const std::string& filename, representation::Type representation);
+    static representation::Type getTypeFromFilename(const std::string& filename);
 
 private:
     static WriterMap msWriters;

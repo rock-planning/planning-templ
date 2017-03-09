@@ -13,12 +13,16 @@ typedef uint32_t AgentTypeId;
 class AgentInstanceRequirement
 {
 public:
-    AgentInstanceRequirement();
+    //AgentInstanceRequirement();
 
+    void setAgentType(const AgentTypeId& agentType) { mTypeId = agentType; }
     AgentTypeId getAgentType() const { return mTypeId; }
+
+    void setAgentId(const AgentId& agentId) { mAgentId = agentId; }
     AgentId getAgentId() const { return mAgentId; }
 
     void addTask(const AgentTask& task);
+    const std::vector<AgentTask>& getAgentTasks() const { return mTasks; }
 
 
 

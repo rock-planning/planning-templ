@@ -10,7 +10,8 @@ namespace agent_routing {
 
 typedef uint32_t TaskPriority;
 typedef uint32_t TaskDuration;
-typedef solvers::temporal::Interval TimeWindow;
+//typedef solvers::temporal::Interval TimeWindow;
+typedef solvers::temporal::point_algebra::TimePoint::Ptr TimeWindow;
 
 class AgentTask
 {
