@@ -121,6 +121,8 @@ std::string AgentRoutingProblem::toString(uint32_t indent) const
     ss << AgentType::toString(mAgentTypes, indent + 8);
     ss << hspace << "    agents:" << std::endl;
     ss << Agent::toString(mAgents, indent + 8);
+    ss << hspace << "    temporal constraint network:" << std::endl;
+    ss << mpTemporalConstraintNetwork->toString(indent+8);
     return ss.str();
 }
 

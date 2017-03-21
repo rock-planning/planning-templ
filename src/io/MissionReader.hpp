@@ -29,8 +29,6 @@ private:
 
     static SpatialRequirement parseSpatialRequirement(xmlDocPtr doc, xmlNodePtr current);
 
-    static TemporalRequirement parseTemporalRequirement(xmlDocPtr doc, xmlNodePtr current);
-
     /**
      *
      *\verbatim
@@ -60,10 +58,6 @@ private:
     static SpatioTemporalRequirement parseRequirement(xmlDocPtr doc, xmlNodePtr current);
 
     static std::vector<SpatioTemporalRequirement> parseRequirements(xmlDocPtr doc, xmlNodePtr current);
-
-    static std::vector<TemporalConstraint> parseTemporalConstraints(xmlDocPtr doc, xmlNodePtr current);
-
-    static Constraints parseConstraints(xmlDocPtr doc, xmlNodePtr current);
 
     static std::set<templ::symbols::Constant::Ptr> parseConstants(xmlDocPtr doc, xmlNodePtr current);
 };

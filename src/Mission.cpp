@@ -163,48 +163,6 @@ void Mission::validateForPlanning() const
     }
 }
 
-solvers::temporal::point_algebra::TimePoint::Ptr Mission::getTimePoint(const std::string& name) const
-{
-    using namespace solvers::temporal::point_algebra;
-
-    graph_analysis::VertexIterator::Ptr it = mpTemporalConstraintNetwork->getVariableIterator();
-    while(it->next())
-    {
-        QualitativeTimePoint::Ptr t = dynamic_pointer_cast<QualitativeTimePoint>(it->current());
-        if(t && t->getLabel() == name)
-        {
-            return t;
-        }
-    }
-    throw std::invalid_argument("templ::Mission::getTimePoint: timepoint with label '" + name + "'"
-            " not found");
-}
-
-solvers::temporal::point_algebra::TimePoint::Ptr Mission::getOrCreateTimePoint(const std::string& name) const
-{
-    using namespace solvers::temporal::point_algebra;
-    TimePoint::Ptr timepoint;
-    try {
-        return getTimePoint(name);
-    } catch(const std::invalid_argument& e)
-    {
-        try {
-            if(name == "inf")
-            {
-                return TimePoint::create(std::numeric_limits<uint64_t>::infinity(), std::numeric_limits<uint64_t>::infinity());
-            } else {
-                uint64_t exactTime = boost::lexical_cast<uint64_t>(name);
-                return TimePoint::create(exactTime, exactTime);
-            }
-        } catch(const std::bad_cast& e)
-        {
-            return TimePoint::create(name);
-        }
-    }
-
-    throw std::runtime_error("templ::Mission::getOrCreateTimePoint: timepoint with label/value '" + name + "' could neither be found nor created");
-}
-
 solvers::temporal::TemporalAssertion::Ptr Mission::addResourceLocationCardinalityConstraint(
             const symbols::constants::Location::Ptr& location,
             const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,

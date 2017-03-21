@@ -101,7 +101,7 @@ public:
      * \throw If we get an inconsistent network; the algorithm will throw (from Floyd-Warshall)
      */
     void upperLowerTightening();
-    
+
     /**
      * Get number of edges of the internal (distance) graph
      * \returns the number of edges in a temporal constraint network
@@ -123,6 +123,22 @@ public:
      * Set a consistent base graph network
      */
     virtual void setConsistentNetwork(const graph_analysis::BaseGraph::Ptr& baseGraph);
+
+    /**
+     * Get a timepoint that exist in this network by name
+     * \throws if the timepoint does not exist
+     */
+    point_algebra::TimePoint::Ptr getTimePoint(const std::string& name) const;
+
+    /**
+     * Get or create a timepoint that exist in this network by name
+     */
+    point_algebra::TimePoint::Ptr getOrCreateTimePoint(const std::string& name) const;
+
+    /**
+     * Create a string representation of the network
+     */
+    virtual std::string toString(uint32_t indent) const;
 
 protected:
     virtual ConstraintNetwork* getClone() const { return new TemporalConstraintNetwork(*this); }

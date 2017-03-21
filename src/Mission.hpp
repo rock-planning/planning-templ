@@ -133,8 +133,6 @@ public:
      */
     void refresh();
 
-    solvers::temporal::point_algebra::TimePoint::Ptr getTimePoint(const std::string& name) const;
-    solvers::temporal::point_algebra::TimePoint::Ptr getOrCreateTimePoint(const std::string& name) const;
 
     const Role::List& getRoles() const { return mRoles; }
 

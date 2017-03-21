@@ -120,5 +120,90 @@ std::string XMLUtils::getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, const st
     throw std::invalid_argument(ss.str());
 }
 
+std::vector<templ::io::TemporalConstraint> XMLUtils::parseTemporalConstraints(xmlDocPtr doc, xmlNodePtr current)
+{
+    using namespace templ::io;
+
+    std::vector<templ::io::TemporalConstraint> constraints;
+    current = current->xmlChildrenNode;
+    while(current != NULL)
+    {
+        if(! (XMLUtils::nameMatches(current,"text") || XMLUtils::nameMatches(current, "comment")))
+        {
+            TemporalConstraint constraint;
+            constraint.type = TemporalConstraint::getTemporalConstraintType( std::string((const char*) current->name) );
+            constraint.lval = XMLUtils::getProperty(current, "lval");
+            constraint.rval = XMLUtils::getProperty(current, "rval");
+
+            LOG_DEBUG_S << "Parsed temporal constraint: " << constraint.toString();
+            constraints.push_back(constraint);
+        }
+
+        current = current->next;
+    }
+    return constraints;
+}
+
+templ::io::TemporalRequirement XMLUtils::parseTemporalRequirement(xmlDocPtr doc, xmlNodePtr current)
+{
+    using namespace templ::io;
+
+    TemporalRequirement requirement;
+
+    current = current->xmlChildrenNode;
+    while(current != NULL)
+    {
+        if(XMLUtils::nameMatches(current,"from"))
+        {
+            requirement.from = XMLUtils::getContent(doc, current);
+        } else if(XMLUtils::nameMatches(current, "to"))
+        {
+            requirement.to = XMLUtils::getContent(doc, current);
+        }
+        current = current->next;
+    }
+    return requirement;
+}
+
+templ::io::Constraints XMLUtils::parseConstraints(xmlDocPtr doc, xmlNodePtr current)
+{
+    LOG_DEBUG_S << "Parsing: " << current->name;
+    templ::io::Constraints constraints;
+    current = current->xmlChildrenNode;
+    while(current != NULL)
+    {
+        if(XMLUtils::nameMatches(current, "temporal-constraints"))
+        {
+            LOG_DEBUG_S << "Parsing: " << current->name;
+            constraints.temporal = XMLUtils::parseTemporalConstraints(doc, current);
+        }
+        current = current->next;
+    }
+    return constraints;
+}
+
+templ::solvers::temporal::TemporalConstraintNetwork::Ptr XMLUtils::readTemporalConstraintNetwork(xmlDocPtr doc, xmlNodePtr current)
+{
+    using namespace templ::solvers::temporal;
+    using namespace templ::io;
+
+    TemporalConstraintNetwork::Ptr tcn(new QualitativeTemporalConstraintNetwork());
+
+    std::vector<TemporalConstraint> temporalConstraints = parseTemporalConstraints(doc, current);
+
+    std::vector<TemporalConstraint>::const_iterator cit = temporalConstraints.begin();
+    for(; cit != temporalConstraints.end(); ++cit)
+    {
+        TemporalConstraint tc = *cit;
+
+        point_algebra::TimePoint::Ptr lval = tcn->getOrCreateTimePoint(tc.lval);
+        point_algebra::TimePoint::Ptr rval = tcn->getOrCreateTimePoint(tc.rval);
+
+        tcn->addQualitativeConstraint(lval, rval, tc.type);
+    }
+    return tcn;
+}
+
+
 } // end namespace utils
 } // end namespace templ

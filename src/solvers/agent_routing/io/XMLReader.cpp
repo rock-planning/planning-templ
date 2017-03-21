@@ -71,6 +71,12 @@ void XMLReader::read(const std::string& url, AgentRoutingProblem& arp)
                 LOG_DEBUG_S << "Found first level node: 'agent-attributes";
                 readAgentAttributes(doc, firstLevelChild);
 
+            } else if(XMLUtils::nameMatches(firstLevelChild, "temporal-constraint-network") )
+            {
+                LOG_DEBUG_S << "Found first level node: 'temporal-constraint-network'";
+
+                solvers::temporal::TemporalConstraintNetwork::Ptr tcn = XMLUtils::readTemporalConstraintNetwork(doc, firstLevelChild);
+                mAgentRoutingProblem.setTemporalConstraintNetwork(tcn);
             }
             firstLevelChild = firstLevelChild->next;
         }
@@ -295,7 +301,6 @@ void XMLReader::readAgentAttributes(xmlDocPtr doc, xmlNodePtr current)
         }
     }
 }
-
 
 } // end namespace io
 } // end namespace agent_routing

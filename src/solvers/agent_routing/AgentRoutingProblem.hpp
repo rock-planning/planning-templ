@@ -6,6 +6,8 @@
 #include "Agent.hpp"
 #include "AgentType.hpp"
 
+#include "../temporal/TemporalConstraintNetwork.hpp"
+
 namespace templ {
 namespace agent_routing {
 
@@ -17,6 +19,9 @@ class AgentRoutingProblem
 {
 public:
     AgentRoutingProblem();
+
+    void setTemporalConstraintNetwork(const solvers::temporal::TemporalConstraintNetwork::Ptr& tcn) { mpTemporalConstraintNetwork = tcn; }
+    solvers::temporal::TemporalConstraintNetwork::Ptr getTemporalConstraintNetwork() { return mpTemporalConstraintNetwork; }
 
     const std::vector<AgentType>& getAgentTypes() const { return mAgentTypes;  }
     const std::vector<AgentIntegerAttribute>& getAgentIntegerAttributes() const { return mIntegerAttributes; }
@@ -82,6 +87,10 @@ private:
     symbols::constants::Location::List mLocations;
     /// Collected list of timepoint where agent are bound to
     solvers::temporal::point_algebra::TimePoint::PtrList mTimePoints;
+
+    /// Temporal Constraint Network
+    solvers::temporal::TemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
+
 };
 
 } // end namespace agent_routing

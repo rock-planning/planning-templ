@@ -5,6 +5,8 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <boost/lexical_cast.hpp>
+#include "../io/MissionRequirements.hpp"
+#include "../solvers/temporal/TemporalConstraintNetwork.hpp"
 
 namespace templ {
 namespace utils {
@@ -36,6 +38,16 @@ public:
      */
     static std::string getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, const std::string& name);
 
+    /**
+     * Parse section of temporal constraints
+     */
+    static std::vector<templ::io::TemporalConstraint> parseTemporalConstraints(xmlDocPtr doc, xmlNodePtr current);
+
+    static templ::io::TemporalRequirement parseTemporalRequirement(xmlDocPtr doc, xmlNodePtr current);
+
+    static templ::io::Constraints parseConstraints(xmlDocPtr doc, xmlNodePtr current);
+
+    static templ::solvers::temporal::TemporalConstraintNetwork::Ptr readTemporalConstraintNetwork(xmlDocPtr doc, xmlNodePtr current);
 };
 
 } // end namespace utils

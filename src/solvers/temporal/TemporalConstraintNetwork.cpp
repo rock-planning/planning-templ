@@ -4,6 +4,7 @@
 #include <graph_analysis/GraphIO.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 #include <limits>
+#include <boost/lexical_cast.hpp>
 
 using namespace templ::solvers::temporal::point_algebra;
 using namespace graph_analysis;
@@ -350,6 +351,67 @@ void TemporalConstraintNetwork::setConsistentNetwork(const graph_analysis::BaseG
 {
     setGraph(baseGraph);
 }
+
+point_algebra::TimePoint::Ptr TemporalConstraintNetwork::getTimePoint(const std::string& name) const
+{
+    using namespace solvers::temporal::point_algebra;
+
+    graph_analysis::VertexIterator::Ptr it = getVariableIterator();
+    while(it->next())
+    {
+        QualitativeTimePoint::Ptr t = dynamic_pointer_cast<QualitativeTimePoint>(it->current());
+        if(t && t->getLabel() == name)
+        {
+            return t;
+        }
+    }
+    throw std::invalid_argument("templ::solvers::temporal::TemporalConstraintNetwork::getTimePoint: timepoint with label '" + name + "'"
+            " not found");
+}
+
+point_algebra::TimePoint::Ptr TemporalConstraintNetwork::getOrCreateTimePoint(const std::string& name) const
+{
+    using namespace solvers::temporal::point_algebra;
+    TimePoint::Ptr timepoint;
+    try {
+        return getTimePoint(name);
+    } catch(const std::invalid_argument& e)
+    {
+        try {
+            if(name == "inf")
+            {
+                return TimePoint::create(std::numeric_limits<uint64_t>::infinity(), std::numeric_limits<uint64_t>::infinity());
+            } else {
+                uint64_t exactTime = boost::lexical_cast<uint64_t>(name);
+                return TimePoint::create(exactTime, exactTime);
+            }
+        } catch(const std::bad_cast& e)
+        {
+            return TimePoint::create(name);
+        }
+    }
+
+    throw std::runtime_error("templ::solvers::temporal::TemporalConstraintNetwork::getOrCreateTimePoint: timepoint with label/value '" + name + "' could neither be found nor created");
+}
+
+std::string TemporalConstraintNetwork::toString(uint32_t indent) const
+{
+    std::stringstream ss;
+    std::string hspace(indent,' ');
+
+    using namespace solvers::temporal::point_algebra;
+    graph_analysis::EdgeIterator::Ptr it = getConstraintIterator();
+    while(it->next())
+    {
+        QualitativeTimePointConstraint::Ptr t = dynamic_pointer_cast<QualitativeTimePointConstraint>(it->current());
+        if(t)
+        {
+            ss << hspace << t->toString();
+        }
+    }
+    return ss.str();
+}
+
 
 } // end namespace temporal
 } // end namespace solvers

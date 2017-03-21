@@ -86,8 +86,9 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
 
                     using namespace solvers::temporal::point_algebra;
 
-                    TimePoint::Ptr from = mission.getOrCreateTimePoint(requirement.temporal.from);
-                    TimePoint::Ptr to = mission.getOrCreateTimePoint(requirement.temporal.to);
+                    solvers::temporal::TemporalConstraintNetwork::Ptr tcn = mission.getTemporalConstraintNetwork();
+                    TimePoint::Ptr from = tcn->getOrCreateTimePoint(requirement.temporal.from);
+                    TimePoint::Ptr to = tcn->getOrCreateTimePoint(requirement.temporal.to);
 
                     if( from->getType() != to->getType())
                     {
@@ -145,7 +146,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
             } else if(XMLUtils::nameMatches(firstLevelChild, "constraints"))
             {
                 LOG_DEBUG_S << "Found first level node: 'constraints' ";
-                Constraints constraints = parseConstraints(doc, firstLevelChild);
+                Constraints constraints = XMLUtils::parseConstraints(doc, firstLevelChild);
 
                 std::vector<TemporalConstraint>::const_iterator cit = constraints.temporal.begin();
                 for(; cit != constraints.temporal.end(); ++cit)
@@ -153,8 +154,10 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                     TemporalConstraint temporalConstraint = *cit;
 
                     using namespace solvers::temporal::point_algebra;
-                    TimePoint::Ptr t0 = mission.getOrCreateTimePoint(temporalConstraint.lval);
-                    TimePoint::Ptr t1 = mission.getOrCreateTimePoint(temporalConstraint.rval);
+                    solvers::temporal::TemporalConstraintNetwork::Ptr tcn = mission.getTemporalConstraintNetwork();
+                    TimePoint::Ptr t0 = tcn->getOrCreateTimePoint(temporalConstraint.lval);
+                    TimePoint::Ptr t1 = tcn->getOrCreateTimePoint(temporalConstraint.rval);
+
                     mission.addTemporalConstraint(t0, t1, temporalConstraint.type);
                 }
             } else if(XMLUtils::nameMatches(firstLevelChild, "constants"))
@@ -247,25 +250,6 @@ SpatialRequirement MissionReader::parseSpatialRequirement(xmlDocPtr doc, xmlNode
         if(XMLUtils::nameMatches(current, "location"))
         {
             requirement.location.id = XMLUtils::getSubNodeContent(doc, current, "id");
-        }
-        current = current->next;
-    }
-    return requirement;
-}
-
-TemporalRequirement MissionReader::parseTemporalRequirement(xmlDocPtr doc, xmlNodePtr current)
-{
-    TemporalRequirement requirement;
-
-    current = current->xmlChildrenNode;
-    while(current != NULL)
-    {
-        if(XMLUtils::nameMatches(current,"from"))
-        {
-            requirement.from = XMLUtils::getContent(doc, current);
-        } else if(XMLUtils::nameMatches(current, "to"))
-        {
-            requirement.to = XMLUtils::getContent(doc, current);
         }
         current = current->next;
     }
@@ -434,7 +418,7 @@ SpatioTemporalRequirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNode
             } else if(XMLUtils::nameMatches(requirementNode, "temporal-requirement"))
             {
                 LOG_DEBUG_S << "Parse temporal requirement";
-                requirement.temporal = parseTemporalRequirement(doc, requirementNode);
+                requirement.temporal = XMLUtils::parseTemporalRequirement(doc, requirementNode);
                 LOG_DEBUG_S << "Parsed temporal requirement: " << requirement.temporal.toString();
             } else if(XMLUtils::nameMatches(requirementNode, "resource-requirement"))
             {
@@ -466,45 +450,6 @@ std::vector<SpatioTemporalRequirement> MissionReader::parseRequirements(xmlDocPt
         current = current->next;
     }
     return requirements;
-}
-
-std::vector<TemporalConstraint> MissionReader::parseTemporalConstraints(xmlDocPtr doc, xmlNodePtr current)
-{
-    std::vector<TemporalConstraint> constraints;
-    current = current->xmlChildrenNode;
-    while(current != NULL)
-    {
-        if(! (XMLUtils::nameMatches(current,"text") || XMLUtils::nameMatches(current, "comment")))
-        {
-            TemporalConstraint constraint;
-            constraint.type = TemporalConstraint::getTemporalConstraintType( std::string((const char*) current->name) );
-            constraint.lval = XMLUtils::getProperty(current, "lval");
-            constraint.rval = XMLUtils::getProperty(current, "rval");
-
-            LOG_DEBUG_S << "Parsed temporal constraint: " << constraint.toString();
-            constraints.push_back(constraint);
-        }
-
-        current = current->next;
-    }
-    return constraints;
-}
-
-Constraints MissionReader::parseConstraints(xmlDocPtr doc, xmlNodePtr current)
-{
-    LOG_INFO_S << "Parsing: " << current->name;
-    Constraints constraints;
-    current = current->xmlChildrenNode;
-    while(current != NULL)
-    {
-        if(XMLUtils::nameMatches(current, "temporal-constraints"))
-        {
-            LOG_INFO_S << "Parsing: " << current->name;
-            constraints.temporal = parseTemporalConstraints(doc, current);
-        }
-        current = current->next;
-    }
-    return constraints;
 }
 
 std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr doc, xmlNodePtr current)
