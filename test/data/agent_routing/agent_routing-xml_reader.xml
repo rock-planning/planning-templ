@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<agent-routing-problem>
+  <!--The general description of an agent vehicle routing problem-->
+  <agent-attributes>
+    <!--The commonly available attributes on the set of agents-->
+    <integer-attribute id="0" label="mobile" min="0" max="4294967295"/>
+    <integer-attribute id="1" label="transport-capacity" min="0" max="4294967295"/>
+    <integer-attribute id="2" label="transport-cost-factor" min="0" max="4294967295"/>
+  </agent-attributes>
+  <agent-types>
+    <agent-type id="0">
+      <attribute id="0">1</attribute>
+      <attribute id="1">100</attribute>
+      <attribute id="2">21</attribute>
+    </agent-type>
+    <agent-type id="1"/>
+    <agent-type id="2"/>
+    <agent-type id="3"/>
+    <agent-type id="4"/>
+    <agent-type id="5"/>
+    <agent-type id="6"/>
+    <agent-type id="7"/>
+    <agent-type id="8"/>
+    <agent-type id="9"/>
+    <!--Available agent types-->
+  </agent-types>
+  <agents>
+    <!--This is the description of all agent instance requirements-->
+    <agent id="11" type="0">
+      <tasks>
+        <task priority="99" duration="10">
+          <location x="3" y="-4">loc-0</location>
+          <arrival>t0</arrival>
+          <departure>t1</departure>
+        </task>
+      </tasks>
+    </agent>
+  </agents>
+</agent-routing-problem>

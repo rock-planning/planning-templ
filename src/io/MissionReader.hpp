@@ -20,23 +20,6 @@ public:
     static Mission fromFile(const std::string& url, const organization_model::OrganizationModel::Ptr& organizationModel);
 
 private:
-    static bool nameMatches(xmlNodePtr node, const std::string& name, bool useNamespace = false);
-
-    static std::string resolveNamespacePrefix(xmlDocPtr doc, xmlNodePtr node, const std::string& prefix);
-
-    static std::string getContent(xmlDocPtr doc, xmlNodePtr node, size_t count = 1);
-
-    static std::string getProperty(xmlNodePtr node, const std::string& name);
-
-    /**
-     * Retrieve the content of a named subnode
-     * \param doc xml document
-     * \param node the current node
-     * \param the name of the subnode
-     * \throws std::invalid_argument if subnode of given name cannot be found
-     */
-    static std::string getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, const std::string& name);
-
     static std::pair<owlapi::model::IRI, size_t> parseResource(xmlDocPtr doc, xmlNodePtr current);
 
     /**

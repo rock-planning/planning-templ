@@ -8,125 +8,14 @@
 #include <base-logging/Logging.hpp>
 #include <templ/SharedPtr.hpp>
 #include <templ/symbols/constants/Location.hpp>
+#include <templ/utils/XMLUtils.hpp>
 #include <templ/utils/CartographicMapping.hpp>
 #include <owlapi/vocabularies/XSD.hpp>
 
+using namespace templ::utils;
+
 namespace templ {
 namespace io {
-
-bool MissionReader::nameMatches(xmlNodePtr node, const std::string& name, bool useNamespace)
-{
-    std::string nodeName;
-    if(node->ns && useNamespace)
-    {
-        nodeName = std::string( (const char*) node->ns->href);
-    }
-    nodeName += std::string((const char*) node->name);
-    return nodeName == name;
-}
-
-std::string MissionReader::getContent(xmlDocPtr doc, xmlNodePtr node, size_t count)
-{
-    xmlChar* key = xmlNodeListGetString(doc, node->xmlChildrenNode, count);
-    if(key)
-    {
-        std::string content((const char*) key);
-        xmlFree(key);
-
-        std::string http = "http://";
-        std::string prefix = content.substr(0,http.size());
-        if(prefix != http)
-        {
-            size_t found = content.find_first_of(':');
-            if(found != std::string::npos)
-            {
-                std::string prefix = content.substr(0,found);
-                std::string ns = resolveNamespacePrefix(doc, node, prefix);
-                std::string core = content.substr(found+1);
-                content = ns + core;
-            }
-        }
-        return content;
-    } else {
-        return std::string();
-    }
-}
-
-std::string MissionReader::resolveNamespacePrefix(xmlDocPtr doc, xmlNodePtr node, const std::string& prefix)
-{
-    xmlNsPtr *nsList = xmlGetNsList(doc,node);
-    xmlNsPtr *deleteRef = nsList;
-
-    std::string href;
-    bool found = false;
-
-    // Walk list and register xpath
-    while( nsList != NULL && (*nsList)->next)
-    {
-        if( (*nsList)->prefix != NULL)
-        {
-            std::string content((const char*) (*nsList)->prefix);
-            if(content == prefix && (*nsList)->href != NULL)
-            {
-                std::string content((const char*) (*nsList)->href);
-                href = content;
-                found = true;
-                break;
-            }
-        }
-        ++nsList; // Next
-    }
-    if(deleteRef != NULL)
-    {
-        xmlFree(deleteRef);
-    }
-    if(found)
-    {
-        return href;
-    } else {
-        std::stringstream ss;
-        ss << "templ::MissionReader::resolveNamespacePrefix: could not resolve namespace ";
-        ss << "'" << prefix << "' at line: " << xmlGetLineNo(node);
-        throw std::invalid_argument(ss.str());
-    }
-}
-
-std::string MissionReader::getProperty(xmlNodePtr node, const std::string& name)
-{
-    std::string property;
-    xmlChar* xmlName = xmlCharStrdup(name.c_str());
-    xmlChar* value = xmlGetProp(node, xmlName);
-    xmlFree(xmlName);
-    if(value)
-    {
-        property = std::string((const char*) value);
-        xmlFree(value);
-        return property;
-    }
-    std::stringstream ss;
-    ss << "templ::io::MissionReader::getProperty: could not find property ";
-    ss << "'" << name << "' at line " << xmlGetLineNo(node);
-    throw std::invalid_argument(ss.str());
-}
-
-std::string MissionReader::getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, const std::string& name)
-{
-    xmlNodePtr subNode = node->xmlChildrenNode;
-    while(subNode != NULL)
-    {
-        if(nameMatches(subNode, name))
-        {
-            return getContent(doc, subNode);
-        }
-
-        subNode = subNode->next;
-    }
-    std::stringstream ss;
-    ss << "templ::io::MissionReader::getSubNodeContent: could not find subnode ";
-    ss << "'" << name << "' in node '" << std::string((const char*) node->name) << "'";
-    ss << " at line " << xmlGetLineNo(node);
-    throw std::invalid_argument(ss.str());
-}
 
 Mission MissionReader::fromFile(const std::string& url, const organization_model::OrganizationModel::Ptr& om)
 {
@@ -169,17 +58,17 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
         xmlNodePtr firstLevelChild = rootNode->xmlChildrenNode;
         while(firstLevelChild != NULL)
         {
-            if(nameMatches(firstLevelChild, "name"))
+            if(XMLUtils::nameMatches(firstLevelChild, "name"))
             {
-                std::string name = getContent(doc, firstLevelChild);
+                std::string name = XMLUtils::getContent(doc, firstLevelChild);
                 LOG_DEBUG_S << "Found first level node: 'name' " << name;
                 mission.setName(name);
-            } else if(nameMatches(firstLevelChild, "resources"))
+            } else if(XMLUtils::nameMatches(firstLevelChild, "resources"))
             {
                 LOG_DEBUG_S << "Found first level node: 'resources' ";
                 organization_model::ModelPool modelPool = parseResources(doc, firstLevelChild);
                 mission.setAvailableResources(modelPool);
-            } else if(nameMatches(firstLevelChild, "requirements"))
+            } else if(XMLUtils::nameMatches(firstLevelChild, "requirements"))
             {
                 LOG_DEBUG_S << "Found first level node: 'requirements' ";
                 std::vector<SpatioTemporalRequirement> requirements = parseRequirements(doc, firstLevelChild);
@@ -253,7 +142,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
 
                     }
                 }
-            } else if(nameMatches(firstLevelChild, "constraints"))
+            } else if(XMLUtils::nameMatches(firstLevelChild, "constraints"))
             {
                 LOG_DEBUG_S << "Found first level node: 'constraints' ";
                 Constraints constraints = parseConstraints(doc, firstLevelChild);
@@ -268,7 +157,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                     TimePoint::Ptr t1 = mission.getOrCreateTimePoint(temporalConstraint.rval);
                     mission.addTemporalConstraint(t0, t1, temporalConstraint.type);
                 }
-            } else if(nameMatches(firstLevelChild, "constants"))
+            } else if(XMLUtils::nameMatches(firstLevelChild, "constants"))
             {
                 LOG_DEBUG_S << "Found first level node: 'constants' ";
                 using namespace ::templ::symbols;
@@ -302,11 +191,11 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
 
 std::pair<owlapi::model::IRI, size_t> MissionReader::parseResource(xmlDocPtr doc, xmlNodePtr current)
 {
-    if(nameMatches(current, "resource"))
+    if(XMLUtils::nameMatches(current, "resource"))
     {
         LOG_INFO_S << "Parsing: " << current->name;
-        std::string model = getSubNodeContent(doc, current, "model");
-        std::string maxCardinalityTxt = getSubNodeContent(doc, current, "maxCardinality");
+        std::string model = XMLUtils::getSubNodeContent(doc, current, "model");
+        std::string maxCardinalityTxt = XMLUtils::getSubNodeContent(doc, current, "maxCardinality");
 
         //model = "http://www.rock-robotics.org/2014/01/om-schema#Payload";
 
@@ -332,7 +221,7 @@ organization_model::ModelPool MissionReader::parseResources(xmlDocPtr doc, xmlNo
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(nameMatches(current, "resource"))
+        if(XMLUtils::nameMatches(current, "resource"))
         {
             std::pair<owlapi::model::IRI, size_t> resourceBound = parseResource(doc, current);
 
@@ -355,9 +244,9 @@ SpatialRequirement MissionReader::parseSpatialRequirement(xmlDocPtr doc, xmlNode
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(nameMatches(current, "location"))
+        if(XMLUtils::nameMatches(current, "location"))
         {
-            requirement.location.id = getSubNodeContent(doc, current, "id");
+            requirement.location.id = XMLUtils::getSubNodeContent(doc, current, "id");
         }
         current = current->next;
     }
@@ -371,12 +260,12 @@ TemporalRequirement MissionReader::parseTemporalRequirement(xmlDocPtr doc, xmlNo
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(nameMatches(current,"from"))
+        if(XMLUtils::nameMatches(current,"from"))
         {
-            requirement.from = getContent(doc, current);
-        } else if(nameMatches(current, "to"))
+            requirement.from = XMLUtils::getContent(doc, current);
+        } else if(XMLUtils::nameMatches(current, "to"))
         {
-            requirement.to = getContent(doc, current);
+            requirement.to = XMLUtils::getContent(doc, current);
         }
         current = current->next;
     }
@@ -389,13 +278,13 @@ std::vector<ResourceRequirement> MissionReader::parseResourceRequirements(xmlDoc
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(nameMatches(current, "resource"))
+        if(XMLUtils::nameMatches(current, "resource"))
         {
             ResourceRequirement resourceRequirement;
-            resourceRequirement.model = getSubNodeContent(doc, current, "model");
+            resourceRequirement.model = XMLUtils::getSubNodeContent(doc, current, "model");
 
             try {
-                std::string minCardinalityTxt = getSubNodeContent(doc, current, "minCardinality");
+                std::string minCardinalityTxt = XMLUtils::getSubNodeContent(doc, current, "minCardinality");
                 resourceRequirement.minCardinality = ::boost::lexical_cast<uint32_t>(minCardinalityTxt);
             } catch(...)
             {
@@ -406,7 +295,7 @@ std::vector<ResourceRequirement> MissionReader::parseResourceRequirements(xmlDoc
             }
 
             try {
-                std::string maxCardinalityTxt = getSubNodeContent(doc, current, "maxCardinality");
+                std::string maxCardinalityTxt = XMLUtils::getSubNodeContent(doc, current, "maxCardinality");
                 resourceRequirement.maxCardinality = ::boost::lexical_cast<uint32_t>(maxCardinalityTxt);
             } catch(...)
             {
@@ -429,31 +318,31 @@ NumericAttributeRequirements MissionReader::parseAttributes(xmlDocPtr doc, xmlNo
     xmlNodePtr subNode = current->xmlChildrenNode;
     while(subNode != NULL)
     {
-        if( nameMatches(subNode, "attributes") )
+        if( XMLUtils::nameMatches(subNode, "attributes") )
         {
             xmlNodePtr numericAttributeNode = subNode->xmlChildrenNode;
             while(numericAttributeNode != NULL)
             {
-                if( nameMatches(numericAttributeNode, "attribute") )
+                if( XMLUtils::nameMatches(numericAttributeNode, "attribute") )
                 {
                     NumericAttributeRequirement requirement;
-                    requirement.model = getProperty(numericAttributeNode, "name");
+                    requirement.model = XMLUtils::getProperty(numericAttributeNode, "name");
 
                     xmlNodePtr restrictionNode = numericAttributeNode->xmlChildrenNode;
                     while(restrictionNode != NULL)
                     {
-                        if( nameMatches(restrictionNode, owlapi::vocabulary::XSD::restriction().toString(), true) )
+                        if( XMLUtils::nameMatches(restrictionNode, owlapi::vocabulary::XSD::restriction().toString(), true) )
                         {
                             xmlNodePtr actualRestriction = restrictionNode->xmlChildrenNode;
                             while(actualRestriction != NULL)
                             {
-                                if(nameMatches(actualRestriction, owlapi::vocabulary::XSD::minInclusive().toString(), true))
+                                if(XMLUtils::nameMatches(actualRestriction, owlapi::vocabulary::XSD::minInclusive().toString(), true))
                                 {
-                                    std::string minInclusiveTxt = getContent(doc,actualRestriction);
+                                    std::string minInclusiveTxt = XMLUtils::getContent(doc,actualRestriction);
                                     requirement.minInclusive = ::boost::lexical_cast<int32_t>(minInclusiveTxt);
-                                } else if( nameMatches(actualRestriction, owlapi::vocabulary::XSD::maxInclusive().toString(), true) )
+                                } else if( XMLUtils::nameMatches(actualRestriction, owlapi::vocabulary::XSD::maxInclusive().toString(), true) )
                                 {
-                                    std::string maxInclusiveTxt = getContent(doc,actualRestriction);
+                                    std::string maxInclusiveTxt = XMLUtils::getContent(doc,actualRestriction);
                                     requirement.maxInclusive = ::boost::lexical_cast<int32_t>(maxInclusiveTxt);
                                 }
                                 actualRestriction = actualRestriction->next;
@@ -481,12 +370,12 @@ ResourceReificationRequirement MissionReader::parseResourceReificationRequiremen
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(nameMatches(current, "resource"))
+        if(XMLUtils::nameMatches(current, "resource"))
         {
-            std::string model = getSubNodeContent(doc, current, "model");
+            std::string model = XMLUtils::getSubNodeContent(doc, current, "model");
             std::string ids;
             try {
-                ids = getSubNodeContent(doc, current, "ids");
+                ids = XMLUtils::getSubNodeContent(doc, current, "ids");
             } catch(...)
             {
                 // no id constraint present
@@ -497,7 +386,7 @@ ResourceReificationRequirement MissionReader::parseResourceReificationRequiremen
                 std::vector<std::string> listOfIds;
                 ::boost::split(listOfIds, ids, boost::is_any_of(",;"));
 
-                std::string minCardinalityTxt = getSubNodeContent(doc, current, "minCardinality");
+                std::string minCardinalityTxt = XMLUtils::getSubNodeContent(doc, current, "minCardinality");
                 uint32_t minCardinality = ::boost::lexical_cast<uint32_t>(minCardinalityTxt);
                 if(minCardinality < listOfIds.size())
                 {
@@ -527,27 +416,27 @@ ResourceReificationRequirement MissionReader::parseResourceReificationRequiremen
 SpatioTemporalRequirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNodePtr current)
 {
     SpatioTemporalRequirement requirement;
-    if(nameMatches(current, "requirement"))
+    if(XMLUtils::nameMatches(current, "requirement"))
     {
         LOG_INFO_S << "Parsing: " << current->name;
-        std::string id = getProperty(current, "id");
+        std::string id = XMLUtils::getProperty(current, "id");
         requirement.id = boost::lexical_cast<uint32_t>(id);
 
         xmlNodePtr requirementNode = current->xmlChildrenNode;
         while(requirementNode != NULL)
         {
-            if(nameMatches(requirementNode, "spatial-requirement"))
+            if(XMLUtils::nameMatches(requirementNode, "spatial-requirement"))
             {
                 LOG_DEBUG_S << "Parse spatial requirement";
                 requirement.spatial = parseSpatialRequirement(doc, requirementNode);
                 LOG_DEBUG_S << "Parsed spatial requirement: " << requirement.spatial.toString();
 
-            } else if(nameMatches(requirementNode, "temporal-requirement"))
+            } else if(XMLUtils::nameMatches(requirementNode, "temporal-requirement"))
             {
                 LOG_DEBUG_S << "Parse temporal requirement";
                 requirement.temporal = parseTemporalRequirement(doc, requirementNode);
                 LOG_DEBUG_S << "Parsed temporal requirement: " << requirement.temporal.toString();
-            } else if(nameMatches(requirementNode, "resource-requirement"))
+            } else if(XMLUtils::nameMatches(requirementNode, "resource-requirement"))
             {
                 LOG_DEBUG_S << "Parse resources requirement";
                 requirement.resources = parseResourceRequirements(doc, requirementNode);
@@ -568,7 +457,7 @@ std::vector<SpatioTemporalRequirement> MissionReader::parseRequirements(xmlDocPt
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(nameMatches(current, "requirement"))
+        if(XMLUtils::nameMatches(current, "requirement"))
         {
             SpatioTemporalRequirement requirement = parseRequirement(doc, current);
             LOG_INFO_S << "Parsed requirement: " << requirement.toString();
@@ -585,12 +474,12 @@ std::vector<TemporalConstraint> MissionReader::parseTemporalConstraints(xmlDocPt
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(! (nameMatches(current,"text") || nameMatches(current, "comment")))
+        if(! (XMLUtils::nameMatches(current,"text") || XMLUtils::nameMatches(current, "comment")))
         {
             TemporalConstraint constraint;
             constraint.type = TemporalConstraint::getTemporalConstraintType( std::string((const char*) current->name) );
-            constraint.lval = getProperty(current, "lval");
-            constraint.rval = getProperty(current, "rval");
+            constraint.lval = XMLUtils::getProperty(current, "lval");
+            constraint.rval = XMLUtils::getProperty(current, "rval");
 
             LOG_DEBUG_S << "Parsed temporal constraint: " << constraint.toString();
             constraints.push_back(constraint);
@@ -608,7 +497,7 @@ Constraints MissionReader::parseConstraints(xmlDocPtr doc, xmlNodePtr current)
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(nameMatches(current, "temporal-constraints"))
+        if(XMLUtils::nameMatches(current, "temporal-constraints"))
         {
             LOG_INFO_S << "Parsing: " << current->name;
             constraints.temporal = parseTemporalConstraints(doc, current);
@@ -626,9 +515,9 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(nameMatches(current, "location"))
+        if(XMLUtils::nameMatches(current, "location"))
         {
-            std::string name = getSubNodeContent(doc, current, "id");
+            std::string name = XMLUtils::getSubNodeContent(doc, current, "id");
 
             if(locations.count(name))
             {
@@ -638,9 +527,9 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
             base::Point position;
             bool metricDefinition = false;
             try {
-                position.x() = ::boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "x") );
-                position.y() = ::boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "y") );
-                position.z() = ::boost::lexical_cast<int32_t>( getSubNodeContent(doc, current, "z") );
+                position.x() = ::boost::lexical_cast<int32_t>( XMLUtils::getSubNodeContent(doc, current, "x") );
+                position.y() = ::boost::lexical_cast<int32_t>( XMLUtils::getSubNodeContent(doc, current, "y") );
+                position.z() = ::boost::lexical_cast<int32_t>( XMLUtils::getSubNodeContent(doc, current, "z") );
                 metricDefinition = true;
             } catch(const std::exception& e)
             {
@@ -651,9 +540,9 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
             {
                 try {
 
-                    double latitude = ::boost::lexical_cast<double>( getSubNodeContent(doc, current, "latitude") );
-                    double longitude = ::boost::lexical_cast<double>( getSubNodeContent(doc, current, "longitude") );
-                    std::string radius = getSubNodeContent(doc, current, "radius");
+                    double latitude = ::boost::lexical_cast<double>( XMLUtils::getSubNodeContent(doc, current, "latitude") );
+                    double longitude = ::boost::lexical_cast<double>( XMLUtils::getSubNodeContent(doc, current, "longitude") );
+                    std::string radius = XMLUtils::getSubNodeContent(doc, current, "radius");
                     utils::CartographicMapping mapping(radius);
                     base::Point point(latitude, longitude, 0.0);
                     position = mapping.latitudeLongitudeToMetric(point);

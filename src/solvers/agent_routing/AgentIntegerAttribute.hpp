@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 namespace templ {
 namespace agent_routing {
@@ -10,9 +11,10 @@ namespace agent_routing {
 class AgentIntegerAttribute
 {
 public:
+    typedef std::vector<AgentIntegerAttribute> List;
 
     AgentIntegerAttribute();
-    AgentIntegerAttribute(uint32_t id, const std::string& label);
+    AgentIntegerAttribute(uint32_t id, const std::string& label = "");
 
     bool isValid() const;
 
@@ -27,6 +29,9 @@ public:
 
     void setMaxValue(uint32_t value) { mMaxValue = value; }
     uint32_t getMaxValue() const { return mMaxValue; }
+
+    std::string toString(uint32_t indent = 0) const;
+    static std::string toString(const List& list, uint32_t indent = 0);
 
 protected:
     uint32_t mId;

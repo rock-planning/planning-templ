@@ -7,10 +7,18 @@
 namespace templ {
 namespace agent_routing {
 
+typedef uint32_t AgentTypeId;
+
 class AgentType
 {
 public:
+    typedef std::vector<AgentType> List;
+
     AgentType();
+
+    AgentType(const AgentTypeId& id);
+
+    const AgentTypeId& getTypeId() const { return mTypeId; }
 
     /**
      * Register an Integer Attribute
@@ -26,10 +34,20 @@ public:
      */
     bool hasIntegerAttributeId(uint32_t id) const;
 
+    /**
+     * Retrieve the integer attributes
+     */
+    const AgentIntegerAttribute::List& getAgentIntegerAttributes() const { return mIntegerAttributes; }
+
+    std::string toString(uint32_t indent = 0) const;
+
+    static std::string toString(const List& list, uint32_t = 0);
+
 private:
+    uint32_t mTypeId;
 
     // number of attributes
-    std::vector<AgentIntegerAttribute> mIntegerAttributes;
+    AgentIntegerAttribute::List mIntegerAttributes;
 
 };
 

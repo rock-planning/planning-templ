@@ -2,11 +2,20 @@
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
+#include <sstream>
 
 #include "AgentType.hpp"
 
 namespace templ {
 namespace agent_routing {
+
+AgentType::AgentType()
+    : mTypeId(std::numeric_limits<uint32_t>::infinity())
+{}
+
+AgentType::AgentType(const AgentTypeId& id)
+    : mTypeId(id)
+{}
 
 void AgentType::addIntegerAttribute(const AgentIntegerAttribute& a)
 {
@@ -33,6 +42,28 @@ bool AgentType::hasIntegerAttributeId(uint32_t id) const
                 return a.getId() == id;
             });
     return cit != mIntegerAttributes.end();
+}
+
+std::string AgentType::toString(uint32_t indent) const
+{
+    std::stringstream ss;
+    std::string hspace(indent,' ');
+    ss << hspace << "AgentType:" << std::endl;
+    ss << hspace << "    id: " << mTypeId << std::endl;
+    ss << AgentIntegerAttribute::toString(mIntegerAttributes, indent + 4);
+    return ss.str();
+}
+
+std::string AgentType::toString(const AgentType::List& list, uint32_t indent)
+{
+    std::stringstream ss;
+    std::string hspace(indent, ' ');
+    AgentType::List::const_iterator cit = list.begin();
+    for(; cit != list.end(); ++cit)
+    {
+        ss << cit->toString(indent);
+    }
+    return ss.str();
 }
 
 } // namespace agent_routing

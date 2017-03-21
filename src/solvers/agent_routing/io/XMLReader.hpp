@@ -2,6 +2,7 @@
 #define TEMPL_AGENT_ROUTING_IO_XML_READER_HPP
 
 #include "../ArpIO.hpp"
+#include <templ/utils/XMLUtils.hpp>
 
 namespace templ {
 namespace agent_routing {
@@ -14,8 +15,19 @@ public:
     virtual ~XMLReader();
     void read(const std::string& path, AgentRoutingProblem& arp);
 
-private:
+    void readAgentTypes(xmlDocPtr doc, xmlNodePtr current);
+    AgentType parseAgentType(xmlDocPtr doc, xmlNodePtr current);
+    AgentIntegerAttribute parseIntegerAttribute(xmlDocPtr doc, xmlNodePtr);
 
+    void readAgents(xmlDocPtr doc, xmlNodePtr current);
+    Agent parseAgent(xmlDocPtr doc, xmlNodePtr current);
+
+    AgentTask parseTask(xmlDocPtr doc, xmlNodePtr current);
+    AgentTask::List parseTasks(xmlDocPtr doc, xmlNodePtr current);
+
+    void readAgentAttributes(xmlDocPtr doc, xmlNodePtr current);
+private:
+    AgentRoutingProblem mAgentRoutingProblem;
 };
 
 } // end namespace io

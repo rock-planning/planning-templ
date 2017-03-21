@@ -47,11 +47,48 @@ void XMLWriter::write(const std::string& path, const AgentRoutingProblem& arp)
     startElement(writer, "agent-routing-problem");
     writeComment(writer, "The general description of an agent vehicle routing problem");
 
-    startElement(writer, "agent-integer-attributes");
+    startElement(writer, "agent-attributes");
     writeComment(writer, "The commonly available attributes on the set of agents");
+    {
+        const std::vector<AgentIntegerAttribute>& attributes = arp.getAgentIntegerAttributes();
+        std::vector<AgentIntegerAttribute>::const_iterator ait = attributes.begin();
+        for(; ait != attributes.end(); ++ait)
+        {
+            const AgentIntegerAttribute& attribute = *ait;
+            startElement(writer, "integer-attribute");
+            writeAttribute(writer, "id", attribute.getId());
+            writeAttribute(writer, "label", attribute.getLabel());
+            writeAttribute(writer, "min", attribute.getMinValue());
+            writeAttribute(writer, "max", attribute.getMaxValue());
+            endElement(writer);
+        }
+    }
     endElement(writer);
 
     startElement(writer, "agent-types");
+    const std::vector<AgentType>& types = arp.getAgentTypes();
+    std::vector<AgentType>::const_iterator typesIt = types.begin();
+    for(; typesIt != types.end(); ++typesIt)
+    {
+        const AgentType& type = *typesIt;
+        const std::vector<AgentIntegerAttribute>& typeAttributes = type.getAgentIntegerAttributes();
+        std::vector<AgentIntegerAttribute>::const_iterator ait = typeAttributes.begin();
+        startElement(writer, "agent-type");
+        writeAttribute(writer, "id", type.getTypeId());
+
+        for(; ait != typeAttributes.end(); ++ait)
+        {
+            const AgentIntegerAttribute& attribute = *ait;
+            startElement(writer, "attribute");
+            writeAttribute(writer, "id", attribute.getId());
+            std::stringstream ss;
+            ss << attribute.getValue();
+            writeString(writer, ss.str());
+            endElement(writer);
+        }
+        endElement(writer);
+    }
+
     writeComment(writer, "Available agent types");
     //xmlTextWriterWriteFormatElement(writer, BAD_CAST "X_ORDER_ID", "%010d", 53535);
     endElement(writer);
@@ -59,8 +96,8 @@ void XMLWriter::write(const std::string& path, const AgentRoutingProblem& arp)
     startElement(writer, "agents");
     writeComment(writer, "This is the description of all agent instance requirements");
     {
-        const std::vector<AgentInstanceRequirement>& requirements = arp.getAgentInstanceRequirements();
-        std::vector<AgentInstanceRequirement>::const_iterator cit = requirements.begin();
+        const std::vector<Agent>& requirements = arp.getAgents();
+        std::vector<Agent>::const_iterator cit = requirements.begin();
         for(; cit != requirements.end(); ++cit)
         {
             startElement(writer, "agent");
@@ -80,6 +117,7 @@ void XMLWriter::write(const std::string& path, const AgentRoutingProblem& arp)
                     startElement(writer, "location");
                     writeAttribute(writer, "x", task.getLocation().getPosition().x());
                     writeAttribute(writer, "y", task.getLocation().getPosition().y());
+                    writeString(writer, task.getLocation().getInstanceName());
                     endElement(writer);
                 }
                 {

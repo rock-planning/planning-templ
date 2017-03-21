@@ -3,6 +3,7 @@
 
 #include <templ/symbols/Constant.hpp>
 #include <base/Point.hpp>
+#include <vector>
 
 namespace templ {
 namespace symbols {
@@ -14,16 +15,20 @@ class Location : public Constant
 
 public:
     typedef shared_ptr<Location> Ptr;
+    typedef std::vector<Location> List;
 
     Location();
 
-    Location(const std::string& name, const base::Point& position = base::Point());
+    Location(const std::string& name, const base::Point& position = base::Point::Zero());
 
     virtual ~Location() {}
 
     void setPosition(const base::Point& position) { mPosition = position; }
     const base::Point& getPosition() const { return mPosition; }
+
+    virtual std::string toString() const;
 };
+
 
 } // end namespace constants
 } // end namespace symbols

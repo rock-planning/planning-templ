@@ -10,12 +10,11 @@ namespace agent_routing {
 
 typedef uint32_t TaskPriority;
 typedef uint32_t TaskDuration;
-//typedef solvers::temporal::Interval TimeWindow;
-typedef solvers::temporal::point_algebra::TimePoint::Ptr TimeWindow;
 
 class AgentTask
 {
 public:
+    typedef std::vector<AgentTask> List;
 
     AgentTask();
 
@@ -28,18 +27,21 @@ public:
     void setTaskDuration(const TaskDuration& t) { mTaskDuration = t; }
     TaskDuration getTaskDuration() const { return mTaskDuration; }
 
-    void setArrival(const TimeWindow& t) { mArrival = t; }
-    TimeWindow getArrival() const { return mArrival; }
+    void setArrival(const solvers::temporal::point_algebra::TimePoint::Ptr& t) { mArrival = t; }
+    solvers::temporal::point_algebra::TimePoint::Ptr getArrival() const { return mArrival; }
 
-    void setDeparture(const TimeWindow& t) { mDeparture = t; }
-    TimeWindow getDeparture() const { return mDeparture; }
+    void setDeparture(const solvers::temporal::point_algebra::TimePoint::Ptr& t) { mDeparture = t; }
+    solvers::temporal::point_algebra::TimePoint::Ptr getDeparture() const { return mDeparture; }
+
+    std::string toString(uint32_t indent = 0) const;
+    static std::string toString(const AgentTask::List& list, uint32_t uindent);
 
 private:
     TaskPriority mPriority;
     symbols::constants::Location mLocation;
     TaskDuration mTaskDuration;
-    TimeWindow mArrival;
-    TimeWindow mDeparture;
+    solvers::temporal::point_algebra::TimePoint::Ptr mArrival;
+    solvers::temporal::point_algebra::TimePoint::Ptr mDeparture;
 };
 
 } // end namespace agent_routing

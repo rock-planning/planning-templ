@@ -21,6 +21,7 @@ public:
     typedef shared_ptr<TimePoint> Ptr;
     typedef std::string Label;
     typedef std::vector<Label> LabelList;
+    typedef std::vector<TimePoint::Ptr> PtrList;
 
 protected:
     TimePoint(uint64_t lowerBound, uint64_t upperBound, Type type);

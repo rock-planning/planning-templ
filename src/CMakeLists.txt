@@ -19,11 +19,11 @@ rock_library(templ
         solvers/Constraint.cpp
         solvers/ConstraintNetwork.cpp
         solvers/Variable.cpp
+        solvers/agent_routing/Agent.cpp
         solvers/agent_routing/AgentType.cpp
         solvers/agent_routing/AgentTask.cpp
         solvers/agent_routing/AgentRoutingProblem.cpp
         solvers/agent_routing/AgentIntegerAttribute.cpp
-        solvers/agent_routing/AgentInstanceRequirement.cpp
         solvers/agent_routing/ArpIO.cpp
         solvers/agent_routing/io/XMLWriter.cpp
         solvers/agent_routing/io/XMLReader.cpp
@@ -66,6 +66,7 @@ rock_library(templ
         symbols/object_variables/LocationCardinality.cpp
         symbols/object_variables/LocationNumericAttribute.cpp
         utils/CartographicMapping.cpp
+        utils/XMLUtils.cpp
     HEADERS
         CapacityLink.hpp
         Logger.hpp
@@ -92,11 +93,11 @@ rock_library(templ
         solvers/agent_routing/ArpIO.hpp
         solvers/agent_routing/io/XMLWriter.hpp
         solvers/agent_routing/io/XMLReader.hpp
+        solvers/agent_routing/Agent.hpp
         solvers/agent_routing/AgentType.hpp
         solvers/agent_routing/AgentTask.hpp
         solvers/agent_routing/AgentRoutingProblem.hpp
         solvers/agent_routing/AgentIntegerAttribute.hpp
-        solvers/agent_routing/AgentInstanceRequirement.hpp
         solvers/csp/ConstraintMatrix.hpp
         solvers/csp/FluentTimeResource.hpp
         solvers/csp/ModelDistribution.hpp
@@ -137,6 +138,7 @@ rock_library(templ
         symbols/object_variables/LocationNumericAttribute.hpp
         symbols/values/Int.hpp
         utils/CartographicMapping.hpp
+        utils/XMLUtils.hpp
     LIBS gecodesearch
         gecodesupport
         gecodeset
