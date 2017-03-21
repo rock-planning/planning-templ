@@ -12,6 +12,7 @@
     };
 
 namespace templ {
+namespace solvers {
 namespace agent_routing {
 namespace io {
 
@@ -47,5 +48,6 @@ private:
 
 } // end namespace io
 } // end namespace agent_routing
+} // end namespace solvers
 } // end namespace templ
 #endif // TEMPL_AGENT_ROUTING_IO_XML_WRITER_HPP

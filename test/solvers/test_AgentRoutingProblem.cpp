@@ -4,7 +4,7 @@
 #include "../test_utils.hpp"
 
 using namespace templ;
-using namespace templ::agent_routing;
+using namespace templ::solvers::agent_routing;
 
 struct ARPFixture
 {

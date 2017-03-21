@@ -4,8 +4,8 @@
 #include "io/XMLReader.hpp"
 #include <base-logging/Logging.hpp>
 
-
 namespace templ {
+namespace solvers {
 namespace agent_routing {
 
 namespace representation {
@@ -148,9 +148,6 @@ representation::Type ArpIO::getTypeFromFilename(const std::string& filename)
     return representation::UNKNOWN;
 }
 
-
-
-
-
 } // end namespace agent_routing
+} // end namespace solvers
 } // end namespace templ

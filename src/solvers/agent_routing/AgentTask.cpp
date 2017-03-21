@@ -3,6 +3,7 @@
 #include <sstream>
 
 namespace templ {
+namespace solvers {
 namespace agent_routing {
 
 AgentTask::AgentTask()
@@ -48,4 +49,5 @@ std::string AgentTask::toString(const AgentTask::List& list, uint32_t indent)
 }
 
 } // end namespace agent_routing
+} // end namespace solvers
 } // end namespace templ

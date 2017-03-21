@@ -6,6 +6,7 @@
 #include <vector>
 
 namespace templ {
+namespace solvers {
 namespace agent_routing {
 
 class AgentIntegerAttribute
@@ -37,12 +38,13 @@ protected:
     uint32_t mId;
     std::string mLabel;
 
-    uint32_t mValue;
-
     uint32_t mMinValue;
     uint32_t mMaxValue;
+
+    uint32_t mValue;
 };
 
 } // end namespace agent_routing
+} // end namespace solvers
 } // end namespace templ
 #endif // TEMPL_AGENT_ROUTING_AGENT_INTEGER_ATTRIBUTE_HPP

@@ -8,6 +8,7 @@
 #include <templ/SharedPtr.hpp>
 
 namespace templ {
+namespace solvers {
 namespace agent_routing {
 
 namespace representation {
@@ -61,5 +62,6 @@ private:
 };
 
 } // end namespace agent_routing
-} // end namespaec templ
+} // end namespace solvers
+} // end namespace templ
 #endif // TEMPL_AGENT_ROUTING_ARP_IO_HPP

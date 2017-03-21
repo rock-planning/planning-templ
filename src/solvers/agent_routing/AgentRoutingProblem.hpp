@@ -9,6 +9,7 @@
 #include "../temporal/TemporalConstraintNetwork.hpp"
 
 namespace templ {
+namespace solvers {
 namespace agent_routing {
 
 /**
@@ -94,5 +95,6 @@ private:
 };
 
 } // end namespace agent_routing
+} // end namespace solvers
 } // end namespace templ
 #endif // TEMPL_AGENT_ROUTING_PROBLEM_HPP

@@ -8,6 +8,7 @@ using namespace templ::utils;
 namespace pa = templ::solvers::temporal::point_algebra;
 
 namespace templ {
+namespace solvers {
 namespace agent_routing {
 namespace io {
 
@@ -304,4 +305,5 @@ void XMLReader::readAgentAttributes(xmlDocPtr doc, xmlNodePtr current)
 
 } // end namespace io
 } // end namespace agent_routing
+} // end namespace solvers
 } // end namespace templ

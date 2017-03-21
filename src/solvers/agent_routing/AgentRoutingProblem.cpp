@@ -8,6 +8,7 @@
 namespace pa = templ::solvers::temporal::point_algebra;
 
 namespace templ {
+namespace solvers {
 namespace agent_routing {
 
 AgentRoutingProblem::AgentRoutingProblem()
@@ -126,5 +127,6 @@ std::string AgentRoutingProblem::toString(uint32_t indent) const
     return ss.str();
 }
 
-} // namespace agent_routing
-} // namespace templ
+} // end namespace agent_routing
+} // end namepspace solvers
+} // end namespace templ

@@ -6,6 +6,7 @@
 #include "AgentType.hpp"
 
 namespace templ {
+namespace solvers {
 namespace agent_routing {
 
 typedef uint32_t AgentId;
@@ -57,5 +58,6 @@ private:
 };
 
 } // end namespace agent_routing
+} // end namespace solvers
 } // end namespace templ
 #endif // TEMPL_AGENT_ROUTING_AGENT_HPP

@@ -7,6 +7,7 @@
 #include "AgentType.hpp"
 
 namespace templ {
+namespace solvers {
 namespace agent_routing {
 
 AgentType::AgentType()
@@ -66,5 +67,6 @@ std::string AgentType::toString(const AgentType::List& list, uint32_t indent)
     return ss.str();
 }
 
-} // namespace agent_routing
-} // namespace templ
+} // end namespace agent_routing
+} // end namespace solvers
+} // end namespace templ
