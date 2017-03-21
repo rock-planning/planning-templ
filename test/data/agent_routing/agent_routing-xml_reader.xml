@@ -36,4 +36,7 @@
       </tasks>
     </agent>
   </agents>
+  <temporal-constraint-network>
+      <lessThan lval="t0" rval="t1" />
+  </temporal-constraint-network>
 </agent-routing-problem>
