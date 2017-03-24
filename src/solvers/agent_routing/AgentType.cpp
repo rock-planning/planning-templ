@@ -37,12 +37,30 @@ void AgentType::addIntegerAttribute(const AgentIntegerAttribute& a)
 
 bool AgentType::hasIntegerAttributeId(uint32_t id) const
 {
+    try {
+        getIntegerAttribute(id);
+        return true;
+    } catch(const std::invalid_argument& e)
+    {
+        return false;
+    }
+}
+
+const AgentIntegerAttribute& AgentType::getIntegerAttribute(uint32_t id) const
+{
     std::vector<AgentIntegerAttribute>::const_iterator cit;
     cit = std::find_if(mIntegerAttributes.begin(), mIntegerAttributes.end(), [id](const AgentIntegerAttribute& a)->bool
             {
                 return a.getId() == id;
             });
-    return cit != mIntegerAttributes.end();
+    if(cit != mIntegerAttributes.end())
+    {
+        return *cit;
+    } else {
+        std::stringstream ss;
+        ss << "templ::agent_routing::AgentType::getIntegerAttribute has no id '" << id << "'";
+        throw std::invalid_argument(ss.str());
+    }
 }
 
 std::string AgentType::toString(uint32_t indent) const

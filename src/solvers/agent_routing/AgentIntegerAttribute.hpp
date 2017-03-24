@@ -9,18 +9,20 @@ namespace templ {
 namespace solvers {
 namespace agent_routing {
 
+typedef std::string AttributeName;
+
 class AgentIntegerAttribute
 {
 public:
     typedef std::vector<AgentIntegerAttribute> List;
 
     AgentIntegerAttribute();
-    AgentIntegerAttribute(uint32_t id, const std::string& label = "");
+    AgentIntegerAttribute(uint32_t id, const AttributeName& label = "");
 
     bool isValid() const;
 
     uint32_t getId() const { return mId; }
-    const std::string& getLabel() const { return mLabel; }
+    const AttributeName& getLabel() const { return mLabel; }
 
     void setValue(uint32_t value) { mValue = value; }
     uint32_t getValue() const { return mValue; }
@@ -36,7 +38,7 @@ public:
 
 protected:
     uint32_t mId;
-    std::string mLabel;
+    AttributeName mLabel;
 
     uint32_t mMinValue;
     uint32_t mMaxValue;

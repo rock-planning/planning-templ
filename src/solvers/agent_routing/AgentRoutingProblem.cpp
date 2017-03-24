@@ -2,7 +2,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
-//#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
+#include "../temporal/QualitativeTemporalConstraintNetwork.hpp"
 
 
 namespace pa = templ::solvers::temporal::point_algebra;
@@ -13,6 +13,37 @@ namespace agent_routing {
 
 AgentRoutingProblem::AgentRoutingProblem()
 {}
+
+void AgentRoutingProblem::finalize()
+{
+    if(mpTemporalConstraintNetwork)
+    {
+        mpTemporalConstraintNetwork->sort(mTimePoints);
+    }
+
+    for(size_t i = 0; i < mAgentTypes.size(); ++i)
+    {
+        if(mAgentTypes[i].getTypeId() !=  i)
+        {
+            throw std::runtime_error("templ::solvers::agent_routing::AgentRoutingProblem: agent type violates index == typeId assumption");
+        }
+    }
+
+    for(size_t i = 0; i < mIntegerAttributes.size(); ++i)
+    {
+        if(mIntegerAttributes[i].getId() != i)
+        {
+            throw std::runtime_error("templ::solvers::agent_routing::AgentRoutingProblem: agent integer attribute violates index == id assumption");
+        }
+    }
+    for(size_t i = 0; i < mAgents.size(); ++i)
+    {
+        if(mAgents[i].getAgentId() != i)
+        {
+            throw std::runtime_error("templ::solvers::agent_routing::AgentRoutingProblem: agent violates index == agent id assumption");
+        }
+    }
+}
 
 void AgentRoutingProblem::addIntegerAttribute(const AgentIntegerAttribute& a)
 {
@@ -59,21 +90,42 @@ const AgentIntegerAttribute& AgentRoutingProblem::getIntegerAttribute(uint32_t i
     }
 }
 
+const AgentIntegerAttribute& AgentRoutingProblem::getIntegerAttribute(uint32_t id, AgentTypeId typeId) const
+{
+    return mAgentTypes[typeId].getIntegerAttribute(id);
+}
+
 void AgentRoutingProblem::addAgent(const Agent& r)
 {
     mAgents.push_back(r);
 
+    // Mobility attribute check
+    uint32_t mobilityAttributeId = getMobilityAttributeId();
+    AgentIntegerAttribute attribute = getIntegerAttribute(mobilityAttributeId, r.getAgentType());
+
+    if(attribute.getValue() != 0)
+    {
+        mMobileAgentIds.push_back(r.getAgentId());
+    } else {
+        mCommodityAgentIds.push_back(r.getAgentId());
+    }
+
     // Locations
     {
-        symbols::constants::Location::List::const_iterator lit = r.getLocations().begin();
+        using namespace symbols::constants;
+        Location::List::const_iterator lit = r.getLocations().begin();
         for(; lit != r.getLocations().end(); ++lit)
         {
-            const symbols::constants::Location& location = *lit;
-            symbols::constants::Location::List::const_iterator it;
-            it = std::find(mLocations.begin(), mLocations.end(), location);
+            const Location& location = *lit;
+            Location::PtrList::const_iterator it;
+            it = std::find_if(mLocations.begin(), mLocations.end(), [location](const Location::Ptr& other)->bool
+                    {
+                        return location == *other.get();
+                    });
+
             if(it == mLocations.end())
             {
-                mLocations.push_back(location);
+                mLocations.push_back(Location::Ptr(new Location(location)));
             }
         }
     }
@@ -110,7 +162,6 @@ void AgentRoutingProblem::addAgentType(const AgentType& type)
     mAgentTypes.push_back(type);
 }
 
-
 std::string AgentRoutingProblem::toString(uint32_t indent) const
 {
     std::stringstream ss;
@@ -125,6 +176,30 @@ std::string AgentRoutingProblem::toString(uint32_t indent) const
     ss << hspace << "    temporal constraint network:" << std::endl;
     ss << mpTemporalConstraintNetwork->toString(indent+8);
     return ss.str();
+}
+
+uint32_t AgentRoutingProblem::getMobilityAttributeId() const
+{
+    std::map<AttributeName, uint32_t>::const_iterator ait = mAttributeMap.find("mobile");
+    if(ait != mAttributeMap.end())
+    {
+        return ait->second;
+    }
+
+    // Lazily initalize attributes hash
+    AgentIntegerAttribute::List::const_iterator cit;
+    cit = std::find_if(mIntegerAttributes.begin(), mIntegerAttributes.end(), [](const AgentIntegerAttribute& a)
+            {
+                return a.getLabel() == "mobile";
+            });
+    if(cit == mIntegerAttributes.end())
+    {
+        throw std::runtime_error("templ::solvers::agent_routing::AgentRoutingProblem: no attribute 'mobile' is known");
+    } else {
+        uint32_t id = cit->getId();
+        mAttributeMap[cit->getLabel()] = id;
+        return id;
+    }
 }
 
 } // end namespace agent_routing

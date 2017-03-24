@@ -35,10 +35,12 @@ public:
      */
     bool hasIntegerAttributeId(uint32_t id) const;
 
+    const AgentIntegerAttribute& getIntegerAttribute(uint32_t id) const;
+
     /**
      * Retrieve the integer attributes
      */
-    const AgentIntegerAttribute::List& getAgentIntegerAttributes() const { return mIntegerAttributes; }
+    const AgentIntegerAttribute::List& getIntegerAttributes() const { return mIntegerAttributes; }
 
     std::string toString(uint32_t indent = 0) const;
 

@@ -16,6 +16,7 @@ class Location : public Constant
 public:
     typedef shared_ptr<Location> Ptr;
     typedef std::vector<Location> List;
+    typedef std::vector<Ptr> PtrList;
 
     Location();
 

@@ -72,7 +72,7 @@ void XMLWriter::write(const std::string& path, const AgentRoutingProblem& arp)
     for(; typesIt != types.end(); ++typesIt)
     {
         const AgentType& type = *typesIt;
-        const std::vector<AgentIntegerAttribute>& typeAttributes = type.getAgentIntegerAttributes();
+        const std::vector<AgentIntegerAttribute>& typeAttributes = type.getIntegerAttributes();
         std::vector<AgentIntegerAttribute>::const_iterator ait = typeAttributes.begin();
         startElement(writer, "agent-type");
         writeAttribute(writer, "id", type.getTypeId());
