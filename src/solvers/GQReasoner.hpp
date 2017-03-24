@@ -2,17 +2,68 @@
 #define TEMPL_SOLVERS_GQ_REASONER_HPP
 
 #include <graph_analysis/BaseGraph.hpp>
-//#include <gqr/gqr_wrap.h>
 #include <gqr/libgqr.h>
-//#include <gqr/RestartsFramework.h>
-//#include <gqr/gqrtl/RestartingDFS.h>
 
 namespace templ {
 namespace solvers {
 
+/**
+ * \class GQReasoner
+ * \brief Wrapper for the GQR reasoner
+ * \see http://gki.informatik.uni-freiburg.de/events/aaai09-bench/tools/gqr-the-generic-qualitative-reasoner.html
+ * \details This wrapper allow the usage of the Generic Qualitative Reasoner to
+ * provide a set of valid solutions for partially defined temporal qualitiative networks
+ * \verbatim
+ using namespace templ::solvers::temporal::point_algebra;
+ typedef QualitativeTimePointConstraint QTPC;
+ QualitativeTemporalConstraintNetwork::Ptr tcn(new QualitativeTemporalConstraintNetwork());
+
+ QualitativeTimePoint::Ptr lastTp;
+ int i = 0;
+ for(; i < 15; ++i)
+ {
+     std::stringstream ss;
+     ss << "t" << i;
+     QualitativeTimePoint::Ptr tp(new QualitativeTimePoint(ss.str()));
+     if(lastTp && i < 14)
+     {
+         tcn->addQualitativeConstraint(lastTp, tp, QTPC::Less);
+         tcn->addQualitativeConstraint(tp, lastTp, QTPC::Greater);
+     }
+
+     lastTp = tp;
+ }
+
+
+ GQReasoner paReasoner("point", tcn->getGraph(), QTPC::Ptr(new QTPC()) );
+ BaseGraph::Ptr primarySolution = paReasoner.getPrimarySolution();
+ tcn->setConsistentNetwork(primarySolution);
+
+ while(true)
+ {
+     BaseGraph::Ptr nextSolution = paReasoner.getNextSolution();
+
+     EdgeIterator::Ptr edgeIt = nextSolution->getEdgeIterator();
+
+     while(edgeIt->next())
+     {
+         Edge::Ptr edge = edgeIt->current();
+
+         std::cout << "constraint: " << edge->getSourceVertex()->toString() << " " << edge->getLabel() << " "
+                 << edge->getTargetVertex()->toString()) << std::endl;
+     }
+ }
+ \endverbatim
+ *
+ */
 class GQReasoner
 {
 public:
+    /**
+     * \param calculus
+     * \param graph
+     * \param defaultEdge
+     */
     GQReasoner(const std::string& calculus, const graph_analysis::BaseGraph::Ptr& graph, const graph_analysis::Edge::Ptr& defaultEdge);
     virtual ~GQReasoner();
 

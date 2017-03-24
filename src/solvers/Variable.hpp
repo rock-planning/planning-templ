@@ -10,7 +10,7 @@ namespace templ {
 namespace solvers {
 
 /**
- *
+ * The general representation of a constraint variable in the constraint network
  */
 class Variable : public graph_analysis::Vertex
 {

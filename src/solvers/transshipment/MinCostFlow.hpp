@@ -21,7 +21,7 @@ struct Flaw
     csp::FluentTimeResource ftr;
     csp::FluentTimeResource subsequentFtr;
 
-    Flaw(const graph_analysis::algorithms::ConstraintViolation& violation, 
+    Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
         const Role& role)
         : violation(violation)
         , affectedRole(role)
@@ -70,8 +70,8 @@ protected:
      */
     graph_analysis::BaseGraph::Ptr createFlowGraph(uint32_t commodities);
 
-    /** 
-     *  Set the commodity supply and demand 
+    /**
+     *  Set the commodity supply and demand
      *  Since the general transport network is constructed from mobile systems,
      *  that means supply and demand comes from the requirements of immobile systems.
      *  This function thus sets the  'start','end' and '(transition) waypoints' for all
@@ -91,7 +91,7 @@ protected:
 
     std::vector<Flaw> computeFlaws(const graph_analysis::algorithms::MultiCommodityMinCostFlow&) const;
 
-    std::vector<templ::solvers::csp::FluentTimeResource>::const_iterator 
+    std::vector<templ::solvers::csp::FluentTimeResource>::const_iterator
         getFluent(const templ::solvers::csp::RoleTimeline& roleTimeline,
             const SpaceTimeNetwork::tuple_t::Ptr& tuple) const;
 
