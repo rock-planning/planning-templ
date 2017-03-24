@@ -193,7 +193,7 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
         Vertex::Ptr spaceTimePartnerVertex = mBipartiteGraph.getUniquePartner(violation.getVertex());
         SpaceTimeNetwork::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTimeNetwork::tuple_t>(spaceTimePartnerVertex);
 
-        SpaceTimeNetwork::value_t::Ptr location = dynamic_pointer_cast<SpaceTimeNetwork::value_t>(tuple->first());
+        SpaceTimeNetwork::value_t location = dynamic_pointer_cast<SpaceTimeNetwork::value_t::element_type>(tuple->first());
 
         LOG_INFO_S << "Commodity flow violation: " << violation.toString();
         LOG_INFO_S << "Violation for " << affectedRole.toString() << " -- at: "

@@ -44,7 +44,7 @@ class RoleInfoTuple : public Tuple<A, B>, public RoleInfo
 public:
     typedef shared_ptr< RoleInfoTuple<A,B> > Ptr;
 
-    RoleInfoTuple(const typename BaseClass::APtr& a, const typename BaseClass::BPtr& b)
+    RoleInfoTuple(const typename BaseClass::a_t& a, const typename BaseClass::b_t& b)
         : BaseClass(a,b)
         , RoleInfo()
     {}
@@ -54,7 +54,7 @@ public:
     std::string toString() const
     {
         std::stringstream ss;
-        ss << BaseClass::first()->toString() + "-" << BaseClass::second()->toString() << std::endl;
+        ss << BaseClass::toString() << std::endl;
         ss << RoleInfo::toString();
 
         return ss.str();

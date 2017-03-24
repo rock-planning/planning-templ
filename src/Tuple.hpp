@@ -3,33 +3,49 @@
 
 #include <templ/SharedPtr.hpp>
 #include <graph_analysis/Vertex.hpp>
+#include <sstream>
 
 namespace templ {
 
+/// Allow toString() method of Tuple to handle pointer and value type
+template<typename T>
+const T* tuple_get_pointer(const T& obj) { return &obj; }
+
+template<typename T>
+const T* tuple_get_pointer(const shared_ptr<T>& obj) { return obj.get(); }
+
+/**
+ * A Tuple represents a Vertex that can store information tuples
+ */
 template<typename A, typename B>
 class Tuple : public graph_analysis::Vertex
 {
 public:
     typedef shared_ptr< Tuple<A,B> > Ptr;
-    typedef shared_ptr<A> APtr;
-    typedef shared_ptr<B> BPtr;
+    typedef A a_t;
+    typedef B b_t;
 
-    Tuple(const APtr& a, const BPtr& b)
-        : mpA(a)
-        , mpB(b)
+    Tuple(const A& a, const B& b)
+        : mA(a)
+        , mB(b)
     {}
 
-    APtr first() const { return mpA; }
-    BPtr second() const { return mpB; }
+    A first() const { return mA; }
+    B second() const { return mB; }
 
     virtual std::string getClassName() const { return "templ::Tuple"; }
-    virtual std::string toString() const { return first()->toString() + "-" + second()->toString(); }
+    virtual std::string toString() const
+    {
+        std::stringstream ss;
+        ss << tuple_get_pointer(mA)->toString() << "-" << tuple_get_pointer(mB)->toString();
+        return ss.str();
+    }
 
 protected:
     graph_analysis::Vertex* getClone() const { return new Tuple(*this); }
 
-    APtr mpA;
-    BPtr mpB;
+    A mA;
+    B mB;
 };
 
 } // end namespace templ
