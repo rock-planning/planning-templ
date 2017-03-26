@@ -10,7 +10,7 @@ PathConstructor::PathConstructor(const Role& role)
 
 PathConstructor::~PathConstructor() {}
 
-bool PathConstructor::invalidTransition(graph_analysis::Edge::Ptr edge)
+bool PathConstructor::isInvalidTransition(const graph_analysis::Edge::Ptr& edge)
 {
     RoleInfo::Ptr targetTuple = dynamic_pointer_cast<RoleInfo>(edge->getTargetVertex());
 

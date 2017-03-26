@@ -14,7 +14,7 @@
 #include <templ/symbols/ObjectVariable.hpp>
 #include <templ/symbols/constants/Location.hpp>
 #include <templ/solvers/GQReasoner.hpp>
-#include <templ/Logger.hpp>
+#include <templ/utils/Logger.hpp>
 
 namespace templ {
 

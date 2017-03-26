@@ -3,43 +3,42 @@ find_package(Boost REQUIRED system filesystem)
 rock_library(templ
     SOURCES
         CapacityLink.cpp
-        Logger.cpp
         Mission.cpp
         MissionPlanner.cpp
-        PathConstructor.cpp
         Plan.cpp
-        PlanningState.cpp
         PlanSpaceVisitor.cpp
+        PlanningState.cpp
         Role.cpp
         Symbol.cpp
+        io/FluentTypes.cpp
         io/MissionReader.cpp
         io/MissionRequirements.cpp
-        io/FluentTypes.cpp
         problems/Scheduling.cpp
         solvers/Constraint.cpp
         solvers/ConstraintNetwork.cpp
+        solvers/GQReasoner.cpp
         solvers/Variable.cpp
         solvers/agent_routing/Agent.cpp
-        solvers/agent_routing/AgentType.cpp
-        solvers/agent_routing/AgentTask.cpp
-        solvers/agent_routing/AgentRoutingProblem.cpp
         solvers/agent_routing/AgentIntegerAttribute.cpp
+        solvers/agent_routing/AgentRoutingGraph.cpp
+        solvers/agent_routing/AgentRoutingProblem.cpp
+        solvers/agent_routing/AgentTask.cpp
+        solvers/agent_routing/AgentType.cpp
         solvers/agent_routing/ArpIO.cpp
-        solvers/agent_routing/io/XMLWriter.cpp
         solvers/agent_routing/io/XMLReader.cpp
+        solvers/agent_routing/io/XMLWriter.cpp
         solvers/csp/ConstraintMatrix.cpp
+        solvers/csp/FluentTimeResource.cpp
         solvers/csp/ModelDistribution.cpp
         solvers/csp/Resolver.cpp
         solvers/csp/RoleDistribution.cpp
         solvers/csp/RoleTimeline.cpp
-        solvers/csp/FluentTimeResource.cpp
         solvers/csp/TemporalCSP.cpp
         solvers/csp/TransportNetwork.cpp
         solvers/csp/propagators/IsPath.cpp
         solvers/csp/propagators/MultiCommodityFlow.cpp
         solvers/csp/utils/FluentTimeIndex.cpp
         solvers/csp/utils/Formatter.cpp
-        solvers/GQReasoner.cpp
         solvers/temporal/Bounds.cpp
         solvers/temporal/Chronicle.cpp
         solvers/temporal/Event.cpp
@@ -66,16 +65,16 @@ rock_library(templ
         symbols/object_variables/LocationCardinality.cpp
         symbols/object_variables/LocationNumericAttribute.cpp
         utils/CartographicMapping.cpp
+        utils/Logger.cpp
+        utils/PathConstructor.cpp
         utils/XMLUtils.cpp
     HEADERS
         CapacityLink.hpp
-        Logger.hpp
         Mission.hpp
         MissionPlanner.hpp
-        PathConstructor.hpp
         Plan.hpp
-        PlanningState.hpp
         PlanSpaceVisitor.hpp
+        PlanningState.hpp
         Role.hpp
         RoleInfoTuple.hpp
         SpaceTimeNetwork.hpp
@@ -83,21 +82,22 @@ rock_library(templ
         TemporallyExpandedNetwork.hpp
         Tuple.hpp
         Variable.hpp
+        io/FluentTypes.hpp
         io/MissionReader.hpp
         io/MissionRequirements.hpp
-        io/FluentTypes.hpp
         solvers/Constraint.hpp
         solvers/ConstraintNetwork.hpp
         solvers/GQReasoner.hpp
         solvers/Variable.hpp
-        solvers/agent_routing/ArpIO.hpp
-        solvers/agent_routing/io/XMLWriter.hpp
-        solvers/agent_routing/io/XMLReader.hpp
         solvers/agent_routing/Agent.hpp
-        solvers/agent_routing/AgentType.hpp
-        solvers/agent_routing/AgentTask.hpp
-        solvers/agent_routing/AgentRoutingProblem.hpp
         solvers/agent_routing/AgentIntegerAttribute.hpp
+        solvers/agent_routing/AgentRoutingGraph.hpp
+        solvers/agent_routing/AgentRoutingProblem.hpp
+        solvers/agent_routing/AgentTask.hpp
+        solvers/agent_routing/AgentType.hpp
+        solvers/agent_routing/ArpIO.hpp
+        solvers/agent_routing/io/XMLReader.hpp
+        solvers/agent_routing/io/XMLWriter.hpp
         solvers/csp/ConstraintMatrix.hpp
         solvers/csp/FluentTimeResource.hpp
         solvers/csp/ModelDistribution.hpp
@@ -138,6 +138,8 @@ rock_library(templ
         symbols/object_variables/LocationNumericAttribute.hpp
         symbols/values/Int.hpp
         utils/CartographicMapping.hpp
+        utils/Logger.hpp
+        utils/PathConstructor.hpp
         utils/XMLUtils.hpp
     LIBS gecodesearch
         gecodesupport

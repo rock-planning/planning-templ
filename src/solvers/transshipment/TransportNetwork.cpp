@@ -2,7 +2,7 @@
 #include <organization_model/facets/Robot.hpp>
 #include <graph_analysis/GraphIO.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
-#include <templ/Logger.hpp>
+#include <templ/utils/Logger.hpp>
 #include <base-logging/Logging.hpp>
 
 namespace pa = templ::solvers::temporal::point_algebra;
@@ -62,7 +62,7 @@ void TransportNetwork::initialize()
         const Role& role = rit->first;
         csp::RoleTimeline roleTimeline = rit->second;
 
-        // Check if this item is mobile, i.e. change change the location 
+        // Check if this item is mobile, i.e. change change the location
         // WARNING: this is domain specific
         // transportCapacity
         organization_model::facets::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());

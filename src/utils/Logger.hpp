@@ -9,6 +9,10 @@ namespace templ {
 
 class Mission;
 
+/**
+ * Logger class which allow to provide session based
+ * logging
+ */
 class Logger
 {
 public:
@@ -19,7 +23,7 @@ public:
             , bool useSessions = true);
 
     /**
-     * 
+     *
      */
     std::string filename(const std::string& filename) const;
 

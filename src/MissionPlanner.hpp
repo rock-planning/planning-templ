@@ -12,7 +12,6 @@
 #include <templ/PlanningState.hpp>
 #include <templ/solvers/csp/RoleTimeline.hpp>
 #include <templ/SpaceTimeNetwork.hpp>
-#include <templ/Logger.hpp>
 #include <templ/PlanSpaceVisitor.hpp>
 
 

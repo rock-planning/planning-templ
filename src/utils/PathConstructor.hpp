@@ -7,6 +7,10 @@
 
 namespace templ {
 
+/**
+ * Use a path constructor in order to collect all vertices
+ * that are associated with a particular role
+ */
 class PathConstructor : public graph_analysis::algorithms::DFSVisitor
 {
 public:
@@ -16,7 +20,7 @@ public:
 
     virtual ~PathConstructor();
 
-    bool invalidTransition(graph_analysis::Edge::Ptr edge);
+    bool isInvalidTransition(const graph_analysis::Edge::Ptr& edge);
 
     /**
      * Override the existing function

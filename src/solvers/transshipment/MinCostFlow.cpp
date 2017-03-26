@@ -5,7 +5,7 @@
 #include <graph_analysis/GraphIO.hpp>
 #include <organization_model/facets/Robot.hpp>
 #include <templ/solvers/csp/FluentTimeResource.hpp>
-#include <templ/Logger.hpp>
+#include <templ/utils/Logger.hpp>
 
 using namespace graph_analysis;
 using namespace graph_analysis::algorithms;

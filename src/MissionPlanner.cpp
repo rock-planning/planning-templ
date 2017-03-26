@@ -20,7 +20,7 @@
 #include <templ/solvers/csp/RoleDistribution.hpp>
 #include <templ/solvers/transshipment/TransportNetwork.hpp>
 #include <templ/solvers/transshipment/MinCostFlow.hpp>
-#include <templ/PathConstructor.hpp>
+#include <templ/utils/PathConstructor.hpp>
 #include <templ/Plan.hpp>
 
 using namespace organization_model;
@@ -194,7 +194,7 @@ Plan MissionPlanner::renderPlan(const Mission::Ptr& mission,
         // after update from the flow graph
         // foreach role -- find starting point and follow path
         PathConstructor::Ptr pathConstructor(new PathConstructor(role));
-        boost::function1<bool, graph_analysis::Edge::Ptr> skipper = boost::bind(&PathConstructor::invalidTransition, pathConstructor,_1);
+        Skipper skipper = boost::bind(&PathConstructor::isInvalidTransition, pathConstructor,_1);
         DFS dfs(spaceTimeNetwork->getGraph(), pathConstructor, skipper);
         dfs.run(startTuple);
 
