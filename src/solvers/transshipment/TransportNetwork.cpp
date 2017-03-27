@@ -79,7 +79,7 @@ void TransportNetwork::initialize()
         namespace pa = templ::solvers::temporal::point_algebra;
         pa::TimePoint::Ptr prevIntervalEnd;
         co::Location::Ptr prevLocation;
-        SpaceTimeNetwork::tuple_t::Ptr startTuple, endTuple;
+        SpaceTime::Network::tuple_t::Ptr startTuple, endTuple;
 
         LOG_INFO_S << "Process (time-sorted) timeline: " << roleTimeline.toString();
         const std::vector<csp::FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();

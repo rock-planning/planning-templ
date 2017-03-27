@@ -9,6 +9,7 @@ rock_library(templ
         PlanSpaceVisitor.cpp
         PlanningState.cpp
         Role.cpp
+        SpaceTime.cpp
         Symbol.cpp
         io/FluentTypes.cpp
         io/MissionReader.cpp
@@ -35,6 +36,7 @@ rock_library(templ
         solvers/csp/RoleTimeline.cpp
         solvers/csp/TemporalCSP.cpp
         solvers/csp/TransportNetwork.cpp
+        solvers/csp/Types.cpp
         solvers/csp/propagators/IsPath.cpp
         solvers/csp/propagators/MultiCommodityFlow.cpp
         solvers/csp/utils/FluentTimeIndex.cpp
@@ -77,7 +79,7 @@ rock_library(templ
         PlanningState.hpp
         Role.hpp
         RoleInfoTuple.hpp
-        SpaceTimeNetwork.hpp
+        SpaceTime.hpp
         Symbol.hpp
         TemporallyExpandedNetwork.hpp
         Tuple.hpp
@@ -106,6 +108,7 @@ rock_library(templ
         solvers/csp/RoleTimeline.hpp
         solvers/csp/TemporalCSP.hpp
         solvers/csp/TransportNetwork.hpp
+        solvers/csp/Types.hpp
         solvers/csp/propagators/IsPath.hpp
         solvers/csp/propagators/MultiCommodityFlow.hpp
         solvers/csp/utils/FluentTimeIndex.hpp

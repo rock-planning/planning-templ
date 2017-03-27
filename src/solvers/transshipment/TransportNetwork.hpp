@@ -2,7 +2,7 @@
 #define TEMPL_SOLVERS_TRANSSHIPMENT_TRANSPORT_NETWORK_HPP
 
 #include <templ/Mission.hpp>
-#include <templ/SpaceTimeNetwork.hpp>
+#include <templ/SpaceTime.hpp>
 #include <templ/solvers/csp/RoleTimeline.hpp>
 
 namespace templ {
@@ -16,7 +16,7 @@ public:
         const std::map<Role, csp::RoleTimeline>& timelines);
 
     const Mission::Ptr& getMission() const { return mpMission; }
-    SpaceTimeNetwork& getSpaceTimeNetwork() { return mSpaceTimeNetwork; }
+    SpaceTime::Network& getSpaceTimeNetwork() { return mSpaceTimeNetwork; }
     const std::map<Role, csp::RoleTimeline> getTimeslines() const { return mTimelines; }
 
 protected:
@@ -26,7 +26,7 @@ protected:
 
 private:
     Mission::Ptr mpMission;
-    SpaceTimeNetwork mSpaceTimeNetwork;
+    SpaceTime::Network mSpaceTimeNetwork;
     std::map<Role, csp::RoleTimeline> mTimelines;
 
 };

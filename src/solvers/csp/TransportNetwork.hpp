@@ -9,16 +9,15 @@
 
 #include <organization_model/OrganizationModelAsk.hpp>
 
-#include <templ/Mission.hpp>
-#include <templ/solvers/csp/FluentTimeResource.hpp>
-#include <templ/solvers/csp/utils/FluentTimeIndex.hpp>
+#include "../../Mission.hpp"
+#include "Types.hpp"
+#include "FluentTimeResource.hpp"
+#include "utils/FluentTimeIndex.hpp"
+
 
 namespace templ {
 namespace solvers {
 namespace csp {
-
-typedef Gecode::SetVarArray AdjacencyList;
-typedef std::vector<AdjacencyList> ListOfAdjacencyLists;
 
 /**
  * \class TransportNetwork
@@ -33,9 +32,6 @@ class TransportNetwork : public Gecode::Space
 public:
     typedef std::map<FluentTimeResource, organization_model::ModelPool > ModelDistribution;
     typedef std::map<FluentTimeResource, Role::List> RoleDistribution;
-    typedef std::pair<symbols::constants::Location::Ptr, solvers::temporal::point_algebra::TimePoint::Ptr> SpaceTimePoint;
-    typedef std::vector< SpaceTimePoint> Timeline;
-    typedef std::map<Role, Timeline > Timelines;
 
     class Solution
     {
@@ -43,7 +39,7 @@ public:
 
         ModelDistribution mModelDistribution;
         RoleDistribution mRoleDistribution;
-        Timelines mTimelines;
+        SpaceTime::Timelines mTimelines;
 
     public:
         const ModelDistribution& getModelDistribution() const { return mModelDistribution; }
@@ -268,13 +264,8 @@ protected:
 
     ModelDistribution getModelDistribution() const;
     RoleDistribution getRoleDistribution() const;
-    Timelines getTimelines() const;
+    SpaceTime::Timelines getTimelines() const;
 
-    static std::string toString(const Timeline& timeline, size_t indent = 0);
-    static std::string toString(const Timelines& timelines, size_t indent = 0);
-
-    Timeline convertToTimeline(const AdjacencyList& list) const;
-    Timelines convertToTimelines(const Role::List& roles, const ListOfAdjacencyLists& lists) const;
     uint32_t getTimepointIndex(const temporal::point_algebra::TimePoint::Ptr& timePoint) const;
 
     std::string toString(const std::vector<Gecode::IntVarArray>& timelines) const;
@@ -320,11 +311,19 @@ public:
      */
     virtual Gecode::Space* copy(bool share);
 
+    /**
+     * Solve the mission
+     */
     static SolutionList solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions = 0);
 
     std::string toString() const;
+
     void print(std::ostream& os) const { os << toString() << std::endl; }
 
+    /**
+     * Add a particular function requirement with respect to a
+     * FluentTimeResource instance
+     */
     void addFunctionRequirement(const FluentTimeResource& fts, owlapi::model::IRI& function);
 };
 

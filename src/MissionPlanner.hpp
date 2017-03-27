@@ -11,7 +11,7 @@
 #include <templ/Mission.hpp>
 #include <templ/PlanningState.hpp>
 #include <templ/solvers/csp/RoleTimeline.hpp>
-#include <templ/SpaceTimeNetwork.hpp>
+#include <templ/SpaceTime.hpp>
 #include <templ/PlanSpaceVisitor.hpp>
 
 
@@ -191,7 +191,7 @@ protected:
      * \throw std::invalid_argument if rendering of plan failed
      */
     Plan renderPlan(const Mission::Ptr& mission,
-            SpaceTimeNetwork* spaceTimeNetwork,
+            SpaceTime::Network* spaceTimeNetwork,
             const std::map<Role, solvers::csp::RoleTimeline>& timelines,
             const std::string& markerLabel = "") const;
 

@@ -163,7 +163,7 @@ graph_analysis::BaseGraph::Ptr MissionPlanner::nextTemporalConstraintNetwork()
 
 
 Plan MissionPlanner::renderPlan(const Mission::Ptr& mission,
-        SpaceTimeNetwork* spaceTimeNetwork,
+        SpaceTime::Network* spaceTimeNetwork,
         const std::map<Role, csp::RoleTimeline>& timelines,
         const std::string& markerLabel) const
 {
@@ -181,7 +181,7 @@ Plan MissionPlanner::renderPlan(const Mission::Ptr& mission,
         symbols::constants::Location::Ptr location = roleTimeline.getLocation(ftrs.front());
         solvers::temporal::Interval interval = roleTimeline.getInterval(ftrs.front());
 
-        SpaceTimeNetwork::tuple_t::Ptr startTuple;
+        SpaceTime::Network::tuple_t::Ptr startTuple;
         try {
             startTuple = spaceTimeNetwork->tupleByKeys(location, interval.getFrom());
         } catch(const std::invalid_argument& e)
@@ -190,7 +190,7 @@ Plan MissionPlanner::renderPlan(const Mission::Ptr& mission,
         }
 
         using namespace graph_analysis::algorithms;
-        // use SpaceTimeNetwork, which contains information on role for each edge
+        // use SpaceTime::Network, which contains information on role for each edge
         // after update from the flow graph
         // foreach role -- find starting point and follow path
         PathConstructor::Ptr pathConstructor(new PathConstructor(role));

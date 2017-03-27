@@ -3,16 +3,17 @@
 #include <numeric/Combinatorics.hpp>
 #include <gecode/minimodel.hh>
 #include <gecode/set.hh>
-
 #include <gecode/gist.hh>
+
+#include <iomanip>
+#include <Eigen/Dense>
+
 #include <organization_model/Algebra.hpp>
 #include <organization_model/vocabularies/OM.hpp>
 #include <templ/SharedPtr.hpp>
 #include <templ/symbols/object_variables/LocationCardinality.hpp>
-#include <templ/SpaceTimeNetwork.hpp>
-#include <iomanip>
+#include <templ/SpaceTime.hpp>
 #include <organization_model/facets/Robot.hpp>
-#include <Eigen/Dense>
 
 #include "ConstraintMatrix.hpp"
 #include "propagators/IsPath.hpp"
@@ -59,7 +60,7 @@ std::string TransportNetwork::Solution::toString(uint32_t indent) const
     }
     {
         ss << hspace << "Timelines" << std::endl;
-        ss << hspace  << TransportNetwork::toString(mTimelines);
+        //ss << hspace  << TransportNetwork::toString(mTimelines);
     }
     return ss.str();
 }
@@ -179,7 +180,7 @@ TransportNetwork::RoleDistribution TransportNetwork::getRoleDistribution() const
     return solution;
 }
 
-TransportNetwork::Timelines TransportNetwork::getTimelines() const
+SpaceTime::Timelines TransportNetwork::getTimelines() const
 {
     LOG_WARN_S << "GET TIMELINES";
     for(size_t i = 0; i < mTimelines.size(); ++i)
@@ -220,7 +221,7 @@ TransportNetwork::Timelines TransportNetwork::getTimelines() const
 
     //size_t locationTimeSize = mLocations.size()*mTimepoints.size();
 
-    TransportNetwork::Timelines timelines;
+    SpaceTime::Timelines timelines;
     //std::vector<int32_t> capacities;
     //for(size_t r = 0; r < locationTimeSize; ++r)
     //{
@@ -242,7 +243,7 @@ TransportNetwork::Timelines TransportNetwork::getTimelines() const
     //    const Role& role = mRoles[ mActiveRoles[roleIdx] ];
     //    LOG_WARN_S << "Timeline for: " << role.toString();
 
-    //    TransportNetwork::Timeline finalRoleTimeline;
+    //    SpaceTime::Timeline finalRoleTimeline;
 
     //    Gecode::Matrix<Gecode::IntVarArray> timeline( mTimelines[roleIdx],
     //            locationTimeSize, locationTimeSize);
@@ -1168,11 +1169,11 @@ void TransportNetwork::postRoleAssignments()
         uint32_t prevTimeIdx = 0;
         uint32_t prevLocationIdx = 0;
 
-        for(int t = 0; t < mTimepoints.size(); ++t)
+        for(size_t t = 0; t < mTimepoints.size(); ++t)
         {
             Gecode::SetVarArray timestep(*this, mLocations.size());
             std::stringstream ss;
-            for(int l = 0; l < mLocations.size(); ++l)
+            for(size_t l = 0; l < mLocations.size(); ++l)
             {
                 int idx = t*mLocations.size() + l;
                 Gecode::SetVar& edgeActivation = timeline[idx];
@@ -1695,15 +1696,15 @@ std::string TransportNetwork::toString() const
     //ss << "Current role usage: " << std::endl << rolesDistribution << std::endl;
 
     try {
-        for(int i = 0; i < mTimelines.size(); ++i)
+        for(size_t i = 0; i < mTimelines.size(); ++i)
         {
             const Gecode::SetVarArray& timeline = mTimelines[i];
             ss << timeline << std::endl;
         }
 
-        Timelines timelines = convertToTimelines(mActiveRoleList, mTimelines);
+        SpaceTime::Timelines timelines = TypeConversion::toTimelines(mActiveRoleList, mTimelines, mLocations, mTimepoints);
         ss << "Number of timelines: " << timelines.size() << " active roles -- " << mActiveRoleList.size() << std::endl;
-        ss << "Current timelines:" << std::endl << toString(timelines) << std::endl;
+        //ss << "Current timelines:" << std::endl << toString(timelines) << std::endl;
     } catch(const std::exception& e)
     {
         ss << "Number of timelines: n/a -- " << e.what() << std::endl;
@@ -1730,124 +1731,6 @@ std::string TransportNetwork::toString(const std::vector<Gecode::IntVarArray>& t
             toPtrList<Symbol,symbols::constants::Location>(mLocations),
             toPtrList<Variable, temporal::point_algebra::TimePoint>(mTimepoints),
             labels);
-}
-
-std::string TransportNetwork::toString(const Timeline& timeline, size_t indent)
-{
-    std::stringstream ss;
-    std::string hspace(indent,' ');
-    ss << "TIMELINE --" << std::endl;
-    Timeline::const_iterator cit = timeline.begin();
-    for(; cit != timeline.end(); ++cit)
-    {
-        const SpaceTimePoint& stp = *cit;
-        assert(stp.first);
-        if(stp.first)
-        {
-            ss << hspace <<  stp.first->toString();
-        } else {
-            ss << " -- " << "unknown location";
-        }
-
-        if(stp.second)
-        {
-            ss << " -- " << stp.second->toString();
-        } else {
-            ss << " -- " << "unknown timepoint";
-        }
-
-        ss << std::endl;
-    }
-    return ss.str();
-}
-
-std::string TransportNetwork::toString(const Timelines& timelines, size_t indent)
-{
-    std::stringstream ss;
-    std::string hspace(indent,' ');
-    ss << "TIMELINES --" << std::endl;
-
-    Timelines::const_iterator cit = timelines.begin();
-    for(; cit != timelines.end(); ++cit)
-    {
-        const Role& role = cit->first;
-        const Timeline& timeline = cit->second;
-
-        ss << hspace << role.toString() << std::endl;
-        ss << toString(timeline, indent + 4);
-    }
-    return ss.str();
-}
-
-TransportNetwork::Timeline TransportNetwork::convertToTimeline(const AdjacencyList& list) const
-{
-    Timeline timeline;
-    int expectedTargetIdx;
-    for(int idx = 0; idx < list.size(); ++idx)
-    {
-        const Gecode::SetVar& var = list[idx];
-        if(!var.assigned())
-        {
-            SpaceTimePoint stp();
-        //    throw std::invalid_argument("templ::solvers::csp::TransportNetwork::toString: cannot compute timeline, value is not assigned");
-        }
-
-        if(var.cardMax() == 1 && var.cardMin() == 1)
-        {
-            if(!timeline.empty())
-            {
-                if(expectedTargetIdx != idx)
-                {
-                    std::stringstream ss;
-                    ss << "templ::solvers::csp::TransportNetwork::toString: timeline is invalid: ";
-                    ss << " expected idx " << expectedTargetIdx << ", but got " << idx;
-                    LOG_WARN_S << ss.str();
-                    //throw std::runtime_error(ss.str());
-                }
-            }
-            Gecode::SetVarGlbValues value(var);
-            uint32_t targetIdx = value.val();
-            expectedTargetIdx = targetIdx;
-
-            uint32_t fromLocationIdx = idx % mLocations.size();
-            uint32_t fromTimeIdx = (idx - fromLocationIdx)/mLocations.size();
-
-            uint32_t toLocationIdx = targetIdx % mLocations.size();
-            uint32_t toTimeIdx = (targetIdx - fromLocationIdx)/mLocations.size();
-
-            //if(timeline.empty())
-            //{
-                SpaceTimePoint sourceStp(mLocations[fromLocationIdx], mTimepoints[fromTimeIdx]);
-                timeline.push_back(sourceStp);
-            //}
-
-            SpaceTimePoint targetStp(mLocations[toLocationIdx], mTimepoints[toTimeIdx]);
-            timeline.push_back(targetStp);
-        } else {
-            // empty set
-            continue;
-        }
-    }
-    LOG_WARN_S << "TIMELINE OF SIZE: " << timeline.size();
-    return timeline;
-}
-
-TransportNetwork::Timelines TransportNetwork::convertToTimelines(const Role::List& roles, const ListOfAdjacencyLists& lists) const
-{
-    assert(!roles.empty());
-
-    Timelines timelines;
-    if(roles.size() != lists.size())
-    {
-        throw std::invalid_argument("templ::solvers::csp::TransportNetwork::convertToTimelines: size of roles does not equal size of adjacency lists");
-    }
-
-    for(size_t i = 0; i < roles.size(); ++i)
-    {
-        timelines[ roles[i] ] = convertToTimeline(lists[i]);
-    }
-    LOG_WARN_S << "TIMELINES OF SIZE: " << timelines.size();
-    return timelines;
 }
 
 uint32_t TransportNetwork::getTimepointIndex(const temporal::point_algebra::TimePoint::Ptr& timePoint) const
@@ -1884,6 +1767,7 @@ std::ostream& operator<<(std::ostream& os, const TransportNetwork::SolutionList&
 
 void TransportNetwork::addFunctionRequirement(const FluentTimeResource& fts, owlapi::model::IRI& function)
 {
+    // Find the function requirement index
     size_t index = 0;
     owlapi::model::IRIList::const_iterator cit = mResources.begin();
     for(; cit != mResources.end(); ++cit, ++index)
@@ -1893,6 +1777,8 @@ void TransportNetwork::addFunctionRequirement(const FluentTimeResource& fts, owl
             break;
         }
     }
+
+    // If function cannot be found add the function to the (known) required resources
     if(index >= mResources.size())
     {
         if( mAsk.ontology().isSubClassOf(function, organization_model::vocabulary::OM::Functionality()) )
@@ -1905,13 +1791,15 @@ void TransportNetwork::addFunctionRequirement(const FluentTimeResource& fts, owl
     }
     LOG_DEBUG_S << "Using index: " << index;
 
+    // identify the fluent time resource
     std::vector<FluentTimeResource>::iterator fit = std::find(mResourceRequirements.begin(), mResourceRequirements.end(), fts);
     if(fit == mResourceRequirements.end())
     {
         throw std::invalid_argument("templ::solvers::csp::TransportNetwork: could not find the fluent time resource: '" + fts.toString() + "'");
     }
     LOG_DEBUG_S << "Fluent before adding function requirement: " << fit->toString();
-    // insert the resource requirement
+
+    // insert the function requirement
     fit->resources.insert(index);
     fit->maxCardinalities = organization_model::Algebra::max(fit->maxCardinalities, mAsk.getFunctionalSaturationBound(function) );
     LOG_DEBUG_S << "Fluent after adding function requirement: " << fit->toString();

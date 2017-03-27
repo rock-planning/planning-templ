@@ -115,7 +115,7 @@ void MinCostFlow::setCommoditySupplyAndDemand()
 
                 // Get the tuple in the graph and augment with role
                 // information
-                SpaceTimeNetwork::tuple_t::Ptr currentTuple = mSpaceTimeNetwork.tupleByKeys(location, interval.getFrom());
+                SpaceTime::Network::tuple_t::Ptr currentTuple = mSpaceTimeNetwork.tupleByKeys(location, interval.getFrom());
                 currentTuple->addRole(role);
 
                 Vertex::Ptr vertex = mBipartiteGraph.getUniquePartner(currentTuple);
@@ -189,11 +189,11 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
         const ConstraintViolation& violation = *vit;
         // Role that is involved into this violation
         const Role& affectedRole = mCommoditiesRoles[violation.getCommodity()];
-        // Map violation from multicommodity vertex back to SpaceTimeNetwork tuple
+        // Map violation from multicommodity vertex back to SpaceTime::Network tuple
         Vertex::Ptr spaceTimePartnerVertex = mBipartiteGraph.getUniquePartner(violation.getVertex());
-        SpaceTimeNetwork::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTimeNetwork::tuple_t>(spaceTimePartnerVertex);
+        SpaceTime::Network::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(spaceTimePartnerVertex);
 
-        SpaceTimeNetwork::value_t location = dynamic_pointer_cast<SpaceTimeNetwork::value_t::element_type>(tuple->first());
+        SpaceTime::Network::value_t location = dynamic_pointer_cast<SpaceTime::Network::value_t::element_type>(tuple->first());
 
         LOG_INFO_S << "Commodity flow violation: " << violation.toString();
         LOG_INFO_S << "Violation for " << affectedRole.toString() << " -- at: "
@@ -314,14 +314,14 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
                 Vertex::Ptr targetLocation = mBipartiteGraph.getUniquePartner(multicommodityEdge->getTargetVertex());
                 assert(sourceLocation && targetLocation);
 
-                dynamic_pointer_cast<SpaceTimeNetwork::tuple_t>(sourceLocation)->addRole(role);
-                dynamic_pointer_cast<SpaceTimeNetwork::tuple_t>(targetLocation)->addRole(role);
+                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(sourceLocation)->addRole(role);
+                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(targetLocation)->addRole(role);
             }
         }
     }
 }
 
-std::vector<csp::FluentTimeResource>::const_iterator MinCostFlow::getFluent(const csp::RoleTimeline& roleTimeline, const SpaceTimeNetwork::tuple_t::Ptr& tuple) const
+std::vector<csp::FluentTimeResource>::const_iterator MinCostFlow::getFluent(const csp::RoleTimeline& roleTimeline, const SpaceTime::Network::tuple_t::Ptr& tuple) const
 {
     LOG_WARN_S << "Find tuple: " << tuple->toString() << " in timeline " << roleTimeline.toString();
 

@@ -93,14 +93,14 @@ protected:
 
     std::vector<templ::solvers::csp::FluentTimeResource>::const_iterator
         getFluent(const templ::solvers::csp::RoleTimeline& roleTimeline,
-            const SpaceTimeNetwork::tuple_t::Ptr& tuple) const;
+            const SpaceTime::Network::tuple_t::Ptr& tuple) const;
 
 private:
     Mission::Ptr mpMission;
     std::map<Role, csp::RoleTimeline> mTimelines;
     std::vector<Role> mCommoditiesRoles;
 
-    SpaceTimeNetwork mSpaceTimeNetwork;
+    SpaceTime::Network mSpaceTimeNetwork;
     // Store the mapping between flow graph and space time network
     graph_analysis::BipartiteGraph mBipartiteGraph;
 };
