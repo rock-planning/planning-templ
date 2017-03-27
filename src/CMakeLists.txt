@@ -144,15 +144,7 @@ rock_library(templ
         utils/Logger.hpp
         utils/PathConstructor.hpp
         utils/XMLUtils.hpp
-    LIBS gecodesearch
-        gecodesupport
-        gecodeset
-        gecodekernel
-        gecodeminimodel
-        gecodeint
-        gecodefloat
-        gecodegist
-        ${Boost_LIBRARIES}
+    LIBS ${Boost_LIBRARIES}
         proj
     DEPS_PKGCONFIG graph_analysis
         numeric
@@ -163,6 +155,28 @@ rock_library(templ
         gqr
         eigen3
 )
+
+set(GECODE_LIBRARIES
+        gecodeflatzinc
+        gecodedriver
+        gecodegist
+        gecodesearch
+        gecodeminimodel
+        gecodeset
+        gecodefloat
+        gecodeint
+        gecodekernel
+        gecodesupport
+)
+
+message(STATUS ${GECODE_LIBRARIES})
+
+foreach(GECODE_LIB ${GECODE_LIBRARIES})
+    find_library(${GECODE_LIB}_PATH NAMES ${GECODE_LIB} PATHS ${CMAKE_INSTALL_TARGET}/lib
+        REQUIRED )
+    message(STATUS "LINK ${${GECODE_LIB}_PATH}")
+    target_link_libraries(templ ${${GECODE_LIB}_PATH})
+endforeach()
 
 rock_executable(templ_bin Main.cpp
     DEPS templ)

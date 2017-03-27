@@ -4,6 +4,7 @@
 #include <gecode/minimodel.hh>
 #include <gecode/set.hh>
 #include <gecode/gist.hh>
+#include <gecode/search.hh>
 
 #include <iomanip>
 #include <Eigen/Dense>
@@ -182,7 +183,6 @@ TransportNetwork::RoleDistribution TransportNetwork::getRoleDistribution() const
 
 SpaceTime::Timelines TransportNetwork::getTimelines() const
 {
-    LOG_WARN_S << "GET TIMELINES";
     for(size_t i = 0; i < mTimelines.size(); ++i)
     {
         std::cout << mActiveRoleList[i].toString() << " #" << i << mTimelines[i] << std::endl;
@@ -454,14 +454,15 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     afc.decay(*this, 0.95);
 
     Gecode::Gist::stopBranch(*this);
-    branch(*this, mRoleUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_MIN(), symmetries);
+    //branch(*this, mRoleUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_MIN(), symmetries);
     //branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN(), symmetries);
     //branch(*this, mRoleUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_MIN(), symmetries);
-    //branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(afc), Gecode::INT_VAL_MIN());
+    branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(afc), Gecode::INT_VAL_MIN());
 
     Gecode::Gist::stopBranch(*this);
+    std::function<void(Gecode::Space&)> postFunction = &TransportNetwork::postNewRoleAssignments;
     // see 8.14 Executing code between branchers
-    branch(*this, &TransportNetwork::postRoleAssignments);
+    Gecode::branch(static_cast< Gecode::Home >(*this), postFunction);
 
     Gecode::Gist::Print<TransportNetwork> p("Print solution");
     Gecode::Gist::Options o;
@@ -738,7 +739,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
             //Gecode::BAB<TransportNetwork> searchEngine(distribution,options);
             //Gecode::DFS<TransportNetwork> searchEngine(this);
-            Gecode::RBS< Gecode::BAB, TransportNetwork> searchEngine(distribution, options);
+            Gecode::RBS< TransportNetwork, Gecode::BAB > searchEngine(distribution, options);
 
         try {
             TransportNetwork* best = NULL;
@@ -1046,7 +1047,7 @@ bool TransportNetwork::isRoleForModel(uint32_t roleIndex, uint32_t modelIndex) c
     return mRoles.at(roleIndex).getModel() == mAvailableModels.at(modelIndex);
 }
 
-void TransportNetwork::postRoleAssignments(Gecode::Space& home)
+void TransportNetwork::postNewRoleAssignments(Gecode::Space& home)
 {
     LOG_WARN_S << "POST ROLE ASSIGNMENTS";
     static_cast<TransportNetwork&>(home).postRoleAssignments();

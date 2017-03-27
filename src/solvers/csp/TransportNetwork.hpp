@@ -160,6 +160,7 @@ private:
 
     std::vector<uint32_t> mActiveRoles;
     Role::List mActiveRoleList;
+
     // ############################
     // Timelines
     // ############################
@@ -247,7 +248,7 @@ private:
      */
     std::vector<uint32_t> getActiveRoles() const;
 
-    static void postRoleAssignments(Gecode::Space& home);
+    static void postNewRoleAssignments(Gecode::Space& home);
     void postRoleAssignments();
 
     static void postRoleTimelines(Gecode::Space& home);
