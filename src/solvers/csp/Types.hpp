@@ -10,27 +10,40 @@ namespace solvers {
 namespace csp {
 
 
+/// An adjacency list, e.g., which allows to represent a timeline in the CSP
+/// Each set represents a node, and each set member a target node
 typedef Gecode::SetVarArray AdjacencyList;
+
+/// ListOfAdjecencyLists, e.g., allows to represent a set of timelines in the CSP
 typedef std::vector<AdjacencyList> ListOfAdjacencyLists;
 
+/**
+ * A conversion class from/to the CSP internal types
+ */
 class TypeConversion
 {
 public:
+    /**
+     * Convert an adjacency list to the SpaceTime timeline representation using
+     * the known locations and timepoints
+     * \return Timeline
+     */
     static SpaceTime::Timeline toTimeline(const AdjacencyList& list,
-            std::vector<symbols::constants::Location::Ptr> locations,
-            std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints
+            const std::vector<symbols::constants::Location::Ptr>& locations,
+            const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints
             );
 
     /**
-     * Convert the adjacency lists of roles to timelines to timelines
+     * Convert a list of adjacency lists corresponding to individual roles
+     * to the SpaceTime timeline representation using
+     * the known locations and timepoints
+     *
+     * \return Timelines
      */
     static SpaceTime::Timelines toTimelines(const Role::List& roles, const ListOfAdjacencyLists& lists,
-            std::vector<symbols::constants::Location::Ptr> locations,
-            std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints);
-
-
+            const std::vector<symbols::constants::Location::Ptr>& locations,
+            const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints);
 };
-
 
 } // end namespace csp
 } // end namespace solvers

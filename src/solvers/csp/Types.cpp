@@ -7,18 +7,18 @@ namespace csp {
 
 
 SpaceTime::Timeline TypeConversion::toTimeline(const AdjacencyList& list,
-            std::vector<symbols::constants::Location::Ptr> locations,
-            std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints)
+            const std::vector<symbols::constants::Location::Ptr>& locations,
+            const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints)
 {
     SpaceTime::Timeline timeline;
-    int expectedTargetIdx;
+    int expectedTargetIdx = -1;
     for(int idx = 0; idx < list.size(); ++idx)
     {
         const Gecode::SetVar& var = list[idx];
         if(!var.assigned())
         {
             SpaceTime::Point stp();
-        //    throw std::invalid_argument("templ::solvers::csp::TransportNetwork::toString: cannot compute timeline, value is not assigned");
+            throw std::invalid_argument("templ::solvers::csp::TypeConversion::toTimeline: cannot compute timeline, value is not assigned");
         }
 
         if(var.cardMax() == 1 && var.cardMin() == 1)
@@ -28,7 +28,7 @@ SpaceTime::Timeline TypeConversion::toTimeline(const AdjacencyList& list,
                 if(expectedTargetIdx != idx)
                 {
                     std::stringstream ss;
-                    ss << "templ::solvers::csp::TypeConverstion::toTimeline: timeline is invalid: ";
+                    ss << "templ::solvers::csp::TypeConversion::toTimeline: timeline is invalid: ";
                     ss << " expected idx " << expectedTargetIdx << ", but got " << idx;
                     LOG_WARN_S << ss.str();
                     //throw std::runtime_error(ss.str());
@@ -64,8 +64,8 @@ SpaceTime::Timeline TypeConversion::toTimeline(const AdjacencyList& list,
 
 
 SpaceTime::Timelines TypeConversion::toTimelines(const Role::List& roles, const ListOfAdjacencyLists& lists,
-            std::vector<symbols::constants::Location::Ptr> locations,
-            std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints)
+            const std::vector<symbols::constants::Location::Ptr>& locations,
+            const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints)
 {
     if(roles.empty());
     {
