@@ -39,4 +39,13 @@ std::string Role::toString(const Role::List& roles)
     return ss.str();
 }
 
+bool Role::operator<(const Role& other) const
+{
+    if(mModel == other.mModel)
+    {
+        return mName < other.mName;
+    }
+    return mModel < other.mModel;
+}
+
 } // end namespace templ
