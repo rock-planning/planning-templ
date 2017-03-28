@@ -59,6 +59,8 @@ struct FluentTimeResource
 
     solvers::temporal::Interval getInterval() const;
 
+    Symbol::Ptr getFluent() const;
+
     /**
      * Get the set of functionalities this FluentTimeResource requires
      * \param ontology The ontology to map the resources

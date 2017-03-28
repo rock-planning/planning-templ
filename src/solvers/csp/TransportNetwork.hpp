@@ -319,6 +319,8 @@ public:
 
     std::string toString() const;
 
+    std::string roleUsageToString() const;
+
     void print(std::ostream& os) const { os << toString() << std::endl; }
 
     /**

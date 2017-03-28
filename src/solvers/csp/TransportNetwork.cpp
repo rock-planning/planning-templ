@@ -1088,21 +1088,10 @@ std::vector<uint32_t> TransportNetwork::getActiveRoles() const
 
 void TransportNetwork::postRoleAssignments()
 {
-    LOG_WARN_S << "POST ROLE ASSIGNMENTS: request status";
     (void) status();
 
-    std::stringstream ss;
-    ss << "Role usage:" << std::endl;
-    for(size_t i = 0; i < mRoles.size(); ++i)
-    {
-        ss << std::setw(30) << std::left << mRoles[i].toString() << ": ";
-        for(size_t r = 0; r < mResourceRequirements.size(); ++r)
-        {
-            ss << std::setw(10) << mRoleUsage[r*mRoles.size() + i] << " ";
-        }
-        ss << std::endl;
-    }
-    LOG_WARN_S << ss.str();
+    LOG_WARN_S << "Posing Role Assignments: request status" << std::endl
+        << roleUsageToString();
 
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
 
@@ -1717,6 +1706,34 @@ std::string TransportNetwork::toString() const
     //        toPtrList<Variable, temporal::point_algebra::TimePoint>(mTimepoints)
     //        ) << std::endl;
 
+    return ss.str();
+}
+
+std::string TransportNetwork::roleUsageToString() const
+{
+    std::stringstream ss;
+    ss << "Role usage:" << std::endl;
+    ss << std::setw(30) << std::right << "    FluentTimeResource: ";
+    for(size_t r = 0; r < mResourceRequirements.size(); ++r)
+    {
+        const FluentTimeResource& fts = mResourceRequirements[r];
+        /// construct string for proper alignment
+        std::string s = fts.getFluent()->getInstanceName();
+        s += "@[" + fts.getInterval().toString(0,true) + "]";
+
+        ss << std::setw(15) << std::left << s;
+    }
+    ss << std::endl;
+
+    for(size_t i = 0; i < mRoles.size(); ++i)
+    {
+        ss << std::setw(30) << std::left << mRoles[i].toString() << ": ";
+        for(size_t r = 0; r < mResourceRequirements.size(); ++r)
+        {
+            ss << std::setw(15) << mRoleUsage[r*mRoles.size() + i] << " ";
+        }
+        ss << std::endl;
+    }
     return ss.str();
 }
 

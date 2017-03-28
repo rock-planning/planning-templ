@@ -72,22 +72,27 @@ bool Interval::distinctFrom(const Interval& other) const
     return !equals(other);
 }
 
-std::string Interval::toString(uint32_t indent) const
+std::string Interval::toString(uint32_t indent, bool compact) const
 {
     std::stringstream ss;
     std::string hspace(indent, ' ');
-    ss << hspace << "Interval: " << std::endl;
-    if(mpFrom)
+    if(!compact)
     {
-        ss << hspace << "    from: " << mpFrom->toString() << std::endl;
+        ss << hspace << "Interval: " << std::endl;
+        if(mpFrom)
+        {
+            ss << hspace << "    from: " << mpFrom->toString() << std::endl;
+        } else {
+            ss << hspace << "    from: n/a" << std::endl;
+        }
+        if(mpTo)
+        {
+            ss << hspace << "    to: " << mpTo->toString() << std::endl;
+        } else {
+            ss << hspace << "    to: n/a" << std::endl;
+        }
     } else {
-        ss << hspace << "    from: n/a" << std::endl;
-    }
-    if(mpTo)
-    {
-        ss << hspace << "    to: " << mpTo->toString() << std::endl;
-    } else {
-        ss << hspace << "    to: n/a" << std::endl;
+        ss << hspace << mpFrom->getLabel() << "-" << mpTo->getLabel();
     }
     return ss.str();
 }

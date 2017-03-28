@@ -132,6 +132,11 @@ solvers::temporal::Interval FluentTimeResource::getInterval() const
     return mission->getTimeIntervals().at(time);
 }
 
+Symbol::Ptr FluentTimeResource::getFluent() const
+{
+    return mission->getLocations()[fluent];
+}
+
 std::set<organization_model::Functionality> FluentTimeResource::getFunctionalities() const
 {
     owlapi::model::OWLOntologyAsk ontologyAsk(mission->getOrganizationModel()->ontology());
