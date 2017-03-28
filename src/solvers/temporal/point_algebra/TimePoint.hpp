@@ -58,6 +58,10 @@ public:
 
     virtual std::string toString(uint32_t indent) const;
 
+    /**
+     * Create string representation for timepoint list
+     * \indent number of spaces for indentation
+     */
     static std::string toString(const std::vector<TimePoint::Ptr>& timepoints, uint32_t indent = 0);
 
     /**
@@ -73,6 +77,8 @@ private:
 };
 
 typedef std::vector<TimePoint::Ptr> TimePointList;
+
+std::ostream& operator<<(std::ostream&, const TimePointList& timepoints);
 
 } // end namespace point_algebra
 } // end namespace temporal

@@ -13,7 +13,7 @@ std::string Formatter::toString(const std::vector<Gecode::IntVarArray>& arrays, 
     std::stringstream ss;
     for(size_t i = 0; i < arrays.size(); ++i)
     {
-        assert( activeRoles.size() > i);
+        //assert( activeRoles.size() > i);
         ss << "Label: '" << arrayLabels[i] << "'" << std::endl;
 
         ss << toString(arrays[i], fluents, variables) << std::endl;
@@ -61,6 +61,33 @@ std::string Formatter::toString(const Gecode::IntVarArray& array, const std::vec
         ss << std::endl;
     }
     ss << std::endl << path << std::endl;
+    return ss.str();
+}
+
+
+std::string Formatter::toString(const Gecode::SetVarArray& array, size_t columnSize)
+{
+    std::stringstream ss;
+    for(int i = 0; i < array.size(); ++i)
+    {
+        if(i%columnSize == 0)
+        {
+            ss << std::endl;
+        }
+        ss << std::setw(25) << array[i];
+    }
+    return ss.str();
+}
+
+std::string Formatter::toString(const std::vector<Gecode::SetVarArray>& array, size_t columnSize)
+{
+    std::stringstream ss;
+    std::vector<Gecode::SetVarArray>::const_iterator cit = array.begin();
+    for(; cit != array.end(); ++cit)
+    {
+        ss << toString(*cit, columnSize);
+    }
+    ss << std::endl;
     return ss.str();
 }
 

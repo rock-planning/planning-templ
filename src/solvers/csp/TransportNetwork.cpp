@@ -193,7 +193,7 @@ SpaceTime::Timelines TransportNetwork::getTimelines() const
             const Gecode::SetVar& var = *cit;
             if(!var.assigned())
             {
-                throw std::invalid_argument("TransportNetwork::getTimelines: value is not assigned");
+                continue;
             } else {
                 if(var.cardMax() == 1 && var.cardMin() == 1)
                 {
@@ -440,7 +440,9 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     //
     setUpperBoundForConcurrentRequirements();
 
+    // Limit roles to resource availability
     initializeRoleDistributionConstraints();
+    // There can be only one assignment per role
     enforceUnaryResourceUsage();
 
     // (C) Avoid computation of solutions that are redunant
@@ -449,11 +451,6 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     // two distinct solutions that are symmetric."
     //
     Gecode::Symmetries symmetries = identifySymmetries();
-
-    Gecode::IntAFC afc(*this, mModelUsage, 0.99);
-    afc.decay(*this, 0.95);
-
-    Gecode::Gist::stopBranch(*this);
 
     // Regarding the use of INT_VALUES_MIN() and INT_VALUES_MAX(): "This is
     // typically a poor choice, as none of the alternatives can benefit from
@@ -465,10 +462,21 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     //branch(*this, mRoleUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_MIN(), symmetries);
     //branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(afc), Gecode::INT_VAL_MIN());
 
-    branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(afc), Gecode::INT_VAL_SPLIT_MIN());
+    Gecode::IntAFC modelUsageAfc(*this, mModelUsage, 0.99);
+    modelUsageAfc.decay(*this, 0.95);
+    branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
 
-    Gecode::Rnd r(1U);
-    branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(afc), Gecode::INT_VAL_RND(r));
+    Gecode::Rnd modelUsageRnd(1U);
+    branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_RND(modelUsageRnd));
+
+
+
+    Gecode::IntAFC roleUsageAfc(*this, mRoleUsage, 0.99);
+    roleUsageAfc.decay(*this, 0.95);
+    branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
+
+    Gecode::Rnd roleUsageRnd(1U);
+    branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_RND(roleUsageRnd));
 
     Gecode::Gist::stopBranch(*this);
     // see 8.14 Executing code between branchers
@@ -1109,14 +1117,11 @@ void TransportNetwork::postRoleAssignments()
     //#############################################
     // construct timelines
     // ############################################
-    // row = |timepoints|*location + timepoint-from
-    // col = |timepoints|*location + timepoint-to
-    //
-    // i.e.
-    //
-    //        l0-t0  l0-t1 ... l0-tn l1-t0 l1-t1 ... l1-tn
-    // l0-t0
-    // l0-t1
+    // 0: l0-t0: {}
+    // 1: l1-t0: {2}
+    // 2: l0-t1: {4}
+    // 3: l1-t1: {}
+    // 4: l0-t2: {..}
     // ...
     // -- add an additional transfer location to allow for 'timegaps'
     mLocations.push_back(symbols::constants::Location::Ptr(new symbols::constants::Location("in-transfer")));
@@ -1124,22 +1129,21 @@ void TransportNetwork::postRoleAssignments()
     size_t locationTimeSize = mLocations.size()*mTimepoints.size();
     mActiveRoles = getActiveRoles();
 
-    LOG_INFO_S << "Adjacency list (locationTime) size: " << locationTimeSize << " -- for " << mRoles.size() << " roles; " << mActiveRoles.size() << " are active roles";
-
     // Collect all relevant location time values
     // which represents a superset of the final timeline
     std::vector<int> allowedLocationTimeValues;
     Role::List activeRoles;
-    for(uint32_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
+
+    LOG_WARN_S << std::endl
+        << mTimepoints << std::endl
+        << symbols::constants::Location::toString(mLocations);
+
+    std::vector<uint32_t>::const_iterator rit = mActiveRoles.begin();
+    for(; rit != mActiveRoles.end(); ++rit)
     {
-        // consider only active roles
-        if(mActiveRoles.end() == std::find(mActiveRoles.begin(), mActiveRoles.end(), roleIndex))
-        {
-            LOG_DEBUG_S << "Is not an active role: " << mRoles[roleIndex].toString();
-            continue;
-        }
+        uint32_t roleIndex = *rit;
         const Role& role = mRoles[roleIndex];
-        LOG_WARN_S << "Is an active role: " << role.toString();
+        LOG_WARN_S << "Using active role: " << role.toString();
 
         activeRoles.push_back(role);
 
@@ -1149,31 +1153,20 @@ void TransportNetwork::postRoleAssignments()
         // An empty list assignment means, there is no transition and at
         // maximum there can be one transition
 
-        // Initialize timelines for all roles, i.e. here the current one
+        /// Initialize timelines for all roles, i.e. here the current one
+        /// Ajacencylist
         Gecode::SetVarArray timeline(*this, locationTimeSize, Gecode::IntSet::empty, Gecode::IntSet(0,locationTimeSize-1),0,1);
         mTimelines.push_back(timeline);
-
-        // DEBUG BEGIN
-        using namespace solvers::temporal;
-        std::vector<point_algebra::TimePoint::Ptr>::const_iterator cit = mTimepoints.begin();
-        for(; cit != mTimepoints.end(); ++cit)
-        {
-            LOG_DEBUG_S << "Timepoints: " << (*cit)->toString();
-        }
-        for(size_t i = 0; i < mLocations.size(); ++i)
-        {
-            LOG_DEBUG_S << "Locations: " << mLocations[i]->toString();
-        }
-        // DEBUG END
 
         bool prevTimeIdxAvailable = false;
         uint32_t prevTimeIdx = 0;
         uint32_t prevLocationIdx = 0;
 
+        // Setup the basic contraints for the timeline
+        // i.e. only edges from one timestep to the next are allowed
         for(size_t t = 0; t < mTimepoints.size(); ++t)
         {
             Gecode::SetVarArray timestep(*this, mLocations.size());
-            std::stringstream ss;
             for(size_t l = 0; l < mLocations.size(); ++l)
             {
                 int idx = t*mLocations.size() + l;
@@ -1182,31 +1175,30 @@ void TransportNetwork::postRoleAssignments()
                 // timeline
                 Gecode::Set::SetView v(edgeActivation);
                 // http://www.gecode.org/doc-latest/reference/classGecode_1_1Set_1_1SetView.html
-                // set value to 'col'
+                // set value to 'col' which represents the next target
+                // space-time-point
                 v.cardMin(*this, 0);
                 v.cardMax(*this, 1);
-                v.exclude(*this, 0, t*mLocations.size());
+                // exclude space-time-points outside the next step
+                v.exclude(*this, 0, (t+1)*mLocations.size() - 1);
                 v.exclude(*this, (t+2)*mLocations.size(), mTimepoints.size()*mLocations.size());
-                ss << std::setw(25) << v;
 
                 timestep[l] = edgeActivation;
             }
 
+            // Limit the union of this timestep to one outgoing edge
             Gecode::SetVar allUnion(*this);
             Gecode::rel(*this, Gecode::SOT_UNION, timestep, allUnion);
             Gecode::cardinality(*this, allUnion, 0,1);
-
-            ss << std::endl;
-            LOG_WARN_S << ss.str();
         }
 
-        LOG_WARN_S << "TIMELINE DONE FOR " << role.toString();
+        using namespace solvers::temporal;
 
         // Link the edge activation to the role requirement, i.e. make sure that
         // for each requirement the interval is 'activated'
         for(uint32_t requirementIndex = 0; requirementIndex < mResourceRequirements.size(); ++requirementIndex)
         {
-            // Check if the particular role, is required to fulfil the
+            // Check if the current role (identified by roleIndex) is required to fulfil the
             // requirement
             Gecode::IntVar roleRequirement = roleDistribution(roleIndex, requirementIndex);
             if(!roleRequirement.assigned())
@@ -1215,6 +1207,7 @@ void TransportNetwork::postRoleAssignments()
             }
             Gecode::IntVarValues var(roleRequirement);
             // Check if role is required, i.e., does it map to the interval
+            // then the assigned value is one
             if(var.val() == 1)
             {
                 const FluentTimeResource& fts = mResourceRequirements[requirementIndex];
@@ -1224,7 +1217,7 @@ void TransportNetwork::postRoleAssignments()
                 uint32_t fromIndex = getTimepointIndex( from );
                 uint32_t toIndex = getTimepointIndex( to );
 
-                // The timeline is now update for the full interval the
+                // The timeline is now updated for the full interval the
                 // requirement is covering
                 for(uint32_t timeIndex = fromIndex; timeIndex < toIndex; ++timeIndex)
                 {
@@ -1260,13 +1253,13 @@ void TransportNetwork::postRoleAssignments()
                     Gecode::Set::SetView v(edgeActivation);
                     // http://www.gecode.org/doc-latest/reference/classGecode_1_1Set_1_1SetView.html
                     // set value to 'col'
+                    // workaround to set {col} as target for this edge
                     v.intersect(*this, col,col);
                     v.cardMin(*this, 1);
                     v.cardMax(*this, 1);
-                    v.exclude(*this, 0, timeIndex*mLocations.size());
+                    // Exclude might actually be redundant
+                    v.exclude(*this, 0, (timeIndex+1)*mLocations.size()-1);
                     v.exclude(*this, (timeIndex+2)*mLocations.size(), mTimepoints.size()*mLocations.size());
-                    //std::cout << "restricted to: " << edgeActivation << std::endl;
-                    //std::cout << timeline << std::endl;
                 }
                 allowedLocationTimeValues.push_back(toIndex*mLocations.size() + fts.fluent);
 
@@ -1307,55 +1300,60 @@ void TransportNetwork::postRoleAssignments()
                 prevTimeIdxAvailable = true;
             }
         }
+        propagators::isPath(*this, timeline, mTimepoints.size(), mLocations.size());
+
+        LOG_WARN_S << std::endl << "Timeline for " << role.toString() << std::endl
+            << Formatter::toString(timeline, mLocations.size());
+
     }
 
 
     // Now allow role timelines can be restricted to the given superset
-    Gecode::IntSet allowedIntSetValues(allowedLocationTimeValues.data(), allowedLocationTimeValues.size());
-    for(size_t t = 0; t < mTimelines.size(); ++t)
-    {
-        Gecode::SetVarArray& timeline = mTimelines[t];
-        //Gecode::SetVarArray::iterator it = timeline.begin();
-        //for(; it != timeline.end(); ++it)
-        //{
-        //    Gecode::SetVar& var = *it;
-        //    std::cout << var << " should be a subset of " << allowedIntSetValues << std::endl;
-        //    // Variable should be a subset of the allowedIntSetValue
-        //    rel(*this, var <= allowedIntSetValues || var == Gecode::IntSet::empty);
-        //}
+    //Gecode::IntSet allowedIntSetValues(allowedLocationTimeValues.data(), allowedLocationTimeValues.size());
+    //for(size_t t = 0; t < mTimelines.size(); ++t)
+    //{
+    //    Gecode::SetVarArray& timeline = mTimelines[t];
+    //    //Gecode::SetVarArray::iterator it = timeline.begin();
+    //    //for(; it != timeline.end(); ++it)
+    //    //{
+    //    //    Gecode::SetVar& var = *it;
+    //    //    std::cout << var << " should be a subset of " << allowedIntSetValues << std::endl;
+    //    //    // Variable should be a subset of the allowedIntSetValue
+    //    //    rel(*this, var <= allowedIntSetValues || var == Gecode::IntSet::empty);
+    //    //}
 
-        // Make sure that the timeline for each role forms a path
-        // This allows to account for feasible paths for immobile units as well
-        // as mobile units to cover this area
-        std::stringstream ss;
-        {
-            for(size_t t = 0; t < mTimepoints.size(); ++t)
-            {
-                for(size_t l = 0; l < mLocations.size(); ++l)
-                {
-                    ss << std::setw(25) << timeline[t*mLocations.size() + l] << " ";
-                }
-                ss << std::endl;
-            }
-            LOG_WARN_S << "POST TIMELINE: " << std::endl << ss.str() << std::endl;
-        }
-        //propagators::isPath(*this, timeline, mTimepoints.size(), mLocations.size());
+    //    // Make sure that the timeline for each role forms a path
+    //    // This allows to account for feasible paths for immobile units as well
+    //    // as mobile units to cover this area
+    //    std::stringstream ss;
+    //    {
+    //        for(size_t t = 0; t < mTimepoints.size(); ++t)
+    //        {
+    //            for(size_t l = 0; l < mLocations.size(); ++l)
+    //            {
+    //                ss << std::setw(25) << timeline[t*mLocations.size() + l] << " ";
+    //            }
+    //            ss << std::endl;
+    //        }
+    //        LOG_WARN_S << "POST TIMELINE: " << std::endl << ss.str() << std::endl;
+    //    }
+    //    //propagators::isPath(*this, timeline, mTimepoints.size(), mLocations.size());
 
-        {
-            std::stringstream ss;
-            for(size_t t = 0; t < mTimepoints.size(); ++t)
-            {
-                for(size_t l = 0; l < mLocations.size(); ++l)
-                {
-                    ss << std::setw(25) << timeline[t*mLocations.size() + l] << " ";
-                }
-                ss << std::endl;
-            }
-            LOG_WARN_S << "POST TIMELINE: " << std::endl << ss.str() << std::endl;
-        }
-    }
+    //    {
+    //        std::stringstream ss;
+    //        for(size_t t = 0; t < mTimepoints.size(); ++t)
+    //        {
+    //            for(size_t l = 0; l < mLocations.size(); ++l)
+    //            {
+    //                ss << std::setw(25) << timeline[t*mLocations.size() + l] << " ";
+    //            }
+    //            ss << std::endl;
+    //        }
+    //        LOG_WARN_S << "POST TIMELINE: " << std::endl << ss.str() << std::endl;
+    //    }
+    //}
 
-    LOG_WARN_S << "COMPLETED TIMELINE POSTING";
+    //LOG_WARN_S << "COMPLETED TIMELINE POSTING";
 
     mActiveRoleList = activeRoles;
 
@@ -1373,22 +1371,19 @@ void TransportNetwork::postRoleAssignments()
     //
     // Compute a network with proper activation
     //branch(*this, &TransportNetwork::postRoleTimelines);
-    for(size_t i = 0; i < mActiveRoles.size(); ++i)
-    {
-        Gecode::SetAFC afc(*this, mTimelines[i], 0.99);
-        afc.decay(*this, 0.95);
+    //for(size_t i = 0; i < mActiveRoles.size(); ++i)
+    //{
+    //    Gecode::SetAFC afc(*this, mTimelines[i], 0.99);
+    //    afc.decay(*this, 0.95);
 
-        Gecode::Gist::stopBranch(*this);
+    //    // http://www.gecode.org/doc-latest/reference/group__TaskModelSetBranchVar.html
+    //    //branch(*this, mTimelines[i], Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
+    //    branch(*this, mTimelines[i], Gecode::SET_VAR_MAX_MAX(), Gecode::SET_VAL_MAX_EXC());
+    //    //branch(*this, mTimelines[i], Gecode::SET_VAR_MIN_MIN(), Gecode::SET_VAL_MAX_INC());
+    //    //branch(*this, mTimelines[i], Gecode::SET_VAR_NONE(), Gecode::SET_VAL_MED_INC());
+    //    LOG_WARN_S << "Timeline for active role: " << mTimelines[i];
+    //}
 
-        // http://www.gecode.org/doc-latest/reference/group__TaskModelSetBranchVar.html
-        //branch(*this, mTimelines[i], Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
-        branch(*this, mTimelines[i], Gecode::SET_VAR_MAX_MAX(), Gecode::SET_VAL_MAX_EXC());
-        Gecode::Gist::stopBranch(*this);
-        //branch(*this, mTimelines[i], Gecode::SET_VAR_MIN_MIN(), Gecode::SET_VAL_MAX_INC());
-        //branch(*this, mTimelines[i], Gecode::SET_VAR_NONE(), Gecode::SET_VAL_MED_INC());
-    }
-
-    //LOG_WARN_S << mTimelines[0];
 
     //LOG_WARN_S << "POST FLOW CAPACITIES";
     //branch(*this, &TransportNetwork::postFlowCapacities);
@@ -1542,8 +1537,9 @@ void TransportNetwork::postFlowCapacities()
     }
 
     // Compute the multi commodity flow
-    LOG_WARN_S << "POST MULTI COMMODITY FLOW: timeline size: " << mTimelines.size() << ", active roles: " << mActiveRoleList.size();
     assert(mTimelines.size() == mActiveRoleList.size());
+    LOG_WARN_S << "POST MULTI COMMODITY FLOW: timeline size: " << mTimelines.size() << ", active roles: " << Role::toString( mActiveRoleList );
+
     propagators::multiCommodityFlow(*this, mActiveRoleList, mTimelines, mTimepoints.size(), mLocations.size(), mpMission->getOrganizationModelAsk());
 
 //

@@ -102,6 +102,12 @@ std::string TimePoint::toString(const std::vector<TimePoint::Ptr>& timepoints, u
     return ss.str();
 }
 
+std::ostream& operator<<(std::ostream& os, const TimePointList& timepoints)
+{
+    os << TimePoint::toString(timepoints);
+    return os;
+}
+
 } // end namespace point_algebra
 } // end namespace temporal
 } // end namespace solvers

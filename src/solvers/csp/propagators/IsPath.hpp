@@ -42,6 +42,11 @@ public:
     static Gecode::ExecStatus post(Gecode::Space& home, const Gecode::SetVarArgs& x0, uint32_t numberOfTimepoints, uint32_t numberOfFluents, uint32_t minPathLength = 1, uint32_t maxPathLength = std::numeric_limits<uint32_t>::max());
 
     /**
+     * Reduce domain of all possibly parallel edges
+     */
+    static void disableSametimeView(Gecode::Space& home, const Gecode::SetVarArgs& x, int viewIdx, uint32_t numberOfTimepoints, uint32_t numberOfFluents);
+
+    /**
      * Cancels that subscription of the view
      * \return the size of the just disposed propagator
      */
@@ -52,6 +57,7 @@ public:
     virtual Gecode::PropCost cost(const Gecode::Space&, const Gecode::ModEventDelta&) const;
 
     virtual Gecode::ExecStatus propagate(Gecode::Space& home, const Gecode::ModEventDelta&);
+
 };
 
 void isPath(Gecode::Space& home, const Gecode::SetVarArgs&, uint32_t numberOfTimepoints, uint32_t numberOfFluents, uint32_t minPathLength = 1, uint32_t maxPathLength = std::numeric_limits<uint32_t>::max());

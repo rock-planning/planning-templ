@@ -28,8 +28,11 @@ public:
     const base::Point& getPosition() const { return mPosition; }
 
     virtual std::string toString() const;
-};
 
+    static std::string toString(const List& l, size_t indent = 0);
+
+    static std::string toString(const PtrList& l, size_t indent = 0);
+};
 
 } // end namespace constants
 } // end namespace symbols
