@@ -454,15 +454,26 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     afc.decay(*this, 0.95);
 
     Gecode::Gist::stopBranch(*this);
+
+    // Regarding the use of INT_VALUES_MIN() and INT_VALUES_MAX(): "This is
+    // typically a poor choice, as none of the alternatives can benefit from
+    // propagation that arises when other values of the same variable are tried.
+    // These branchings exist for instructional purposes" p.123 Tip 8.2
+    //
     //branch(*this, mRoleUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_MIN(), symmetries);
     //branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN(), symmetries);
     //branch(*this, mRoleUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_MIN(), symmetries);
-    branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(afc), Gecode::INT_VAL_MIN());
+    //branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(afc), Gecode::INT_VAL_MIN());
+
+    branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(afc), Gecode::INT_VAL_SPLIT_MIN());
+
+    Gecode::Rnd r(1U);
+    branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(afc), Gecode::INT_VAL_RND(r));
 
     Gecode::Gist::stopBranch(*this);
-    std::function<void(Gecode::Space&)> postFunction = &TransportNetwork::postNewRoleAssignments;
     // see 8.14 Executing code between branchers
-    Gecode::branch(static_cast< Gecode::Home >(*this), postFunction);
+    Gecode::branch(static_cast< Gecode::Home >(*this), &TransportNetwork::assignRoles);
+    Gecode::branch(static_cast< Gecode::Home >(*this), &TransportNetwork::triggerTimelineGeneration);
 
     Gecode::Gist::Print<TransportNetwork> p("Print solution");
     Gecode::Gist::Options o;
@@ -1047,9 +1058,9 @@ bool TransportNetwork::isRoleForModel(uint32_t roleIndex, uint32_t modelIndex) c
     return mRoles.at(roleIndex).getModel() == mAvailableModels.at(modelIndex);
 }
 
-void TransportNetwork::postNewRoleAssignments(Gecode::Space& home)
+void TransportNetwork::assignRoles(Gecode::Space& home)
 {
-    LOG_WARN_S << "POST ROLE ASSIGNMENTS";
+    LOG_WARN_S << "Assign Roles";
     static_cast<TransportNetwork&>(home).postRoleAssignments();
 }
 
@@ -1383,8 +1394,9 @@ void TransportNetwork::postRoleAssignments()
     //branch(*this, &TransportNetwork::postFlowCapacities);
 }
 
-void TransportNetwork::postRoleTimelines(Gecode::Space& home)
+void TransportNetwork::triggerTimelineGeneration(Gecode::Space& home)
 {
+    LOG_WARN_S << "Trigger timeline generation";
     static_cast<TransportNetwork&>(home).postRoleTimelines();
 }
 
@@ -1514,7 +1526,7 @@ void TransportNetwork::postRoleTimelines()
 //    }
 }
 
-void TransportNetwork::postFlowCapacities(Gecode::Space& home)
+void TransportNetwork::validateFlow(Gecode::Space& home)
 {
     static_cast<TransportNetwork&>(home).postFlowCapacities();
 }

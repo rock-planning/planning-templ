@@ -111,7 +111,8 @@ private:
     /// Constants: Locations (as defined in the mission)
     std::vector<symbols::constants::Location::Ptr> mLocations;
 
-    /// Service Requirement that arise from the mission scenario
+    /// List of FluentTimeResource which represents the functional
+    /// requirements that arise from the mission scenario
     std::vector<FluentTimeResource> mResourceRequirements;
 
     // map timeslot to fluenttime service
@@ -248,13 +249,16 @@ private:
      */
     std::vector<uint32_t> getActiveRoles() const;
 
-    static void postNewRoleAssignments(Gecode::Space& home);
+    static void assignRoles(Gecode::Space& home);
+    /**
+     *
+     */
     void postRoleAssignments();
 
-    static void postRoleTimelines(Gecode::Space& home);
+    static void triggerTimelineGeneration(Gecode::Space& home);
     void postRoleTimelines();
 
-    static void postFlowCapacities(Gecode::Space& home);
+    static void validateFlow(Gecode::Space& home);
     void postFlowCapacities();
 
 protected:
