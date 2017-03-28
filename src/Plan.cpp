@@ -10,6 +10,8 @@ namespace templ {
 Plan::Plan(const Mission::Ptr& mission, const std::string& label)
     : mpMission(mission)
     , mLabel(label)
+    /// Set refresh to true to allow lazy initialization of datastructures
+    , mRequiresRefresh(true)
 {}
 
 void Plan::add(const Role& role, const std::vector<graph_analysis::Vertex::Ptr>& path)
@@ -19,6 +21,7 @@ void Plan::add(const Role& role, const std::vector<graph_analysis::Vertex::Ptr>&
         throw std::invalid_argument("templ::Plan::add: role '" + role.toString() + "' already added to plan");
     }
     mRolebasedPlan[role] = path;
+    mRequiresRefresh = true;
 }
 
 
@@ -123,29 +126,69 @@ void Plan::save(const std::vector<Plan>& plans, const std::string& filename)
     file.close();
 }
 
-void Plan::saveAsActionPlan(const std::vector<Plan>& plans, const Mission& mission, const std::string& filename)
+std::vector<Plan::ActionPlan> Plan::toActionPlans(const std::vector<Plan>& plans)
 {
-    std::ofstream file(filename);
-    if(!file.is_open())
-    {
-        throw std::invalid_argument("templ::Plan::saveAsActionPlan: could not open file '" + filename + "'");
-    }
-
+    std::vector<ActionPlan> actionPlans;
     std::vector<Plan>::const_iterator pit = plans.begin();
     for(; pit != plans.end(); ++pit)
     {
         Plan plan = *pit;
-        Plan::ActionPlan actionPlan = plan.getActionPlan(mission);
+        ActionPlan actionPlan = plan.getActionPlan();
+        actionPlans.push_back(actionPlan);
+    }
+    return actionPlans;
+}
+
+void Plan::save(const std::vector<Plan::ActionPlan>& plans, const std::string& filename)
+{
+    std::ofstream file(filename);
+    if(!file.is_open())
+    {
+        throw std::invalid_argument("templ::Plan::save: could not open file '" + filename + "'");
+    }
+
+    std::vector<ActionPlan>::const_iterator pit = plans.begin();
+    for(; pit != plans.end(); ++pit)
+    {
+        ActionPlan actionPlan = *pit;
         file << toString(actionPlan);
     }
     file.close();
 }
 
-Plan::ActionPlan Plan::getActionPlan(const Mission& mission)
+void Plan::saveAsActionPlan(const std::vector<Plan>& plans, const std::string& filename)
 {
+    std::vector<ActionPlan> actionPlans = toActionPlans(plans);
+    save(actionPlans, filename);
+}
+
+const Plan::ActionPlan& Plan::getActionPlan() const
+{
+    computeGraphAndActionPlan();
+    return mActionPlan;
+}
+
+graph_analysis::BaseGraph::Ptr Plan::getGraph() const
+{
+    computeGraphAndActionPlan();
+    return mpBaseGraph;
+}
+
+void Plan::computeGraphAndActionPlan() const
+{
+    if(!mRequiresRefresh)
+    {
+        return;
+    }
+
     mpBaseGraph = graph_analysis::BaseGraph::getInstance();
 
-    organization_model::OrganizationModelAsk organizationModelAsk(mission.getOrganizationModel(), mission.getAvailableResources(), true);
+    if(!mpMission)
+    {
+        throw std::runtime_error("templ::Plan: plan has no associated mission -- cannot proceed generating action plan");
+    }
+
+    organization_model::OrganizationModelAsk organizationModelAsk(mpMission->getOrganizationModel(), mpMission->getAvailableResources(), true);
 
     ActionPlan actionPlan;
 
@@ -179,7 +222,7 @@ Plan::ActionPlan Plan::getActionPlan(const Mission& mission)
                     link->setTargetVertex(currentWaypoint);
                     mpBaseGraph->addEdge(link);
 
-                    roleSpecificPlan.push_back("move-to (from: '" + previousWaypoint->toString() + "', to"
+                    roleSpecificPlan.push_back("move-to (from: '" + previousWaypoint->toString() + "', to: "
                         "'" + currentWaypoint->toString() + "'");
                 }
                 previousWaypoint = currentWaypoint;
@@ -236,7 +279,7 @@ Plan::ActionPlan Plan::getActionPlan(const Mission& mission)
                     } else if(edges.size() == 1)
                     {
                         CapacityLink::Ptr link = dynamic_pointer_cast<CapacityLink>(edges[0]);
-                        link->addUser(role, capacityUsage); 
+                        link->addUser(role, capacityUsage);
                         // prefer remaining with the same provider
                         capacityProvider = link->getProvider();
                     } else {
@@ -293,8 +336,7 @@ Plan::ActionPlan Plan::getActionPlan(const Mission& mission)
         }
     }
 
-    return actionPlan;
-
+    mRequiresRefresh = false;
 }
 
 } // end namespace templ

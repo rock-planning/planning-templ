@@ -42,7 +42,7 @@ int main(int argc, char** argv)
         }
         {
             std::string filename = mission.getLogger()->filename("actionplans.log");
-            Plan::saveAsActionPlan(solutions, mission, filename);
+            Plan::saveAsActionPlan(solutions, filename);
         }
     }
 
