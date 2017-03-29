@@ -12,13 +12,11 @@ namespace csp {
 namespace propagators {
 
 /**
- * Check if a given array of the form
+ * Check if a given set is a consistent representation of a path
  * t0-l0 --> [ t1-l1, ... ]
  * t0-l1 --> [ t1-l1, ... ]
- * [srcTimepointFluentIdx*#timepointFluents + targetTimepointFluentIdx]
- * is representing a path that conforms to temporal constraints
  */
-class IsPath : public Gecode::NaryPropagator<Gecode::Set::SetView, Gecode::Set::PC_SET_ANY>
+class IsPath : public Gecode::NaryPropagator<Gecode::Set::SetView, Gecode::Set::PC_SET_VAL>
 {
 public:
     typedef Gecode::ViewArray<Gecode::Set::SetView> SetVarArrayView;
@@ -45,6 +43,15 @@ public:
      * Reduce domain of all possibly parallel edges
      */
     static void disableSametimeView(Gecode::Space& home, const Gecode::SetVarArgs& x, int viewIdx, uint32_t numberOfTimepoints, uint32_t numberOfFluents);
+
+    /**
+     * Set an upper bound for the domain of the set to a single value given by singleValueDomain
+     * This allows to constrain outgoing edges to a single target node
+     * \param singleValueDomain
+     */
+    static void constrainSametimeView(Gecode::Space& home, const Gecode::SetVarArgs& x, int viewIdx, int singleValueDomain, uint32_t numberOfTimepoints, uint32_t numberOfFluents);
+
+    static bool isValidWaypointSequence(const std::vector< std::pair<int, bool> >& waypoints);
 
     /**
      * Cancels that subscription of the view

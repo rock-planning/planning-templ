@@ -1,4 +1,5 @@
 #include "IsPath.hpp"
+#include <algorithm>
 #include <gecode/set.hh>
 #include <gecode/set/rel.hh>
 #include <gecode/int.hh>
@@ -38,7 +39,7 @@ void isPath(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfT
 }
 
 IsPath::IsPath(Gecode::Space& home, ViewArray<Set::SetView>& xv, uint32_t numberOfTimepoints, uint32_t numberOfFluents)
-    : NaryPropagator<Set::SetView, Set::PC_SET_ANY>(home, xv)
+    : NaryPropagator<Set::SetView, Set::PC_SET_VAL>(home, xv)
     , mNumberOfTimepoints(numberOfTimepoints)
     , mNumberOfFluents(numberOfFluents)
     , mNumberOfVertices(numberOfTimepoints*numberOfFluents)
@@ -47,7 +48,7 @@ IsPath::IsPath(Gecode::Space& home, ViewArray<Set::SetView>& xv, uint32_t number
 }
 
 IsPath::IsPath(Gecode::Space& home, bool share, IsPath& p)
-    : NaryPropagator<Set::SetView, Set::PC_SET_ANY>(home, share, p)
+    : NaryPropagator<Set::SetView, Set::PC_SET_VAL>(home, share, p)
 {
     mGraph.update(home, share, p.mGraph);
 }
@@ -68,17 +69,109 @@ void IsPath::disableSametimeView(Gecode::Space& home, const Gecode::SetVarArgs& 
     }
 }
 
-Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfTimepoints, uint32_t numberOfFluents, uint32_t minPathLength, uint32_t maxPathLength)
+void IsPath::constrainSametimeView(Gecode::Space& home, const Gecode::SetVarArgs& x, int viewIdx, int singleValueDomain, uint32_t numberOfTimepoints, uint32_t numberOfFluents)
 {
-    for(int i = 0; i < x.size(); ++i)
+    int fluentTimePoint = viewIdx;
+    int fluentIdx = fluentTimePoint % numberOfFluents;
+    int startIdx = fluentTimePoint - fluentIdx;
+    for(size_t idx = startIdx; idx < startIdx + numberOfFluents; ++idx)
     {
-        if(x[i].assigned() && x[i].lubSize() == 1)
+        Gecode::Set::SetView v(x[idx]);
+        v.intersect(home, singleValueDomain, singleValueDomain);
+    }
+}
+
+bool IsPath::isValidWaypointSequence(const std::vector< std::pair<int,bool> >& waypoints)
+{
+    if(waypoints.size() <= 1)
+    {
+        return true;
+    }
+
+    int start = waypoints.size() + 1;
+    int end = waypoints.size() + 1;
+    bool finalized = false;
+
+    for(size_t i = 0; i < waypoints.size(); ++i)
+    {
+        const std::pair<int, bool>& current = waypoints[i];
+        // Initialize start when full assignment is given
+        if(current.second)
         {
-            disableSametimeView(home, x, i, numberOfTimepoints, numberOfFluents);
-            disableSametimeView(home, x, x[i].lubMax(), numberOfTimepoints, numberOfFluents);
+            if(start > i)
+            {
+                // identify the start of this path
+                start = i;
+            }
+            // define end
+            end = i;
+        }
+
+        // Now that the path has started, check if a row is fully assigned
+        // If the assignment is an empty set presented by -1, then
+        // the path is declared finalized -- and only empty set assignments
+        // should follow
+        // Otherwise the path is split, and thus we have to return false
+        if(i > start && current.second)
+        {
+            if(current.first == -1)
+            {
+                if(!finalized)
+                {
+                    finalized = true;
+                }
+            } else {
+                if(finalized)
+                {
+                    // path seems to be split
+                    return false;
+                }
+            }
         }
     }
 
+    return true;
+}
+
+Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfTimepoints, uint32_t numberOfFluents, uint32_t minPathLength, uint32_t maxPathLength)
+{
+    std::vector< std::pair<int, bool> > waypoints;
+    bool fullyAssigned = false;
+    int currentWaypoint = -1;
+
+    for(int i = 0; i < x.size(); ++i)
+    {
+        int timepoint = i/numberOfFluents;
+        if(i%numberOfFluents == 0)
+        {
+            waypoints.push_back( std::pair<int, bool>( currentWaypoint, fullyAssigned ) );
+            fullyAssigned = true;
+        }
+
+        // This node has an outgoing edge
+        if(x[i].assigned())
+        {
+            if(x[i].lubSize() == 1)
+            {
+                int prev = i - numberOfFluents;
+                if(prev > 0)
+                {
+                    // Constrain all column of source nodes that lead to the current
+                    // node i, to the domain of the current node
+                    constrainSametimeView(home, x, prev, i, numberOfTimepoints, numberOfFluents);
+                }
+                disableSametimeView(home, x, i, numberOfTimepoints, numberOfFluents);
+                disableSametimeView(home, x, x[i].lubMax(), numberOfTimepoints, numberOfFluents);
+            }
+        } else {
+            fullyAssigned = false;
+        }
+    }
+
+    if(!isValidWaypointSequence(waypoints))
+    {
+        return ES_FAILED;
+    }
 
 
 //    int32_t numberOfVertices = numberOfFluents*numberOfTimepoints;
