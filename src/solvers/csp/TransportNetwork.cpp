@@ -1166,7 +1166,7 @@ void TransportNetwork::postRoleAssignments()
         // i.e. only edges from one timestep to the next are allowed
         for(size_t t = 0; t < mTimepoints.size(); ++t)
         {
-            Gecode::SetVarArray timestep(*this, mLocations.size());
+            Gecode::IntVarArray cardinalities(*this, mLocations.size(), 0, 1);
             for(size_t l = 0; l < mLocations.size(); ++l)
             {
                 int idx = t*mLocations.size() + l;
@@ -1183,13 +1183,12 @@ void TransportNetwork::postRoleAssignments()
                 v.exclude(*this, 0, (t+1)*mLocations.size() - 1);
                 v.exclude(*this, (t+2)*mLocations.size(), mTimepoints.size()*mLocations.size());
 
-                timestep[l] = edgeActivation;
+                Gecode::cardinality(*this, edgeActivation, cardinalities[l]);
             }
 
-            // Limit the union of this timestep to one outgoing edge
-            Gecode::SetVar allUnion(*this);
-            Gecode::rel(*this, Gecode::SOT_UNION, timestep, allUnion);
-            Gecode::cardinality(*this, allUnion, 0,1);
+            // Limit to one outgoing edge per timestep
+            // Less or equal cardinality of 1
+            Gecode::linear(*this, cardinalities, Gecode::IRT_LQ, 1);
         }
 
         using namespace solvers::temporal;
