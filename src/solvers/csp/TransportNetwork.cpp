@@ -480,8 +480,10 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
 
     Gecode::Gist::stopBranch(*this);
     // see 8.14 Executing code between branchers
-    Gecode::branch(static_cast< Gecode::Home >(*this), &TransportNetwork::assignRoles);
-    Gecode::branch(static_cast< Gecode::Home >(*this), &TransportNetwork::triggerTimelineGeneration);
+    Gecode::branch(*this, &TransportNetwork::assignRoles);
+    Gecode::branch(*this, &TransportNetwork::triggerTimelineGeneration);
+    //Gecode::branch(*this, &TransportNetwork::validateFlow);
+
 
     Gecode::Gist::Print<TransportNetwork> p("Print solution");
     Gecode::Gist::Options o;
@@ -752,7 +754,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
     TransportNetwork* distribution = new TransportNetwork(mission);
     {
             Gecode::Search::Options options;
-            options.threads = 0;
+            options.threads = 1;
             Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(70000);
             options.cutoff = c;
 
@@ -1162,35 +1164,6 @@ void TransportNetwork::postRoleAssignments()
         uint32_t prevTimeIdx = 0;
         uint32_t prevLocationIdx = 0;
 
-        // Setup the basic contraints for the timeline
-        // i.e. only edges from one timestep to the next are allowed
-        for(size_t t = 0; t < mTimepoints.size(); ++t)
-        {
-            Gecode::IntVarArray cardinalities(*this, mLocations.size(), 0, 1);
-            for(size_t l = 0; l < mLocations.size(); ++l)
-            {
-                int idx = t*mLocations.size() + l;
-                Gecode::SetVar& edgeActivation = timeline[idx];
-                // Use SetView to manipulate the edgeActivation in the
-                // timeline
-                Gecode::Set::SetView v(edgeActivation);
-                // http://www.gecode.org/doc-latest/reference/classGecode_1_1Set_1_1SetView.html
-                // set value to 'col' which represents the next target
-                // space-time-point
-                v.cardMin(*this, 0);
-                v.cardMax(*this, 1);
-                // exclude space-time-points outside the next step
-                v.exclude(*this, 0, (t+1)*mLocations.size() - 1);
-                v.exclude(*this, (t+2)*mLocations.size(), mTimepoints.size()*mLocations.size());
-
-                Gecode::cardinality(*this, edgeActivation, cardinalities[l]);
-            }
-
-            // Limit to one outgoing edge per timestep
-            // Less or equal cardinality of 1
-            Gecode::linear(*this, cardinalities, Gecode::IRT_LQ, 1);
-        }
-
         using namespace solvers::temporal;
 
         // Link the edge activation to the role requirement, i.e. make sure that
@@ -1370,18 +1343,21 @@ void TransportNetwork::postRoleAssignments()
     //
     // Compute a network with proper activation
     //branch(*this, &TransportNetwork::postRoleTimelines);
-    //for(size_t i = 0; i < mActiveRoles.size(); ++i)
-    //{
-    //    Gecode::SetAFC afc(*this, mTimelines[i], 0.99);
-    //    afc.decay(*this, 0.95);
+    for(size_t i = 0; i < mActiveRoles.size(); ++i)
+    {
+        Gecode::SetAFC afc(*this, mTimelines[i], 0.99);
+        afc.decay(*this, 0.95);
 
-    //    // http://www.gecode.org/doc-latest/reference/group__TaskModelSetBranchVar.html
-    //    //branch(*this, mTimelines[i], Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
-    //    branch(*this, mTimelines[i], Gecode::SET_VAR_MAX_MAX(), Gecode::SET_VAL_MAX_EXC());
-    //    //branch(*this, mTimelines[i], Gecode::SET_VAR_MIN_MIN(), Gecode::SET_VAL_MAX_INC());
-    //    //branch(*this, mTimelines[i], Gecode::SET_VAR_NONE(), Gecode::SET_VAL_MED_INC());
-    //    LOG_WARN_S << "Timeline for active role: " << mTimelines[i];
-    //}
+        // http://www.gecode.org/doc-latest/reference/group__TaskModelSetBranchVar.html
+        branch(*this, mTimelines[i], Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
+        //branch(*this, mTimelines[i], Gecode::SET_VAR_MAX_MAX(), Gecode::SET_VAL_MAX_EXC());
+        //branch(*this, mTimelines[i], Gecode::SET_VAR_MIN_MIN(), Gecode::SET_VAL_MAX_INC());
+        //branch(*this, mTimelines[i], Gecode::SET_VAR_NONE(), Gecode::SET_VAL_MED_INC());
+        //LOG_WARN_S << "Timeline for active role: " << mActiveRoleList[ mActiveRoles[i] ].toString()
+        //    << std::endl
+        //    << Formatter::toString(mTimelines[i], mLocations.size());
+    }
+    branch(*this, &TransportNetwork::validateFlow);
 
 
     //LOG_WARN_S << "POST FLOW CAPACITIES";
@@ -1527,12 +1503,13 @@ void TransportNetwork::validateFlow(Gecode::Space& home)
 
 void TransportNetwork::postFlowCapacities()
 {
-    LOG_WARN_S << "GET STATUS FLOW FLOW CAPACITIES";
     (void) status();
-    LOG_WARN_S << "POST FLOW CAPACITIES";
-    for(size_t i = 0; i < mTimelines.size(); ++i)
+    for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
-        LOG_WARN_S << "Timeline: " << mTimelines[i];
+        LOG_WARN_S << "Timeline for active role for flow capacity: " << mActiveRoleList[ mActiveRoles[i] ].toString()
+            << std::endl
+            << "Timeline" << std::endl
+            << Formatter::toString(mTimelines[i], mLocations.size());
     }
 
     // Compute the multi commodity flow
