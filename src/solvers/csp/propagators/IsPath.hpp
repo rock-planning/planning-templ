@@ -4,6 +4,7 @@
 #include <gecode/int.hh>
 #include <gecode/int/rel.hh>
 #include <gecode/minimodel.hh>
+#include <set>
 
 
 namespace templ {
@@ -21,53 +22,88 @@ class IsPath : public Gecode::NaryPropagator<Gecode::Set::SetView, Gecode::Set::
 public:
     typedef Gecode::ViewArray<Gecode::Set::SetView> SetVarArrayView;
 
+    //class Idx : public Gecode::Advisor
+    //{
+    //protected:
+    //    // Info store the index and the boolean mark in the first bit,
+    //    // thus doing bitshifting to retrieve index
+    //    int mInfo;
+    //    bool mIsTimepointIdx;
+
+    //    SetVarArrayView x;
+
+    //public:
+    //    Idx(Gecode::Space& home, Gecode::Propagator& p, Gecode::Council<Idx>& c, int i, bool isTimepointIdx, SetVarArrayView x);
+    //    Idx(Gecode::Space& home, bool share, Idx& a);
+    //    bool isTimepointIdx() const { return mIsTimepointIdx; }
+    //    bool isLocationIdx() const { return !mIsTimepointIdx; }
+
+    //    bool isMarked() { return (mInfo & 1) != 0 ; }
+    //    void mark(void) { mInfo |= 1 ; }
+    //    void unmark(void) { mInfo &= ~1; }
+    //    int idx(void) const { return mInfo >> 1; }
+
+    //    void dispose(Gecode::Space& home, Gecode::Council<Idx>& c);
+
+    //    std::string toString() const;
+    //};
+
+    //Gecode::Council<Idx> c;
+    //std::set<int> mAssignedFluentIndices;
+    //std::set<int> mAssignedTimepointIndices;
+
+
 protected:
     uint32_t mNumberOfTimepoints;
     uint32_t mNumberOfFluents;
 
-    uint32_t mNumberOfVertices;
-    SetVarArrayView mGraph;
+    uint32_t mMinPathLength;
+    uint32_t mMaxPathLength;
+
+    std::vector< std::pair<int, bool> > mAssignedTimepoints;
 
 public:
     /**
      * Spans a temporally extended network of size <numberOfTimepoints> X <numberOfFluents>
      * Checks if the given SetVarArray forms a path
      */
-    IsPath(Gecode::Space& home, SetVarArrayView& graph, uint32_t numberOfTimepoints, uint32_t numberOfFluents);
+    IsPath(Gecode::Space& home, SetVarArrayView& graph, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength = 1, int maxPathLength = Gecode::Int::Limits::max);
 
     IsPath(Gecode::Space& home, bool share, IsPath& p);
 
-    static Gecode::ExecStatus post(Gecode::Space& home, const Gecode::SetVarArgs& x0, uint32_t numberOfTimepoints, uint32_t numberOfFluents, uint32_t minPathLength = 1, uint32_t maxPathLength = std::numeric_limits<uint32_t>::max());
+    /**
+     * IsPath propagators post function, i.e. when it is initially created
+     */
+    static Gecode::ExecStatus post(Gecode::Space& home, const Gecode::SetVarArgs& x0, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength = 1, int maxPathLength = Gecode::Int::Limits::max);
 
     /**
      * Reduce domain of all possibly parallel edges
      */
-    static void disableSametimeView(Gecode::Space& home, const Gecode::SetVarArgs& x, int viewIdx, uint32_t numberOfTimepoints, uint32_t numberOfFluents);
+    Gecode::ModEvent disableSametimeView(Gecode::Space& home, int viewIdx);
 
     /**
      * Set an upper bound for the domain of the set to a single value given by singleValueDomain
      * This allows to constrain outgoing edges to a single target node
      * \param singleValueDomain
      */
-    static void constrainSametimeView(Gecode::Space& home, const Gecode::SetVarArgs& x, int viewIdx, int singleValueDomain, uint32_t numberOfTimepoints, uint32_t numberOfFluents);
+    Gecode::ModEvent constrainSametimeView(Gecode::Space& home, int viewIdx, int lowerBound, int upperBound);
 
-    static bool isValidWaypointSequence(const std::vector< std::pair<int, bool> >& waypoints);
+    static bool isValidWaypointSequence(const std::vector< std::pair<int, bool> >& waypoints, size_t& startTimepoint, size_t& endTimepoint);
 
     /**
      * Cancels that subscription of the view
      * \return the size of the just disposed propagator
      */
     virtual size_t dispose(Gecode::Space& home);
-
     virtual Gecode::Propagator* copy(Gecode::Space& home, bool share);
-
     virtual Gecode::PropCost cost(const Gecode::Space&, const Gecode::ModEventDelta&) const;
-
+    virtual void reschedule(Gecode::Space& home);
+    //virtual Gecode::ExecStatus advise(Gecode::Space& home, Gecode::Advisor& a, const Gecode::Delta& d);
     virtual Gecode::ExecStatus propagate(Gecode::Space& home, const Gecode::ModEventDelta&);
 
 };
 
-void isPath(Gecode::Space& home, const Gecode::SetVarArgs&, uint32_t numberOfTimepoints, uint32_t numberOfFluents, uint32_t minPathLength = 1, uint32_t maxPathLength = std::numeric_limits<uint32_t>::max());
+void isPath(Gecode::Space& home, const Gecode::SetVarArgs&, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength = 1, int maxPathLength = Gecode::Int::Limits::max);
 
 } // end namespace propagators
 } // end namespace csp

@@ -20,13 +20,9 @@ public:
         , mNumberOfVertices(numberOfTimepoints*numberOfFluents)
         , mGraph(*this, mNumberOfVertices, Gecode::IntSet::empty, Gecode::IntSet(0,mNumberOfVertices-1), 0,1)
     {
-
         // get full path length
         templ::solvers::csp::propagators::isPath(*this, mGraph, numberOfTimepoints, numberOfFluents, numberOfTimepoints-1);
-
         branch(*this, mGraph, Gecode::SET_VAR_MAX_MAX(), Gecode::SET_VAL_MAX_EXC());
-        //branch(*this, mGraph, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_SPLIT_MIN());
-        //branch(*this, mGraph, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_SPLIT_MIN());
     }
 
     TestSpace(bool share, TestSpace& other)
@@ -46,12 +42,10 @@ public:
     std::string toString() const
     {
         std::stringstream ss;
+        ss << "Solution (" << mGraph.size() << ")" << std::endl;
         for(int r = 0; r < mGraph.size(); ++r)
         {
-            for(Gecode::SetVarGlbValues i(mGraph[r]); i(); ++i)
-            {
-                ss << r << " --> " << i.val() << std::endl;
-            }
+            ss << r << " --> " << mGraph[r] << std::endl;
         }
         return ss.str();
     }
@@ -82,7 +76,7 @@ void run_test(uint32_t numberOfTimepoints, uint32_t numberOfFluents, const std::
     TestSpace* current = NULL;
     bool foundSolution = false;
 
-    BOOST_TEST_MESSAGE("RUN SEARCH");
+    BOOST_TEST_MESSAGE("Run search");
     while((current = searchEngine.next()))
     {
         delete best;
@@ -97,6 +91,10 @@ void run_test(uint32_t numberOfTimepoints, uint32_t numberOfFluents, const std::
             BOOST_REQUIRE_MESSAGE(false, "\n" << best->toString() << "\n" << tag << " Solution not valid: " << e.what());
         }
     }
+    if(!current)
+    {
+        BOOST_REQUIRE_MESSAGE(false, "\n No solution found for " << tag );
+    }
     if(best == NULL)
     {
         delete current;
@@ -104,6 +102,27 @@ void run_test(uint32_t numberOfTimepoints, uint32_t numberOfFluents, const std::
 }
 
 BOOST_AUTO_TEST_SUITE(propagators)
+
+BOOST_AUTO_TEST_CASE(check_valid_path)
+{
+    using namespace templ::solvers::csp::propagators;
+    typedef std::pair<int, bool> wp;
+
+    size_t start, end;
+
+    std::vector< std::pair<int, bool> > path;
+    path.push_back(wp(-1,true));
+    BOOST_REQUIRE_MESSAGE( IsPath::isValidWaypointSequence(path, start, end), "Single unassigned row is an ok path: from: " << start << " to: " << end);
+    path.push_back(wp(1,true));
+    BOOST_REQUIRE_MESSAGE( IsPath::isValidWaypointSequence(path, start, end), "Single unassigned row and single assigned row is an ok path: from: " << start << " to: " << end );
+    path.push_back(wp(1,true));
+    BOOST_REQUIRE_MESSAGE( IsPath::isValidWaypointSequence(path, start, end), "Single unassigned row and 2 assigned rows is an ok path: from: " << start << " to: " << end);
+    path.push_back(wp(-1,true));
+    BOOST_REQUIRE_MESSAGE( IsPath::isValidWaypointSequence(path, start, end), "Single unassigned row and 2 assigned rows, and single unassigned is an ok path: from: " << start << " to: " << end );
+    path.push_back(wp(1,true));
+    BOOST_REQUIRE_MESSAGE(!IsPath::isValidWaypointSequence(path, start, end), "Path with gap is not a valid sequence" );
+
+}
 
 BOOST_AUTO_TEST_CASE(is_path)
 {

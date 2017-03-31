@@ -6,6 +6,7 @@
 #include <gecode/int/rel.hh>
 #include <gecode/minimodel.hh>
 #include <base-logging/Logging.hpp>
+#include <sstream>
 
 #include "../utils/FluentTimeIndex.hpp"
 
@@ -17,7 +18,44 @@ namespace solvers {
 namespace csp {
 namespace propagators {
 
-void isPath(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfTimepoints, uint32_t numberOfFluents, uint32_t minPathLength, uint32_t maxPathLength)
+// Advisor for the isPath propagator
+
+// std::string IsPath::Idx::toString() const
+// {
+//     std::stringstream ss;
+//     ss << "Idx: " << idx() << " tp: "<< isTimepointIdx();
+//     return ss.str();
+// }
+//
+// IsPath::Idx::Idx(Gecode::Space& home, Gecode::Propagator& p,
+//         Gecode::Council<Idx>& c, int i, bool isTimepointIdx, SetVarArrayView x)
+//     : Gecode::Advisor(home, p, c)
+//     , mInfo(i << 1)
+//     , mIsTimepointIdx(isTimepointIdx)
+//     , x(x)
+// {
+//     // Subscribe to view
+//     x.subscribe(home, *this);
+// }
+//
+// IsPath::Idx::Idx(Gecode::Space& home, bool share, Idx& other)
+//     : Gecode::Advisor(home, share, other)
+//     , mInfo(other.mInfo)
+//     , mIsTimepointIdx(other.mIsTimepointIdx)
+// {
+//     x.update(home, share, other.x);
+// }
+//
+// void IsPath::Idx::dispose(Gecode::Space& home, Gecode::Council<Idx>& c)
+// {
+//     LOG_WARN_S << "ADVISOR IS BEING DISPOSED: " << toString();
+//     x.cancel(home, *this);
+//     Advisor::dispose(home, c);
+// }
+
+
+
+void isPath(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength, int maxPathLength)
 {
     // If there is no path -- fail directly
     if(x.size() == 0)
@@ -38,236 +76,227 @@ void isPath(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfT
     }
 }
 
-IsPath::IsPath(Gecode::Space& home, ViewArray<Set::SetView>& xv, uint32_t numberOfTimepoints, uint32_t numberOfFluents)
+IsPath::IsPath(Gecode::Space& home, ViewArray<Set::SetView>& xv, uint32_t numberOfTimepoints, uint32_t numberOfFluents,
+        int minPathLength,
+        int maxPathLength)
+
     : NaryPropagator<Set::SetView, Set::PC_SET_VAL>(home, xv)
     , mNumberOfTimepoints(numberOfTimepoints)
     , mNumberOfFluents(numberOfFluents)
-    , mNumberOfVertices(numberOfTimepoints*numberOfFluents)
-    , mGraph(xv)
+    , mMinPathLength(minPathLength)
+    , mMaxPathLength(maxPathLength)
+    , mAssignedTimepoints(numberOfTimepoints, std::pair<int, bool>(-1, false) )
 {
+    // If the home space is deleted this makes sure that the propagator will
+    // also be deleted
+    // see http://www.gecode.org/doc-latest/reference/group__TaskActor.html
+    home.notice(*this, Gecode::AP_DISPOSE);
+
+    assert(mNumberOfTimepoints != 0);
+    assert(mNumberOfFluents != 0);
+
+    //// Create location idx
+    //// to group all space-time-point that refer to the same location
+    //// in one group for observation
+    //std::vector< SetVarArrayView > locationIdxList(mNumberOfFluents);
+
+    //for(size_t l = 0; l < mNumberOfFluents; ++l)
+    //{
+    //    locationIdxList[l] = SetVarArrayView(home, mNumberOfTimepoints);
+    //}
+
+    //// Group all space-time-point that refer to the same timepoint
+    //// in one group for observation
+    //for(size_t t = mNumberOfTimepoints; t--; )
+    //{
+    //    SetVarArrayView arrayView(home, mNumberOfFluents);
+
+    //    size_t offset = t*mNumberOfFluents;
+    //    for(size_t l = mNumberOfFluents; l--; )
+    //    {
+    //        size_t idx = offset + l;
+
+    //        arrayView[l] = x[idx];
+    //        locationIdxList[l][t] = x[idx];
+    //    }
+    //    // Create array view for timepoints
+    //    (void) new (home) Idx(home, *this, c, t, true, arrayView);
+    //}
+
+    //for(size_t l = 0; l < mNumberOfFluents; ++l)
+    //{
+    //    (void) new (home) Idx(home, *this, c, l, false, locationIdxList[l]);
+    //}
+
 }
 
 IsPath::IsPath(Gecode::Space& home, bool share, IsPath& p)
     : NaryPropagator<Set::SetView, Set::PC_SET_VAL>(home, share, p)
+    , mNumberOfTimepoints(p.mNumberOfTimepoints)
+    , mNumberOfFluents(p.mNumberOfFluents)
+    , mMinPathLength(p.mMinPathLength)
+    , mMaxPathLength(p.mMaxPathLength)
+    , mAssignedTimepoints(p.mAssignedTimepoints)
 {
-    mGraph.update(home, share, p.mGraph);
+    x.update(home, share, p.x);
 }
 
-void IsPath::disableSametimeView(Gecode::Space& home, const Gecode::SetVarArgs& x, int viewIdx, uint32_t numberOfTimepoints, uint32_t numberOfFluents)
+Gecode::ModEvent IsPath::disableSametimeView(Gecode::Space& home, int viewIdx)
 {
-    int fluentTimePoint = viewIdx;
-    int fluentIdx = fluentTimePoint % numberOfFluents;
-    int startIdx = fluentTimePoint - fluentIdx;
-    for(int idx = startIdx; idx < startIdx + numberOfFluents; ++idx)
+    size_t fluentTimePoint = viewIdx;
+    size_t fluentIdx = fluentTimePoint % mNumberOfFluents;
+    size_t startIdx = fluentTimePoint - fluentIdx;
+    for(size_t idx = startIdx; idx < startIdx + mNumberOfFluents; ++idx)
     {
         if(idx != fluentTimePoint)
         {
-            Gecode::Set::SetView v(x[idx]);
+            Gecode::Set::SetView& v = x[idx];
             // disable concurrent nodes to a target node
-            v.cardMax(home, 0);
+            GECODE_ME_CHECK( v.cardMax(home, 0) );
         }
     }
+    return Gecode::ME_GEN_ASSIGNED;
 }
 
-void IsPath::constrainSametimeView(Gecode::Space& home, const Gecode::SetVarArgs& x, int viewIdx, int singleValueDomain, uint32_t numberOfTimepoints, uint32_t numberOfFluents)
+Gecode::ModEvent IsPath::constrainSametimeView(Gecode::Space& home, int viewIdx, int lowerBound, int upperBound)
 {
     int fluentTimePoint = viewIdx;
-    int fluentIdx = fluentTimePoint % numberOfFluents;
+    int fluentIdx = fluentTimePoint % mNumberOfFluents;
     int startIdx = fluentTimePoint - fluentIdx;
-    for(size_t idx = startIdx; idx < startIdx + numberOfFluents; ++idx)
+    size_t endIdx = startIdx + mNumberOfFluents;
+    bool failed = false;
+    for(size_t idx = startIdx; idx < endIdx; ++idx)
     {
-        Gecode::Set::SetView v(x[idx]);
-        v.intersect(home, singleValueDomain, singleValueDomain);
+        Gecode::Set::SetView& v = x[idx];
+        GECODE_ME_CHECK( v.intersect(home, lowerBound, upperBound) );
     }
+    return Gecode::ME_GEN_ASSIGNED;
 }
 
-bool IsPath::isValidWaypointSequence(const std::vector< std::pair<int,bool> >& waypoints)
+bool IsPath::isValidWaypointSequence(const std::vector< std::pair<int,bool> >& waypoints,
+        size_t& start,
+        size_t& end)
 {
+    start = 0;
+    end = 0;
+
     if(waypoints.size() <= 1)
     {
         return true;
     }
 
-    int start = waypoints.size() + 1;
-    int end = waypoints.size() + 1;
+    bool foundStart = false;
     bool finalized = false;
+    size_t validWaypoints = 0;
 
     for(size_t i = 0; i < waypoints.size(); ++i)
     {
         const std::pair<int, bool>& current = waypoints[i];
-        // Initialize start when full assignment is given
-        if(current.second)
+        // Initialize start when full assignment of a row as indicated by the
+        // second argument is given
+        if(current.second) // row is fully initialized
         {
-            if(start > i)
+            if(current.first != -1) // and there is a given waypoint
             {
-                // identify the start of this path
-                start = i;
-            }
-            // define end
-            end = i;
-        }
-
-        // Now that the path has started, check if a row is fully assigned
-        // If the assignment is an empty set presented by -1, then
-        // the path is declared finalized -- and only empty set assignments
-        // should follow
-        // Otherwise the path is split, and thus we have to return false
-        if(i > start && current.second)
-        {
-            if(current.first == -1)
-            {
-                if(!finalized)
+                if(finalized) // path is finalized so there should be no more waypoint
                 {
-                    finalized = true;
-                }
-            } else {
-                if(finalized)
-                {
-                    // path seems to be split
                     return false;
                 }
+
+                if(!foundStart) // if start is not yet initialized
+                {
+                    foundStart = true;
+                    start = i;
+                }
+
+                end = i;
+                ++validWaypoints;
+            } else { // there is no given waypoint
+                if(foundStart)
+                {
+                    if(!finalized) // finalize when encountering an empty row
+                    {
+                        finalized = true;
+                    }
+                }
+            }
+        } else { // row is not fully initialized
+            if(!finalized)
+            {
+                // Count not yet assigned rows as valid waypoints
+                ++validWaypoints;
+                end = i;
+            }
+        }
+
+        if(foundStart)
+        {
+            // Compute known pathlength
+            size_t pathlength = end - start;
+            if(pathlength != validWaypoints - 1)
+            {
+                return false;
             }
         }
     }
-
     return true;
 }
 
-Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfTimepoints, uint32_t numberOfFluents, uint32_t minPathLength, uint32_t maxPathLength)
+Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength, int maxPathLength)
 {
-    std::vector< std::pair<int, bool> > waypoints;
-    bool fullyAssigned = false;
-    int currentWaypoint = -1;
+    Gecode::IntVarArray allCardinalities(home, numberOfTimepoints*numberOfFluents, 0, 1);
 
-    for(int i = 0; i < x.size(); ++i)
+    // Setup the basic contraints for the timeline
+    // i.e. only edges from one timestep to the next are allowed
+    for(size_t t = 0; t < numberOfTimepoints; ++t)
     {
-        int timepoint = i/numberOfFluents;
-        if(i%numberOfFluents == 0)
+        Gecode::IntVarArray cardinalities(home, numberOfFluents, 0, 1);
+        for(size_t l = 0; l < numberOfFluents; ++l)
         {
-            waypoints.push_back( std::pair<int, bool>( currentWaypoint, fullyAssigned ) );
-            fullyAssigned = true;
+            int idx = t*numberOfFluents + l;
+            const Gecode::SetVar& edgeActivation = x[idx];
+            // Use SetView to manipulate the edgeActivation in the
+            // timeline
+            Gecode::Set::SetView v(edgeActivation);
+            // http://www.gecode.org/doc-latest/reference/classGecode_1_1Set_1_1SetView.html
+            // set value to 'col' which represents the next target
+            // space-time-point
+            v.cardMin(home, 0);
+            v.cardMax(home, 1);
+            // exclude space-time-points outside the next step
+            v.exclude(home, 0, (t+1)*numberOfFluents - 1);
+            v.exclude(home, (t+2)*numberOfFluents, numberOfTimepoints*numberOfFluents);
+
+            Gecode::cardinality(home, edgeActivation, cardinalities[l]);
+            Gecode::cardinality(home, edgeActivation, allCardinalities[idx]);
         }
 
-        // This node has an outgoing edge
-        if(x[i].assigned())
-        {
-            if(x[i].lubSize() == 1)
-            {
-                int prev = i - numberOfFluents;
-                if(prev > 0)
-                {
-                    // Constrain all column of source nodes that lead to the current
-                    // node i, to the domain of the current node
-                    constrainSametimeView(home, x, prev, i, numberOfTimepoints, numberOfFluents);
-                }
-                disableSametimeView(home, x, i, numberOfTimepoints, numberOfFluents);
-                disableSametimeView(home, x, x[i].lubMax(), numberOfTimepoints, numberOfFluents);
-            }
-        } else {
-            fullyAssigned = false;
-        }
+        // Limit to one outgoing edge per timestep
+        // Less or equal cardinality of 1
+        // sum of cardinalities
+        Gecode::linear(home, cardinalities, Gecode::IRT_LQ, 1);
     }
 
-    if(!isValidWaypointSequence(waypoints))
+    // Constraint the path length
+    Gecode::linear(home, allCardinalities, Gecode::IRT_GQ, minPathLength);
+    // Constraint the path length only if it makes sense
+    if(maxPathLength < static_cast<int>(numberOfTimepoints*numberOfFluents) )
     {
-        return ES_FAILED;
+        Gecode::linear(home, allCardinalities, Gecode::IRT_LQ, maxPathLength);
     }
-
-
-//    int32_t numberOfVertices = numberOfFluents*numberOfTimepoints;
-//    // 1. validate time property: only valid are time-forward-connections
-//    // compute sums of columns and rows for connections between timepoints
-//    // i.e. validate transitions between timepoints
-//    SetVarArray all(home, numberOfVertices);
-//    SetVar path(home, Gecode::IntSet::empty, Gecode::IntSet(0,numberOfVertices),1,numberOfTimepoints);
-//    Set::SetView viewPath(path);
-//
-//    for(size_t timeIdx = 0; timeIdx < numberOfTimepoints; ++timeIdx)
-//    {
-//        // This array contains views, that all have the same associated timepoint
-//        SetVarArray sameTimeViews(home, numberOfFluents);
-//        // This array contains the cardinalites of the 'sameTimeViews'
-//        IntVarArray cardinalities(home, numberOfFluents, 0, 1);
-//        for(size_t fluentIdx = 0; fluentIdx < numberOfFluents; ++fluentIdx)
-//        {
-//            // Allowed target nodes are forward in time
-//            // otherwise they are constrained to the empty set
-//            int lowerBoundTo = (timeIdx+1)*numberOfFluents;
-//            int upperBoundTo = lowerBoundTo + numberOfFluents;
-//            SetVar allowedTargets;
-//            if(timeIdx != numberOfTimepoints -1)
-//            {
-//                allowedTargets = SetVar(home, Gecode::IntSet::empty, Gecode::IntSet(lowerBoundTo,upperBoundTo),0,1);
-//            } else {
-//                allowedTargets = SetVar(home, Gecode::IntSet::empty, Gecode::IntSet::empty,0,0);
-//            }
-//
-//            LOG_DEBUG_S << "Lower bound to: " << lowerBoundTo << ", upper bound to: " << upperBoundTo << "  timeIdx: " << timeIdx << ", mNumberOfFluents: " << numberOfFluents;
-//            LOG_DEBUG_S << (timeIdx*numberOfFluents + fluentIdx) << " -- ALLOWED TARGET: " << allowedTargets;
-//
-//            int currentIdx = timeIdx*numberOfFluents + fluentIdx;
-//            assert(currentIdx < numberOfVertices);
-//
-//            Gecode::SetVar currentView(x[currentIdx]);
-//            Gecode::rel(home, currentView <= allowedTargets);
-//
-//            // Cache or channel values
-//            sameTimeViews[fluentIdx] = currentView;
-//            Gecode::cardinality(home, currentView, cardinalities[fluentIdx]);
-//            all[timeIdx*numberOfFluents+fluentIdx] = currentView;
-//        }
-//
-//        // 2. There should be at maximum one outgoing edge (for parallel time)
-//        rel(home, sum(cardinalities) <= 1);
-//    }
-//
-//    Gecode::SetVar allUnion(home);
-//    Gecode::rel(home, SOT_UNION, all, allUnion);
-//
-//    Gecode::SetVar z(home);
-//    Gecode::element(home, SOT_UNION, x, allUnion, z);
-//
-//    Gecode::IntVar expectedTargetsCardinality(home, 0, numberOfTimepoints);
-//    Gecode::cardinality(home, z, expectedTargetsCardinality);
-//
-//    // 3. There should be a minimum of one edge, i.e. the union across all sets
-//    // should have a cardinality that corresponds to the pathlength
-//    Gecode::IntVar allUnionCardinality(home, 0, numberOfTimepoints);
-//    Gecode::cardinality(home, allUnion, allUnionCardinality);
-//    Gecode::rel(home, allUnionCardinality >= std::min(numberOfTimepoints - 1, minPathLength) );
-//    Gecode::rel(home, allUnionCardinality <= std::min(numberOfTimepoints - 1, maxPathLength) );
-//
-//    // 3.a The path should be consistent, from-0 --> to-0, from-1 --> to-1
-//    // , where to-0 == from-1
-//    //Gecode::IntVar pathCardinality(home, 0, numberOfTimepoints);
-//    //Gecode::cardinality(home, path, pathCardinality);
-//    //Gecode::rel(home, allUnionCardinality == (pathCardinality + 1));
-//    Gecode::rel(home, allUnionCardinality <= (expectedTargetsCardinality+1));
-//
-//    // 4. The path should be without holes
-//    Gecode::IntVar minAll(home, 0, numberOfVertices);
-//    Gecode::min(home, allUnion, minAll);
-//
-//    Gecode::IntVar maxAll(home, 0, numberOfVertices);
-//    Gecode::min(home, allUnion, maxAll);
-//
-//    // Identification of the timepoints for the particular egde
-//    //
-//    // (tp*|F| + f) - (tp*|F| + f)%(|F|) = tp*|F|
-//    Gecode::rel(home, ((maxAll - (maxAll%numberOfFluents)) - (minAll-(minAll%numberOfFluents))) <= ((allUnionCardinality-1)*numberOfFluents));
 
     // documentation. 4.3.1 Post functions are clever
     // A constraint post function carefully analyzes its arguments. Based on
     // this analysis, the constraint post function chooses the best possible propagator for the constraint
     ViewArray<Set::SetView> viewArray(home, x);
-    (void) new (home) IsPath(home, viewArray, numberOfTimepoints, numberOfFluents);
+    (void) new (home) IsPath(home, viewArray, numberOfTimepoints, numberOfFluents, minPathLength, maxPathLength);
     return ES_OK;
 }
 
 size_t IsPath::dispose(Gecode::Space& home)
 {
-    mGraph.cancel(home, *this, Int::PC_INT_DOM);
-    (void) Propagator::dispose(home);
+    home.ignore(*this, AP_DISPOSE);
+    (void) NaryPropagator<Gecode::Set::SetView, Gecode::Set::PC_SET_VAL>::dispose(home);
     return sizeof(*this);
 }
 
@@ -278,17 +307,122 @@ Gecode::Propagator* IsPath::copy(Gecode::Space& home, bool share)
 
 Gecode::PropCost IsPath::cost(const Gecode::Space&, const Gecode::ModEventDelta&) const
 {
-    return Gecode::PropCost::quadratic(PropCost::LO, mGraph.size());
+    return Gecode::PropCost::quadratic(PropCost::LO, x.size());
 }
+
+void IsPath::reschedule(Gecode::Space& home)
+{
+    Gecode::Set::SetView::schedule(home, *this, Gecode::ME_GEN_ASSIGNED);
+}
+
+//Gecode::ExecStatus IsPath::advise(Gecode::Space& home, Gecode::Advisor& a, const Gecode::Delta& d)
+//{
+//    ModEvent me = Gecode::Set::SetView::modevent(d);
+//    if(me == Gecode::ME_GEN_ASSIGNED)
+//    {
+//        Idx& advisor = static_cast<Idx&>(a);
+//
+//        int idx = advisor.idx();
+//        if(advisor.isTimepointIdx())
+//        {
+//            mAssignedTimepointIndices.insert( idx );
+//        } else {
+//            mAssignedFluentIndices.insert( idx );
+//        }
+//        return ES_NOFIX;
+//    }
+//    // Do not schedule unless a view has been assigned
+//    return ES_FIX;
+//}
 
 Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEventDelta&)
 {
-    if(mGraph.assigned())
+    for(size_t timepoint = 0; timepoint < mNumberOfTimepoints; ++timepoint)
+    {
+        // reset full assignment
+        bool fullyAssigned = true;
+        int currentWaypoint = -1;
+
+        // While we could use advisors as well, this seems to be for a first
+        // approach simpler -- since we hit some seg fault when iterating the
+        // council
+        // Due to the implemented propagation -- when a single value is assigned
+        // then all values of the same timepoint will be properly assigned as
+        // well -- so we can safely skip any further propagation here
+        // Skip timepointrow that have already been handled
+        if( mAssignedTimepoints[timepoint].second)
+        {
+            LOG_DEBUG_S << "Skipping already assigned waypoint: " << timepoint << " " << mAssignedTimepoints[timepoint].first;
+            continue;
+        }
+
+        int offset = timepoint*mNumberOfFluents;
+        for(size_t fluent = 0; fluent < mNumberOfFluents; ++fluent)
+        {
+            int i = offset + fluent;
+
+            // This node has an outgoing edge
+            if(x[i].assigned())
+            {
+                fullyAssigned |= true;
+
+                if(x[i].lubSize() == 1)
+                {
+                    int prev = i - mNumberOfFluents;
+                    if(prev > 0)
+                    {
+                        // Constrain all column of source nodes that lead to the current
+                        // node i, to the domain of the current node
+                        ModEvent ev = constrainSametimeView(home, prev, i, i);
+                        if(ev == Gecode::ME_GEN_FAILED)
+                        {
+                            return ES_FAILED;
+                        }
+                    }
+                    // There can be only one --
+                    // which should not be needed since wit have established the
+                    // linear constraint on cardinality already
+                    ModEvent ev = disableSametimeView(home, i);
+                    if(ev == Gecode::ME_GEN_FAILED)
+                    {
+                        return ES_FAILED;
+                    }
+
+                    ev = disableSametimeView(home, x[i].lubMax());
+                    if(ev == Gecode::ME_GEN_FAILED)
+                    {
+                        return ES_FAILED;
+                    }
+
+                    currentWaypoint = i;
+                    // Since the target is bound as next node, we
+                    // can already update this status
+                    mAssignedTimepoints[timepoint + 1] = std::pair<int, bool>( x[i].lubMax(), true);
+                }
+            } else {
+                fullyAssigned = false;
+            }
+        }
+
+        if(fullyAssigned)
+        {
+            mAssignedTimepoints[timepoint] = std::pair<int, bool>( currentWaypoint, fullyAssigned );
+        }
+    }
+
+    size_t start;
+    size_t end;
+    if(!isValidWaypointSequence(mAssignedTimepoints, start, end))
+    {
+        return ES_FAILED;
+    }
+
+    if(x.assigned())
     {
         return home.ES_SUBSUMED(*this);
     } else {
         // the propagator will be scheduled if one of its views have been modified
-        return ES_NOFIX;
+        return ES_FIX;
     }
 }
 
