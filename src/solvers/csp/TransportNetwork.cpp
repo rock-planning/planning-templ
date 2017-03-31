@@ -18,6 +18,7 @@
 
 #include "ConstraintMatrix.hpp"
 #include "propagators/IsPath.hpp"
+#include "propagators/IsValidTransportEdge.hpp"
 #include "propagators/MultiCommodityFlow.hpp"
 #include "utils/Formatter.hpp"
 
@@ -1276,7 +1277,6 @@ void TransportNetwork::postRoleAssignments()
 
         LOG_WARN_S << std::endl << "Timeline for " << role.toString() << std::endl
             << Formatter::toString(timeline, mLocations.size());
-
     }
 
 
@@ -1343,6 +1343,30 @@ void TransportNetwork::postRoleAssignments()
     //
     // Compute a network with proper activation
     //branch(*this, &TransportNetwork::postRoleTimelines);
+    std::vector<int32_t> supplyDemand;
+    for(uint32_t roleIdx = 0; roleIdx < mActiveRoles.size(); ++roleIdx)
+    {
+        const Role& role = mRoles[ mActiveRoles[roleIdx] ];
+        organization_model::facets::Robot robot(role.getModel(), mAsk);
+        int32_t transportSupplyDemand = robot.getPayloadTransportSupplyDemand();
+        if(transportSupplyDemand == 0)
+        {
+            throw std::invalid_argument("templ::propagators::MultiCommodityFlow: " +  role.getModel().toString() + "has"
+                    " a transportSupplyDemand of 0 -- must be either positive of negative integer");
+        }
+        supplyDemand.push_back(transportSupplyDemand);
+    }
+
+    for(size_t t = 0; t < mTimelines.size(); ++t)
+    {
+        Gecode::SetVarArray multiEdge(*this, mActiveRoles.size());
+        for(size_t i = 0; i < mActiveRoles.size(); ++i)
+        {
+            multiEdge[i] = mTimelines[i][t];
+        }
+        propagators::isValidTransportEdge(*this, multiEdge, supplyDemand, t + mLocations.size());
+    }
+
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
         Gecode::SetAFC afc(*this, mTimelines[i], 0.99);
@@ -1516,7 +1540,7 @@ void TransportNetwork::postFlowCapacities()
     assert(mTimelines.size() == mActiveRoleList.size());
     LOG_WARN_S << "POST MULTI COMMODITY FLOW: timeline size: " << mTimelines.size() << ", active roles: " << Role::toString( mActiveRoleList );
 
-    propagators::multiCommodityFlow(*this, mActiveRoleList, mTimelines, mTimepoints.size(), mLocations.size(), mpMission->getOrganizationModelAsk());
+    //propagators::multiCommodityFlow(*this, mActiveRoleList, mTimelines, mTimepoints.size(), mLocations.size(), mpMission->getOrganizationModelAsk());
 
 //
 //
