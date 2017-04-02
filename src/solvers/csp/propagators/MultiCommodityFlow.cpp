@@ -81,7 +81,7 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
             int32_t supplyDemand = robot.getPayloadTransportSupplyDemand();
             if(supplyDemand == 0)
             {
-                throw std::invalid_argument("templ::propagators::MultiCommodityFlow: " +  role.getModel().toString() + "has"
+                throw std::invalid_argument("templ::propagators::MultiCommodityFlow: " +  role.getModel().toString() + " has"
                         " a transportSupplyDemand of 0 -- must be either positive of negative integer");
             }
             mRoleSupplyDemand.push_back(supplyDemand);

@@ -22,8 +22,8 @@ BOOST_AUTO_TEST_CASE(mission_0)
     // --> translate into systems and update timings accordingly
     // --> mission should contain sychronization points
 
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
-                getRootDir() + "test/data/om-schema-latest.owl");
+    owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
+    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(organizationModelIRI);
     owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
@@ -109,6 +109,8 @@ BOOST_AUTO_TEST_CASE(mission_1)
     owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
+    point_algebra::TimePoint::Ptr ts = point_algebra::QualitativeTimePoint::getInstance("ts");
+    point_algebra::TimePoint::Ptr te = point_algebra::QualitativeTimePoint::getInstance("te");
     point_algebra::TimePoint::Ptr t0 = point_algebra::QualitativeTimePoint::getInstance("t0");
     point_algebra::TimePoint::Ptr t1 = point_algebra::QualitativeTimePoint::getInstance("t1");
     point_algebra::TimePoint::Ptr t2 = point_algebra::QualitativeTimePoint::getInstance("t2");
@@ -123,6 +125,8 @@ BOOST_AUTO_TEST_CASE(mission_1)
     baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
 
     // Overlapping intervals at two locations
+    baseMission.addTemporalConstraint(te,ts, point_algebra::QualitativeTimePointConstraint::Greater);
+    baseMission.addTemporalConstraint(t0,te, point_algebra::QualitativeTimePointConstraint::Greater);
     baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Greater);
     baseMission.addTemporalConstraint(t0,t3, point_algebra::QualitativeTimePointConstraint::Less);
     baseMission.prepareTimeIntervals();
@@ -136,15 +140,15 @@ BOOST_AUTO_TEST_CASE(mission_1)
         BOOST_REQUIRE_MESSAGE(i0.overlaps(i1), "Interval overlaps (in time) the other");
     }
 
-    using namespace solvers;
-    {
-        Mission::Ptr mission(new Mission(baseMission));
+    //using namespace solvers;
+    //{
+    //    Mission::Ptr mission(new Mission(baseMission));
 
-        organization_model::ModelPool modelPool;
-        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
-        mission->setAvailableResources(modelPool);
-        BOOST_REQUIRE_THROW(solvers::csp::TransportNetwork::solve(mission), std::runtime_error);
-    }
+    //    organization_model::ModelPool modelPool;
+    //    modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
+    //    mission->setAvailableResources(modelPool);
+    //    BOOST_REQUIRE_THROW(solvers::csp::TransportNetwork::solve(mission), std::runtime_error);
+    //}
 
     using namespace solvers;
     {
@@ -153,80 +157,88 @@ BOOST_AUTO_TEST_CASE(mission_1)
         organization_model::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 10;
         mission->setAvailableResources(modelPool);
-        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
-        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
-    }
-
-    using namespace solvers;
-    {
-        Mission::Ptr mission(new Mission(baseMission));
-
-        organization_model::ModelPool modelPool;
-        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
-        modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
-        mission->setAvailableResources(modelPool);
-        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
-        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
-    }
-
-    using namespace solvers;
-    {
-        Mission::Ptr mission(new Mission(baseMission));
-
-        organization_model::ModelPool modelPool;
-        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
-        modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
-        modelPool[ vocabulary::OM::resolve("Payload") ] = 1;
-        mission->setAvailableResources(modelPool);
-
-        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
-        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
-
-        std::vector<solvers::csp::TransportNetwork::Solution> i_modelSolutions;
-        using namespace solvers::csp;
-        TransportNetwork::SearchState modelSearchState(mission);
-        std::vector<TransportNetwork::SearchState> modelSolutionStates;
-
-        BOOST_TEST_MESSAGE("Checking for iterative production of solutions for model and role distribution");
-        BOOST_REQUIRE_MESSAGE(modelSearchState.getType() == TransportNetwork::SearchState::OPEN, "search state is open");
-        bool stopSearch = false;
-        while(!stopSearch)
-        {
-            TransportNetwork::SearchState nextState = modelSearchState.next();
-            switch(nextState.getType())
-            {
-                case TransportNetwork::SearchState::SUCCESS:
-                    i_modelSolutions.push_back(nextState.getSolution());
-                    modelSolutionStates.push_back(nextState);
-                    stopSearch = true;
-                    break;
-                case TransportNetwork::SearchState::FAILED:
-                    stopSearch = true;
-                    break;
-                case TransportNetwork::SearchState::OPEN:
-                    BOOST_REQUIRE_MESSAGE(false, "Open model search state found though should be either success of failed");
-            }
-        }
-        BOOST_REQUIRE_MESSAGE(solutions.size() == i_modelSolutions.size(), "Number of model solutions of the same size: " << solutions.size() << " vs. " << i_modelSolutions.size());
-        BOOST_TEST_MESSAGE("Iteratively found model distribution solutions: " << i_modelSolutions);
-    }
-
-    using namespace solvers;
-    {
-        Mission::Ptr mission(new Mission(baseMission));
-
-        organization_model::ModelPool modelPool;
-        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
-        modelPool[ vocabulary::OM::resolve("CREX") ] = 3;
-        modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
-        mission->setAvailableResources(modelPool);
-
-        owlapi::model::IRI emi_power_provider = vocabulary::OM::resolve("EmiPowerProvider");
-        mission->addResourceLocationCardinalityConstraint(loc1, t2, t3, emi_power_provider);
+        // Set starting position of resources
+        mission->addResourceLocationCardinalityConstraint(loc0, ts, te, vocabulary::OM::resolve("Sherpa"), 10);
+        mission->prepareTimeIntervals();
 
         std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
     }
+
+    //using namespace solvers;
+    //{
+    //    Mission::Ptr mission(new Mission(baseMission));
+
+    //    organization_model::ModelPool modelPool;
+    //    modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
+    //    modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
+    //    mission->setAvailableResources(modelPool);
+    //    // Set starting position of resources
+    //    mission->addResourceLocationCardinalityConstraint(loc0, t0, t1, vocabulary::OM::resolve("Sherpa"), 1);
+    //    mission->addResourceLocationCardinalityConstraint(loc0, t0, t1, vocabulary::OM::resolve("CREX"), 1);
+
+    //    std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
+    //    BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+    //}
+
+    //using namespace solvers;
+    //{
+    //    Mission::Ptr mission(new Mission(baseMission));
+
+    //    organization_model::ModelPool modelPool;
+    //    modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
+    //    modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
+    //    modelPool[ vocabulary::OM::resolve("Payload") ] = 1;
+    //    mission->setAvailableResources(modelPool);
+
+    //    std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
+    //    BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+
+    //    std::vector<solvers::csp::TransportNetwork::Solution> i_modelSolutions;
+    //    using namespace solvers::csp;
+    //    TransportNetwork::SearchState modelSearchState(mission);
+    //    std::vector<TransportNetwork::SearchState> modelSolutionStates;
+
+    //    BOOST_TEST_MESSAGE("Checking for iterative production of solutions for model and role distribution");
+    //    BOOST_REQUIRE_MESSAGE(modelSearchState.getType() == TransportNetwork::SearchState::OPEN, "search state is open");
+    //    bool stopSearch = false;
+    //    while(!stopSearch)
+    //    {
+    //        TransportNetwork::SearchState nextState = modelSearchState.next();
+    //        switch(nextState.getType())
+    //        {
+    //            case TransportNetwork::SearchState::SUCCESS:
+    //                i_modelSolutions.push_back(nextState.getSolution());
+    //                modelSolutionStates.push_back(nextState);
+    //                stopSearch = true;
+    //                break;
+    //            case TransportNetwork::SearchState::FAILED:
+    //                stopSearch = true;
+    //                break;
+    //            case TransportNetwork::SearchState::OPEN:
+    //                BOOST_REQUIRE_MESSAGE(false, "Open model search state found though should be either success of failed");
+    //        }
+    //    }
+    //    BOOST_REQUIRE_MESSAGE(solutions.size() == i_modelSolutions.size(), "Number of model solutions of the same size: " << solutions.size() << " vs. " << i_modelSolutions.size());
+    //    BOOST_TEST_MESSAGE("Iteratively found model distribution solutions: " << i_modelSolutions);
+    //}
+
+    //using namespace solvers;
+    //{
+    //    Mission::Ptr mission(new Mission(baseMission));
+
+    //    organization_model::ModelPool modelPool;
+    //    modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
+    //    modelPool[ vocabulary::OM::resolve("CREX") ] = 3;
+    //    modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
+    //    mission->setAvailableResources(modelPool);
+
+    //    owlapi::model::IRI emi_power_provider = vocabulary::OM::resolve("EmiPowerProvider");
+    //    mission->addResourceLocationCardinalityConstraint(loc1, t2, t3, emi_power_provider);
+
+    //    std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
+    //    BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+    //}
 }
 
 BOOST_AUTO_TEST_CASE(mission_2)
@@ -241,8 +253,8 @@ BOOST_AUTO_TEST_CASE(mission_2)
     // --> translate into systems and update timings accordingly
     // --> mission should contain sychronization points
 
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
-                getRootDir() + "test/data/om-schema-latest.owl");
+    owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
+    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(organizationModelIRI);
     owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
@@ -320,8 +332,8 @@ BOOST_AUTO_TEST_CASE(mission_tt)
     // --> translate into systems and update timings accordingly
     // --> mission should contain sychronization points
 
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
-                getRootDir() + "test/data/om-schema-latest.owl");
+    owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
+    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(organizationModelIRI);
     owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
@@ -374,8 +386,8 @@ BOOST_AUTO_TEST_CASE(symmetry_breaking)
     // --> translate into systems and update timings accordingly
     // --> mission should contain sychronization points
 
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
-                getRootDir() + "test/data/om-schema-latest.owl");
+    owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
+    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(organizationModelIRI);
     owlapi::model::IRI payloadModel = vocabulary::OM::resolve("Payload");
 
     using namespace solvers::temporal;
@@ -415,6 +427,9 @@ BOOST_AUTO_TEST_CASE(symmetry_breaking)
 }
 
 BOOST_AUTO_TEST_CASE(mission_3)
+// systems: Sherpa, Paylad
+// timepoints: t0 --> t5
+// locations: loc0-loc2
 {
     owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
     organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(organizationModelIRI);
@@ -460,10 +475,78 @@ BOOST_AUTO_TEST_CASE(mission_3)
         mission->setAvailableResources(modelPool);
 
         BOOST_REQUIRE_MESSAGE(mission->getOrganizationModel(), "Mission has organization model set");
-        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission, 10);
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission, 1);
 
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
     }
 }
 
+BOOST_AUTO_TEST_CASE(mission_4)
+// systems: Sherpa, Paylad
+// timepoints: t0 --> t5
+// locations: loc0-loc2
+{
+    owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
+    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(organizationModelIRI);
+    owlapi::model::IRI sherpa = vocabulary::OM::resolve("Sherpa");
+    owlapi::model::IRI payload = vocabulary::OM::resolve("Payload");
+
+    Mission baseMission(om);
+
+    using namespace solvers::temporal;
+    point_algebra::TimePoint::PtrList timepoints;
+    for(int t = 0; t < 6; ++t)
+    {
+        std::stringstream ss;
+        ss << "tp" << t;
+
+        point_algebra::TimePoint::Ptr tp = point_algebra::QualitativeTimePoint::getInstance( ss.str() );
+        timepoints.push_back(tp);
+        if(t > 0)
+        {
+            baseMission.addTemporalConstraint(timepoints[t-1],tp, point_algebra::QualitativeTimePointConstraint::Less);
+        }
+    }
+
+    using namespace ::templ::symbols;
+    constants::Location::PtrList locations;
+    for(int l = 0; l < 5; ++l)
+    {
+        std::stringstream ss;
+        ss << "loc" << l;
+        constants::Location::Ptr loc( new constants::Location(ss.str(), base::Point(l,0,0)));
+        locations.push_back(loc);
+    }
+
+    baseMission.addResourceLocationCardinalityConstraint(locations[0], timepoints[0], timepoints[1], sherpa, 5);
+    baseMission.addResourceLocationCardinalityConstraint(locations[0], timepoints[0], timepoints[1], payload, 10);
+
+    for(int l = 2; l < 3; ++l)
+    {
+        baseMission.addResourceLocationCardinalityConstraint(locations[l], timepoints[4], timepoints[5], payload, 3);
+    }
+
+
+    //baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, sherpa);
+    for(int l = 1; l < 5; ++l)
+    {
+        baseMission.addResourceLocationCardinalityConstraint(locations[l], timepoints[2], timepoints[3], sherpa);
+    }
+
+    baseMission.prepareTimeIntervals();
+
+    using namespace solvers;
+    {
+        Mission::Ptr mission(new Mission(baseMission));
+        organization_model::ModelPool modelPool;
+        modelPool[ sherpa ] = 5;
+        modelPool[ payload ] = 10;
+        mission->setAvailableResources(modelPool);
+
+        BOOST_REQUIRE_MESSAGE(mission->getOrganizationModel(), "Mission has organization model set");
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission, 1);
+
+        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+    }
+}
 BOOST_AUTO_TEST_SUITE_END()

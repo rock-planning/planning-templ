@@ -101,6 +101,8 @@ public:
     //virtual Gecode::ExecStatus advise(Gecode::Space& home, Gecode::Advisor& a, const Gecode::Delta& d);
     virtual Gecode::ExecStatus propagate(Gecode::Space& home, const Gecode::ModEventDelta&);
 
+    std::string waypointsToString() const;
+
 };
 
 void isPath(Gecode::Space& home, const Gecode::SetVarArgs&, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength = 1, int maxPathLength = Gecode::Int::Limits::max);

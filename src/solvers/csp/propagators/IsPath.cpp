@@ -364,7 +364,7 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
             // This node has an outgoing edge
             if(x[i].assigned())
             {
-                fullyAssigned |= true;
+                fullyAssigned = fullyAssigned && true;
 
                 if(x[i].lubSize() == 1)
                 {
@@ -388,25 +388,31 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
                         return ES_FAILED;
                     }
 
-                    ev = disableSametimeView(home, x[i].lubMax());
+                    int targetIdx = x[i].lubMax();
+                    // target may be empty
+                    ev = disableSametimeView(home, targetIdx);
                     if(ev == Gecode::ME_GEN_FAILED)
                     {
                         return ES_FAILED;
                     }
 
                     currentWaypoint = i;
-                    // Since the target is bound as next node, we
-                    // can already update this status
-                    mAssignedTimepoints[timepoint + 1] = std::pair<int, bool>( x[i].lubMax(), true);
+
+                    mAssignedTimepoints[timepoint] = std::pair<int, bool>( i, true);
+                    LOG_WARN_S << "Update t: " << timepoint << " " << x[i] << " (at idx: " << i << ")";
+                    // We cannot yet assign the target since that might be empty
+                    // as well
+                    break;
                 }
             } else {
                 fullyAssigned = false;
             }
         }
 
-        if(fullyAssigned)
+        // Timepoint is fully assigned and not assigned yet
+        if(fullyAssigned && !mAssignedTimepoints[timepoint].second)
         {
-            mAssignedTimepoints[timepoint] = std::pair<int, bool>( currentWaypoint, fullyAssigned );
+            mAssignedTimepoints[timepoint] = std::pair<int, bool>(currentWaypoint, fullyAssigned );
         }
     }
 
@@ -424,6 +430,19 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
         // the propagator will be scheduled if one of its views have been modified
         return ES_FIX;
     }
+}
+
+
+std::string IsPath::waypointsToString() const
+{
+    std::stringstream ss;
+    ss << "[";
+    for(auto pair : mAssignedTimepoints)
+    {
+        ss << "[" << pair.first << "," << pair.second << "]";
+    }
+    ss << "]";
+    return ss.str();
 }
 
 } // end namespace propagators

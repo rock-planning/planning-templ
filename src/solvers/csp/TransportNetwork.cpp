@@ -1112,7 +1112,7 @@ void TransportNetwork::postRoleAssignments()
 {
     (void) status();
 
-    LOG_WARN_S << "Posing Role Assignments: request status" << std::endl
+    LOG_WARN_S << "Posting Role Assignments: request status" << std::endl
         << roleUsageToString();
 
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
@@ -1141,6 +1141,7 @@ void TransportNetwork::postRoleAssignments()
         << mTimepoints << std::endl
         << symbols::constants::Location::toString(mLocations);
 
+    assert(!mActiveRoles.empty());
     std::vector<uint32_t>::const_iterator rit = mActiveRoles.begin();
     for(; rit != mActiveRoles.end(); ++rit)
     {
@@ -1351,13 +1352,13 @@ void TransportNetwork::postRoleAssignments()
         int32_t transportSupplyDemand = robot.getPayloadTransportSupplyDemand();
         if(transportSupplyDemand == 0)
         {
-            throw std::invalid_argument("templ::propagators::MultiCommodityFlow: " +  role.getModel().toString() + "has"
+            throw std::invalid_argument("templ::solvers::csp::TransportNetwork: " +  role.getModel().toString() + " has"
                     " a transportSupplyDemand of 0 -- must be either positive of negative integer");
         }
         supplyDemand.push_back(transportSupplyDemand);
     }
 
-    for(size_t t = 0; t < mTimelines.size(); ++t)
+    for(size_t t = 0; t < mLocations.size()*mTimepoints.size(); ++t)
     {
         Gecode::SetVarArray multiEdge(*this, mActiveRoles.size());
         for(size_t i = 0; i < mActiveRoles.size(); ++i)
@@ -1530,7 +1531,7 @@ void TransportNetwork::postFlowCapacities()
     (void) status();
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
-        LOG_WARN_S << "Timeline for active role for flow capacity: " << mActiveRoleList[ mActiveRoles[i] ].toString()
+        LOG_WARN_S << "Timeline for active role for flow capacity: " << mActiveRoleList.at(i).toString()
             << std::endl
             << "Timeline" << std::endl
             << Formatter::toString(mTimelines[i], mLocations.size());
@@ -1714,6 +1715,37 @@ std::string TransportNetwork::toString() const
     //        toPtrList<Variable, temporal::point_algebra::TimePoint>(mTimepoints)
     //        ) << std::endl;
 
+    return ss.str();
+}
+
+std::string TransportNetwork::modelUsageToString() const
+{
+    std::stringstream ss;
+    ss << "Model usage:" << std::endl;
+    ss << std::setw(30) << std::right << "    FluentTimeResource: ";
+    for(size_t r = 0; r < mResourceRequirements.size(); ++r)
+    {
+        const FluentTimeResource& fts = mResourceRequirements[r];
+        /// construct string for proper alignment
+        std::string s = fts.getFluent()->getInstanceName();
+        s += "@[" + fts.getInterval().toString(0,true) + "]";
+
+        ss << std::setw(15) << std::left << s;
+    }
+    ss << std::endl;
+
+    int modelIndex = 0;
+    organization_model::ModelPool::const_iterator cit = mModelPool.begin();
+    for(; cit != mModelPool.end(); ++cit, ++modelIndex)
+    {
+        const owlapi::model::IRI& model = cit->first;
+        ss << std::setw(30) << std::left << model.getFragment() << ": ";
+        for(size_t r = 0; r < mResourceRequirements.size(); ++r)
+        {
+            ss << std::setw(15) << mModelUsage[r*mModelPool.size() + modelIndex] << " ";
+        }
+        ss << std::endl;
+    }
     return ss.str();
 }
 
