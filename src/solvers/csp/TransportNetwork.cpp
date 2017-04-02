@@ -383,7 +383,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     , mAvailableModels(mpMission->getModels())
     , mRoleUsage(*this, /*width --> col */ mission->getRoles().size()* /*height --> row*/ mResourceRequirements.size(), 0, 1) // Domain 0,1 to represent activation
     , mRoles(mission->getRoles())
-    , mCapacities(*this, (mLocations.size()+1)*(mLocations.size()+1)*mTimepoints.size()*mTimepoints.size(), 0, Gecode::Int::Limits::max)
+   // , mCapacities(*this, (mLocations.size()+1)*(mLocations.size()+1)*mTimepoints.size()*mTimepoints.size(), 0, Gecode::Int::Limits::max)
 {
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
@@ -736,7 +736,7 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
         mTimelines.push_back(array);
         mTimelines[i].update(*this, share, other.mTimelines[i]);
     }
-    mCapacities.update(*this, share, other.mCapacities);
+    //mCapacities.update(*this, share, other.mCapacities);
 }
 
 Gecode::Space* TransportNetwork::copy(bool share)
@@ -1105,6 +1105,9 @@ std::vector<uint32_t> TransportNetwork::getActiveRoles() const
             }
         }
     }
+    LOG_WARN_S << "Model usage: " << modelUsageToString();
+    LOG_WARN_S << "Role usage: " << roleUsageToString();
+
     return activeRoles;
 }
 
@@ -1276,8 +1279,8 @@ void TransportNetwork::postRoleAssignments()
         }
         propagators::isPath(*this, timeline, mTimepoints.size(), mLocations.size());
 
-        LOG_WARN_S << std::endl << "Timeline for " << role.toString() << std::endl
-            << Formatter::toString(timeline, mLocations.size());
+        //LOG_WARN_S << std::endl << "Timeline for " << role.toString() << std::endl
+        //    << Formatter::toString(timeline, mLocations.size());
     }
 
 
@@ -1531,15 +1534,19 @@ void TransportNetwork::postFlowCapacities()
     (void) status();
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
+        LOG_WARN_S << "Active role at: " << mActiveRoles.at(i);
+        LOG_WARN_S << "Active role list size: " << mActiveRoleList.size();
+
         LOG_WARN_S << "Timeline for active role for flow capacity: " << mActiveRoleList.at(i).toString()
             << std::endl
             << "Timeline" << std::endl
-            << Formatter::toString(mTimelines[i], mLocations.size());
+            << Formatter::toString(mTimelines[i], mLocations.size())
+            << std::endl << "raw: " << mTimelines[i];
     }
 
     // Compute the multi commodity flow
     assert(mTimelines.size() == mActiveRoleList.size());
-    LOG_WARN_S << "POST MULTI COMMODITY FLOW: timeline size: " << mTimelines.size() << ", active roles: " << Role::toString( mActiveRoleList );
+    //LOG_WARN_S << "POST MULTI COMMODITY FLOW: timeline size: " << mTimelines.size() << ", active roles: " << Role::toString( mActiveRoleList );
 
     //propagators::multiCommodityFlow(*this, mActiveRoleList, mTimelines, mTimepoints.size(), mLocations.size(), mpMission->getOrganizationModelAsk());
 

@@ -1,4 +1,5 @@
 #include "IsValidTransportEdge.hpp"
+#include <base/Logging.hpp>
 
 using namespace Gecode;
 
@@ -21,8 +22,7 @@ IsValidTransportEdge::IsValidTransportEdge(Gecode::Space& home, SetVarArrayView&
     assert(mLocalTargetFluent != 0);
     assert(x.size() == static_cast<int>(mSupplyDemand.size()) );
 
-
-
+    LOG_WARN_S << "Create transport edge: " << multiEdge;
 }
 
 IsValidTransportEdge::IsValidTransportEdge(Gecode::Space& home, bool share, IsValidTransportEdge& p)
@@ -66,29 +66,70 @@ void IsValidTransportEdge::reschedule(Gecode::Space& home)
 
 Gecode::ExecStatus IsValidTransportEdge::propagate(Gecode::Space& home, const Gecode::ModEventDelta&)
 {
+    // TODO: reduce check to path segments of immobile systems, i.e.
+    // when this is critical
     if(x.assigned())
     {
+        LOG_WARN_S << "Assignment: " << x;
+        std::vector<int> demandEdge;
         for(size_t a = 0; a < x.size(); ++a)
         {
-            int targetIdx = x[a].lubMax();
-            // Local edge -- thus skipping
-            if(targetIdx == mLocalTargetFluent)
+            if(x[a].lubSize() == 1 && mSupplyDemand[a] < 0)
             {
-                continue;
-            }
-
-            int sum = mSupplyDemand[a];
-            for(size_t b = a + 1; b < x.size(); ++b)
-            {
-                int otherTargetIdx = x[b].lubMax();
-                if(targetIdx == otherTargetIdx)
+                if(x[a].lubMax() != (mLocalTargetFluent + a))
                 {
-                    sum += mSupplyDemand[b];
+                    demandEdge.push_back(x[a].lubMax());
+                } else {
+                    LOG_WARN_S << "Is local edge: " << (mLocalTargetFluent + a);
+                    LOG_WARN_S << "Offset starts at: " << mLocalTargetFluent;
                 }
             }
+        }
+
+        if(demandEdge.empty())
+        {
+            return home.ES_SUBSUMED(*this);
+        }
+
+        for(int d = 0; d < demandEdge.size(); ++d)
+        {
+            int sum = 0;
+            for(size_t a = 0; a < x.size(); ++a)
+            {
+                if(x[a].lubSize() == 0)
+                {
+                    continue;
+                }
+
+                int targetIdx = x[a].lubMax();
+                // Local edge -- thus skipping
+                if(targetIdx != demandEdge[d])
+                {
+                    continue;
+                }
+
+                sum += mSupplyDemand[a];
+                //for(size_t b = a + 1; b < x.size(); ++b)
+                //{
+                //    if(x[b].lubSize() == 0)
+                //    {
+                //        continue;
+                //    }
+
+                //    int otherTargetIdx = x[b].lubMax();
+                //    if(targetIdx == otherTargetIdx)
+                //    {
+                //        sum += mSupplyDemand[b];
+                //    }
+                //}
+            }
+
             if(sum <= 0)
             {
+                LOG_WARN_S << "Demand to " << demandEdge[d] << " in " << x << "  -- demand cannot be satisfied, sum of edges is: " << sum;
                 return ES_FAILED;
+            } else {
+                LOG_WARN_S << "Demand to " << demandEdge[d] << " in " << x << "  -- demand can be satisfied, sum of edges is: " << sum;
             }
         }
         return home.ES_SUBSUMED(*this);

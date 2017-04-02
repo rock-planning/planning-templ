@@ -337,6 +337,10 @@ void IsPath::reschedule(Gecode::Space& home)
 
 Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEventDelta&)
 {
+    LOG_WARN_S << "Propagate: pre status: " << x
+        << "    waypoints: " << waypointsToString()
+        << std::endl;
+
     for(size_t timepoint = 0; timepoint < mNumberOfTimepoints; ++timepoint)
     {
         // reset full assignment
@@ -355,7 +359,6 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
             LOG_DEBUG_S << "Skipping already assigned waypoint: " << timepoint << " " << mAssignedTimepoints[timepoint].first;
             continue;
         }
-
         int offset = timepoint*mNumberOfFluents;
         for(size_t fluent = 0; fluent < mNumberOfFluents; ++fluent)
         {
@@ -364,6 +367,7 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
             // This node has an outgoing edge
             if(x[i].assigned())
             {
+                LOG_WARN_S << x[i] << " is assigned for timepoint: " << timepoint << " fluent: " << fluent;
                 fullyAssigned = fullyAssigned && true;
 
                 if(x[i].lubSize() == 1)
@@ -406,12 +410,14 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
                 }
             } else {
                 fullyAssigned = false;
+                LOG_WARN_S << "NOT ASSIGNED: for timepoint " << timepoint << "  " << x[i];
             }
         }
 
         // Timepoint is fully assigned and not assigned yet
         if(fullyAssigned && !mAssignedTimepoints[timepoint].second)
         {
+            LOG_WARN_S << "Update t: " << timepoint << " with no waypoint: " << currentWaypoint;
             mAssignedTimepoints[timepoint] = std::pair<int, bool>(currentWaypoint, fullyAssigned );
         }
     }
@@ -420,13 +426,21 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
     size_t end;
     if(!isValidWaypointSequence(mAssignedTimepoints, start, end))
     {
+        LOG_WARN_S << "Failed waypoints: " << waypointsToString()
+            << std::endl
+            << x;
         return ES_FAILED;
     }
-
     if(x.assigned())
     {
+        LOG_WARN_S << "Waypoints: " << waypointsToString()
+            << std::endl
+            << x;
         return home.ES_SUBSUMED(*this);
     } else {
+        LOG_WARN_S << "Not fully fixed waypoints: " << waypointsToString()
+            << std::endl
+            << x;
         // the propagator will be scheduled if one of its views have been modified
         return ES_FIX;
     }
