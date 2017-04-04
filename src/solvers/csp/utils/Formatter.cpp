@@ -79,6 +79,20 @@ std::string Formatter::toString(const Gecode::SetVarArray& array, size_t columnS
     return ss.str();
 }
 
+std::string Formatter::toString(const Gecode::ViewArray<Gecode::Set::SetView>& array, size_t columnSize)
+{
+    std::stringstream ss;
+    for(int i = 0; i < array.size(); ++i)
+    {
+        if(i%columnSize == 0)
+        {
+            ss << std::endl;
+        }
+        ss << std::setw(25) << array[i];
+    }
+    return ss.str();
+}
+
 std::string Formatter::toString(const std::vector<Gecode::SetVarArray>& array, size_t columnSize)
 {
     std::stringstream ss;
@@ -87,6 +101,7 @@ std::string Formatter::toString(const std::vector<Gecode::SetVarArray>& array, s
     {
         ss << toString(*cit, columnSize);
     }
+    ss << std::endl;
     ss << std::endl;
     return ss.str();
 }

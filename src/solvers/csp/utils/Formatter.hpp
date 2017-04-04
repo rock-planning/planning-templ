@@ -27,6 +27,8 @@ public:
 
     static std::string toString(const Gecode::SetVarArray& array, size_t columnSize);
 
+    static std::string toString(const Gecode::ViewArray<Gecode::Set::SetView>& array, size_t columnSize);
+
     static std::string toString(const std::vector<Gecode::SetVarArray>& array, size_t columnSize);
 
 };

@@ -9,6 +9,7 @@
 #include <sstream>
 
 #include "../utils/FluentTimeIndex.hpp"
+#include "../utils/Formatter.hpp"
 
 using namespace Gecode;
 using namespace templ::solvers::csp::utils;
@@ -129,6 +130,21 @@ IsPath::IsPath(Gecode::Space& home, ViewArray<Set::SetView>& xv, uint32_t number
         (void) new (home) Idx(home, *this, c, l, false, locationIdxList[l]);
     }
 
+
+    bool doReschedule = false;
+    for(int i = 0; i < x.size(); ++i)
+    {
+        if(x[i].assigned())
+        {
+            mAssignedTimepointIndices.push_back( i/mNumberOfFluents );
+            mAssignedFluentIndices.push_back( i%mNumberOfFluents );
+            doReschedule = true;
+        }
+    }
+    if(doReschedule)
+    {
+        reschedule(home);
+    }
 }
 
 IsPath::IsPath(Gecode::Space& home, bool share, IsPath& p)
@@ -433,16 +449,16 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
     //        << x;
         return home.ES_SUBSUMED(*this);
     } else {
-        //LOG_WARN_S << "Not fully fixed waypoints: " << waypointsToString()
-        //    << std::endl
-        //    << x;
-        //if( !isValidWaypointSequence(mAssignedTimepoints, start, end, false /*fully assigned*/) )
-        //{
-        //    LOG_WARN_S << "Failed waypoints: " << waypointsToString()
-        //        << std::endl
-        //        << x;
-        //    return ES_FAILED;
-        //}
+        LOG_WARN_S << "Not fully fixed waypoints: " << waypointsToString()
+            << std::endl
+            << x;
+        if( !isValidWaypointSequence(mAssignedTimepoints, start, end, false /*fully assigned*/) )
+        {
+            LOG_WARN_S << "Failed waypoints: " << waypointsToString()
+                << std::endl
+                << x;
+            return ES_FAILED;
+        }
         // the propagator will be scheduled if one of its views have been modified
         return ES_FIX;
     }
@@ -562,6 +578,7 @@ std::string IsPath::waypointsToString() const
         ss << "[" << pair.first << "," << pair.second << "]";
     }
     ss << "]";
+    ss << utils::Formatter::toString(x, mNumberOfFluents);
     return ss.str();
 }
 

@@ -1052,6 +1052,7 @@ void TransportNetwork::postRoleAssignments()
             // sum of cardinalities
             Gecode::linear(*this, cardinalities, Gecode::IRT_LQ, 1);
         }
+        propagators::isPath(*this, timeline, mTimepoints.size(), mLocations.size());
 
 
         bool prevTimeIdxAvailable = false;
@@ -1220,7 +1221,7 @@ void TransportNetwork::postRoleAssignments()
 
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
-        propagators::isPath(*this, mTimelines[i], mTimepoints.size(), mLocations.size());
+//        propagators::isPath(*this, mTimelines[i], mTimepoints.size(), mLocations.size());
     }
 }
 

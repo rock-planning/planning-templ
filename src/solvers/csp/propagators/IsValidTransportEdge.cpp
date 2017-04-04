@@ -81,8 +81,6 @@ IsValidTransportEdge::IsValidTransportEdge(Gecode::Space& home, SetVarArrayView&
     assert(mLocalTargetFluent != 0);
     assert(x.size() == static_cast<int>(mSupplyDemand.size()) );
 
-    LOG_WARN_S << "Create transport edge: " << multiEdge;
-
     (void) new (home) DemandSupply(home, *this, c, x, numberOfFluents);
 }
 
@@ -152,7 +150,6 @@ void IsValidTransportEdge::reschedule(Gecode::Space& home)
 
 Gecode::ExecStatus IsValidTransportEdge::propagate(Gecode::Space& home, const Gecode::ModEventDelta&)
 {
-    LOG_WARN_S << "PROPAGATE TRANSPORT";
     if(x.assigned())
     {
         return home.ES_SUBSUMED(*this);
@@ -245,7 +242,6 @@ Gecode::ExecStatus IsValidTransportEdge::advise(Gecode::Space& home, Gecode::Adv
 
         if(x.assigned())
         {
-            LOG_WARN_S << "Advise: " << toString() <<  " with " << advisor.toString();
 
             for(size_t idx = 0; idx < (size_t) x.size(); ++idx)
             {
