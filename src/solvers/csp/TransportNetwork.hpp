@@ -255,12 +255,6 @@ private:
      */
     void postRoleAssignments();
 
-    static void triggerTimelineGeneration(Gecode::Space& home);
-    void postRoleTimelines();
-
-    static void validateFlow(Gecode::Space& home);
-    void postFlowCapacities();
-
 protected:
     /**
      * Get the solution of this Gecode::Space instance

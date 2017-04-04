@@ -12,52 +12,32 @@ SpaceTime::Timeline TypeConversion::toTimeline(const AdjacencyList& list,
 {
     SpaceTime::Timeline timeline;
     int expectedTargetIdx = -1;
-    for(int idx = 0; idx < list.size(); ++idx)
+    for(int t = 0; t < timepoints.size();++t)
     {
-        const Gecode::SetVar& var = list[idx];
-        if(!var.assigned())
+        for(int f = 0; f < locations.size(); ++f)
         {
-            SpaceTime::Point stp();
-            throw std::invalid_argument("templ::solvers::csp::TypeConversion::toTimeline: cannot compute timeline, value is not assigned");
-        }
+            size_t idx = t*locations.size() + f;
 
-        if(var.cardMax() == 1 && var.cardMin() == 1)
-        {
-            if(!timeline.empty())
+            const Gecode::SetVar& var = list[idx];
+            if(!var.assigned())
             {
-                if(expectedTargetIdx != idx)
-                {
-                    std::stringstream ss;
-                    ss << "templ::solvers::csp::TypeConversion::toTimeline: timeline is invalid: ";
-                    ss << " expected idx " << expectedTargetIdx << ", but got " << idx;
-                    LOG_WARN_S << ss.str();
-                    //throw std::runtime_error(ss.str());
-                }
+                SpaceTime::Point stp();
+                throw std::invalid_argument("templ::solvers::csp::TypeConversion::toTimeline: cannot compute timeline, value is not assigned");
             }
-            Gecode::SetVarGlbValues value(var);
-            uint32_t targetIdx = value.val();
-            expectedTargetIdx = targetIdx;
 
-            uint32_t fromLocationIdx = idx % locations.size();
-            uint32_t fromTimeIdx = (idx - fromLocationIdx)/locations.size();
+            if(var.lubSize() == 1)
+            {
+                uint32_t targetIdx = var.lubMin();
 
-            uint32_t toLocationIdx = targetIdx % locations.size();
-            uint32_t toTimeIdx = (targetIdx - fromLocationIdx)/locations.size();
-
-            //if(timeline.empty())
-            //{
-                SpaceTime::Point sourceStp(locations[fromLocationIdx], timepoints[fromTimeIdx]);
-                timeline.push_back(sourceStp);
-            //}
-
-                SpaceTime::Point targetStp(locations[toLocationIdx], timepoints[toTimeIdx]);
-            timeline.push_back(targetStp);
-        } else {
-            // empty set
-            continue;
+                SpaceTime::Point stp(locations[f], timepoints[t]);
+                timeline.push_back(stp);
+                break;
+            } else {
+                // empty set
+                continue;
+            }
         }
     }
-    LOG_WARN_S << "TIMELINE OF SIZE: " << timeline.size();
     return timeline;
 }
 
@@ -67,7 +47,7 @@ SpaceTime::Timelines TypeConversion::toTimelines(const Role::List& roles, const 
             const std::vector<symbols::constants::Location::Ptr>& locations,
             const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints)
 {
-    if(roles.empty());
+    if(roles.empty())
     {
         LOG_WARN_S << "No roles provides -- empty list of timelines";
         return SpaceTime::Timelines();
