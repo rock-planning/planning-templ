@@ -17,40 +17,44 @@ namespace propagators {
  * t0-l0 --> [ t1-l1, ... ]
  * t0-l1 --> [ t1-l1, ... ]
  */
-class IsPath : public Gecode::NaryPropagator<Gecode::Set::SetView, Gecode::Set::PC_SET_VAL>
+class IsPath : public Gecode::NaryPropagator<Gecode::Set::SetView, Gecode::Set::PC_SET_NONE>
 {
 public:
     typedef Gecode::ViewArray<Gecode::Set::SetView> SetVarArrayView;
 
-    //class Idx : public Gecode::Advisor
-    //{
-    //protected:
-    //    // Info store the index and the boolean mark in the first bit,
-    //    // thus doing bitshifting to retrieve index
-    //    int mInfo;
-    //    bool mIsTimepointIdx;
+    class Idx : public Gecode::Advisor
+    {
+    protected:
+        // Info store the index and the boolean mark in the first bit,
+        // thus doing bitshifting to retrieve index
+        int mInfo;
+        bool mIsTimepointIdx;
 
-    //    SetVarArrayView x;
+    public:
+        Idx(Gecode::Space& home, Gecode::Propagator& p, Gecode::Council<Idx>& c, int i, bool isTimepointIdx, SetVarArrayView x);
+        Idx(Gecode::Space& home, bool share, Idx& a);
+        bool isTimepointIdx() const { return mIsTimepointIdx; }
+        bool isLocationIdx() const { return !mIsTimepointIdx; }
 
-    //public:
-    //    Idx(Gecode::Space& home, Gecode::Propagator& p, Gecode::Council<Idx>& c, int i, bool isTimepointIdx, SetVarArrayView x);
-    //    Idx(Gecode::Space& home, bool share, Idx& a);
-    //    bool isTimepointIdx() const { return mIsTimepointIdx; }
-    //    bool isLocationIdx() const { return !mIsTimepointIdx; }
+        bool isMarked() { return (mInfo & 1) != 0 ; }
+        void mark(void) { mInfo |= 1 ; }
+        void unmark(void) { mInfo &= ~1; }
+        int idx(void) const { return mInfo >> 1; }
 
-    //    bool isMarked() { return (mInfo & 1) != 0 ; }
-    //    void mark(void) { mInfo |= 1 ; }
-    //    void unmark(void) { mInfo &= ~1; }
-    //    int idx(void) const { return mInfo >> 1; }
+        void dispose(Gecode::Space& home, Gecode::Council<Idx>& c);
 
-    //    void dispose(Gecode::Space& home, Gecode::Council<Idx>& c);
+        std::string toString() const;
 
-    //    std::string toString() const;
-    //};
+        SetVarArrayView x;
+    };
 
-    //Gecode::Council<Idx> c;
-    //std::set<int> mAssignedFluentIndices;
-    //std::set<int> mAssignedTimepointIndices;
+    Gecode::Council<Idx> c;
+
+    // Queue all changes -- fluent and timepoint subscriptions
+    // are parallel, so that we can identify the exact changed
+    // entry by ('t','f') using the same index
+    std::vector<int> mAssignedFluentIndices;
+    std::vector<int> mAssignedTimepointIndices;
 
 
 protected:
@@ -88,7 +92,7 @@ public:
      */
     Gecode::ModEvent constrainSametimeView(Gecode::Space& home, int viewIdx, int lowerBound, int upperBound);
 
-    static bool isValidWaypointSequence(const std::vector< std::pair<int, bool> >& waypoints, size_t& startTimepoint, size_t& endTimepoint);
+    static bool isValidWaypointSequence(const std::vector< std::pair<int, bool> >& waypoints, size_t& startTimepoint, size_t& endTimepoint, bool fullyAssigned = false);
 
     /**
      * Cancels that subscription of the view
@@ -98,7 +102,7 @@ public:
     virtual Gecode::Propagator* copy(Gecode::Space& home, bool share);
     virtual Gecode::PropCost cost(const Gecode::Space&, const Gecode::ModEventDelta&) const;
     virtual void reschedule(Gecode::Space& home);
-    //virtual Gecode::ExecStatus advise(Gecode::Space& home, Gecode::Advisor& a, const Gecode::Delta& d);
+    virtual Gecode::ExecStatus advise(Gecode::Space& home, Gecode::Advisor& a, const Gecode::Delta& d);
     virtual Gecode::ExecStatus propagate(Gecode::Space& home, const Gecode::ModEventDelta&);
 
     std::string waypointsToString() const;

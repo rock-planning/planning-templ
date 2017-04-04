@@ -1361,14 +1361,17 @@ void TransportNetwork::postRoleAssignments()
         supplyDemand.push_back(transportSupplyDemand);
     }
 
-    for(size_t t = 0; t < mLocations.size()*mTimepoints.size(); ++t)
+    for(size_t t = 0; t < mTimepoints.size(); ++t)
     {
-        Gecode::SetVarArray multiEdge(*this, mActiveRoles.size());
-        for(size_t i = 0; i < mActiveRoles.size(); ++i)
+        for(size_t f = 0; f < mLocations.size(); ++f)
         {
-            multiEdge[i] = mTimelines[i][t];
+            Gecode::SetVarArray multiEdge(*this, mActiveRoles.size());
+            for(size_t i = 0; i < mActiveRoles.size(); ++i)
+            {
+                multiEdge[i] = mTimelines[i][t*mLocations.size() + f];
+            }
+            propagators::isValidTransportEdge(*this, multiEdge, supplyDemand, t, f, mLocations.size());
         }
-        propagators::isValidTransportEdge(*this, multiEdge, supplyDemand, t + mLocations.size());
     }
 
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
