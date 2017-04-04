@@ -31,7 +31,7 @@ public:
         std::vector<int> edgeValue;
         SetVarArrayView x;
 
-        DemandSupply(Gecode::Space& home, Gecode::Propagator& p, Gecode::Council<DemandSupply>& c, SetVarArrayView x);
+        DemandSupply(Gecode::Space& home, Gecode::Propagator& p, Gecode::Council<DemandSupply>& c, SetVarArrayView x, size_t numberOfFluents);
         DemandSupply(Gecode::Space& home, bool shared, DemandSupply& a);
 
         void dispose(Gecode::Space& home, Gecode::Council<DemandSupply>& c);

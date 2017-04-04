@@ -11,9 +11,10 @@ namespace propagators {
 IsValidTransportEdge::DemandSupply::DemandSupply(Gecode::Space& home,
         Gecode::Propagator& p,
         Gecode::Council<DemandSupply>& c,
-        SetVarArrayView x)
+        SetVarArrayView x,
+        size_t numberOfFluents)
     : Gecode::Advisor(home, p, c)
-    , edgeValue(x.size(), 0)
+    , edgeValue(numberOfFluents, 0)
     , x(x)
 {
     x.subscribe(home, *this);
@@ -82,7 +83,7 @@ IsValidTransportEdge::IsValidTransportEdge(Gecode::Space& home, SetVarArrayView&
 
     LOG_WARN_S << "Create transport edge: " << multiEdge;
 
-    (void) new (home) DemandSupply(home, *this, c, x);
+    (void) new (home) DemandSupply(home, *this, c, x, numberOfFluents);
 }
 
 IsValidTransportEdge::IsValidTransportEdge(Gecode::Space& home, bool share, IsValidTransportEdge& p)
@@ -246,19 +247,21 @@ Gecode::ExecStatus IsValidTransportEdge::advise(Gecode::Space& home, Gecode::Adv
         {
             LOG_WARN_S << "Advise: " << toString() <<  " with " << advisor.toString();
 
-            for(size_t idx = 0; idx < x.size(); ++idx)
+            for(size_t idx = 0; idx < (size_t) x.size(); ++idx)
             {
                 Gecode::Set::SetView& view = advisor.x[idx];
                 if(view.lubSize() == 1)
                 {
                     // Get the local target edge idx
                     int targetIdx = view.lubMax();
-                    int localTargetEdgeIdx = targetIdx - mSpaceTimeOffset;
+                    // assumption of forward pointing in time
+                    assert(targetIdx >= mSpaceTimeOffset);
+                    size_t localTargetEdgeIdx = targetIdx - mSpaceTimeOffset;
 
                     // Mark edges that have an actual demand
                     if(mSupplyDemand[idx] < 0)
                     {
-                        if(targetIdx != mLocalTargetFluent + idx)
+                        if( static_cast<size_t>( targetIdx ) != mLocalTargetFluent + idx)
                         {
                             advisor.edgeIdxWithDemand.insert(localTargetEdgeIdx);
                         }
@@ -271,6 +274,7 @@ Gecode::ExecStatus IsValidTransportEdge::advise(Gecode::Space& home, Gecode::Adv
             std::set<size_t>::const_iterator cit = advisor.edgeIdxWithDemand.begin();
             for(; cit != advisor.edgeIdxWithDemand.end(); ++cit)
             {
+                assert(advisor.edgeValue.size() > *cit);
                 int demand = advisor.edgeValue.at( *cit );
                 if(demand < 0)
                 {
