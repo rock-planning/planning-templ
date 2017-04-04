@@ -1121,8 +1121,8 @@ void TransportNetwork::postRoleAssignments()
                     // set value to 'col'
                     // workaround to set {col} as target for this edge
                     v.intersect(*this, col,col);
-                    //v.cardMin(*this, 1);
-                    //v.cardMax(*this, 1);
+                    v.cardMin(*this, 1);
+                    v.cardMax(*this, 1);
                     //// Exclude might actually be redundant
                     //v.exclude(*this, 0, (timeIndex+1)*mLocations.size()-1);
                     //v.exclude(*this, (timeIndex+2)*mLocations.size(), mTimepoints.size()*mLocations.size());
