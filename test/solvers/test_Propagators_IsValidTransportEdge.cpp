@@ -46,14 +46,18 @@ public:
                 multiEdge[i] = mTimelines[i][t];
             }
             propagators::isValidTransportEdge(*this, multiEdge, supplyDemand, t/mNumberOfFluents, t%mNumberOfFluents, mNumberOfFluents);
+
+            Gecode::SetAFC afc(*this, multiEdge, 0.99);
+            afc.decay(*this, 0.95);
+            branch(*this, multiEdge, Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
         }
 
-        for(size_t t = 0; t < mNumberOfTimelines; ++t)
-        {
-            Gecode::SetAFC afc(*this, mTimelines[t], 0.99);
-            afc.decay(*this, 0.95);
-            branch(*this, mTimelines[t], Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
-        }
+        //for(size_t t = 0; t < mNumberOfTimelines; ++t)
+        //{
+        //    Gecode::SetAFC afc(*this, mTimelines[t], 0.99);
+        //    afc.decay(*this, 0.95);
+        //    branch(*this, mTimelines[t], Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
+        //}
 
     }
 

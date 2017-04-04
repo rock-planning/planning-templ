@@ -254,8 +254,6 @@ bool IsPath::isValidWaypointSequence(const std::vector< std::pair<int,bool> >& w
 
 Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength, int maxPathLength)
 {
-    Gecode::IntVarArray allCardinalities(home, numberOfTimepoints*numberOfFluents, 0, 1);
-
     // Setup the basic contraints for the timeline
     // i.e. only edges from one timestep to the next are allowed
     for(size_t t = 0; t < numberOfTimepoints; ++t)
@@ -271,14 +269,13 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x
             // http://www.gecode.org/doc-latest/reference/classGecode_1_1Set_1_1SetView.html
             // set value to 'col' which represents the next target
             // space-time-point
-            v.cardMin(home, 0);
-            v.cardMax(home, 1);
-            // exclude space-time-points outside the next step
-            v.exclude(home, 0, (t+1)*numberOfFluents - 1);
-            v.exclude(home, (t+2)*numberOfFluents, numberOfTimepoints*numberOfFluents);
+            //v.cardMin(home, 0);
+            //v.cardMax(home, 1);
+            //// exclude space-time-points outside the next step
+            //v.exclude(home, 0, (t+1)*numberOfFluents - 1);
+            //v.exclude(home, (t+2)*numberOfFluents, numberOfTimepoints*numberOfFluents);
 
             Gecode::cardinality(home, edgeActivation, cardinalities[l]);
-            Gecode::cardinality(home, edgeActivation, allCardinalities[idx]);
         }
 
         // The min path constraint assume a start of the path at the first
@@ -289,11 +286,11 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x
         } else if(maxPathLength < static_cast<int>(numberOfTimepoints) && t > maxPathLength)
         {//// Constraint the path length only if it makes sense
             Gecode::linear(home, cardinalities, Gecode::IRT_EQ, 0);
-        } else {
-            // Limit to one outgoing edge per timestep
-            // Less or equal cardinality of 1
-            // sum of cardinalities
-            Gecode::linear(home, cardinalities, Gecode::IRT_LQ, 1);
+        //} else {
+        //    // Limit to one outgoing edge per timestep
+        //    // Less or equal cardinality of 1
+        //    // sum of cardinalities
+        //    Gecode::linear(home, cardinalities, Gecode::IRT_LQ, 1);
         }
     }
 

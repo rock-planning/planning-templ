@@ -1165,6 +1165,39 @@ void TransportNetwork::postRoleAssignments()
         Gecode::SetVarArray timeline(*this, locationTimeSize, Gecode::IntSet::empty, Gecode::IntSet(0,locationTimeSize-1),0,1);
         mTimelines.push_back(timeline);
 
+        // Setup the basic contraints for the timeline
+        // i.e. only edges from one timestep to the next are allowed
+        size_t numberOfTimepoints = mTimepoints.size();
+        size_t numberOfFluents = mLocations.size();
+        for(size_t t = 0; t < numberOfTimepoints; ++t)
+        {
+            Gecode::IntVarArray cardinalities(*this, numberOfFluents, 0, 1);
+            for(size_t l = 0; l < numberOfFluents; ++l)
+            {
+                int idx = t*numberOfFluents + l;
+                const Gecode::SetVar& edgeActivation = timeline[idx];
+                // Use SetView to manipulate the edgeActivation in the
+                // timeline
+                Gecode::Set::SetView v(edgeActivation);
+                // http://www.gecode.org/doc-latest/reference/classGecode_1_1Set_1_1SetView.html
+                // set value to 'col' which represents the next target
+                // space-time-point
+                v.cardMin(*this, 0);
+                v.cardMax(*this, 1);
+                // exclude space-time-points outside the next step
+                v.exclude(*this, 0, (t+1)*numberOfFluents - 1);
+                v.exclude(*this, (t+2)*numberOfFluents, numberOfTimepoints*numberOfFluents);
+
+                Gecode::cardinality(*this, edgeActivation, cardinalities[l]);
+            }
+
+            // Limit to one outgoing edge per timestep
+            // Less or equal cardinality of 1
+            // sum of cardinalities
+            Gecode::linear(*this, cardinalities, Gecode::IRT_LQ, 1);
+        }
+
+
         bool prevTimeIdxAvailable = false;
         uint32_t prevTimeIdx = 0;
         uint32_t prevLocationIdx = 0;
@@ -1222,7 +1255,7 @@ void TransportNetwork::postRoleAssignments()
 
                     // constraint between timeline and roleRequirement
                     // if 'roleRequirement' is given, then edgeActivation = col,
-                    // else edgeActivation = -1
+                    // else edgeActivation restricted only using standard time
                     LOG_DEBUG_S << "Set SetVar in col: " << col << " and row " << row;
                     Gecode::SetVar& edgeActivation = timeline[row];
                     // Use SetView to manipulate the edgeActivation in the
@@ -1232,11 +1265,11 @@ void TransportNetwork::postRoleAssignments()
                     // set value to 'col'
                     // workaround to set {col} as target for this edge
                     v.intersect(*this, col,col);
-                    v.cardMin(*this, 1);
-                    v.cardMax(*this, 1);
-                    // Exclude might actually be redundant
-                    v.exclude(*this, 0, (timeIndex+1)*mLocations.size()-1);
-                    v.exclude(*this, (timeIndex+2)*mLocations.size(), mTimepoints.size()*mLocations.size());
+                    //v.cardMin(*this, 1);
+                    //v.cardMax(*this, 1);
+                    //// Exclude might actually be redundant
+                    //v.exclude(*this, 0, (timeIndex+1)*mLocations.size()-1);
+                    //v.exclude(*this, (timeIndex+2)*mLocations.size(), mTimepoints.size()*mLocations.size());
                 }
                 allowedLocationTimeValues.push_back(toIndex*mLocations.size() + fts.fluent);
 
@@ -1277,8 +1310,6 @@ void TransportNetwork::postRoleAssignments()
                 prevTimeIdxAvailable = true;
             }
         }
-        propagators::isPath(*this, timeline, mTimepoints.size(), mLocations.size());
-
         //LOG_WARN_S << std::endl << "Timeline for " << role.toString() << std::endl
         //    << Formatter::toString(timeline, mLocations.size());
     }
@@ -1371,23 +1402,32 @@ void TransportNetwork::postRoleAssignments()
                 multiEdge[i] = mTimelines[i][t*mLocations.size() + f];
             }
             propagators::isValidTransportEdge(*this, multiEdge, supplyDemand, t, f, mLocations.size());
+
+            Gecode::SetAFC afc(*this, multiEdge, 0.99);
+            afc.decay(*this, 0.95);
+
+            // http://www.gecode.org/doc-latest/reference/group__TaskModelSetBranchVar.html
+            branch(*this, multiEdge, Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
         }
     }
 
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
-        Gecode::SetAFC afc(*this, mTimelines[i], 0.99);
-        afc.decay(*this, 0.95);
-
-        // http://www.gecode.org/doc-latest/reference/group__TaskModelSetBranchVar.html
-        branch(*this, mTimelines[i], Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
-        //branch(*this, mTimelines[i], Gecode::SET_VAR_MAX_MAX(), Gecode::SET_VAL_MAX_EXC());
-        //branch(*this, mTimelines[i], Gecode::SET_VAR_MIN_MIN(), Gecode::SET_VAL_MAX_INC());
-        //branch(*this, mTimelines[i], Gecode::SET_VAR_NONE(), Gecode::SET_VAL_MED_INC());
-        //LOG_WARN_S << "Timeline for active role: " << mActiveRoleList[ mActiveRoles[i] ].toString()
-        //    << std::endl
-        //    << Formatter::toString(mTimelines[i], mLocations.size());
+        propagators::isPath(*this, mTimelines[i], mTimepoints.size(), mLocations.size());
     }
+
+    //    Gecode::SetAFC afc(*this, mTimelines[i], 0.99);
+    //    afc.decay(*this, 0.95);
+
+    //    // http://www.gecode.org/doc-latest/reference/group__TaskModelSetBranchVar.html
+    //    branch(*this, mTimelines[i], Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
+    //    //branch(*this, mTimelines[i], Gecode::SET_VAR_MAX_MAX(), Gecode::SET_VAL_MAX_EXC());
+    //    //branch(*this, mTimelines[i], Gecode::SET_VAR_MIN_MIN(), Gecode::SET_VAL_MAX_INC());
+    //    //branch(*this, mTimelines[i], Gecode::SET_VAR_NONE(), Gecode::SET_VAL_MED_INC());
+    //    //LOG_WARN_S << "Timeline for active role: " << mActiveRoleList[ mActiveRoles[i] ].toString()
+    //    //    << std::endl
+    //    //    << Formatter::toString(mTimelines[i], mLocations.size());
+    //}
     branch(*this, &TransportNetwork::validateFlow);
 
 
