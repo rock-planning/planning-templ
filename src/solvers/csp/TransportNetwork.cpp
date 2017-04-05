@@ -1052,11 +1052,6 @@ void TransportNetwork::postRoleAssignments()
         }
         propagators::isPath(*this, timeline, numberOfTimepoints, numberOfFluents);
 
-
-        bool prevTimeIdxAvailable = false;
-        uint32_t prevTimeIdx = 0;
-        uint32_t prevLocationIdx = 0;
-
         using namespace solvers::temporal;
 
         // Link the edge activation to the role requirement, i.e. make sure that
@@ -1088,8 +1083,6 @@ void TransportNetwork::postRoleAssignments()
                 for(; timeIndex < toIndex; ++timeIndex)
                 {
                     int allowed = timeIndex*numberOfFluents + fts.fluent;
-                    std::cout << "ADDING: (fromTime: " << fromIndex << " toTime: " << toIndex <<") " << allowed << std::endl;
-                    std::cout << "     location: " << fts.fluent << std::endl;
 
                     // index of the location is fts.fluent
                     // edge index:
@@ -1142,33 +1135,11 @@ void TransportNetwork::postRoleAssignments()
                                 excludeView.cardMax(*this, 0);
                             }
                         }
-                    }
+                    } // end of time horizon
                 }
-                // Handle the transition between two requirements
-                // Collect allowed waypoints: actually
-                // For the transition interval allow also the source or the
-                // target location (and any close? location)
-                if(prevTimeIdxAvailable)
-                {
-                    std::cout << "PrevTime: " << prevTimeIdx << " toTime " << fromIndex << std::endl;
-                    for(uint32_t timeIndex = prevTimeIdx + 1; timeIndex < fromIndex; ++timeIndex)
-                    {
-                        // Most general approach
-                        for(uint32_t fluentIdx = 0; fluentIdx < numberOfFluents; ++fluentIdx)
-                        {
-                            int allowed = timeIndex*numberOfFluents + fluentIdx;
-                            std::cout << "ADDING: waypoint" << allowed << std::endl;
-                        }
-                    }
-                }
-
-                prevTimeIdx = toIndex;
-                prevLocationIdx = fts.fluent;
-
-                prevTimeIdxAvailable = true;
-            }
-        }
-    }
+            } // end if(v.val() == 1)
+        } // for loop requirements
+    } // for loop active roles
 
     mActiveRoleList = activeRoles;
     assert(!mActiveRoleList.empty());
