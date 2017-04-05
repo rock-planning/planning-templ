@@ -988,12 +988,12 @@ void TransportNetwork::postRoleAssignments()
     // -- add an additional transfer location to allow for 'timegaps'
     mLocations.push_back(symbols::constants::Location::Ptr(new symbols::constants::Location("in-transfer")));
 
-    size_t locationTimeSize = mLocations.size()*mTimepoints.size();
+    size_t numberOfFluents = mLocations.size();
+    size_t numberOfTimepoints = mTimepoints.size();
+    size_t locationTimeSize = numberOfFluents*numberOfTimepoints;
+
     mActiveRoles = getActiveRoles();
 
-    // Collect all relevant location time values
-    // which represents a superset of the final timeline
-    std::vector<int> allowedLocationTimeValues;
     Role::List activeRoles;
 
     LOG_WARN_S << std::endl
@@ -1023,8 +1023,6 @@ void TransportNetwork::postRoleAssignments()
 
         // Setup the basic contraints for the timeline
         // i.e. only edges from one timestep to the next are allowed
-        size_t numberOfTimepoints = mTimepoints.size();
-        size_t numberOfFluents = mLocations.size();
         for(size_t t = 0; t < numberOfTimepoints; ++t)
         {
             Gecode::IntVarArray cardinalities(*this, numberOfFluents, 0, 1);
@@ -1052,7 +1050,7 @@ void TransportNetwork::postRoleAssignments()
             // sum of cardinalities
             Gecode::linear(*this, cardinalities, Gecode::IRT_LQ, 1);
         }
-        propagators::isPath(*this, timeline, mTimepoints.size(), mLocations.size());
+        propagators::isPath(*this, timeline, numberOfTimepoints, numberOfFluents);
 
 
         bool prevTimeIdxAvailable = false;
@@ -1086,13 +1084,13 @@ void TransportNetwork::postRoleAssignments()
 
                 // The timeline is now updated for the full interval the
                 // requirement is covering
-                for(uint32_t timeIndex = fromIndex; timeIndex < toIndex; ++timeIndex)
+                uint32_t timeIndex = fromIndex;
+                for(; timeIndex < toIndex; ++timeIndex)
                 {
-                    int allowed = timeIndex*mLocations.size() + fts.fluent;
+                    int allowed = timeIndex*numberOfFluents + fts.fluent;
                     std::cout << "ADDING: (fromTime: " << fromIndex << " toTime: " << toIndex <<") " << allowed << std::endl;
                     std::cout << "     location: " << fts.fluent << std::endl;
 
-                    allowedLocationTimeValues.push_back(allowed);
                     // index of the location is fts.fluent
                     // edge index:
                     // row = timepointIdx*#ofLocations + from-location-offset
@@ -1100,9 +1098,9 @@ void TransportNetwork::postRoleAssignments()
                     //
                     // location (offset) = row % #ofLocations
                     // timepointIndex = (row - location(offset)) / #ofLocations
-                    size_t row = FluentTimeIndex::toRowOrColumnIndex(fts.fluent, timeIndex, mLocations.size(), mTimepoints.size());
+                    size_t row = FluentTimeIndex::toRowOrColumnIndex(fts.fluent, timeIndex, numberOfFluents, numberOfTimepoints);
                     // Always connect to the next timestep
-                    size_t col = FluentTimeIndex::toRowOrColumnIndex(fts.fluent, timeIndex + 1, mLocations.size(), mTimepoints.size());
+                    size_t col = FluentTimeIndex::toRowOrColumnIndex(fts.fluent, timeIndex + 1, numberOfFluents, numberOfFluents);
 
 
                     LOG_INFO_S << "EdgeActivation for col: " << col << ", row: " << row << " requirement for: " << role.toString() << " roleRequirement: " << roleRequirement;
@@ -1124,12 +1122,28 @@ void TransportNetwork::postRoleAssignments()
                     v.intersect(*this, col,col);
                     v.cardMin(*this, 1);
                     v.cardMax(*this, 1);
-                    //// Exclude might actually be redundant
-                    //v.exclude(*this, 0, (timeIndex+1)*mLocations.size()-1);
-                    //v.exclude(*this, (timeIndex+2)*mLocations.size(), mTimepoints.size()*mLocations.size());
-                }
-                allowedLocationTimeValues.push_back(toIndex*mLocations.size() + fts.fluent);
 
+                    // now limit parallel values of the edge target
+                    // since (due to the existing path constraint) the next
+                    // edge has to have this target as source
+                    //
+                    // do this only if we have not reached end of time horizon
+                    if(timeIndex < numberOfTimepoints - 1)
+                    {
+                        size_t offset = (timeIndex+1)*numberOfFluents;
+                        for(size_t f = 0; f < numberOfFluents; ++f)
+                        {
+                            size_t idx = offset + f;
+                            if(idx != col)
+                            {
+                                Gecode::SetVar& excludeVar = timeline[idx];
+                                Gecode::Set::SetView excludeView(excludeVar);
+
+                                excludeView.cardMax(*this, 0);
+                            }
+                        }
+                    }
+                }
                 // Handle the transition between two requirements
                 // Collect allowed waypoints: actually
                 // For the transition interval allow also the source or the
@@ -1140,24 +1154,11 @@ void TransportNetwork::postRoleAssignments()
                     for(uint32_t timeIndex = prevTimeIdx + 1; timeIndex < fromIndex; ++timeIndex)
                     {
                         // Most general approach
-                        for(uint32_t fluentIdx = 0; fluentIdx < mLocations.size(); ++fluentIdx)
+                        for(uint32_t fluentIdx = 0; fluentIdx < numberOfFluents; ++fluentIdx)
                         {
-                            int allowed = timeIndex*mLocations.size() + fluentIdx;
+                            int allowed = timeIndex*numberOfFluents + fluentIdx;
                             std::cout << "ADDING: waypoint" << allowed << std::endl;
-                            allowedLocationTimeValues.push_back(allowed);
                         }
-
-                        //int allowed = timeIndex*mLocations.size() + fts.fluent;
-                        //std::cout << "ADDING: waypoint" << allowed << std::endl;
-                        //allowedLocationTimeValues.push_back(allowed);
-
-                        //allowed = timeIndex*mLocations.size() + prevLocationIdx;
-                        //std::cout << "ADDING: waypoint" << allowed << std::endl;
-                        //allowedLocationTimeValues.push_back(allowed);
-
-                        //allowed = timeIndex*mLocations.size() + mLocations.size() - 1;
-                        //std::cout << "ADDING: waypoint" << allowed << std::endl;
-                        //allowedLocationTimeValues.push_back(allowed);
                     }
                 }
 
@@ -1200,16 +1201,16 @@ void TransportNetwork::postRoleAssignments()
         supplyDemand.push_back(transportSupplyDemand);
     }
 
-    for(size_t t = 0; t < mTimepoints.size(); ++t)
+    for(size_t t = 0; t < numberOfTimepoints; ++t)
     {
-        for(size_t f = 0; f < mLocations.size(); ++f)
+        for(size_t f = 0; f < numberOfFluents; ++f)
         {
             Gecode::SetVarArray multiEdge(*this, mActiveRoles.size());
             for(size_t i = 0; i < mActiveRoles.size(); ++i)
             {
-                multiEdge[i] = mTimelines[i][t*mLocations.size() + f];
+                multiEdge[i] = mTimelines[i][t*numberOfFluents + f];
             }
-            propagators::isValidTransportEdge(*this, multiEdge, supplyDemand, t, f, mLocations.size());
+            propagators::isValidTransportEdge(*this, multiEdge, supplyDemand, t, f, numberOfFluents);
 
             Gecode::SetAFC afc(*this, multiEdge, 0.99);
             afc.decay(*this, 0.95);
@@ -1221,7 +1222,7 @@ void TransportNetwork::postRoleAssignments()
 
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
-//        propagators::isPath(*this, mTimelines[i], mTimepoints.size(), mLocations.size());
+//        propagators::isPath(*this, mTimelines[i], numberOfTimepoints, mLocations.size());
     }
 }
 
