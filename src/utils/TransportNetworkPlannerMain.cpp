@@ -43,6 +43,13 @@ int main(int argc, char** argv)
     } else {
         std::cout << solutions.size() << " solutions have been found: " << std::endl << solutions;
 
+        for(int i = 0; i < solutions.size(); ++i)
+        {
+            std::stringstream ss;
+            ss << "/tmp/templ-mission-solution-" << i << ".dot";
+            graph_analysis::io::GraphIO::write(ss.str(), solutions[0].toNetwork().getGraph());
+        }
+
         mission->getLogger()->disableSessions();
     }
 
