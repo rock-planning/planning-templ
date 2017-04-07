@@ -55,7 +55,7 @@ void IsPath::Idx::dispose(Gecode::Space& home, Gecode::Council<Idx>& c)
 
 
 
-void isPath(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength, int maxPathLength)
+void isPath(Gecode::Space& home, const Gecode::SetVarArgs& x, const std::string& tag, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength, int maxPathLength)
 {
     // If there is no path -- fail directly
     if(x.size() == 0)
@@ -64,7 +64,7 @@ void isPath(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfT
     } else {
 
         LOG_DEBUG_S << "IsPath: propagate #timepoints " << numberOfTimepoints << ", #fluents " << numberOfFluents;
-        if(IsPath::post(home, x, numberOfTimepoints, numberOfFluents, minPathLength, maxPathLength) != ES_OK)
+        if(IsPath::post(home, x, tag, numberOfTimepoints, numberOfFluents, minPathLength, maxPathLength) != ES_OK)
         {
             home.fail();
         }
@@ -76,12 +76,15 @@ void isPath(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfT
     }
 }
 
-IsPath::IsPath(Gecode::Space& home, ViewArray<Set::SetView>& xv, uint32_t numberOfTimepoints, uint32_t numberOfFluents,
+IsPath::IsPath(Gecode::Space& home, ViewArray<Set::SetView>& xv,
+        const std::string& tag,
+        uint32_t numberOfTimepoints, uint32_t numberOfFluents,
         int minPathLength,
         int maxPathLength)
 
     : NaryPropagator<Set::SetView, Set::PC_SET_NONE>(home, xv)
     , c(home)
+    , mTag(tag)
     , mNumberOfTimepoints(numberOfTimepoints)
     , mNumberOfFluents(numberOfFluents)
     , mMinPathLength(minPathLength)
@@ -149,6 +152,7 @@ IsPath::IsPath(Gecode::Space& home, ViewArray<Set::SetView>& xv, uint32_t number
 
 IsPath::IsPath(Gecode::Space& home, bool share, IsPath& p)
     : NaryPropagator<Set::SetView, Set::PC_SET_NONE>(home, share, p)
+    , mTag(p.mTag)
     , mNumberOfTimepoints(p.mNumberOfTimepoints)
     , mNumberOfFluents(p.mNumberOfFluents)
     , mMinPathLength(p.mMinPathLength)
@@ -268,7 +272,10 @@ bool IsPath::isValidWaypointSequence(const std::vector< std::pair<int,bool> >& w
     return true;
 }
 
-Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength, int maxPathLength)
+Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x,
+        const std::string& tag,
+        uint32_t numberOfTimepoints, uint32_t numberOfFluents,
+        int minPathLength, int maxPathLength)
 {
     // Setup the basic contraints for the timeline
     // i.e. only edges from one timestep to the next are allowed
@@ -315,7 +322,7 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x
     // A constraint post function carefully analyzes its arguments. Based on
     // this analysis, the constraint post function chooses the best possible propagator for the constraint
     ViewArray<Set::SetView> viewArray(home, x);
-    (void) new (home) IsPath(home, viewArray, numberOfTimepoints, numberOfFluents, minPathLength, maxPathLength);
+    (void) new (home) IsPath(home, viewArray, tag, numberOfTimepoints, numberOfFluents, minPathLength, maxPathLength);
     return ES_OK;
 }
 
