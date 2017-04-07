@@ -152,66 +152,10 @@ Gecode::ExecStatus IsValidTransportEdge::propagate(Gecode::Space& home, const Ge
 {
     if(x.assigned())
     {
-        return home.ES_SUBSUMED(*this);
-    } else {
-        assert(false);
+        size_t size = this->dispose(home);
+        return home.ES_SUBSUMED_DISPOSED(*this, size);
     }
     return ES_FAILED;
-//    // TODO: reduce check to path segments of immobile systems, i.e.
-//    // when this is critical
-//    if(x.assigned())
-//    {
-//        if(mDemandEdges.empty())
-//        {
-//            return home.ES_SUBSUMED(*this);
-//        }
-//
-//        for(size_t d = 0; d < mDemandEdges.size(); ++d)
-//        {
-//            int sum = 0;
-//            for(size_t a = 0; a < (size_t) x.size(); ++a)
-//            {
-//                if(x[a].lubSize() == 0)
-//                {
-//                    continue;
-//                }
-//
-//                size_t targetIdx = x[a].lubMax();
-//                // Local edge -- thus skipping
-//                if(targetIdx != mDemandEdges[d])
-//                {
-//                    continue;
-//                }
-//
-//                sum += mSupplyDemand[a];
-//                //for(size_t b = a + 1; b < x.size(); ++b)
-//                //{
-//                //    if(x[b].lubSize() == 0)
-//                //    {
-//                //        continue;
-//                //    }
-//
-//                //    int otherTargetIdx = x[b].lubMax();
-//                //    if(targetIdx == otherTargetIdx)
-//                //    {
-//                //        sum += mSupplyDemand[b];
-//                //    }
-//                //}
-//            }
-//
-//            if(sum <= 0)
-//            {
-//                LOG_WARN_S << "Demand to " << mDemandEdges[d] << " in " << x << "  -- demand cannot be satisfied, sum of edges is: " << sum;
-//                return ES_FAILED;
-//            } else {
-//                LOG_WARN_S << "Demand to " << mDemandEdges[d] << " in " << x << "  -- demand can be satisfied, sum of edges is: " << sum;
-//            }
-//        }
-//        return home.ES_SUBSUMED(*this);
-//    } else {
-//        LOG_WARN_S << "Propagate call, though values are not assigned yet -- recheck advise function";
-//        return ES_FIX;
-//    }
 }
 
 void isValidTransportEdge(Gecode::Space& home, const Gecode::SetVarArgs& x, const std::vector<int32_t>& supplyDemand, uint32_t timepoint, uint32_t fluent, uint32_t numberOfFluents)
@@ -242,7 +186,6 @@ Gecode::ExecStatus IsValidTransportEdge::advise(Gecode::Space& home, Gecode::Adv
 
         if(x.assigned())
         {
-
             for(size_t idx = 0; idx < (size_t) x.size(); ++idx)
             {
                 Gecode::Set::SetView& view = advisor.x[idx];
@@ -262,11 +205,10 @@ Gecode::ExecStatus IsValidTransportEdge::advise(Gecode::Space& home, Gecode::Adv
                             advisor.edgeIdxWithDemand.insert(localTargetEdgeIdx);
                         }
                     }
-
-                    LOG_WARN_S << "Local demand edge: " << view << " localTarget: " << localTargetEdgeIdx << "  targetIdx: " << targetIdx << " - " << mSpaceTimeOffset;
                     advisor.edgeValue[localTargetEdgeIdx] += mSupplyDemand[idx];
                 }
             }
+
             std::set<size_t>::const_iterator cit = advisor.edgeIdxWithDemand.begin();
             for(; cit != advisor.edgeIdxWithDemand.end(); ++cit)
             {
@@ -274,10 +216,7 @@ Gecode::ExecStatus IsValidTransportEdge::advise(Gecode::Space& home, Gecode::Adv
                 int demand = advisor.edgeValue.at( *cit );
                 if(demand < 0)
                 {
-                    LOG_WARN_S << "Edge capacity to " << *cit << " is invalid: " << demand << " < 0";
                     return ES_FAILED;
-                } else {
-                    LOG_WARN_S << "Edge capacity to " << *cit << " is sufficient: " << demand << " >= 0";
                 }
             }
             return home.ES_NOFIX_DISPOSE(c, advisor);
