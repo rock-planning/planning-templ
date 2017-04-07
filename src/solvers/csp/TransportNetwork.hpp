@@ -37,6 +37,10 @@ public:
     {
         friend class TransportNetwork;
 
+        symbols::constants::Location::PtrList mLocations;
+        solvers::temporal::point_algebra::TimePoint::PtrList mTimepoints;
+
+
         ModelDistribution mModelDistribution;
         RoleDistribution mRoleDistribution;
         SpaceTime::Timelines mTimelines;
@@ -46,6 +50,7 @@ public:
         const RoleDistribution& getRoleDistribution() const { return mRoleDistribution; }
 
         std::string toString(uint32_t indent = 0) const;
+        SpaceTime::Network toNetwork() const;
     };
 
     typedef std::vector<Solution> SolutionList;
@@ -247,7 +252,7 @@ private:
      * Get the set of roles that are actively used in the solutions
      * \return set of roles (by index id) that are active
      */
-    std::vector<uint32_t> getActiveRoles() const;
+    std::vector<uint32_t> computeActiveRoles() const;
 
     static void assignRoles(Gecode::Space& home);
     /**
@@ -327,6 +332,11 @@ public:
      * FluentTimeResource instance
      */
     void addFunctionRequirement(const FluentTimeResource& fts, owlapi::model::IRI& function);
+
+    size_t getNumberOfFluents() const { return mLocations.size(); }
+    std::vector<uint32_t> getActiveRoles() const { return mActiveRoles; }
+    Role::List getActiveRoleList() const { return mActiveRoleList; }
+
 };
 
 std::ostream& operator<<(std::ostream& os, const TransportNetwork::Solution& solution);

@@ -17,6 +17,7 @@
 #include <organization_model/facets/Robot.hpp>
 
 #include "ConstraintMatrix.hpp"
+#include "branchers/TimelineBrancher.hpp"
 #include "propagators/IsPath.hpp"
 #include "propagators/IsValidTransportEdge.hpp"
 #include "propagators/MultiCommodityFlow.hpp"
@@ -65,6 +66,11 @@ std::string TransportNetwork::Solution::toString(uint32_t indent) const
         ss << hspace  << SpaceTime::toString(mTimelines);
     }
     return ss.str();
+}
+
+SpaceTime::Network TransportNetwork::Solution::toNetwork() const
+{
+    return SpaceTime::toNetwork(mLocations, mTimepoints, mTimelines);
 }
 
 TransportNetwork::SearchState::SearchState(const Mission::Ptr& mission)
@@ -120,6 +126,8 @@ TransportNetwork::Solution TransportNetwork::getSolution() const
     solution.mModelDistribution = getModelDistribution();
     solution.mRoleDistribution = getRoleDistribution();
     solution.mTimelines = getTimelines();
+    solution.mLocations = mLocations;
+    solution.mTimepoints = mTimepoints;
     return solution;
 }
 
@@ -184,6 +192,12 @@ TransportNetwork::RoleDistribution TransportNetwork::getRoleDistribution() const
 
 SpaceTime::Timelines TransportNetwork::getTimelines() const
 {
+    for(int i = 0; i < mActiveRoleList.size(); ++i)
+    {
+        LOG_WARN_S << mActiveRoleList[i].toString() << std::endl
+            << Formatter::toString(mTimelines[i], mLocations.size());
+    }
+
     return TypeConversion::toTimelines(mActiveRoleList, mTimelines, mLocations, mTimepoints);
 }
 
@@ -312,31 +326,32 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     //
     Gecode::Symmetries symmetries = identifySymmetries();
 
+    Gecode::IntAFC modelUsageAfc(*this, mModelUsage, 0.99);
+    modelUsageAfc.decay(*this, 0.95);
+    branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
+    Gecode::Gist::stopBranch(*this);
+
+    Gecode::Rnd modelUsageRnd(1U);
+    branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_RND(modelUsageRnd));
+    Gecode::Gist::stopBranch(*this);
+
     // Regarding the use of INT_VALUES_MIN() and INT_VALUES_MAX(): "This is
     // typically a poor choice, as none of the alternatives can benefit from
     // propagation that arises when other values of the same variable are tried.
     // These branchings exist for instructional purposes" p.123 Tip 8.2
-    //
+    // variable which is unassigned and assigned the smallest value
+    branch(*this, mRoleUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_MIN(), symmetries);
+    // variable with the smallest domain size first, and assign the smallest
+    // value of the selected variable
     //branch(*this, mRoleUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_MIN(), symmetries);
     //branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN(), symmetries);
-    //branch(*this, mRoleUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_MIN(), symmetries);
-    //branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(afc), Gecode::INT_VAL_MIN());
 
-    Gecode::IntAFC modelUsageAfc(*this, mModelUsage, 0.99);
-    modelUsageAfc.decay(*this, 0.95);
-    branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
+    //Gecode::IntAFC roleUsageAfc(*this, mRoleUsage, 0.99);
+    //roleUsageAfc.decay(*this, 0.95);
+    //branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
 
-    Gecode::Rnd modelUsageRnd(1U);
-    branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_RND(modelUsageRnd));
-
-
-
-    Gecode::IntAFC roleUsageAfc(*this, mRoleUsage, 0.99);
-    roleUsageAfc.decay(*this, 0.95);
-    branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
-
-    Gecode::Rnd roleUsageRnd(1U);
-    branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_RND(roleUsageRnd));
+    //Gecode::Rnd roleUsageRnd(1U);
+    //branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_RND(roleUsageRnd), symmetries);
 
     Gecode::Gist::stopBranch(*this);
     // see 8.14 Executing code between branchers
@@ -592,6 +607,7 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
         mTimelines.push_back(array);
         mTimelines[i].update(*this, share, other.mTimelines[i]);
     }
+
     //mCapacities.update(*this, share, other.mCapacities);
 }
 
@@ -931,7 +947,7 @@ void TransportNetwork::assignRoles(Gecode::Space& home)
     static_cast<TransportNetwork&>(home).postRoleAssignments();
 }
 
-std::vector<uint32_t> TransportNetwork::getActiveRoles() const
+std::vector<uint32_t> TransportNetwork::computeActiveRoles() const
 {
     std::vector<uint32_t> activeRoles;
     // Identify active roles
@@ -960,6 +976,8 @@ std::vector<uint32_t> TransportNetwork::getActiveRoles() const
                 break;
             }
         }
+
+       // activeRoles.push_back(r);
     }
     LOG_WARN_S << "Model usage: " << modelUsageToString();
     LOG_WARN_S << "Role usage: " << roleUsageToString();
@@ -992,7 +1010,7 @@ void TransportNetwork::postRoleAssignments()
     size_t numberOfTimepoints = mTimepoints.size();
     size_t locationTimeSize = numberOfFluents*numberOfTimepoints;
 
-    mActiveRoles = getActiveRoles();
+    mActiveRoles = computeActiveRoles();
 
     Role::List activeRoles;
 
@@ -1045,13 +1063,13 @@ void TransportNetwork::postRoleAssignments()
                 Gecode::cardinality(*this, edgeActivation, cardinalities[l]);
             }
 
-            // Limit to one outgoing edge per timestep
-            // Less or equal cardinality of 1
-            // sum of cardinalities
-            Gecode::linear(*this, cardinalities, Gecode::IRT_LQ, 1);
+            // Require exactly one outgoing edge per timestep except for the last
+            // cardinality of 1 for sum of cardinalities
+            if(t < numberOfTimepoints - 1)
+            {
+                Gecode::linear(*this, cardinalities, Gecode::IRT_EQ, 1);
+            }
         }
-        propagators::isPath(*this, timeline, numberOfTimepoints, numberOfFluents);
-
         using namespace solvers::temporal;
 
         // Link the edge activation to the role requirement, i.e. make sure that
@@ -1144,6 +1162,9 @@ void TransportNetwork::postRoleAssignments()
     mActiveRoleList = activeRoles;
     assert(!mActiveRoleList.empty());
 
+    LOG_WARN_S << "Timelines after first propagation of requirements: " << std::endl
+        << Formatter::toString(mTimelines, numberOfFluents);
+
     // Construct the basic timeline
     //
     // Map role requirements back to activation in general network
@@ -1174,26 +1195,44 @@ void TransportNetwork::postRoleAssignments()
 
     for(size_t t = 0; t < numberOfTimepoints; ++t)
     {
+
+        Gecode::SetVarArray sameTime(*this, numberOfFluents*mActiveRoles.size());
         for(size_t f = 0; f < numberOfFluents; ++f)
         {
             Gecode::SetVarArray multiEdge(*this, mActiveRoles.size());
             for(size_t i = 0; i < mActiveRoles.size(); ++i)
             {
                 multiEdge[i] = mTimelines[i][t*numberOfFluents + f];
+                sameTime[i*numberOfFluents + f] = multiEdge[i];
             }
             propagators::isValidTransportEdge(*this, multiEdge, supplyDemand, t, f, numberOfFluents);
+            //trace(*this, multiEdge, 1);
 
-            Gecode::SetAFC afc(*this, multiEdge, 0.99);
-            afc.decay(*this, 0.95);
-
-            // http://www.gecode.org/doc-latest/reference/group__TaskModelSetBranchVar.html
-            branch(*this, multiEdge, Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
         }
+        //Gecode::Rnd timelineRnd(t);
+        //assign(*this, sameTime, Gecode::SET_ASSIGN_RND_INC(timelineRnd));
+        //Gecode::Gist::stopBranch(*this);
+
+        Gecode::SetAFC afc(*this, sameTime, 0.99);
+        afc.decay(*this, 0.95);
+        // http://www.gecode.org/doc-latest/reference/group__TaskModelSetBranchVar.html
+        //branch(*this, sameTime, Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
+
+        branchTimelines(*this, sameTime);
+        Gecode::Gist::stopBranch(*this);
+
+        //Gecode::Rnd timelineRnd(1U);
+        //branch(*this, sameTime, Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_RND_INC(timelineRnd));
+        //Gecode::Gist::stopBranch(*this);
+
+        //Gecode::Action action;
+        //branch(*this, sameTime, Gecode::SET_VAR_ACTION_MIN(action), Gecode::SET_VAL_RND_INC(timelineRnd));
+        //Gecode::Gist::stopBranch(*this);
     }
 
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
-//        propagators::isPath(*this, mTimelines[i], numberOfTimepoints, mLocations.size());
+        //propagators::isPath(*this, mTimelines[i], mActiveRoleList[i].toString(), numberOfTimepoints, mLocations.size());
     }
 }
 
