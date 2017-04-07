@@ -21,7 +21,7 @@ public:
         , mGraph(*this, mNumberOfVertices, Gecode::IntSet::empty, Gecode::IntSet(0,mNumberOfVertices-1), 0,1)
     {
         // get full path length
-        templ::solvers::csp::propagators::isPath(*this, mGraph, numberOfTimepoints, numberOfFluents, numberOfTimepoints-1);
+        templ::solvers::csp::propagators::isPath(*this, mGraph, "test-path", numberOfTimepoints, numberOfFluents, numberOfTimepoints-1);
         branch(*this, mGraph, Gecode::SET_VAR_MAX_MAX(), Gecode::SET_VAL_MAX_EXC());
     }
 

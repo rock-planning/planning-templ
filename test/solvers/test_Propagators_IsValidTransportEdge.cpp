@@ -34,8 +34,12 @@ public:
             Gecode::SetVarArray timeline(*this, mNumberOfVertices, Gecode::IntSet::empty, Gecode::IntSet(0,mNumberOfVertices-1),0,1);
             mTimelines.push_back(timeline);
 
+            std::stringstream ss;
+            ss << t;
+
+
             // get full path length
-            templ::solvers::csp::propagators::isPath(*this, timeline, numberOfTimepoints, numberOfFluents, numberOfTimepoints-1);
+            templ::solvers::csp::propagators::isPath(*this, timeline, ss.str(), numberOfTimepoints, numberOfFluents, numberOfTimepoints-1);
         }
 
         for(size_t t = 0; t < mNumberOfVertices; ++t)
