@@ -38,9 +38,14 @@ public:
     static std::string toString(const Timeline& timeline, size_t indent = 0);
 
     /**
-     * Converte a list of timelines to string
+     * Convert a list of timelines to string
      */
     static std::string toString(const Timelines& timelines, size_t indent = 0);
+
+    /**
+     * Convert to a graph representation
+     */
+    static SpaceTime::Network toNetwork(const symbols::constants::Location::PtrList& locations, const templ::solvers::temporal::point_algebra::TimePoint::PtrList timepoints, const Timelines& timelines);
 
 };
 

@@ -51,4 +51,36 @@ std::string SpaceTime::toString(const Timelines& timelines, size_t indent)
     return ss.str();
 }
 
+SpaceTime::Network SpaceTime::toNetwork(const symbols::constants::Location::PtrList& locations, const templ::solvers::temporal::point_algebra::TimePoint::PtrList timepoints, const Timelines& timelines)
+{
+    Network network(locations, timepoints);
+    Timelines::const_iterator cit = timelines.begin();
+    for(; cit != timelines.end(); ++cit)
+    {
+        const Role& role = cit-> first;
+        const Timeline& timeline = cit->second;
+
+        Timeline::const_iterator tit = timeline.begin();
+        for(; tit != timeline.end(); ++tit)
+        {
+            const Point& stp = *tit;
+            const symbols::constants::Location::Ptr& location = stp.first;
+            const solvers::temporal::point_algebra::TimePoint::Ptr& timepoint = stp.second;
+
+            Network::tuple_t::Ptr roleInfo = network.tupleByKeys(location, timepoint);
+            roleInfo->addRole(role);
+
+           // assert(stp.first);
+           // if(stp.first)
+           // {
+           // }
+
+           // if(stp.second)
+           // {
+           // }
+        }
+    }
+    return network;
+}
+
 } // end namespace templ
