@@ -100,9 +100,8 @@ std::string Formatter::toString(const std::vector<Gecode::SetVarArray>& array, s
     for(; cit != array.end(); ++cit)
     {
         ss << toString(*cit, columnSize);
+        ss << std::endl;
     }
-    ss << std::endl;
-    ss << std::endl;
     return ss.str();
 }
 
