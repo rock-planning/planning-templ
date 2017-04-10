@@ -1301,29 +1301,6 @@ std::string TransportNetwork::toString() const
         ss << std::endl;
     }
 
-    //// Check if resource requirements holds
-    //for(size_t i = 0; i < mResourceRequirements.size(); ++i)
-    //{
-    //    ss << "assignment for:"
-    //        << mResourceRequirements[i].toString()
-    //        << " available resources: " << mMission.getAvailableResources().size()
-    //        << std::endl;
-
-    //    for(size_t mi = 0; mi < mMission.getAvailableResources().size(); ++mi)
-    //    {
-    //        Gecode::IntVar var = resourceDistribution(mi, i);
-    //        var.assigned();
-    //        Gecode::IntVarValues v( var );
-    //        ss << "    "
-    //            << mAvailableModels[mi].toString()
-    //            << " : "
-    //            << "assigned #" << v.val()
-    //            << std::endl;
-    //        ss << "Index: " << mi << "/" << i << " --> " << v.val() << std::endl;
-    //    }
-    //}
-    // ss << "Array: " << resourceDistribution;
-
     Gecode::Matrix<Gecode::IntVarArray> rolesDistribution(mRoleUsage, mRoles.size(), mResourceRequirements.size());
     for(size_t m = 0; m < mRoles.size(); ++m)
     {
@@ -1340,8 +1317,7 @@ std::string TransportNetwork::toString() const
     try {
         for(size_t i = 0; i < mTimelines.size(); ++i)
         {
-            const Gecode::SetVarArray& timeline = mTimelines[i];
-            ss << timeline << std::endl;
+            ss << Formatter::toString(mTimelines[i], mLocations.size()) << std::endl;
         }
 
         SpaceTime::Timelines timelines = TypeConversion::toTimelines(mActiveRoleList, mTimelines, mLocations, mTimepoints);
