@@ -16,24 +16,39 @@ class TimelineBrancher : public Gecode::Brancher
 {
 public:
     typedef Gecode::ViewArray<Gecode::Set::SetView> TimelineView;
-    TimelineView x;
+    typedef std::vector<TimelineView> MultiTimelineView;
+    MultiTimelineView x;
+
+    mutable Gecode::Rnd rnd;
 
     // The brancher has to maintain the invariant that all x_i are
     // assigned for 0 < i < start (see also Gecode MPG Section 31.2.2)
-    mutable int start;
-    size_t choiceSize;
+    mutable std::vector<int> start;
+    mutable size_t currentRole;
+    mutable std::vector<size_t> nextRoles;
+
+    mutable int timepoint;
+    // of this particular timepoint
+    mutable std::vector<int> assignedRoles;
 
     class PosVal : public Gecode::Choice
     {
     public:
+        int role;
         int pos;
-        int val;
+        int includeEmptySet;
+        std::vector<int> choices;
 
-        PosVal(const TimelineBrancher& b, int p, int v)
-            : Choice(b, 2) // number of alternatives
+        PosVal(const TimelineBrancher& b, int role, int p,
+                std::vector<int> choices,
+                int includeEmptySet)
+            : Choice(b,choices.size() + includeEmptySet /* empty set */) // number of alternatives
+            , role(role)
             , pos(p)
-            , val(v)
+            , includeEmptySet(includeEmptySet)
+            , choices(choices)
         {
+            LOG_WARN_S << "Created pos val with " << choices.size() << " choices";
         }
 
         virtual size_t size(void) const
@@ -44,50 +59,87 @@ public:
         virtual void archive(Gecode::Archive& e) const
         {
             Gecode::Choice::archive(e);
-            e << pos << val;
+            e << role << pos << includeEmptySet;
+            for(const auto& c : choices)
+            {
+                LOG_WARN_S << "Packing choice into archive";
+                e << c;
+            }
         }
 
     };
 
-    TimelineBrancher(Gecode::Home home, TimelineView& x0)
+    TimelineBrancher(Gecode::Home home, MultiTimelineView& x0)
         : Gecode::Brancher(home)
         , x(x0)
-        , start(0)
-        //, choiceSize( getChoiceSize(home) )
-    {}
+        , rnd()
+        , start(x0.size(), 0)
+        , currentRole(0)
+        , nextRoles()
+        , timepoint(-1)
+        , assignedRoles(x0.size(), -1)
+    {
+        LOG_WARN_S << "TIMELINE BRANCHER CREATED";
+        rnd.time();
+    }
 
     size_t getChoiceSize(Gecode::Space& space) const;
 
     TimelineBrancher(Gecode::Space& space, bool share, TimelineBrancher& b)
         : Gecode::Brancher(space, share, b)
+        , rnd(b.rnd)
         , start(b.start)
-        , choiceSize(b.choiceSize)
+        , currentRole(b.currentRole)
+        , nextRoles(b.nextRoles)
+        , timepoint(b.timepoint)
+        , assignedRoles(b.assignedRoles)
     {
-        x.update(space, share, b.x);
+        for(size_t i = 0; i < b.x.size(); ++i)
+        {
+            TimelineView view;
+            view.update(space, share, b.x[i]);
+            x.push_back(view);
+        }
     }
 
-    static void post(Gecode::Home home, TimelineView& x)
+    static void post(Gecode::Home home, MultiTimelineView& x)
     {
         (void) new (home) TimelineBrancher(home, x);
     }
 
-    // Return true if alternatives are left
-    virtual bool status(const Gecode::Space& home) const
-    {
-        for(int i = start; i < x.size(); ++i)
-        {
-            if(!x[i].assigned())
-            {
-                start = i;
-                return true;
-            }
-        }
-        return false;
-    }
+    /**
+     * Return true if alternatives are left
+     *
+     * Checks all timelines if there are unassigned views
+     */
+    virtual bool status(const Gecode::Space& home) const;
 
     virtual Gecode::Choice* choice(Gecode::Space& home)
     {
-        return new PosVal(*this, start, x[start].lubMax());
+        // next best role activity
+        int i = start[currentRole];
+        LOG_WARN_S << "CHOICE: role " << currentRole << ", fluent: " << i << " val: " << x.at(currentRole)[i].lubMax() << " -- val: " << x[currentRole][i] <<  " assigned: " << x[currentRole][i].assigned();
+        Gecode::Set::SetView& view = x[currentRole][i];
+
+        std::vector<int> choices;
+        for(Gecode::SetVarLubRanges lub(view); lub(); ++lub)
+        {
+            for(size_t m = lub.min(); m < lub.max(); ++m)
+            {
+                choices.push_back(m);
+            }
+        }
+
+        // TODO ASSIGNED VIEW HAS NOT NECESSARILY AN EMPTY SET AS ALTERNATIVE
+        if(view.assigned())
+        {
+            LOG_WARN_S << "VIEW IS ALREADY ASSIGNED";
+            if(!choices.empty())
+            {
+                return new PosVal(*this, currentRole, i, choices, 0 /*includeEmptySet*/);
+            }
+        }
+        return new PosVal(*this, currentRole, i, choices, 1);
     }
 
     /**
@@ -95,9 +147,15 @@ public:
      */
     virtual const Gecode::Choice* choice(const Gecode::Space& home, Gecode::Archive& e)
     {
-        int pos, val;
-        e >> pos >> val;
-        return new PosVal(*this, pos, val);
+        int role = e[0];
+        int pos = e[1];
+        int includeEmptySet = e[2];
+        std::vector<int> choices;
+        for(size_t i = 3; i < e.size(); ++i)
+        {
+            choices.push_back(e[i]);
+        }
+        return new PosVal(*this, role, pos, choices, includeEmptySet);
     }
 
     /**
@@ -105,20 +163,7 @@ public:
      */
     virtual Gecode::ExecStatus commit(Gecode::Space& home,
             const Gecode::Choice& c,
-            unsigned int a)
-    {
-        const PosVal& pv = static_cast<const PosVal&>(c);
-        int pos = pv.pos;
-        int val = pv.val;
-
-        LOG_WARN_S << "COMMITING to choice: " << a << " " << x[pos];
-        if(a == 0)
-        {
-            return Gecode::me_failed( x[pos].include(home, val) ) ? Gecode::ES_FAILED : Gecode::ES_OK;
-        } else {
-            return Gecode::me_failed( x[pos].exclude(home, val) ) ? Gecode::ES_FAILED : Gecode::ES_OK;
-        }
-    }
+            unsigned int a);
 
     /**
      * Print an explanation
@@ -130,13 +175,14 @@ public:
     {
         const PosVal& pv = static_cast<const PosVal&>(c);
         int pos = pv.pos;
-        int val = pv.val;
 
-        if(a == 0)
+        // Last alternatives
+        if(pv.includeEmptySet && a == pv.alternatives() - 1)
         {
-            o << "x[" << pos << "] = " << val;
-        } else {
-            o << "x[" << pos << "] != " << val;
+            o << "x[" << pos << "] = {}";
+        } else
+        {
+            o << "x[" << pos << "] = { " << pv.choices[a] << "}";
         }
     }
 
@@ -153,7 +199,7 @@ public:
     }
 };
 
-void branchTimelines(Gecode::Home home, const Gecode::SetVarArgs& x);
+void branchTimelines(Gecode::Home home, const std::vector<Gecode::SetVarArray>& x);
 
 } // end namespace templ
 } // end namespace solvers
