@@ -70,6 +70,7 @@ rock_library(templ
         symbols/object_variables/LocationNumericAttribute.cpp
         utils/CartographicMapping.cpp
         utils/Logger.cpp
+        utils/CSVLogger.cpp
         utils/PathConstructor.cpp
         utils/XMLUtils.cpp
     HEADERS
@@ -146,6 +147,7 @@ rock_library(templ
         symbols/values/Int.hpp
         utils/CartographicMapping.hpp
         utils/Logger.hpp
+        utils/CSVLogger.hpp
         utils/PathConstructor.hpp
         utils/XMLUtils.hpp
     LIBS ${Boost_LIBRARIES}

@@ -19,4 +19,5 @@ rock_testsuite(test_suite suite.cpp
     test_TemporalConstraintNetwork.cpp
     test_TimePoint.cpp
     test_Timeline.cpp
+    test_Utils.cpp
     DEPS templ)

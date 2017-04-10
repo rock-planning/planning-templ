@@ -22,6 +22,7 @@
 #include "propagators/IsValidTransportEdge.hpp"
 #include "propagators/MultiCommodityFlow.hpp"
 #include "utils/Formatter.hpp"
+#include "../../utils/CSVLogger.hpp"
 
 using namespace templ::solvers::csp::utils;
 
@@ -624,15 +625,27 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
     assert(mission->getOrganizationModel());
     assert(!mission->getTimeIntervals().empty());
 
+    CSVLogger csvLogger({"solution-found",
+            "solution-stopped",
+            "propagate",
+            "fail",
+            "node",
+            "depth",
+            "restart",
+            "nogood" });
+
+
+
     TransportNetwork* distribution = new TransportNetwork(mission);
     {
             Gecode::Search::Options options;
             options.threads = 1;
-            Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(70000);
+            Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(10);
             options.cutoff = c;
 
             //Gecode::BAB<TransportNetwork> searchEngine(distribution,options);
-            //Gecode::DFS<TransportNetwork> searchEngine(this);
+            //Gecode::DFS<TransportNetwork> searchEngine(distribution, options);
+            //Gecode::RBS< TransportNetwork, Gecode::BAB > searchEngine(distribution, options);
             Gecode::RBS< TransportNetwork, Gecode::BAB > searchEngine(distribution, options);
 
         try {
@@ -664,28 +677,53 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
         //    delete best;
             best = NULL;
 
+            std::cout << "Solution Search (successful) stopped: " << searchEngine.stopped() << std::endl;
             std::cout << "Statistics: " << std::endl;
-            std::cout << "    propagate " << searchEngine.statistics().propagate << std::endl;
+            std::cout << std::setw(15) << "    propagate " << searchEngine.statistics().propagate << std::endl;
 
-            std::cout << "    fail " << searchEngine.statistics().fail << std::endl;
-            std::cout << "    node " << searchEngine.statistics().node << std::endl;
-            std::cout << "    depth" << searchEngine.statistics().depth << std::endl;
-            std::cout << "    restart " << searchEngine.statistics().restart << std::endl;
-            std::cout << "    nogoods " << searchEngine.statistics().nogood << std::endl;
+            std::cout << std::setw(15) << "    fail " << searchEngine.statistics().fail << std::endl;
+            std::cout << std::setw(15) << "    node " << searchEngine.statistics().node << std::endl;
+            std::cout << std::setw(15) << "    depth" << searchEngine.statistics().depth << std::endl;
+            std::cout << std::setw(15) << "    restart " << searchEngine.statistics().restart << std::endl;
+            std::cout << std::setw(15) << "    nogood " << searchEngine.statistics().nogood << std::endl;
+            csvLogger.addToRow(1.0, "solution-found");
+            csvLogger.addToRow(searchEngine.stopped(), "solution-stopped");
+            csvLogger.addToRow(searchEngine.statistics().propagate, "propagate");
+            csvLogger.addToRow(searchEngine.statistics().fail, "fail");
+            csvLogger.addToRow(searchEngine.statistics().node, "node");
+            csvLogger.addToRow(searchEngine.statistics().depth, "depth");
+            csvLogger.addToRow(searchEngine.statistics().restart, "restart");
+            csvLogger.addToRow(searchEngine.statistics().nogood, "nogood");
+            csvLogger.commitRow();
+
         } catch(const std::exception& e)
         {
-            std::cout << "Statistics: " << std::endl;
-            std::cout << "    propagate " << searchEngine.statistics().propagate << std::endl;
+            std::cout << "Solution Search (failed) stopped: " << searchEngine.stopped() << std::endl;
 
-            std::cout << "    fail " << searchEngine.statistics().fail << std::endl;
-            std::cout << "    node " << searchEngine.statistics().node << std::endl;
-            std::cout << "    depth" << searchEngine.statistics().depth << std::endl;
-            std::cout << "    restart " << searchEngine.statistics().restart << std::endl;
-            std::cout << "    nogoods " << searchEngine.statistics().nogood << std::endl;
+            std::cout << "Statistics: " << std::endl;
+            std::cout << std::setw(15) << "    propagate " << searchEngine.statistics().propagate << std::endl;
+
+            std::cout << std::setw(15) << "    fail " << searchEngine.statistics().fail << std::endl;
+            std::cout << std::setw(15) << "    node " << searchEngine.statistics().node << std::endl;
+            std::cout << std::setw(15) << "    depth " << searchEngine.statistics().depth << std::endl;
+            std::cout << std::setw(15) << "    restart " << searchEngine.statistics().restart << std::endl;
+            std::cout << std::setw(15) << "    nogood " << searchEngine.statistics().nogood << std::endl;
+            csvLogger.addToRow(1.0, "solution-found");
+            csvLogger.addToRow(searchEngine.stopped(), "solution-stopped");
+            csvLogger.addToRow(searchEngine.statistics().propagate, "propagate");
+            csvLogger.addToRow(searchEngine.statistics().fail, "fail");
+            csvLogger.addToRow(searchEngine.statistics().node, "node");
+            csvLogger.addToRow(searchEngine.statistics().depth, "depth");
+            csvLogger.addToRow(searchEngine.statistics().restart, "restart");
+            csvLogger.addToRow(searchEngine.statistics().nogood, "nogood");
+            csvLogger.commitRow();
 
             throw;
         }
     }
+
+    std::string filename = mission->getLogger()->filename("search.csv");
+    csvLogger.save(filename);
 
     delete distribution;
     return solutions;
