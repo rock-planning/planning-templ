@@ -333,6 +333,7 @@ public:
      */
     void addFunctionRequirement(const FluentTimeResource& fts, owlapi::model::IRI& function);
 
+    size_t getNumberOfTimepoints() const { return mTimepoints.size(); }
     size_t getNumberOfFluents() const { return mLocations.size(); }
     std::vector<uint32_t> getActiveRoles() const { return mActiveRoles; }
     Role::List getActiveRoleList() const { return mActiveRoleList; }
