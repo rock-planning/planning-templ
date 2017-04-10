@@ -49,7 +49,6 @@ SpaceTime::Timelines TypeConversion::toTimelines(const Role::List& roles, const 
 {
     if(roles.empty())
     {
-        LOG_WARN_S << "No roles provides -- empty list of timelines";
         return SpaceTime::Timelines();
     }
 
@@ -63,7 +62,6 @@ SpaceTime::Timelines TypeConversion::toTimelines(const Role::List& roles, const 
     {
         timelines[ roles[i] ] = toTimeline(lists[i], locations, timepoints);
     }
-    LOG_DEBUG_S << "TIMELINES OF SIZE: " << timelines.size();
     return timelines;
 }
 } // end namespace csp
