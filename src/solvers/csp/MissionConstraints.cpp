@@ -1,0 +1,125 @@
+#include "MissionConstraints.hpp"
+#include <gecode/minimodel.hh>
+
+namespace templ {
+namespace solvers {
+namespace csp {
+
+
+void MissionConstraints::allDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
+        const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
+        const FluentTimeResource& fts0, const FluentTimeResource& fts1,
+        const owlapi::model::IRI& roleModel)
+{
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(roleUsage, /*width --> col*/ roles.size(), /*height --> row*/ requirements.size());
+
+    for(size_t roleIndex = 0; roleIndex < roles.size(); ++roleIndex)
+    {
+        const Role& role = roles[roleIndex];
+        if(role.getModel() == roleModel);
+        {
+            Gecode::IntVarArgs args;
+            {
+                size_t fluent = FluentTimeResource::getIndex(requirements, fts0);
+                Gecode::IntVar v = roleDistribution(roleIndex, fluent);
+                args << v;
+            }
+            {
+                size_t fluent = FluentTimeResource::getIndex(requirements, fts1);
+                Gecode::IntVar v = roleDistribution(roleIndex, fluent);
+                args << v;
+            }
+
+            Gecode::rel(home, Gecode::sum(args) <= 1);
+        }
+    }
+}
+
+void MissionConstraints::minDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
+        const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
+        const FluentTimeResource& fts0, const FluentTimeResource& fts1,
+        const owlapi::model::IRI& roleModel, uint32_t minDistinctRoles)
+{
+    std::vector<size_t> indices;
+    for(size_t roleIndex = 0; roleIndex < roles.size(); ++roleIndex)
+    {
+        const Role& role = roles[roleIndex];
+        if(role.getModel() == roleModel)
+        {
+            indices.push_back(roleIndex);
+        }
+    }
+
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(roleUsage, /*width --> col*/ roles.size(), /*height --> row*/ requirements.size());
+     Gecode::IntVarArgs args;
+     for(size_t m = 0; m < indices.size(); ++m)
+     {
+         size_t roleIndex = indices[m];
+         size_t fluent0 = FluentTimeResource::getIndex(requirements, fts0);
+         Gecode::IntVar v0 = roleDistribution(roleIndex, fluent0);
+
+         size_t fluent1 = FluentTimeResource::getIndex(requirements, fts1);
+         Gecode::IntVar v1 = roleDistribution(roleIndex, fluent1);
+
+         // Check if a role is part of the fulfillment of both requirements
+         // if so -- sum equals to 0 thus there is no distinction
+         Gecode::IntVar rolePresentInBoth = Gecode::expr(home, abs(v0 - v1));
+         args << rolePresentInBoth;
+     }
+     rel(home, sum(args) >= minDistinctRoles);
+}
+
+void MissionConstraints::addDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
+        const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
+        const FluentTimeResource& fts0, const FluentTimeResource& fts1,
+        const owlapi::model::IRI& roleModel, uint32_t additional)
+{
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(roleUsage, /*width --> col*/ roles.size(), /*height --> row*/ requirements.size());
+
+    // Adding this constraint will only work to an already once solved instance
+    // of the problem
+    std::set<Role> uniqueRoles = getUniqueRoles(roleUsage, roles, requirements,
+            fts0, fts1,
+            roleModel);
+    size_t numberOfUniqueRoles = uniqueRoles.size();
+    LOG_INFO_S << "Previous number of unique roles: " << numberOfUniqueRoles << " -- should be increased with " << additional;
+    minDistinct(home, roleUsage, roles, requirements, fts0, fts1, roleModel, numberOfUniqueRoles + additional);
+}
+
+std::set<Role> MissionConstraints::getUniqueRoles(Gecode::IntVarArray& roleUsage,
+        const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
+        const FluentTimeResource& fts0, const FluentTimeResource& fts1,
+        const owlapi::model::IRI& roleModel)
+{
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(roleUsage, /*width --> col*/ roles.size(), /*height --> row*/ requirements.size());
+
+    std::set<Role> assignedRoles;
+
+    // Check if resource requirements holds
+    for(size_t i = 0; i < requirements.size(); ++i)
+    {
+        for(size_t r = 0; r < roles.size(); ++r)
+        {
+            Gecode::IntVar var = roleDistribution(r, i);
+            if(!var.assigned())
+            {
+                throw std::runtime_error("templ::solvers::csp::MissionConstraints::getUniqueRoles: can only be performed on a fully assigned array. Failed for role: '" + roles[r].toString() + "'");
+            }
+
+            Gecode::IntVarValues v( var );
+            if( v.val() == 1 )
+            {
+                if(requirements[i] == fts0 || requirements[i] == fts1)
+                {
+                    assignedRoles.insert( roles[r] );
+                }
+            }
+        }
+    }
+    return assignedRoles;
+}
+
+} // end namespace csp
+} // end namespace solvers
+} // end namespace templ
+
