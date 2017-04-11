@@ -18,6 +18,8 @@ public:
     typedef Gecode::ViewArray<Gecode::Set::SetView> TimelineView;
     typedef std::vector<TimelineView> MultiTimelineView;
     MultiTimelineView x;
+    // supply demand per Role
+    std::vector<int> supplyDemand;
 
     mutable Gecode::Rnd rnd;
 
@@ -69,9 +71,11 @@ public:
 
     };
 
-    TimelineBrancher(Gecode::Home home, MultiTimelineView& x0)
+    TimelineBrancher(Gecode::Home home, MultiTimelineView& x0,
+            const std::vector<int>& supplyDemand)
         : Gecode::Brancher(home)
         , x(x0)
+        , supplyDemand(supplyDemand)
         , rnd()
         , start(x0.size(), 0)
         , currentRole(0)
@@ -79,7 +83,6 @@ public:
         , timepoint(-1)
         , assignedRoles(x0.size(), -1)
     {
-        LOG_WARN_S << "TIMELINE BRANCHER CREATED";
         rnd.time();
     }
 
@@ -87,6 +90,7 @@ public:
 
     TimelineBrancher(Gecode::Space& space, bool share, TimelineBrancher& b)
         : Gecode::Brancher(space, share, b)
+        , supplyDemand(b.supplyDemand)
         , rnd(b.rnd)
         , start(b.start)
         , currentRole(b.currentRole)
@@ -102,9 +106,9 @@ public:
         }
     }
 
-    static void post(Gecode::Home home, MultiTimelineView& x)
+    static void post(Gecode::Home home, MultiTimelineView& x, const std::vector<int> supplyDemand)
     {
-        (void) new (home) TimelineBrancher(home, x);
+        (void) new (home) TimelineBrancher(home, x, supplyDemand);
     }
 
     /**
@@ -114,33 +118,7 @@ public:
      */
     virtual bool status(const Gecode::Space& home) const;
 
-    virtual Gecode::Choice* choice(Gecode::Space& home)
-    {
-        // next best role activity
-        int i = start[currentRole];
-        LOG_WARN_S << "CHOICE: role " << currentRole << ", fluent: " << i << " val: " << x.at(currentRole)[i].lubMax() << " -- val: " << x[currentRole][i] <<  " assigned: " << x[currentRole][i].assigned();
-        Gecode::Set::SetView& view = x[currentRole][i];
-
-        std::vector<int> choices;
-        for(Gecode::SetVarLubRanges lub(view); lub(); ++lub)
-        {
-            for(size_t m = lub.min(); m < lub.max(); ++m)
-            {
-                choices.push_back(m);
-            }
-        }
-
-        // TODO ASSIGNED VIEW HAS NOT NECESSARILY AN EMPTY SET AS ALTERNATIVE
-        if(view.assigned())
-        {
-            LOG_WARN_S << "VIEW IS ALREADY ASSIGNED";
-            if(!choices.empty())
-            {
-                return new PosVal(*this, currentRole, i, choices, 0 /*includeEmptySet*/);
-            }
-        }
-        return new PosVal(*this, currentRole, i, choices, 1);
-    }
+    virtual Gecode::Choice* choice(Gecode::Space& home);
 
     /**
      * Transform Gecode::Archive to the corresponding choice
@@ -151,7 +129,7 @@ public:
         int pos = e[1];
         int includeEmptySet = e[2];
         std::vector<int> choices;
-        for(size_t i = 3; i < e.size(); ++i)
+        for(int i = 3; i < e.size(); ++i)
         {
             choices.push_back(e[i]);
         }
@@ -199,7 +177,8 @@ public:
     }
 };
 
-void branchTimelines(Gecode::Home home, const std::vector<Gecode::SetVarArray>& x);
+void branchTimelines(Gecode::Home home, const std::vector<Gecode::SetVarArray>& x,
+        const std::vector<int>& supplyDemand);
 
 } // end namespace templ
 } // end namespace solvers

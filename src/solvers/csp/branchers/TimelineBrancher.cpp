@@ -1,5 +1,6 @@
 #include "TimelineBrancher.hpp"
 #include "../TransportNetwork.hpp"
+#include <boost/numeric/conversion/cast.hpp>
 
 namespace templ {
 namespace solvers {
@@ -15,12 +16,148 @@ size_t TimelineBrancher::getChoiceSize(Gecode::Space& space) const
     return numberOfFluents*numberOfFluents* numberOfRoles ;
 }
 
+Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
+{
+    // next best role activity
+    int i = start[currentRole];
+    LOG_WARN_S << "CHOICE: role " << currentRole << ", fluent: " << i << " val: " << x.at(currentRole)[i].lubMax() << " -- val: " << x[currentRole][i] <<  " assigned: " << x[currentRole][i].assigned();
+
+
+    Gecode::Set::SetView& view = x[currentRole][i];
+    std::vector<int> choices;
+    // Identify possible values
+    for(Gecode::SetVarLubRanges lub(view); lub(); ++lub)
+    {
+        for(int m = lub.min(); m < lub.max(); ++m)
+        {
+            choices.push_back(m);
+        }
+    }
+    // Identify assigned values
+    for(Gecode::SetVarGlbValues glb(view); glb(); ++glb)
+    {
+        choices.push_back(glb.val());
+    }
+
+    if(view.assigned())
+    {
+        if(!choices.empty())
+        {
+            return new PosVal(*this, currentRole, i, choices, 0 /*includeEmptySet*/);
+        } else {
+            return new PosVal(*this, currentRole, i, choices, 1 /*excludeEmptySet*/);
+        }
+    }
+
+    std::map<int, int> targetSupply;
+
+    size_t fluents = static_cast<const TransportNetwork&>(home).getNumberOfFluents();
+
+    int roleDemand = supplyDemand[currentRole];
+    if(!choices.empty())
+    {
+        // Find the best option -- so compute current target supply status first
+        size_t end = (timepoint + 1)*fluents;
+        for(size_t i = 0; i < boost::numeric_cast<size_t>(x.size()); ++i)
+        {
+            if(i == currentRole)
+            {
+                continue;
+            }
+
+            // check where we have an assignment
+            for(size_t f = timepoint*fluents; f < end; ++f)
+            {
+                const Gecode::Set::SetView& view = x[i][f];
+                if(view.assigned() && view.lubSize() == 1)
+                {
+                    int target = view.lubMax();
+
+                    if(!targetSupply.count(target))
+                    {
+                        targetSupply[target] = supplyDemand[i];
+                    } else {
+                        targetSupply[target] += supplyDemand[i];
+                    }
+                }
+            }
+
+        }
+    }
+
+    {
+        std::stringstream ss;
+        for(size_t i = 0; i < choices.size(); ++i)
+        {
+            ss << choices[i] << ", ";
+        }
+        LOG_WARN_S << "Number of choices (before) " << ss.str();
+    }
+
+    // Check our best alternatives -- if there is demand
+    std::vector<int> bestChoices;
+    for(size_t c = 0; c < choices.size(); ++c)
+    {
+        int choice = choices[c];
+
+        // Local transition should alway belong to the list of choices
+        // no matter what
+        if(i + fluents == boost::numeric_cast<size_t>(choice) )
+        {
+            bestChoices.push_back(choice);
+            continue;
+        }
+
+        if(roleDemand < 0)
+        {
+            if( targetSupply[choice] > 0)
+            {
+                bestChoices.push_back(choice);
+                continue;
+            }
+        } else
+        {
+            // mobile system attracted by demand
+            if( targetSupply[choice] < 0)
+            {
+                bestChoices.push_back(choice);
+                continue;
+            }
+        }
+    }
+    if(bestChoices.empty())
+    {
+        // TODO: use only usefull other choices, e.g.
+        // next hard commitments of particular roles --> cooperative approach
+        for(size_t i = 0; i < choices.size()*4/fluents; ++i)
+        {
+            int targetIdx = rnd(choices.size() -1);
+            bestChoices.push_back(targetIdx);
+            choices.erase(choices.begin() + targetIdx);
+        }
+    }
+
+    {
+        std::stringstream ss;
+        for(size_t i = 0; i < bestChoices.size(); ++i)
+        {
+            ss << bestChoices[i] << ", ";
+        }
+        LOG_WARN_S << "Number of best choices " << ss.str();
+    }
+
+
+    return new PosVal(*this, currentRole, i, bestChoices, 1);
+}
+
 bool TimelineBrancher::status(const Gecode::Space& home) const
 {
     LOG_WARN_S << "STATUS OF TIMELINEBRANCHER with transportnetowrk"
         << static_cast<const TransportNetwork&>(home).toString();
 
-    // Find the view with the fewest remaining unassigned views
+    // ------------------------------------------------------------
+    // (A) Find the view with the fewest remaining unassigned views
+    //
     size_t timepoints = static_cast<const TransportNetwork&>(home).getNumberOfTimepoints();
     size_t fluents = static_cast<const TransportNetwork&>(home).getNumberOfFluents();
 
@@ -69,8 +206,9 @@ bool TimelineBrancher::status(const Gecode::Space& home) const
         return false;
     }
 
-    // index of role to be used
-    // Identify the corresponding timeline to choose from
+    // -------------------------------------------------------------
+    // (B) Identify the corresponding timeline to choose from
+    // , i.e. identify first index of role to be used
     if( nextRoles.empty() )
     {
         LOG_WARN_S << "No roles in list -- repopulating";
@@ -82,6 +220,7 @@ bool TimelineBrancher::status(const Gecode::Space& home) const
 
     while(!nextRoles.empty())
     {
+        // Pick role randomly
         size_t nextRoleIdx = rnd(nextRoles.size() - 1);
         size_t role = nextRoles[nextRoleIdx];
 
@@ -158,7 +297,8 @@ Gecode::ExecStatus TimelineBrancher::commit(Gecode::Space& home,
     }
 }
 
-void branchTimelines(Gecode::Home home, const std::vector<Gecode::SetVarArray>& x)
+void branchTimelines(Gecode::Home home, const std::vector<Gecode::SetVarArray>& x,
+        const std::vector<int>& supplyDemand)
 {
     if(home.failed())
     {
@@ -170,7 +310,7 @@ void branchTimelines(Gecode::Home home, const std::vector<Gecode::SetVarArray>& 
         TimelineBrancher::TimelineView y(home, Gecode::SetVarArgs(x[i]));
         timelinesView.push_back(y);
     }
-    TimelineBrancher::post(home, timelinesView);
+    TimelineBrancher::post(home, timelinesView, supplyDemand);
 }
 
 
