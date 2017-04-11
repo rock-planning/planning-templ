@@ -330,11 +330,9 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     Gecode::IntAFC modelUsageAfc(*this, mModelUsage, 0.99);
     modelUsageAfc.decay(*this, 0.95);
     branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
-    Gecode::Gist::stopBranch(*this);
 
     Gecode::Rnd modelUsageRnd(1U);
     branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_RND(modelUsageRnd));
-    Gecode::Gist::stopBranch(*this);
 
     // Regarding the use of INT_VALUES_MIN() and INT_VALUES_MAX(): "This is
     // typically a poor choice, as none of the alternatives can benefit from
@@ -354,14 +352,18 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     //Gecode::Rnd roleUsageRnd(1U);
     //branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_RND(roleUsageRnd), symmetries);
 
-    Gecode::Gist::stopBranch(*this);
     // see 8.14 Executing code between branchers
     Gecode::branch(*this, &TransportNetwork::assignRoles);
 
     Gecode::Gist::Print<TransportNetwork> p("Print solution");
-    Gecode::Gist::Options o;
-    o.inspect.click(&p);
-    Gecode::Gist::bab(this, o);
+    Gecode::Gist::Options options;
+
+    options.threads = 1;
+    Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(10);
+    options.cutoff = c;
+    options.inspect.click(&p);
+    //Gecode::Gist::bab(this, o);
+    Gecode::Gist::dfs(this, options);
 
 }
 
@@ -640,8 +642,19 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
     {
             Gecode::Search::Options options;
             options.threads = 1;
-            Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(10);
+            Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(5);
             options.cutoff = c;
+            options.nogoods_limit = 128;
+            // recomputation distance
+            // options.c_d =
+            // adaptive recomputation distance
+            // options.a_d =
+            // default node cutoff
+            // options.node =
+            // default failure cutoff
+            // options.fail
+            // default time cutoff
+            options.stop = Gecode::Search::Stop::time(5000);
 
             //Gecode::BAB<TransportNetwork> searchEngine(distribution,options);
             //Gecode::DFS<TransportNetwork> searchEngine(distribution, options);
@@ -1255,9 +1268,7 @@ void TransportNetwork::postRoleAssignments()
         afc.decay(*this, 0.95);
         // http://www.gecode.org/doc-latest/reference/group__TaskModelSetBranchVar.html
         //branch(*this, sameTime, Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
-
-        branchTimelines(*this, sameTime);
-        Gecode::Gist::stopBranch(*this);
+     //   Gecode::Gist::stopBranch(*this);
 
         //Gecode::Rnd timelineRnd(1U);
         //branch(*this, sameTime, Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_RND_INC(timelineRnd));
@@ -1270,8 +1281,11 @@ void TransportNetwork::postRoleAssignments()
 
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
-        //propagators::isPath(*this, mTimelines[i], mActiveRoleList[i].toString(), numberOfTimepoints, mLocations.size());
+        propagators::isPath(*this, mTimelines[i], mActiveRoleList[i].toString(), numberOfTimepoints, mLocations.size());
     }
+
+    branchTimelines(*this, mTimelines, supplyDemand);
+    Gecode::Gist::stopBranch(*this);
 }
 
 size_t TransportNetwork::getMaxResourceCount(const organization_model::ModelPool& pool) const
