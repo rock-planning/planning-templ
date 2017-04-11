@@ -33,7 +33,7 @@ public:
      * Retrieve the content of a named subnode
      * \param doc xml document
      * \param node the current node
-     * \param the name of the subnode
+     * \param name the name of the subnode
      * \throws std::invalid_argument if subnode of given name cannot be found
      */
     static std::string getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, const std::string& name);

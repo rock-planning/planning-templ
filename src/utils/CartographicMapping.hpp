@@ -30,7 +30,7 @@ public:
 
     /**
      * Constructor from name
-     * \param radius by name, i.e. one of EARTH or MOON
+     * \param radiusTypeName by name, i.e. one of EARTH or MOON
      */
     CartographicMapping(const std::string& radiusTypeName);
 

@@ -7,6 +7,7 @@
 #include <gecode/minimodel.hh>
 #include <base-logging/Logging.hpp>
 #include <sstream>
+#include <boost/numeric/conversion/cast.hpp>
 
 #include "../utils/FluentTimeIndex.hpp"
 #include "../utils/Formatter.hpp"
@@ -186,7 +187,6 @@ Gecode::ModEvent IsPath::constrainSametimeView(Gecode::Space& home, int viewIdx,
     int fluentIdx = fluentTimePoint % mNumberOfFluents;
     int startIdx = fluentTimePoint - fluentIdx;
     size_t endIdx = startIdx + mNumberOfFluents;
-    bool failed = false;
     for(size_t idx = startIdx; idx < endIdx; ++idx)
     {
         Gecode::Set::SetView& v = x[idx];
@@ -303,10 +303,10 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x
 
         // The min path constraint assume a start of the path at the first
         // timepoint
-        if(minPathLength > t)
+        if(minPathLength > boost::numeric_cast<int>(t) )
         {
             Gecode::linear(home, cardinalities, Gecode::IRT_EQ, 1);
-        } else if(maxPathLength < static_cast<int>(numberOfTimepoints) && t > maxPathLength)
+        } else if(maxPathLength < boost::numeric_cast<int>(numberOfTimepoints) && boost::numeric_cast<int>(t) > maxPathLength)
         {//// Constraint the path length only if it makes sense
             Gecode::linear(home, cardinalities, Gecode::IRT_EQ, 0);
         //} else {

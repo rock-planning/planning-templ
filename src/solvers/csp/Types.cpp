@@ -11,10 +11,9 @@ SpaceTime::Timeline TypeConversion::toTimeline(const AdjacencyList& list,
             const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints)
 {
     SpaceTime::Timeline timeline;
-    int expectedTargetIdx = -1;
-    for(int t = 0; t < timepoints.size();++t)
+    for(size_t t = 0; t < timepoints.size();++t)
     {
-        for(int f = 0; f < locations.size(); ++f)
+        for(size_t f = 0; f < locations.size(); ++f)
         {
             size_t idx = t*locations.size() + f;
 
@@ -27,8 +26,6 @@ SpaceTime::Timeline TypeConversion::toTimeline(const AdjacencyList& list,
 
             if(var.lubSize() == 1)
             {
-                uint32_t targetIdx = var.lubMin();
-
                 SpaceTime::Point stp(locations[f], timepoints[t]);
                 timeline.push_back(stp);
                 break;

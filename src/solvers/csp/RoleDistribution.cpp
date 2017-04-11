@@ -5,6 +5,7 @@
 #include <base-logging/Logging.hpp>
 
 #include "RoleDistribution.hpp"
+#include "MissionConstraints.hpp"
 
 
 namespace templ {
@@ -194,15 +195,7 @@ Gecode::Space* RoleDistribution::copy(bool share)
 
 size_t RoleDistribution::getFluentIndex(const FluentTimeResource& fluent) const
 {
-    std::vector<FluentTimeResource>::const_iterator ftsIt = std::find(mRequirements.begin(), mRequirements.end(), fluent);
-    if(ftsIt != mRequirements.end())
-    {
-        int index = ftsIt - mRequirements.begin();
-        assert(index >= 0);
-        return (size_t) index;
-    }
-
-    throw std::runtime_error("templ::solvers::csp::RoleDistribution::getFluentIndex: could not find fluent index for '" + fluent.toString() + "'");
+    return FluentTimeResource::getIndex(mRequirements, fluent);
 }
 
 RoleDistribution::SolutionList RoleDistribution::solve(const Mission::Ptr& mission, const ModelDistribution::ModelDistributionSolution& modelDistribution)
@@ -312,63 +305,24 @@ std::ostream& operator<<(std::ostream& os, const RoleDistribution::SolutionList&
 
 void RoleDistribution::allDistinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& roleModel)
 {
-    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mRequirements.size());
-
-    for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
-    {
-        const Role& role = mRoles[roleIndex];
-        if(role.getModel() == roleModel);
-        {
-            Gecode::IntVarArgs args;
-            {
-                size_t fluent = getFluentIndex(fts0);
-                Gecode::IntVar v = roleDistribution(roleIndex, fluent);
-                args << v;
-            }
-            {
-                size_t fluent = getFluentIndex(fts1);
-                Gecode::IntVar v = roleDistribution(roleIndex, fluent);
-                args << v;
-            }
-
-            rel(*this, sum(args) <= 1);
-        }
-    }
+    MissionConstraints::allDistinct(*this, mRoleUsage, mRoles, mRequirements,
+            fts0, fts1,
+            roleModel);
 }
 
 void RoleDistribution::minDistinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& roleModel, uint32_t minDistinctRoles)
 {
-    std::vector<size_t> indices;
-    for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
-    {
-        const Role& role = mRoles[roleIndex];
-        if(role.getModel() == roleModel)
-        {
-            indices.push_back(roleIndex);
-        }
-    }
-
-    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mRequirements.size());
-     Gecode::IntVarArgs args;
-     for(size_t m = 0; m < indices.size(); ++m)
-     {
-         size_t roleIndex = indices[m];
-         size_t fluent0 = getFluentIndex(fts0);
-         Gecode::IntVar v0 = roleDistribution(roleIndex, fluent0);
-
-         size_t fluent1 = getFluentIndex(fts1);
-         Gecode::IntVar v1 = roleDistribution(roleIndex, fluent1);
-
-         // Check if a role is part of the fulfillment of both requirements
-         // if so -- sum equals to 0 thus there is no distinction
-         Gecode::IntVar rolePresentInBoth = Gecode::expr(*this, abs(v0 - v1));
-         args << rolePresentInBoth;
-     }
-     rel(*this, sum(args) >= minDistinctRoles);
+    MissionConstraints::minDistinct(*this, mRoleUsage, mRoles, mRequirements,
+            fts0, fts1,
+            roleModel, minDistinctRoles);
 }
 
 void RoleDistribution::addDistinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& roleModel, uint32_t additional, const Solution& solution)
 {
+    // TODO: replace with MissionConstraints implementation, but require to
+    // refactor the solution argument
+    //
+
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mRequirements.size());
 
     // Adding this constraint will only work to an already once solved instance
