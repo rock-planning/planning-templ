@@ -83,6 +83,11 @@ struct FluentTimeResource
      * \return ModelCombinations that fulfill the requirement
      */
     organization_model::ModelPoolSet getDomain() const;
+
+    /**
+     * Get the index of a fluent in a list of fluents
+     */
+    static size_t getIndex(const List& list, const FluentTimeResource& fluent);
 };
 
 } // end namespace csp

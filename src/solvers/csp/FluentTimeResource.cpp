@@ -194,6 +194,18 @@ organization_model::ModelPoolSet FluentTimeResource::getDomain() const
 }
 
 
+size_t FluentTimeResource::getIndex(const List& list, const FluentTimeResource& fluent)
+{
+    std::vector<FluentTimeResource>::const_iterator ftsIt = std::find(list.begin(), list.end(), fluent);
+    if(ftsIt != list.end())
+    {
+        int index = ftsIt - list.begin();
+        assert(index >= 0);
+        return (size_t) index;
+    }
+
+    throw std::runtime_error("templ::solvers::csp::FluentTimeResource::getIndex: could not find fluent index for '" + fluent.toString() + "'");
+}
 
 } // end namespace csp
 } // end namespace solvers
