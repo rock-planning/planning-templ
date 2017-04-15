@@ -12,6 +12,10 @@ namespace templ {
 namespace solvers {
 namespace transshipment {
 
+/**
+ * A Flaw represents a violation of the current solution with respect to the
+ * requirements
+ */
 struct Flaw
 {
     graph_analysis::algorithms::ConstraintViolation violation;
@@ -39,9 +43,11 @@ class MinCostFlow
 {
 public:
     /**
-     *
-     * \param commodities number of existing immobile resources (i.e. roles in
-     * this planners context)
+     * Initialize the basic min cost folw problem using an existing mission
+     * \param mission basic mission we try to solve
+     * \param timelines All role based timelines that are known and relevant
+     * \param transportNetwork The finally computed transport network as the
+     * result of the multi-commodity min-cost flow optimization
      */
     MinCostFlow(const Mission::Ptr& mission,
             const std::map<Role, csp::RoleTimeline>& timelines,
@@ -49,7 +55,8 @@ public:
 
 
     /**
-     * Run the min cost flow optimization
+     * Run the min cost flow optimization and return the list of flaws found in
+     * this solution
      * \return flaws found
      */
     std::vector<Flaw> run();
@@ -89,8 +96,17 @@ protected:
      */
     void updateRoles(const graph_analysis::BaseGraph::Ptr& flowGraph);
 
+    /**
+     * Analyse the result of the optimization and identify the current
+     * (partial) solution upon flaws
+     * \return List of existing flaws in the solution
+     */
     std::vector<Flaw> computeFlaws(const graph_analysis::algorithms::MultiCommodityMinCostFlow&) const;
 
+    /**
+     * Find the Fluent which corresponds to the given network tuple to allow
+     * a reverse mapping between gaph based representation and fluents
+     */
     std::vector<templ::solvers::csp::FluentTimeResource>::const_iterator
         getFluent(const templ::solvers::csp::RoleTimeline& roleTimeline,
             const SpaceTime::Network::tuple_t::Ptr& tuple) const;

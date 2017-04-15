@@ -9,6 +9,9 @@ namespace templ {
 namespace solvers {
 namespace transshipment {
 
+/**
+ * Graph-based representation of mobile systems
+ */
 class TransportNetwork
 {
 public:
@@ -16,6 +19,10 @@ public:
         const std::map<Role, csp::RoleTimeline>& timelines);
 
     const Mission::Ptr& getMission() const { return mpMission; }
+
+    /**
+     * Get the graph representation of the transport network, i.e. as a space time network
+     */
     SpaceTime::Network& getSpaceTimeNetwork() { return mSpaceTimeNetwork; }
     const std::map<Role, csp::RoleTimeline> getTimeslines() const { return mTimelines; }
 
