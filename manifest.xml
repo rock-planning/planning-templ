@@ -13,5 +13,5 @@
   <depend package="knowledge_reasoning/gqr" />
   <depend package="libxml2" />
   <!-- cartographic library -->
-  <depend package="libproj" />
+  <depend package="proj" />
 </package>
