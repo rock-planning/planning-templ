@@ -119,14 +119,13 @@ std::vector<Plan> MissionPlanner::execute(uint32_t)
                 LOG_WARN_S << "FLOW OPTIMIZATION";
                 using namespace solvers;
                 std::map<Role, csp::RoleTimeline> timelines =  RoleTimeline::computeTimelines(*mission.get(), roleDistributionState.getSolution());
-                transshipment::TransportNetwork transportNetwork(mission, timelines);
-                transshipment::MinCostFlow minCostFlow(mission, timelines, transportNetwork);
+                transshipment::MinCostFlow minCostFlow(mission, timelines);
                 std::vector<transshipment::Flaw> flaws = minCostFlow.run();
 
                 LOG_WARN_S << "Flaws in plan: " << flaws.size();
                 if(flaws.empty())
                 {
-                    Plan plan = renderPlan(mission, &transportNetwork.getSpaceTimeNetwork(), timelines);
+                    Plan plan = renderPlan(mission, &minCostFlow.getTransportNetwork().getSpaceTimeNetwork(), timelines);
                     plans.push_back(plan);
                     mission->getLogger()->incrementSessionId();
                     LOG_WARN_S << "Solution found: " << plan.toString();

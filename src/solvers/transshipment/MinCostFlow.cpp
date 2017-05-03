@@ -15,11 +15,11 @@ namespace solvers {
 namespace transshipment {
 
 MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
-        const std::map<Role, csp::RoleTimeline>& timelines,
-        TransportNetwork& transportNetwork)
+        const std::map<Role, csp::RoleTimeline>& timelines)
     : mpMission(mission)
     , mTimelines(timelines)
-    , mSpaceTimeNetwork(transportNetwork.getSpaceTimeNetwork())
+    , mTransportNetwork(mission, timelines)
+    , mSpaceTimeNetwork(mTransportNetwork.getSpaceTimeNetwork())
 {
 
     std::map<Role, csp::RoleTimeline>::const_iterator rit = mTimelines.begin();
@@ -103,7 +103,7 @@ void MinCostFlow::setCommoditySupplyAndDemand()
         if(cit != mCommoditiesRoles.end())
         {
             size_t commodityId = cit - mCommoditiesRoles.begin();
-            // Retrieve the sorted list of FluentTimeResources
+            // Retrieve the (time-based) sorted list of FluentTimeResources
             const std::vector<csp::FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
             std::vector<csp::FluentTimeResource>::const_iterator fit = ftrs.begin();
             Vertex::Ptr previous;

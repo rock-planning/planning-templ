@@ -43,15 +43,14 @@ class MinCostFlow
 {
 public:
     /**
-     * Initialize the basic min cost folw problem using an existing mission
+     * Initialize the basic min cost flow problem using an existing mission
      * \param mission basic mission we try to solve
      * \param timelines All role based timelines that are known and relevant
      * \param transportNetwork The finally computed transport network as the
      * result of the multi-commodity min-cost flow optimization
      */
     MinCostFlow(const Mission::Ptr& mission,
-            const std::map<Role, csp::RoleTimeline>& timelines,
-            TransportNetwork& transportNetwork);
+            const std::map<Role, csp::RoleTimeline>& timelines);
 
 
     /**
@@ -60,6 +59,8 @@ public:
      * \return flaws found
      */
     std::vector<Flaw> run();
+
+    TransportNetwork& getTransportNetwork() { return mTransportNetwork; }
 protected:
     /**
      *  Translating the space time network into the mincommodity representation,
@@ -116,6 +117,7 @@ private:
     std::map<Role, csp::RoleTimeline> mTimelines;
     std::vector<Role> mCommoditiesRoles;
 
+    TransportNetwork mTransportNetwork;
     SpaceTime::Network mSpaceTimeNetwork;
     // Store the mapping between flow graph and space time network
     graph_analysis::BipartiteGraph mBipartiteGraph;

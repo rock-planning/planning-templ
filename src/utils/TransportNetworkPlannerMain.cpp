@@ -47,7 +47,12 @@ int main(int argc, char** argv)
         {
             std::stringstream ss;
             ss << "/tmp/templ-mission-solution-" << i << ".dot";
-            graph_analysis::io::GraphIO::write(ss.str(), solutions[i].toNetwork().getGraph());
+            try {
+                graph_analysis::io::GraphIO::write(ss.str(), solutions[i].toNetwork().getGraph());
+            } catch(const std::exception& e)
+            {
+                std::cout << "Saving file " << ss.str() << " failed: -- " << e.what();
+            }
         }
 
         mission->getLogger()->disableSessions();

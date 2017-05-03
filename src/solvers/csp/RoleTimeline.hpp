@@ -30,7 +30,7 @@ public:
     solvers::temporal::Interval getInterval(const solvers::csp::FluentTimeResource& fts) const;
 
     /**
-     * Sort this timeline using the set of intervals 
+     * Sort this timeline using the set of intervals
      * to map the time indices in the FluentTimeResource to actual intervals
      *
      * TODO: a timeline has not necessarily a unique ordering
@@ -44,7 +44,7 @@ public:
      * The resulting timelines are already sorted according to time
      * \return map of roles to timelines
      */
-    static std::map<Role,RoleTimeline> computeTimelines(const Mission& mission, const RoleDistribution::Solution& solution);
+    static std::map<Role,RoleTimeline> computeTimelines(const Mission& mission, const std::map<FluentTimeResource, Role::List>& solution);
 
     /**
      * Convert a role->timeline map to a string representation
