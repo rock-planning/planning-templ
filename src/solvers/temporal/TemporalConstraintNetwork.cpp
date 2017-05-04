@@ -412,6 +412,22 @@ std::string TemporalConstraintNetwork::toString(uint32_t indent) const
     return ss.str();
 }
 
+point_algebra::TimePoint::PtrList TemporalConstraintNetwork::getTimepoints() const
+{
+    using namespace graph_analysis;
+    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints;
+
+    VertexIterator::Ptr vertexIt = getGraph()->getVertexIterator();
+    while(vertexIt->next())
+    {
+        solvers::temporal::point_algebra::TimePoint::Ptr tp =
+            dynamic_pointer_cast<solvers::temporal::point_algebra::TimePoint>(vertexIt->current());
+        timepoints.push_back(tp);
+    }
+
+    sort(timepoints);
+    return timepoints;
+}
 
 } // end namespace temporal
 } // end namespace solvers

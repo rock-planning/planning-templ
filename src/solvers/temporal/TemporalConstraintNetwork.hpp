@@ -140,6 +140,12 @@ public:
      */
     virtual std::string toString(uint32_t indent) const;
 
+    /**
+     * Return list of timepoint which are (partially) sorted in time asceding
+     * order
+     */
+    point_algebra::TimePoint::PtrList getTimepoints() const;
+
 protected:
     virtual ConstraintNetwork* getClone() const { return new TemporalConstraintNetwork(*this); }
 

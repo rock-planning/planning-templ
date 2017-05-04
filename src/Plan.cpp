@@ -42,7 +42,7 @@ std::string Plan::toString(uint32_t indent) const
         }
     }
     typedef std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> TimepointList;
-    TimepointList timepoints = mpMission->getOrderedTimepoints();
+    TimepointList timepoints = mpMission->getTimepoints();
     TimepointList::const_iterator tit = timepoints.begin();
     ss << hspace << "Timepoints:" << std::endl;
     for(; tit != timepoints.end(); ++tit)

@@ -249,7 +249,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     , mAsk(mpMission->getOrganizationModel(), mpMission->getAvailableResources(), true)
     , mResources(mpMission->getRequestedResources())
     , mIntervals(mpMission->getTimeIntervals())
-    , mTimepoints(mpMission->getOrderedTimepoints())
+    , mTimepoints(mpMission->getTimepoints())
     , mLocations(mpMission->getLocations())
     , mResourceRequirements(getResourceRequirements())
     , mModelUsage(*this, /*# of models*/ mpMission->getAvailableResources().size()*

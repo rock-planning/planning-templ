@@ -164,18 +164,17 @@ public:
 
     std::string toString() const;
 
-    // Get special sets of constants
-    std::vector<symbols::constants::Location::Ptr> getLocations() const;
+    /**
+     * Get special sets of constants
+     * \param excludeUnused Set to true to exclude unused constants, i.e. which
+     * are not required for or used within the definition of the mission
+     * \return list of location constants
+     */
+    std::vector<symbols::constants::Location::Ptr> getLocations(bool excludeUnused = true) const;
 
     /**
      * Get the timepoints ordered by the associated temporal constraint network
      * \return timepoints ordered (earlier entries correspond to earlier times)
-     */
-    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> getOrderedTimepoints() const;
-
-    /**
-     * Get all timepoints that are for this mission
-     * \return list of (unordered) timepoints
      */
     std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> getTimepoints() const;
 
@@ -220,6 +219,10 @@ public:
             graph_analysis::Vertex::Ptr target);
 
 protected:
+    void requireConstant(const symbols::Constant::Ptr& constant);
+
+    void incrementConstantUse(const symbols::Constant::Ptr& constant);
+
     /**
      * Add a constant
      * \param constant Ptr object of this constant
@@ -261,6 +264,7 @@ private:
 
     std::set<symbols::ObjectVariable::Ptr> mObjectVariables;
     std::set<symbols::Constant::Ptr> mConstants;
+    mutable std::map<symbols::Constant::Ptr, uint32_t> mConstantsUse;
 
     std::string mScenarioFile;
     Logger::Ptr mpLogger;

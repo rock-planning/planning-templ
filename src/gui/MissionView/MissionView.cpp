@@ -184,7 +184,7 @@ void MissionView::refreshView()
         mpGraphicsGridLayout = new QGraphicsGridLayout;
 
         std::vector<symbols::constants::Location::Ptr> locations = mpMission->getLocations();
-        std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints = mpMission->getOrderedTimepoints();
+        std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints = mpMission->getTimepoints();
 
         using namespace templ::solvers::temporal;
         std::vector<PersistenceCondition::Ptr> pConditions = mpMission->getPersistenceConditions();

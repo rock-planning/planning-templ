@@ -35,6 +35,7 @@ Mission::Mission(const Mission& other)
     , mTimeIntervals(other.mTimeIntervals)
     , mObjectVariables(other.mObjectVariables)
     , mConstants(other.mConstants)
+    , mConstantsUse(other.mConstantsUse)
     , mScenarioFile(other.mScenarioFile)
     , mpLogger(other.mpLogger)
 {
@@ -180,7 +181,7 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addResourceLocationCardinalit
     using namespace owlapi;
     using namespace ::templ::symbols;
     // Make sure constant is known
-    addConstant(location);
+    requireConstant(location);
     ObjectVariable::Ptr locationCardinality(new object_variables::LocationCardinality(location, cardinality, type));
 
     // the combination of resource, location and cardinality represents a state variable
@@ -215,7 +216,7 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addResourceLocationNumericAtt
     using namespace owlapi;
     using namespace ::templ::symbols;
 
-    addConstant(location);
+    requireConstant(location);
     ObjectVariable::Ptr numericAttribute(new object_variables::LocationNumericAttribute(
                 location,
                 attribute,
@@ -316,7 +317,7 @@ void Mission::validateAvailableResources() const
 
 
 // Get special sets of constants
-std::vector<symbols::constants::Location::Ptr> Mission::getLocations() const
+std::vector<symbols::constants::Location::Ptr> Mission::getLocations(bool excludeUnused) const
 {
     using namespace symbols;
     std::vector<constants::Location::Ptr> locations;
@@ -324,6 +325,11 @@ std::vector<symbols::constants::Location::Ptr> Mission::getLocations() const
     for(; cit != mConstants.end(); ++cit)
     {
         const Constant::Ptr& constant = *cit;
+        if(excludeUnused && mConstantsUse[constant] == 0)
+        {
+                continue;
+        }
+
         if(constant->getConstantType() == Constant::LOCATION)
         {
             locations.push_back( dynamic_pointer_cast<constants::Location>(constant) );
@@ -333,26 +339,31 @@ std::vector<symbols::constants::Location::Ptr> Mission::getLocations() const
 }
 
 
-std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> Mission::getOrderedTimepoints() const
+std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> Mission::getTimepoints() const
 {
-    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints = getTimepoints();
+    std::set<solvers::temporal::point_algebra::TimePoint::Ptr> uniqueTimepoints;
+    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints;
+
+    for(const solvers::temporal::Interval& interval : mTimeIntervals)
+    {
+        uniqueTimepoints.insert( interval.getFrom() );
+        uniqueTimepoints.insert( interval.getTo() );
+    }
+
+    timepoints.insert(timepoints.begin(), uniqueTimepoints.begin(), uniqueTimepoints.end());
     mpTemporalConstraintNetwork->sort(timepoints);
     return timepoints;
 }
 
-std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> Mission::getTimepoints() const
+void Mission::requireConstant(const symbols::Constant::Ptr& constant)
 {
-    using namespace graph_analysis;
-    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints;
+    addConstant(constant);
+    incrementConstantUse(constant);
+}
 
-    VertexIterator::Ptr vertexIt = mpTemporalConstraintNetwork->getGraph()->getVertexIterator();
-    while(vertexIt->next())
-    {
-        solvers::temporal::point_algebra::TimePoint::Ptr tp =
-            dynamic_pointer_cast<solvers::temporal::point_algebra::TimePoint>(vertexIt->current());
-        timepoints.push_back(tp);
-    }
-    return timepoints;
+void Mission::incrementConstantUse(const symbols::Constant::Ptr& constant)
+{
+    mConstantsUse[constant] += 1;
 }
 
 void Mission::addConstant(const symbols::Constant::Ptr& constant)
