@@ -39,7 +39,9 @@ Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
         choices.push_back(glb.val());
     }
 
-    if(view.assigned())
+    // if view is assigned it is either a single value or an empty set
+    // Allow to pass an empty set for supply Demand to neglect this constraint
+    if(view.assigned() || supplyDemand.empty())
     {
         if(!choices.empty())
         {
@@ -202,7 +204,15 @@ bool TimelineBrancher::status(const Gecode::Space& home) const
     // If timepoint remains at -1 -- a fully assigned multitimeline view has been computed
     if(timepoint == -1)
     {
-        LOG_WARN_S << "Not timepoints remaining with unassigned views";
+        MultiTimelineView::const_iterator cit = x.begin();
+        assert(!x.empty());
+        for(; cit != x.end(); ++cit)
+        {
+            if(!cit->assigned())
+            {
+                return true;
+            }
+        }
         return false;
     }
 
