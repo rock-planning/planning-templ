@@ -50,6 +50,7 @@ BaseGraph::Ptr MinCostFlow::createFlowGraph(uint32_t commodities)
    {
        MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex(new MultiCommodityMinCostFlow::vertex_t(commodities));
        mBipartiteGraph.linkVertices(multicommodityVertex, vertexIt->current());
+       multicommodityVertex->setLabel(vertexIt->current()->toString());
    }
 
    // Create the edges, i.e. the 'transport-links'
@@ -207,65 +208,41 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
         }
         const csp::RoleTimeline& roleTimeline = rit->second;
 
-        Flaw flaw(violation, affectedRole);
 
         std::vector<csp::FluentTimeResource>::const_iterator fit = getFluent(roleTimeline, tuple);
+
+        Flaw flaw(violation, affectedRole);
+        flaw.ftr = *fit;
+
         switch(violation.getType())
         {
             // In the case of transflow we add a triebreaker between the current
             // and the subsequent requirement
             case ConstraintViolation::TransFlow:
             {
-                csp::FluentTimeResource ftr = *fit;
-                csp::FluentTimeResource ftr_subsequent = *(fit+1);
-
-                flaw.ftr = *fit;
                 flaw.subsequentFtr = *(fit+1);
 
-/*
-                LOG_INFO_S << "Transflow violation in timeline: enforce distiction on timeline for: " << affectedRole.toString()
-                    << " between " << std::endl
-                    << ftr.toString() << " and " << ftr_subsequent.toString() << std::endl
-                    << ftr.getInterval(mission).toString() << std::endl
-                    << ftr_subsequent.getInterval(mission).toString() << std::endl
-                    << " timeline: " << std::endl
-                    << roleTimeline.toString()
-                    << std::endl;
+                ////organization_model::facets::Robot robot(affectedRole.getModel(), mpMission->getOrganizationModelAsk());
+                ////if(!robot.isMobile())
+                ////{
+                ////    // More transport availability needed
+                ////    // TODO: quantify request, e.g. for 1 more Payload
+                ////    Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mission), vocabulary::OM::resolve("TransportProvider")));
+                ////    state->addResolver(functionalityRequest);
+                ////}
 
-                organization_model::facets::Robot robot(affectedRole.getModel(), mMission.getOrganizationModelAsk());
-                if(!robot.isMobile())
-                {
-                    // More transport availability needed
-                    // TODO: quantify request, e.g. for 1 more Payload
-                    Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mission), vocabulary::OM::resolve("TransportProvider")));
-                    state->addResolver(functionalityRequest);
-                }
-
-                 // delta needs to be: missing count of resource type
-                 assert(-violation.getDelta() > 0);
-                 Resolver::Ptr roleAddDistinction(new RoleAddDistinction(ftr, ftr_subsequent, affectedRole.getModel(), abs( violation.getDelta() ), state->getRoleDistributionSolution()));
-                 state->addResolver(roleAddDistinction);
-*/
+                //// // delta needs to be: missing count of resource type
+                //// assert(-violation.getDelta() > 0);
+                //// Resolver::Ptr roleAddDistinction(new RoleAddDistinction(ftr, ftr_subsequent, affectedRole.getModel(), abs( violation.getDelta() ), state->getRoleDistributionSolution()));
+                //// state->addResolver(roleAddDistinction);
                 break;
             }
             // In the case of minflow we add a triebreaker between the current
             // and the previous requirement
             case ConstraintViolation::MinFlow:
             {
-                flaw.ftr = *fit;
                 flaw.previousFtr = *(fit-1);
 /*
-                FluentTimeResource ftr = *fit;
-                FluentTimeResource ftr_previous = *(fit-1);
-                LOG_INFO_S << "Minflow violation in timeline: enforce distiction on timeline for: " << affectedRole.toString()
-                    << " between " << std::endl
-                    << ftr_previous.toString() << " and " << ftr.toString() << std::endl
-                    << ftr_previous.getInterval(mission).toString() << std::endl
-                    << ftr.getInterval(mission).toString() << std::endl
-                    << " timeline: " << std::endl
-                    << roleTimeline.toString()
-                    << std::endl;
-
                 organization_model::facets::Robot robot(affectedRole.getModel(), mOrganizationModelAsk);
                 if(!robot.isMobile())
                 {
@@ -303,19 +280,27 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
         MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge =
             dynamic_pointer_cast<MultiCommodityMinCostFlow::edge_t>(edgeIt->current());
 
+        LOG_WARN_S << "Edge: " << multicommodityEdge->toString();
+
         for(size_t i = 0; i < mCommoditiesRoles.size(); ++i)
         {
+            const Role& role = mCommoditiesRoles[i];
             uint32_t flow = multicommodityEdge->getCommodityFlow(i);
+            LOG_WARN_S << "Role: " << role.toString() << " flow: " << flow;
             if(flow > 0)
             {
-                const Role& role = mCommoditiesRoles[i];
                 // Update vertices of mSpaceTimeNetwork
                 Vertex::Ptr sourceLocation = mBipartiteGraph.getUniquePartner(multicommodityEdge->getSourceVertex());
                 Vertex::Ptr targetLocation = mBipartiteGraph.getUniquePartner(multicommodityEdge->getTargetVertex());
                 assert(sourceLocation && targetLocation);
 
-                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(sourceLocation)->addRole(role);
-                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(targetLocation)->addRole(role);
+                LOG_WARN_S << "Add role " << role.toString() << std::endl
+                    << "    source: " << sourceLocation->toString() << multicommodityEdge->getSourceVertex()->toString() << std::endl
+                    << "    target: " << targetLocation->toString() << multicommodityEdge->getTargetVertex()->toString() << std::endl
+                ;
+
+                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(sourceLocation)->addRole(role, "result");
+                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(targetLocation)->addRole(role, "result");
             }
         }
     }

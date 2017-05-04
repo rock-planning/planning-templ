@@ -27,13 +27,12 @@ int main(int argc, char** argv)
     Mission baseMission = io::MissionReader::fromFile(missionFilename, organizationModel);
     baseMission.prepareTimeIntervals();
 
-    std::string dotFilename = "/tmp/templ-mission-relations.dot";
-    graph_analysis::io::GraphIO::write(dotFilename, baseMission.getRelations());
-    dotFilename = "Written '" + dotFilename + "'";
-    printf("%s\n", dotFilename.c_str() );
-
-    printf("%s\n",baseMission.toString().c_str());
     Mission::Ptr mission(new Mission(baseMission));
+
+    std::string dotFilename = mission->getLogger()->filename("templ-mission-relations.dot");
+    graph_analysis::io::GraphIO::write(dotFilename, mission->getRelations());
+    printf("Written: %s\n", dotFilename.c_str() );
+    printf("Base Mission:\n %s\n",mission->toString().c_str());
 
 
     std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission,minimumNumberOfSolutions);
@@ -46,9 +45,10 @@ int main(int argc, char** argv)
         for(size_t i = 0; i < solutions.size(); ++i)
         {
             std::stringstream ss;
-            ss << "/tmp/templ-mission-solution-" << i << ".dot";
+            ss << "templ-mission-solution-" << i << ".dot";
+            std::string filename = mission->getLogger()->filename(ss.str());
             try {
-                graph_analysis::io::GraphIO::write(ss.str(), solutions[i].toNetwork().getGraph());
+                graph_analysis::io::GraphIO::write(filename, solutions[i].toNetwork().getGraph());
             } catch(const std::exception& e)
             {
                 std::cout << "Saving file " << ss.str() << " failed: -- " << e.what();

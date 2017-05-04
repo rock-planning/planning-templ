@@ -7,30 +7,11 @@
 #include <templ/Mission.hpp>
 #include <templ/solvers/csp/RoleTimeline.hpp>
 #include <templ/solvers/transshipment/TransportNetwork.hpp>
+#include "Flaw.hpp"
 
 namespace templ {
 namespace solvers {
 namespace transshipment {
-
-/**
- * A Flaw represents a violation of the current solution with respect to the
- * requirements
- */
-struct Flaw
-{
-    graph_analysis::algorithms::ConstraintViolation violation;
-    Role affectedRole;
-
-    csp::FluentTimeResource previousFtr;
-    csp::FluentTimeResource ftr;
-    csp::FluentTimeResource subsequentFtr;
-
-    Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
-        const Role& role)
-        : violation(violation)
-        , affectedRole(role)
-    {}
-};
 
 struct MinCostFlowStatus
 {

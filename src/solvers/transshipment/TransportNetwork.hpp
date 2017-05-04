@@ -24,12 +24,13 @@ public:
      * Get the graph representation of the transport network, i.e. as a space time network
      */
     SpaceTime::Network& getSpaceTimeNetwork() { return mSpaceTimeNetwork; }
+
     const std::map<Role, csp::RoleTimeline> getTimeslines() const { return mTimelines; }
+
+    void save();
 
 protected:
     void initialize();
-
-    void save();
 
 private:
     Mission::Ptr mpMission;
