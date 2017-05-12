@@ -13,7 +13,7 @@
 #include "Types.hpp"
 #include "FluentTimeResource.hpp"
 #include "utils/FluentTimeIndex.hpp"
-
+#include "../transshipment/MinCostFlow.hpp"
 
 namespace templ {
 namespace solvers {
@@ -177,6 +177,7 @@ private:
     // Activation if edge is traversed by this item or not
     ListOfAdjacencyLists mTimelines;
 
+    std::vector<int32_t> mSupplyDemand;
     // Map the transport characteristic: (|Locations|*|Timepoints|)^2
     // Order such that bigger indexes are referring to later events(!)
     //                    | (t-0,loc-var-0) | (t-0, loc-var-1) | (t-0, loc-var-2) | ...
@@ -192,6 +193,7 @@ private:
 
     // row column access
     //MatrixXi mProviderCapacities;
+    std::vector<transshipment::Flaw> mMinCostFlowFlaws;
 
 private:
 
@@ -260,7 +262,51 @@ private:
      */
     void postRoleAssignments();
 
+    static void minCostFlowAnalysis(Gecode::Space& home);
+    void postMinCostFlowConstraints();
+
+    static void generateTimelines(Gecode::Space& home);
+    void postTimelines();
+
 protected:
+    // The general idea for implementing a LVNS approach
+    //
+    // a find a feasible/partial solution:
+    //      since a fully feasible solution might not be found at all
+    //      (a) which define the first instance of the problem, i.e. the required role distribution
+    //      (b) use the flow optimization to find a first result
+    //          - use the resulting violations in order to improve the actual result
+    //            based on the following observations and constraint injections resolvers
+    //            and continue the search --
+
+    /**
+     * \return true if restart is required, false otherwise
+     */
+    virtual bool master(const Gecode::MetaInfo& mi);
+
+    /**
+     * \return true if search is complete
+     */
+    virtual bool slave(const Gecode::MetaInfo& mi);
+
+    /**
+     * Initialize first for slave
+     */
+    void first();
+
+
+    /**
+     * Initalize slave for next solution
+     */
+    void next(const TransportNetwork& n);
+
+    /**
+     * Constraint this instance -- provide
+     * a previous space to extract information for constrain
+     */
+    virtual void constrain(const Gecode::Space& n);
+
+
     /**
      * Get the solution of this Gecode::Space instance
      */
