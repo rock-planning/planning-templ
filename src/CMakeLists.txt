@@ -19,6 +19,7 @@ rock_library(templ
         solvers/Constraint.cpp
         solvers/ConstraintNetwork.cpp
         solvers/GQReasoner.cpp
+        solvers/SolutionAnalysis.cpp
         solvers/Variable.cpp
         solvers/agent_routing/Agent.cpp
         solvers/agent_routing/AgentIntegerAttribute.cpp
@@ -99,6 +100,7 @@ rock_library(templ
         solvers/Constraint.hpp
         solvers/ConstraintNetwork.hpp
         solvers/GQReasoner.hpp
+        solvers/SolutionAnalysis.hpp
         solvers/Variable.hpp
         solvers/agent_routing/Agent.hpp
         solvers/agent_routing/AgentIntegerAttribute.hpp
