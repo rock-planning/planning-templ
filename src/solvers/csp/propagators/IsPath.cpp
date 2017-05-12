@@ -433,21 +433,14 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
             }
 
             mAssignedTimepoints[timepoint] = std::pair<int, bool>( idx, true);
-    //        LOG_WARN_S << "Update t: " << timepoint << " " << x[idx] << " (at idx: " << idx << ")";
         }
     }
 
     size_t start, end;
     if(x.assigned())
     {
-        LOG_WARN_S << "Fully fixed waypoints: " << waypointsToString()
-            << std::endl
-            << x;
         if( !isValidWaypointSequence(mAssignedTimepoints, start, end, true) )
         {
-    //        LOG_WARN_S << "Failed waypoints: " << waypointsToString()
-    //            << std::endl
-    //            << x;
             return ES_FAILED;
         }
 
@@ -456,16 +449,6 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
     //        << x;
         return home.ES_SUBSUMED(*this);
     } else {
-        LOG_WARN_S << "Not fully fixed waypoints: " << waypointsToString()
-            << std::endl
-            << x;
-        if( !isValidWaypointSequence(mAssignedTimepoints, start, end, false /*fully assigned*/) )
-        {
-            LOG_WARN_S << "Failed waypoints: " << waypointsToString()
-                << std::endl
-                << x;
-            return ES_FAILED;
-        }
         // the propagator will be scheduled if one of its views have been modified
         return ES_FIX;
     }
