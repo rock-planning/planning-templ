@@ -52,7 +52,10 @@ SpaceTime::Timelines TypeConversion::toTimelines(const Role::List& roles, const 
     SpaceTime::Timelines timelines;
     if(roles.size() != lists.size())
     {
-        throw std::invalid_argument("templ::solvers::csp::TypeConversion::toTimelines: size of roles does not equal size of adjacency lists");
+        std::stringstream ss;
+        ss << "templ::solvers::csp::TypeConversion::toTimelines: size of roles (" << roles.size() << ")";
+        ss << " does not equal size of adjacency lists (" << lists.size() << ")";
+        throw std::invalid_argument(ss.str());
     }
 
     for(size_t i = 0; i < roles.size(); ++i)
