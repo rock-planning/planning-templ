@@ -15,10 +15,12 @@ namespace solvers {
 namespace transshipment {
 
 MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
-        const std::map<Role, csp::RoleTimeline>& timelines)
+        const std::map<Role, csp::RoleTimeline>& timelines,
+        const SpaceTime::Timelines& expandedTimelines)
     : mpMission(mission)
     , mTimelines(timelines)
-    , mTransportNetwork(mission, timelines)
+    , mExpandedTimelines(expandedTimelines)
+    , mTransportNetwork(mission, timelines, expandedTimelines)
     , mSpaceTimeNetwork(mTransportNetwork.getSpaceTimeNetwork())
 {
 
@@ -280,13 +282,13 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
         MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge =
             dynamic_pointer_cast<MultiCommodityMinCostFlow::edge_t>(edgeIt->current());
 
-        LOG_WARN_S << "Edge: " << multicommodityEdge->toString();
+        LOG_DEBUG_S << "Edge: " << multicommodityEdge->toString();
 
         for(size_t i = 0; i < mCommoditiesRoles.size(); ++i)
         {
             const Role& role = mCommoditiesRoles[i];
             uint32_t flow = multicommodityEdge->getCommodityFlow(i);
-            LOG_WARN_S << "Role: " << role.toString() << " flow: " << flow;
+            LOG_DEBUG_S << "Role: " << role.toString() << " flow: " << flow;
             if(flow > 0)
             {
                 // Update vertices of mSpaceTimeNetwork
@@ -294,7 +296,7 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
                 Vertex::Ptr targetLocation = mBipartiteGraph.getUniquePartner(multicommodityEdge->getTargetVertex());
                 assert(sourceLocation && targetLocation);
 
-                LOG_WARN_S << "Add role " << role.toString() << std::endl
+                LOG_DEBUG_S << "Add role " << role.toString() << std::endl
                     << "    source: " << sourceLocation->toString() << multicommodityEdge->getSourceVertex()->toString() << std::endl
                     << "    target: " << targetLocation->toString() << multicommodityEdge->getTargetVertex()->toString() << std::endl
                 ;
@@ -308,7 +310,7 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
 
 std::vector<csp::FluentTimeResource>::const_iterator MinCostFlow::getFluent(const csp::RoleTimeline& roleTimeline, const SpaceTime::Network::tuple_t::Ptr& tuple) const
 {
-    LOG_WARN_S << "Find tuple: " << tuple->toString() << " in timeline " << roleTimeline.toString();
+    LOG_DEBUG_S << "Find tuple: " << tuple->toString() << " in timeline " << roleTimeline.toString();
 
     const std::vector<csp::FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
     std::vector<csp::FluentTimeResource>::const_iterator fit = ftrs.begin();

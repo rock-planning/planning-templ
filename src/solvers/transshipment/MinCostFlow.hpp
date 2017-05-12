@@ -26,12 +26,14 @@ public:
     /**
      * Initialize the basic min cost flow problem using an existing mission
      * \param mission basic mission we try to solve
-     * \param timelines All role based timelines that are known and relevant
-     * \param transportNetwork The finally computed transport network as the
+     * \param minimalTimelines All role based timelines that fulfill the minimum
+     * requirements
+     * \param expandedTimeline optional timelines which serve as a guide for mobile system flow
      * result of the multi-commodity min-cost flow optimization
      */
     MinCostFlow(const Mission::Ptr& mission,
-            const std::map<Role, csp::RoleTimeline>& timelines);
+            const std::map<Role, csp::RoleTimeline>& minimalTimelines,
+            const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines());
 
 
     /**
@@ -96,6 +98,7 @@ protected:
 private:
     Mission::Ptr mpMission;
     std::map<Role, csp::RoleTimeline> mTimelines;
+    SpaceTime::Timelines mExpandedTimelines;
     std::vector<Role> mCommoditiesRoles;
 
     TransportNetwork mTransportNetwork;

@@ -15,10 +15,12 @@ namespace solvers {
 namespace transshipment {
 
 TransportNetwork::TransportNetwork(const Mission::Ptr& mission,
-        const std::map<Role, csp::RoleTimeline>& timelines)
+        const std::map<Role, csp::RoleTimeline>& timelines,
+        const SpaceTime::Timelines& expandedTimelines)
     : mpMission(mission)
     , mSpaceTimeNetwork(mpMission->getLocations(), mpMission->getTimepoints())
     , mTimelines(timelines)
+    , mExpandedTimelines(expandedTimelines)
 {
     assert(mpMission);
 
@@ -46,6 +48,93 @@ void TransportNetwork::save()
 }
 
 void TransportNetwork::initialize()
+{
+    if(mExpandedTimelines.empty())
+    {
+        initializeMinimalTimelines();
+    } else {
+        initializeExpandedTimelines();
+    }
+}
+
+void TransportNetwork::initializeExpandedTimelines()
+{
+    // -----------------------------------------
+    // Add capacity-weighted edges to the graph
+    // -----------------------------------------
+    // Per Role --> add capacities (in terms of capability of carrying an immobile system)
+    SpaceTime::Timelines::const_iterator rit = mExpandedTimelines.begin();
+    for(; rit != mExpandedTimelines.end(); ++rit)
+    {
+        // infer connections from timeline
+        // sequentially ordered timeline
+        // locations and timeline
+        // connection from (l0, i0_end) ---> (l1, i1_start)
+        //
+        const Role& role = rit->first;
+        SpaceTime::Timeline roleTimeline = rit->second;
+
+        // Check if this item is mobile, i.e. change change the location
+        // WARNING: this is domain specific
+        // transportCapacity
+        organization_model::facets::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
+        if(!robot.isMobile())
+        {
+            continue;
+        }
+
+        LOG_DEBUG_S << "Add capacity for mobile system: " << role.getModel();
+        uint32_t capacity = robot.getPayloadTransportCapacity();
+        LOG_DEBUG_S << "Role: " << role.toString() << std::endl
+            << "    transport capacity: " << capacity << std::endl;
+
+        namespace pa = templ::solvers::temporal::point_algebra;
+        pa::TimePoint::Ptr prevIntervalEnd;
+        co::Location::Ptr prevLocation;
+        SpaceTime::Network::tuple_t::Ptr startTuple, endTuple;
+
+        SpaceTime::Timeline::const_iterator cit = roleTimeline.begin();
+        for(; cit != roleTimeline.end(); ++cit)
+        {
+            const SpaceTime::Point& spaceTimePoint = *cit;
+            symbols::constants::Location::Ptr location = spaceTimePoint.first;
+            solvers::temporal::point_algebra::TimePoint::Ptr timepoint = spaceTimePoint.second;
+
+            // create tuple if it does not exist?
+            endTuple = mSpaceTimeNetwork.tupleByKeys(location, timepoint);
+            endTuple->addRole(role);
+
+            if(prevIntervalEnd)
+            {
+                startTuple = mSpaceTimeNetwork.tupleByKeys(prevLocation, prevIntervalEnd);
+                startTuple->addRole(role);
+
+                std::vector< WeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<WeightedEdge>(startTuple, endTuple);
+                if(edges.empty())
+                {
+                    WeightedEdge::Ptr weightedEdge(new WeightedEdge(startTuple, endTuple, capacity));
+                    mSpaceTimeNetwork.getGraph()->addEdge(weightedEdge);
+                } else if(edges.size() > 1)
+                {
+                    throw std::runtime_error("MissionPlanner: multiple capacity edges detected");
+                } else { // one edge -- sum up capacities of mobile systems
+                    WeightedEdge::Ptr& existingEdge = edges[0];
+                    double existingCapacity = existingEdge->getWeight();
+                    if(existingCapacity < std::numeric_limits<WeightedEdge::value_t>::max())
+                    {
+                        capacity += existingCapacity;
+                        existingEdge->setWeight(capacity, 0 /*index of 'overall capacity'*/);
+                    }
+                }
+            }
+
+            prevIntervalEnd = timepoint;
+            prevLocation = location;
+        }
+    }
+}
+
+void TransportNetwork::initializeMinimalTimelines()
 {
     // -----------------------------------------
     // Add capacity-weighted edges to the graph

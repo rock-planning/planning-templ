@@ -16,7 +16,8 @@ class TransportNetwork
 {
 public:
     TransportNetwork(const Mission::Ptr& mission,
-        const std::map<Role, csp::RoleTimeline>& timelines);
+        const std::map<Role, csp::RoleTimeline>& timelines,
+        const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines());
 
     const Mission::Ptr& getMission() const { return mpMission; }
 
@@ -26,17 +27,21 @@ public:
     SpaceTime::Network& getSpaceTimeNetwork() { return mSpaceTimeNetwork; }
 
     const std::map<Role, csp::RoleTimeline> getTimeslines() const { return mTimelines; }
+    const SpaceTime::Timelines getExpandedTimelines() const { return mExpandedTimelines; }
 
     void save();
 
 protected:
     void initialize();
+    void initializeMinimalTimelines();
+    void initializeExpandedTimelines();
 
 private:
     Mission::Ptr mpMission;
     SpaceTime::Network mSpaceTimeNetwork;
-    std::map<Role, csp::RoleTimeline> mTimelines;
 
+    std::map<Role, csp::RoleTimeline> mTimelines;
+    SpaceTime::Timelines mExpandedTimelines;
 };
 
 
