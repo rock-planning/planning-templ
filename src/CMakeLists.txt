@@ -40,6 +40,7 @@ rock_library(templ
         solvers/csp/TransportNetwork.cpp
         solvers/csp/Types.cpp
         solvers/csp/branchers/TimelineBrancher.cpp
+        solvers/csp/branchers/SetNGL.cpp
         solvers/csp/propagators/IsPath.cpp
         solvers/csp/propagators/IsValidTransportEdge.cpp
         solvers/csp/propagators/MultiCommodityFlow.cpp
