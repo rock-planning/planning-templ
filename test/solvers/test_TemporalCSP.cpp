@@ -78,11 +78,11 @@ BOOST_AUTO_TEST_CASE(gqr)
     GqrSolver* solver = gqr_solver_new(allen);
 
     bool ret = gqr_solver_enforce_algebraic_closure(solver, csp);
-    assert(ret); /* the example is path consistent */
+    BOOST_REQUIRE_MESSAGE(ret, "Example path is consistent"); /* the example is path consistent */
 
     /* get and output a scenario of 'csp' */
     GqrCsp* res = gqr_solver_get_scenario(solver, csp);
-    assert(res); /* the example is satisfiable */
+    BOOST_REQUIRE_MESSAGE(res, "Example is satisfiable"); /* the example is satisfiable */
 
     printf("One scenario is:\n");
     print_csp(res);
