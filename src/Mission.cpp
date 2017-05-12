@@ -18,7 +18,10 @@ Mission::Mission(organization_model::OrganizationModel::Ptr om, const std::strin
     , mAsk(om)
     , mName(name)
     , mpLogger(new Logger())
-{}
+    , mpTransferLocation(new symbols::constants::Location("transfer-location"))
+{
+    requireConstant(mpTransferLocation);
+}
 
 Mission::Mission(const Mission& other)
     : mpTemporalConstraintNetwork()
@@ -38,6 +41,7 @@ Mission::Mission(const Mission& other)
     , mConstantsUse(other.mConstantsUse)
     , mScenarioFile(other.mScenarioFile)
     , mpLogger(other.mpLogger)
+    , mpTransferLocation(other.mpTransferLocation)
 {
 
     if(other.mpRelations)

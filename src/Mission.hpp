@@ -172,6 +172,8 @@ public:
      */
     std::vector<symbols::constants::Location::Ptr> getLocations(bool excludeUnused = true) const;
 
+    symbols::constants::Location::Ptr getTransferLocation() const { return mpTransferLocation; }
+
     /**
      * Get the timepoints ordered by the associated temporal constraint network
      * \return timepoints ordered (earlier entries correspond to earlier times)
@@ -265,6 +267,7 @@ private:
     std::set<symbols::ObjectVariable::Ptr> mObjectVariables;
     std::set<symbols::Constant::Ptr> mConstants;
     mutable std::map<symbols::Constant::Ptr, uint32_t> mConstantsUse;
+    symbols::constants::Location::Ptr mpTransferLocation;
 
     std::string mScenarioFile;
     Logger::Ptr mpLogger;
