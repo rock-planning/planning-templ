@@ -9,6 +9,9 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
+/**
+ * General constraint that can be applied to mission
+ */
 class MissionConstraints
 {
 public:
@@ -22,6 +25,13 @@ public:
 
     /**
      * Require a minimum distinction of \a minDistinctRoles for model instance betwenn two requirements
+     * \param home
+     * \param roleUsage
+     * \param requirements
+     * \param fts0
+     * \param fts1
+     * \param roleModel
+     * \param minDistinctRoles
      */
     static void minDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
             const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
@@ -37,7 +47,18 @@ public:
             const FluentTimeResource& fts0, const FluentTimeResource& fts1,
             const owlapi::model::IRI& roleModel, uint32_t additional);
 
-    static std::set<Role> getUniqueRoles(Gecode::IntVarArray& roleUsage,
+    /**
+     * Increment the distinction for model instances between two requirements
+     * for \a additional
+     *
+     */
+    static void addDistinct(Gecode::Space& home,
+            const Gecode::IntVarArray& roleUsageCurrent, Gecode::IntVarArray& roleUsage,
+            const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
+            const FluentTimeResource& fts0, const FluentTimeResource& fts1,
+            const owlapi::model::IRI& roleModel, uint32_t additional);
+
+    static std::set<Role> getUniqueRoles(const Gecode::IntVarArray& roleUsage,
             const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
             const FluentTimeResource& fts0, const FluentTimeResource& fts1,
             const owlapi::model::IRI& roleModel);

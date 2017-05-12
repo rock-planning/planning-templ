@@ -65,8 +65,22 @@ void MissionConstraints::minDistinct(Gecode::Space& home, Gecode::IntVarArray& r
          // if so -- sum equals to 0 thus there is no distinction
          Gecode::IntVar rolePresentInBoth = Gecode::expr(home, abs(v0 - v1));
          args << rolePresentInBoth;
+        //rel(home, v0, Gecode::IRT_EQ, 0); //minDistinctRoles);
+        //rel(home, v1, Gecode::IRT_EQ, 0); //minDistinctRoles);
+
+        //LOG_WARN_S << "v0" << v0 << " at index: " << roleIndex << "/" << fluent0;
+        //LOG_WARN_S << "v1" << v1 << " at index: " << roleIndex << "/" << fluent1;
      }
+     LOG_WARN_S << "Min distinct between: " << fts0.toString(4) << std::endl
+         << fts1.toString(4)
+         << minDistinctRoles
+         << " args: "<< args;
      rel(home, sum(args) >= minDistinctRoles);
+     //rel(home, sum(args) == 0); //minDistinctRoles);
+     //if( home.failed())
+     //{
+     //    assert(false);
+     //}
 }
 
 void MissionConstraints::addDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
@@ -82,15 +96,34 @@ void MissionConstraints::addDistinct(Gecode::Space& home, Gecode::IntVarArray& r
             fts0, fts1,
             roleModel);
     size_t numberOfUniqueRoles = uniqueRoles.size();
-    LOG_INFO_S << "Previous number of unique roles: " << numberOfUniqueRoles << " -- should be increased with " << additional;
+    LOG_WARN_S << "Previous number of unique roles: " << numberOfUniqueRoles << " -- should be increased with " << additional;
     minDistinct(home, roleUsage, roles, requirements, fts0, fts1, roleModel, numberOfUniqueRoles + additional);
 }
 
-std::set<Role> MissionConstraints::getUniqueRoles(Gecode::IntVarArray& roleUsage,
+void MissionConstraints::addDistinct(Gecode::Space& home,
+        const Gecode::IntVarArray& roleUsageCurrent, Gecode::IntVarArray& roleUsage,
+        const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
+        const FluentTimeResource& fts0, const FluentTimeResource& fts1,
+        const owlapi::model::IRI& roleModel, uint32_t additional)
+{
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(roleUsage, /*width --> col*/ roles.size(), /*height --> row*/ requirements.size());
+
+    // Adding this constraint will only work to an already once solved instance
+    // of the problem
+    std::set<Role> uniqueRoles = getUniqueRoles(roleUsageCurrent, roles, requirements,
+            fts0, fts1,
+            roleModel);
+    size_t numberOfUniqueRoles = uniqueRoles.size();
+    LOG_WARN_S << "Previous number of unique roles: " << numberOfUniqueRoles << " -- should be increased with " << additional;
+    minDistinct(home, roleUsage, roles, requirements, fts0, fts1, roleModel, numberOfUniqueRoles + additional);
+}
+
+std::set<Role> MissionConstraints::getUniqueRoles(const Gecode::IntVarArray& constRoleUsage,
         const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
         const FluentTimeResource& fts0, const FluentTimeResource& fts1,
         const owlapi::model::IRI& roleModel)
 {
+    Gecode::IntVarArray& roleUsage = const_cast<Gecode::IntVarArray&>(constRoleUsage);
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(roleUsage, /*width --> col*/ roles.size(), /*height --> row*/ requirements.size());
 
     std::set<Role> assignedRoles;
@@ -100,7 +133,7 @@ std::set<Role> MissionConstraints::getUniqueRoles(Gecode::IntVarArray& roleUsage
     {
         for(size_t r = 0; r < roles.size(); ++r)
         {
-            Gecode::IntVar var = roleDistribution(r, i);
+            const Gecode::IntVar& var = roleDistribution(r, i);
             if(!var.assigned())
             {
                 throw std::runtime_error("templ::solvers::csp::MissionConstraints::getUniqueRoles: can only be performed on a fully assigned array. Failed for role: '" + roles[r].toString() + "'");
