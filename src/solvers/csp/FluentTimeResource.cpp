@@ -1,5 +1,6 @@
 #include "FluentTimeResource.hpp"
 #include <templ/solvers/csp/ModelDistribution.hpp>
+#include <organization_model/Algebra.hpp>
 
 #include <base-logging/Logging.hpp>
 
@@ -158,6 +159,66 @@ std::set<organization_model::Functionality> FluentTimeResource::getFunctionaliti
         }
     }
     return functionalities;
+}
+
+void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements, const organization_model::OrganizationModelAsk& organizationModelAsk)
+{
+    std::vector<FluentTimeResource>::iterator it = requirements.begin();
+    for(; it != requirements.end(); ++it)
+    {
+        FluentTimeResource& fts = *it;
+
+        std::vector<FluentTimeResource>::iterator compareIt = it + 1;
+        for(; compareIt != requirements.end();)
+        {
+            FluentTimeResource& otherFts = *compareIt;
+
+            if(fts.time == otherFts.time && fts.fluent == otherFts.fluent)
+            {
+                LOG_DEBUG_S << "Compacting: " << std::endl
+                    << fts.toString() << std::endl
+                    << otherFts.toString() << std::endl;
+
+                // Compacting the resource list
+                fts.resources.insert(otherFts.resources.begin(), otherFts.resources.end());
+
+                // Use the functional saturation bound on all functionalities
+                // after compacting the resource list
+                std::set<organization_model::Functionality> functionalities;
+                std::set<uint32_t>::const_iterator cit = fts.resources.begin();
+                for(; cit != fts.resources.end(); ++cit)
+                {
+                    assert(fts.mission);
+                    const owlapi::model::IRI& resourceModel = fts.mission->getRequestedResources()[*cit];
+                    using namespace owlapi;
+                    if(organizationModelAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
+                    {
+                        organization_model::Functionality functionality(resourceModel);
+                        functionalities.insert(functionality);
+                    }
+                }
+                fts.maxCardinalities = organizationModelAsk.getFunctionalSaturationBound(functionalities);
+
+                // MaxMin --> min cardinalities are a lower bound specified explicitely
+                LOG_DEBUG_S << "Update Requirements: min: " << fts.minCardinalities.toString();
+                LOG_DEBUG_S << "Update Requirements: otherMin: " << otherFts.minCardinalities.toString();
+
+                fts.minCardinalities = organization_model::Algebra::max(fts.minCardinalities, otherFts.minCardinalities);
+                LOG_DEBUG_S << "Result min: " << fts.minCardinalities.toString();
+
+                // Resource constraints might enforce a minimum cardinality that is higher than the functional saturation bound
+                // thus update the max cardinalities
+                fts.maxCardinalities = organization_model::Algebra::max(fts.minCardinalities, fts.maxCardinalities);
+
+                LOG_DEBUG_S << "Update requirement: " << fts.toString();
+
+                requirements.erase(compareIt);
+            } else {
+                ++compareIt;
+            }
+        }
+    }
+    LOG_DEBUG_S << "END compact requirements";
 }
 
 organization_model::ModelPoolSet FluentTimeResource::getDomain() const

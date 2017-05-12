@@ -393,7 +393,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     , mIntervals(mpMission->getTimeIntervals())
     , mTimepoints(mpMission->getTimepoints())
     , mLocations(mpMission->getLocations())
-    , mResourceRequirements(getResourceRequirements())
+    , mResourceRequirements(Mission::getResourceRequirements(mpMission))
     , mModelUsage(*this, /*# of models*/ mpMission->getAvailableResources().size()*
             /*# of fluent time services*/mResourceRequirements.size(), 0, getMaxResourceCount(mModelPool)) // maximum number of model at that point
     , mAvailableModels(mpMission->getModels())
@@ -963,184 +963,76 @@ size_t TransportNetwork::getResourceModelMaxCardinality(size_t index) const
     throw std::invalid_argument("templ::solvers::csp::TransportNetwork::getResourceModelMaxCardinality: model not found");
 }
 
-FluentTimeResource TransportNetwork::fromLocationCardinality(const temporal::PersistenceCondition::Ptr& p) const
-{
-    using namespace templ::solvers::temporal;
-    point_algebra::TimePointComparator timepointComparator(mpMission->getTemporalConstraintNetwork());
-
-    const symbols::StateVariable& stateVariable = p->getStateVariable();
-    owlapi::model::IRI resourceModel(stateVariable.getResource());
-    symbols::ObjectVariable::Ptr objectVariable = dynamic_pointer_cast<symbols::ObjectVariable>(p->getValue());
-    symbols::object_variables::LocationCardinality::Ptr locationCardinality = dynamic_pointer_cast<symbols::object_variables::LocationCardinality>(objectVariable);
-
-    Interval interval(p->getFromTimePoint(), p->getToTimePoint(), timepointComparator);
-    std::vector<Interval>::const_iterator iit = std::find(mIntervals.begin(), mIntervals.end(), interval);
-    if(iit == mIntervals.end())
-    {
-        LOG_INFO_S << "Size of intervals: " << mIntervals.size();
-        throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find interval: '" + interval.toString() + "'");
-    }
-
-    owlapi::model::IRIList::const_iterator sit = std::find(mResources.begin(), mResources.end(), resourceModel);
-    if(sit == mResources.end())
-    {
-        throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find service: '" + resourceModel.toString() + "'");
-    }
-
-    symbols::constants::Location::Ptr location = locationCardinality->getLocation();
-    std::vector<symbols::constants::Location::Ptr>::const_iterator lit = std::find(mLocations.begin(), mLocations.end(), location);
-    if(lit == mLocations.end())
-    {
-        throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find location: '" + location->toString() + "'");
-    }
-
-    // Map objects to numeric indices -- the indices can be mapped
-    // backed using the mission they were created from
-    uint32_t timeIndex = iit - mIntervals.begin();
-    FluentTimeResource ftr(mpMission,
-            (int) (sit - mResources.begin())
-            , timeIndex
-            , (int) (lit - mLocations.begin()));
-
-    if(mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
-    {
-        // retrieve upper bound
-        ftr.maxCardinalities = mAsk.getFunctionalSaturationBound(resourceModel);
-
-    } else if(mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Actor()))
-    {
-        switch(locationCardinality->getCardinalityRestrictionType())
-        {
-            case owlapi::model::OWLCardinalityRestriction::MIN :
-            {
-                size_t min = ftr.minCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::min());
-                ftr.minCardinalities[ resourceModel ] = std::max(min, (size_t) locationCardinality->getCardinality());
-                break;
-            }
-            case owlapi::model::OWLCardinalityRestriction::MAX :
-            {
-                size_t max = ftr.maxCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::max());
-                ftr.maxCardinalities[ resourceModel ] = std::min(max, (size_t) locationCardinality->getCardinality());
-                break;
-            }
-            default:
-                break;
-        }
-    } else {
-        throw std::invalid_argument("Unsupported state variable: " + resourceModel.toString());
-    }
-
-    ftr.maxCardinalities = organization_model::Algebra::max(ftr.maxCardinalities, ftr.minCardinalities);
-    return ftr;
-}
-
-std::vector<FluentTimeResource> TransportNetwork::getResourceRequirements() const
-{
-    if(mIntervals.empty())
-    {
-        throw std::runtime_error("solvers::csp::TransportNetwork::getResourceRequirements: no time intervals available"
-                " -- make sure you called prepareTimeIntervals() on the mission instance");
-    }
-
-    std::vector<FluentTimeResource> requirements;
-
-    // Iterate over all existing persistence conditions
-    // -- pick the ones relating to location-cardinality function
-    using namespace templ::solvers::temporal;
-    const std::vector<PersistenceCondition::Ptr>& conditions = mpMission->getPersistenceConditions();
-    std::vector<PersistenceCondition::Ptr>::const_iterator cit = conditions.begin();
-    for(; cit != conditions.end(); ++cit)
-    {
-        PersistenceCondition::Ptr p = *cit;
-
-        symbols::StateVariable stateVariable = p->getStateVariable();
-        if(stateVariable.getFunction() == symbols::ObjectVariable::TypeTxt[symbols::ObjectVariable::LOCATION_CARDINALITY] )
-        {
-            try {
-                FluentTimeResource ftr = fromLocationCardinality( p );
-                requirements.push_back(ftr);
-                LOG_DEBUG_S << ftr.toString();
-            } catch(const std::invalid_argument& e)
-            {
-                LOG_WARN_S << e.what();
-            }
-        }
-    }
-
-    // If multiple requirement exists that have the same interval
-    // they can be compacted into one requirement
-    compact(requirements);
-
-    // Sort the requirements based on the start timepoint, i.e. the from
-    using namespace templ::solvers::temporal;
-    point_algebra::TimePointComparator timepointComparator(mpMission->getTemporalConstraintNetwork());
-    std::sort(requirements.begin(), requirements.end(), [&timepointComparator](const FluentTimeResource& a,const FluentTimeResource& b) -> bool
-            {
-                return timepointComparator.lessThan(a.getInterval().getFrom(), b.getInterval().getFrom());
-            });
-    return requirements;
-}
-
-void TransportNetwork::compact(std::vector<FluentTimeResource>& requirements) const
-{
-    LOG_DEBUG_S << "BEGIN compact requirements";
-    std::vector<FluentTimeResource>::iterator it = requirements.begin();
-    for(; it != requirements.end(); ++it)
-    {
-        FluentTimeResource& fts = *it;
-
-        std::vector<FluentTimeResource>::iterator compareIt = it + 1;
-        for(; compareIt != requirements.end();)
-        {
-            FluentTimeResource& otherFts = *compareIt;
-
-            if(fts.time == otherFts.time && fts.fluent == otherFts.fluent)
-            {
-                LOG_DEBUG_S << "Compacting: " << std::endl
-                    << fts.toString() << std::endl
-                    << otherFts.toString() << std::endl;
-
-                // Compacting the resource list
-                fts.resources.insert(otherFts.resources.begin(), otherFts.resources.end());
-
-                // Use the functional saturation bound on all functionalities
-                // after compacting the resource list
-                std::set<organization_model::Functionality> functionalities;
-                std::set<uint32_t>::const_iterator cit = fts.resources.begin();
-                for(; cit != fts.resources.end(); ++cit)
-                {
-                    const owlapi::model::IRI& resourceModel = mResources[*cit];
-                    using namespace owlapi;
-
-                    if( mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
-                    {
-                        organization_model::Functionality functionality(resourceModel);
-                        functionalities.insert(functionality);
-                    }
-                }
-                fts.maxCardinalities = mAsk.getFunctionalSaturationBound(functionalities);
-
-                // MaxMin --> min cardinalities are a lower bound specified explicitely
-                LOG_DEBUG_S << "Update Requirements: min: " << fts.minCardinalities.toString();
-                LOG_DEBUG_S << "Update Requirements: otherMin: " << otherFts.minCardinalities.toString();
-
-                fts.minCardinalities = organization_model::Algebra::max(fts.minCardinalities, otherFts.minCardinalities);
-                LOG_DEBUG_S << "Result min: " << fts.minCardinalities.toString();
-
-                // Resource constraints might enforce a minimum cardinality that is higher than the functional saturation bound
-                // thus update the max cardinalities
-                fts.maxCardinalities = organization_model::Algebra::max(fts.minCardinalities, fts.maxCardinalities);
-
-                LOG_DEBUG_S << "Update requirement: " << fts.toString();
-
-                requirements.erase(compareIt);
-            } else {
-                ++compareIt;
-            }
-        }
-    }
-    LOG_DEBUG_S << "END compact requirements";
-}
+//FluentTimeResource TransportNetwork::fromLocationCardinality(const temporal::PersistenceCondition::Ptr& p) const
+//{
+//    using namespace templ::solvers::temporal;
+//    point_algebra::TimePointComparator timepointComparator(mpMission->getTemporalConstraintNetwork());
+//
+//    const symbols::StateVariable& stateVariable = p->getStateVariable();
+//    owlapi::model::IRI resourceModel(stateVariable.getResource());
+//    symbols::ObjectVariable::Ptr objectVariable = dynamic_pointer_cast<symbols::ObjectVariable>(p->getValue());
+//    symbols::object_variables::LocationCardinality::Ptr locationCardinality = dynamic_pointer_cast<symbols::object_variables::LocationCardinality>(objectVariable);
+//
+//    Interval interval(p->getFromTimePoint(), p->getToTimePoint(), timepointComparator);
+//    std::vector<Interval>::const_iterator iit = std::find(mIntervals.begin(), mIntervals.end(), interval);
+//    if(iit == mIntervals.end())
+//    {
+//        LOG_INFO_S << "Size of intervals: " << mIntervals.size();
+//        throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find interval: '" + interval.toString() + "'");
+//    }
+//
+//    owlapi::model::IRIList::const_iterator sit = std::find(mResources.begin(), mResources.end(), resourceModel);
+//    if(sit == mResources.end())
+//    {
+//        throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find service: '" + resourceModel.toString() + "'");
+//    }
+//
+//    symbols::constants::Location::Ptr location = locationCardinality->getLocation();
+//    std::vector<symbols::constants::Location::Ptr>::const_iterator lit = std::find(mLocations.begin(), mLocations.end(), location);
+//    if(lit == mLocations.end())
+//    {
+//        throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find location: '" + location->toString() + "'");
+//    }
+//
+//    // Map objects to numeric indices -- the indices can be mapped
+//    // backed using the mission they were created from
+//    uint32_t timeIndex = iit - mIntervals.begin();
+//    FluentTimeResource ftr(mpMission,
+//            (int) (sit - mResources.begin())
+//            , timeIndex
+//            , (int) (lit - mLocations.begin()));
+//
+//    if(mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
+//    {
+//        // retrieve upper bound
+//        ftr.maxCardinalities = mAsk.getFunctionalSaturationBound(resourceModel);
+//
+//    } else if(mAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Actor()))
+//    {
+//        switch(locationCardinality->getCardinalityRestrictionType())
+//        {
+//            case owlapi::model::OWLCardinalityRestriction::MIN :
+//            {
+//                size_t min = ftr.minCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::min());
+//                ftr.minCardinalities[ resourceModel ] = std::max(min, (size_t) locationCardinality->getCardinality());
+//                break;
+//            }
+//            case owlapi::model::OWLCardinalityRestriction::MAX :
+//            {
+//                size_t max = ftr.maxCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::max());
+//                ftr.maxCardinalities[ resourceModel ] = std::min(max, (size_t) locationCardinality->getCardinality());
+//                break;
+//            }
+//            default:
+//                break;
+//        }
+//    } else {
+//        throw std::invalid_argument("Unsupported state variable: " + resourceModel.toString());
+//    }
+//
+//    ftr.maxCardinalities = organization_model::Algebra::max(ftr.maxCardinalities, ftr.minCardinalities);
+//    return ftr;
+//}
 
 bool TransportNetwork::isRoleForModel(uint32_t roleIndex, uint32_t modelIndex) const
 {

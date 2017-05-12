@@ -27,6 +27,12 @@ namespace io {
     class MissionReader;
 }
 
+namespace solvers {
+namespace csp {
+    struct FluentTimeResource;
+} // end namespace csp
+} // end namespace solvers
+
 class Mission
 {
     friend class MissionPlanner;
@@ -186,7 +192,7 @@ public:
      * Get access to the OrganizationModelAsk object to query information from
      * the associated organization model
      */
-    const organization_model::OrganizationModelAsk& getOrganizationModelAsk() const { return mAsk; }
+    const organization_model::OrganizationModelAsk& getOrganizationModelAsk() const { return mOrganizationModelAsk; }
 
     /**
      * Set the logger that is associated with this mission object
@@ -220,10 +226,18 @@ public:
             const std::string& label,
             graph_analysis::Vertex::Ptr target);
 
+    /**
+     * Return the list of resource requirements
+     * Requirements are sorted based on the from value
+     */
+    static std::vector<solvers::csp::FluentTimeResource> getResourceRequirements(const Mission::Ptr& mission);
+
+    static solvers::csp::FluentTimeResource fromLocationCardinality(const solvers::temporal::PersistenceCondition::Ptr& p, const Mission::Ptr& mission);
+
 protected:
     void requireConstant(const symbols::Constant::Ptr& constant);
 
-    void incrementConstantUse(const symbols::Constant::Ptr& constant);
+    uint32_t incrementConstantUse(const symbols::Constant::Ptr& constant);
 
     /**
      * Add a constant
@@ -245,7 +259,7 @@ protected:
 
 private:
     organization_model::OrganizationModel::Ptr mpOrganizationModel;
-    organization_model::OrganizationModelAsk mAsk;
+    organization_model::OrganizationModelAsk mOrganizationModelAsk;
     std::string mName;
     // The set of available resources
     organization_model::ModelPool mModelPool;
@@ -267,6 +281,7 @@ private:
     std::set<symbols::ObjectVariable::Ptr> mObjectVariables;
     std::set<symbols::Constant::Ptr> mConstants;
     mutable std::map<symbols::Constant::Ptr, uint32_t> mConstantsUse;
+
     symbols::constants::Location::Ptr mpTransferLocation;
 
     std::string mScenarioFile;

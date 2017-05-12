@@ -63,12 +63,14 @@ struct FluentTimeResource
 
     /**
      * Get the set of functionalities this FluentTimeResource requires
-     * \param ontology The ontology to map the resources
-     * \param mappedResources A list of resources, where this FluentTimeResource
-     * uses the index to refer to this resource -- allows to remap from index to
-     * model
      */
     std::set<organization_model::Functionality> getFunctionalities() const;
+
+    /**
+     * Create a compact representation for all requirement that
+     * refer to the same fluent and time
+     */
+    static void compact(std::vector<FluentTimeResource>& requirements, const organization_model::OrganizationModelAsk& ask);
 
     /**
      * Get the domain in terms of model pool that are allowed

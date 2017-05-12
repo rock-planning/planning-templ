@@ -2,10 +2,12 @@
 #include <boost/lexical_cast.hpp>
 
 #include <owlapi/Vocabulary.hpp>
-#include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
-#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
-#include <templ/symbols/object_variables/LocationCardinality.hpp>
-#include <templ/symbols/object_variables/LocationNumericAttribute.hpp>
+#include <organization_model/Algebra.hpp>
+#include "solvers/csp/FluentTimeResource.hpp"
+#include "solvers/temporal/point_algebra/TimePointComparator.hpp"
+#include "solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
+#include "symbols/object_variables/LocationCardinality.hpp"
+#include "symbols/object_variables/LocationNumericAttribute.hpp"
 
 namespace templ {
 
@@ -15,10 +17,10 @@ Mission::Mission(organization_model::OrganizationModel::Ptr om, const std::strin
     : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
     , mpRelations(graph_analysis::BaseGraph::getInstance())
     , mpOrganizationModel(om)
-    , mAsk(om)
+    , mOrganizationModelAsk(om)
     , mName(name)
-    , mpLogger(new Logger())
     , mpTransferLocation(new symbols::constants::Location("transfer-location"))
+    , mpLogger(new Logger())
 {
     requireConstant(mpTransferLocation);
 }
@@ -27,7 +29,7 @@ Mission::Mission(const Mission& other)
     : mpTemporalConstraintNetwork()
     , mpRelations()
     , mpOrganizationModel(other.mpOrganizationModel)
-    , mAsk(other.mAsk)
+    , mOrganizationModelAsk(other.mOrganizationModelAsk)
     , mName(other.mName)
     , mModelPool(other.mModelPool)
     , mRoles(other.mRoles)
@@ -39,9 +41,9 @@ Mission::Mission(const Mission& other)
     , mObjectVariables(other.mObjectVariables)
     , mConstants(other.mConstants)
     , mConstantsUse(other.mConstantsUse)
+    , mpTransferLocation(other.mpTransferLocation)
     , mScenarioFile(other.mScenarioFile)
     , mpLogger(other.mpLogger)
-    , mpTransferLocation(other.mpTransferLocation)
 {
 
     if(other.mpRelations)
@@ -59,7 +61,7 @@ Mission::Mission(const Mission& other)
 void Mission::setOrganizationModel(organization_model::OrganizationModel::Ptr organizationModel)
 {
     mpOrganizationModel = organizationModel;
-    mAsk = organization_model::OrganizationModelAsk(organizationModel);
+    mOrganizationModelAsk = organization_model::OrganizationModelAsk(organizationModel);
 }
 
 void Mission::setAvailableResources(const organization_model::ModelPool& modelPool)
@@ -95,7 +97,7 @@ void Mission::refresh()
     // Update the ask object based on the model pool and applying the functional
     // saturation bound
     assert(mpOrganizationModel);
-    mAsk = organization_model::OrganizationModelAsk(mpOrganizationModel, mModelPool, true /*functional saturation bound*/);
+    mOrganizationModelAsk = organization_model::OrganizationModelAsk(mpOrganizationModel, mModelPool, true /*functional saturation bound*/);
 }
 
 symbols::ObjectVariable::Ptr Mission::getObjectVariable(const std::string& name, symbols::ObjectVariable::Type type) const
@@ -319,6 +321,51 @@ void Mission::validateAvailableResources() const
             + mModelPool.toString());
 }
 
+std::vector<solvers::csp::FluentTimeResource> Mission::getResourceRequirements(const Mission::Ptr& mission)
+{
+    using namespace solvers::csp;
+
+    if(mission->mTimeIntervals.empty())
+    {
+        throw std::runtime_error("Mission::getResourceRequirements: no time intervals available"
+                " -- make sure you called prepareTimeIntervals() on the mission instance");
+    }
+
+    std::vector<FluentTimeResource> requirements;
+
+    // Iterate over all existing persistence conditions
+    // -- pick the ones relating to location-cardinality function
+    using namespace templ::solvers::temporal;
+    for(PersistenceCondition::Ptr p : mission->mPersistenceConditions)
+    {
+        symbols::StateVariable stateVariable = p->getStateVariable();
+        if(stateVariable.getFunction() == symbols::ObjectVariable::TypeTxt[symbols::ObjectVariable::LOCATION_CARDINALITY] )
+        {
+            try {
+                FluentTimeResource ftr = fromLocationCardinality( p, mission );
+                requirements.push_back(ftr);
+                LOG_DEBUG_S << ftr.toString();
+            } catch(const std::invalid_argument& e)
+            {
+                LOG_WARN_S << e.what();
+            }
+        }
+    }
+
+    // If multiple requirement exists that have the same interval
+    // they can be compacted into one requirement
+    FluentTimeResource::compact(requirements, mission->mOrganizationModelAsk);
+
+    // Sort the requirements based on the start timepoint, i.e. the from
+    using namespace templ::solvers::temporal;
+    point_algebra::TimePointComparator timepointComparator(mission->getTemporalConstraintNetwork());
+    std::sort(requirements.begin(), requirements.end(), [&timepointComparator](const FluentTimeResource& a,const FluentTimeResource& b) -> bool
+            {
+                return timepointComparator.lessThan(a.getInterval().getFrom(), b.getInterval().getFrom());
+            });
+    return requirements;
+}
+
 
 // Get special sets of constants
 std::vector<symbols::constants::Location::Ptr> Mission::getLocations(bool excludeUnused) const
@@ -365,9 +412,10 @@ void Mission::requireConstant(const symbols::Constant::Ptr& constant)
     incrementConstantUse(constant);
 }
 
-void Mission::incrementConstantUse(const symbols::Constant::Ptr& constant)
+uint32_t Mission::incrementConstantUse(const symbols::Constant::Ptr& constant)
 {
     mConstantsUse[constant] += 1;
+    return mConstantsUse[constant];
 }
 
 void Mission::addConstant(const symbols::Constant::Ptr& constant)
@@ -420,6 +468,81 @@ graph_analysis::Edge::Ptr Mission::addRelation(graph_analysis::Vertex::Ptr sourc
     Edge::Ptr edge(new Edge(source, target, label));
     mpRelations->addEdge(edge);
     return edge;
+}
+
+solvers::csp::FluentTimeResource Mission::fromLocationCardinality(const solvers::temporal::PersistenceCondition::Ptr& p, const Mission::Ptr& mission)
+{
+    using namespace templ::solvers::temporal;
+    point_algebra::TimePointComparator timepointComparator(mission->getTemporalConstraintNetwork());
+
+    const symbols::StateVariable& stateVariable = p->getStateVariable();
+    owlapi::model::IRI resourceModel(stateVariable.getResource());
+    symbols::ObjectVariable::Ptr objectVariable = dynamic_pointer_cast<symbols::ObjectVariable>(p->getValue());
+    symbols::object_variables::LocationCardinality::Ptr locationCardinality = dynamic_pointer_cast<symbols::object_variables::LocationCardinality>(objectVariable);
+
+    Interval interval(p->getFromTimePoint(), p->getToTimePoint(), timepointComparator);
+    std::vector<Interval>::const_iterator iit = std::find(mission->mTimeIntervals.begin(), mission->mTimeIntervals.end(), interval);
+    if(iit == mission->mTimeIntervals.end())
+    {
+        throw std::runtime_error("templ::Mission::fromLocationCardinality: could not find interval: '" + interval.toString() + "'");
+    }
+
+    owlapi::model::IRIList::const_iterator sit = std::find(mission->mRequestedResources.begin(), mission->mRequestedResources.end(), resourceModel);
+    if(sit == mission->mRequestedResources.end())
+    {
+        throw std::runtime_error("templ::Mission::fromLocationCardinality: could not find service: '" + resourceModel.toString() + "'");
+    }
+
+    symbols::constants::Location::Ptr location = locationCardinality->getLocation();
+
+    std::vector<symbols::constants::Location::Ptr> locations = mission->getLocations();
+    std::vector<symbols::constants::Location::Ptr>::const_iterator lit = std::find(locations.begin(), locations.end(), location);
+    if(lit == locations.end())
+    {
+        throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find location: '" + location->toString() + "'");
+    }
+
+    using namespace solvers::csp;
+
+    // Map objects to numeric indices -- the indices can be mapped
+    // backed using the mission they were created from
+    uint32_t timeIndex = iit - mission->mTimeIntervals.begin();
+    FluentTimeResource ftr(mission,
+            (int) (sit - mission->mRequestedResources.begin())
+            , timeIndex
+            , (int) (lit - locations.begin()));
+
+    owlapi::model::OWLOntologyAsk ask = mission->getOrganizationModelAsk().ontology();
+    if(ask.isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
+    {
+        // retrieve upper bound
+        ftr.maxCardinalities = mission->mOrganizationModelAsk.getFunctionalSaturationBound(resourceModel);
+
+    } else if(ask.isSubClassOf(resourceModel, organization_model::vocabulary::OM::Actor()))
+    {
+        switch(locationCardinality->getCardinalityRestrictionType())
+        {
+            case owlapi::model::OWLCardinalityRestriction::MIN :
+            {
+                size_t min = ftr.minCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::min());
+                ftr.minCardinalities[ resourceModel ] = std::max(min, (size_t) locationCardinality->getCardinality());
+                break;
+            }
+            case owlapi::model::OWLCardinalityRestriction::MAX :
+            {
+                size_t max = ftr.maxCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::max());
+                ftr.maxCardinalities[ resourceModel ] = std::min(max, (size_t) locationCardinality->getCardinality());
+                break;
+            }
+            default:
+                break;
+        }
+    } else {
+        throw std::invalid_argument("templ::Mission::fromLocationCardinality: Unsupported state variable: " + resourceModel.toString());
+    }
+
+    ftr.maxCardinalities = organization_model::Algebra::max(ftr.maxCardinalities, ftr.minCardinalities);
+    return ftr;
 }
 
 } // end namespace templ

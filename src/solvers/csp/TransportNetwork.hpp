@@ -226,23 +226,7 @@ private:
     const owlapi::model::IRI& getResourceModelFromIndex(size_t index) const;
     size_t getResourceModelMaxCardinality(size_t model) const;
 
-    /**
-     * Return the list of resource requirements
-     * Requirements are sorted based on the from value
-     */
-    std::vector<FluentTimeResource> getResourceRequirements() const;
-
-
-    FluentTimeResource fromLocationCardinality(const temporal::PersistenceCondition::Ptr& persistenceCondition) const;
-    //FluentTimeResource fromLocationNumericAttribute(const PersistenceCondition::Ptr& persistenceCondition) const;
-
     size_t getMaxResourceCount(const organization_model::ModelPool& model) const;
-
-    /**
-     * Create a compact representation for all requirement that
-     * refer to the same fluent and time
-     */
-    void compact(std::vector<FluentTimeResource>& requirements) const;
 
     /**
      * Check if given role (by id) is model (by id)
