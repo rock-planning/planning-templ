@@ -103,7 +103,7 @@ public:
 
 protected:
     /// Make sure cloning works
-    virtual graph_analysis::Vertex* doClone() { return new SpatioTemporalRequirement(*this); }
+    virtual graph_analysis::Vertex* getClone() const { return new SpatioTemporalRequirement(*this); }
 };
 
 struct TemporalConstraint
