@@ -233,10 +233,6 @@ const Gecode::Choice* TimelineBrancher::choice(const Gecode::Space& home, Gecode
 Gecode::NGL* TimelineBrancher::ngl(Gecode::Space& home, const Gecode::Choice& c, unsigned int a) const
 {
     const PosVal& pv = static_cast<const PosVal&>(c);
-    int role = pv.role;
-    int pos = pv.pos;
-    int includeEmptySet = pv.includeEmptySet;
-    assert(false);
 
     // We focus the NGL on the (Not) empty branches which set the empty set
     // implicitly du to related path constraints
