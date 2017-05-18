@@ -2,6 +2,7 @@
 #define TEMPL_ROLE_HPP
 
 #include <owlapi/model/IRI.hpp>
+#include <organization_model/ModelPool.hpp>
 
 namespace templ {
 
@@ -17,6 +18,7 @@ class Role
     owlapi::model::IRI mModel;
 public:
     typedef std::vector<Role> List;
+    typedef std::set<Role> Set;
 
     /**
      * Default constructor to allow usage in lists and maps
@@ -34,7 +36,9 @@ public:
     const owlapi::model::IRI& getModel() const { return mModel; }
 
     std::string toString() const;
-    static std::string toString(const std::vector<Role>& roles);
+    static std::string toString(const List& roles);
+    static std::string toString(const Set& roles);
+    static organization_model::ModelPool getModelPool(const List& roles);
 
     bool operator<(const Role& other) const;
     bool operator==(const Role& other) const { return mName == other.mName && mModel == other.mModel; }

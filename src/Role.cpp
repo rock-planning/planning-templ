@@ -39,6 +39,29 @@ std::string Role::toString(const Role::List& roles)
     return ss.str();
 }
 
+std::string Role::toString(const Role::Set& roles)
+{
+    std::stringstream ss;
+    Role::Set::const_iterator cit = roles.begin();
+    ss << "Roles: " << std::endl;
+    for(; cit != roles.end(); ++cit)
+    {
+        ss << "    - " << cit->toString() << std::endl;
+    }
+    return ss.str();
+}
+
+organization_model::ModelPool Role::getModelPool(const Role::List& roles)
+{
+    organization_model::ModelPool modelPool;
+    for(const Role& role : roles)
+    {
+        owlapi::model::IRI model = role.getModel();
+        modelPool[model] +=1;
+    }
+    return modelPool;
+}
+
 bool Role::operator<(const Role& other) const
 {
     if(mModel == other.mModel)

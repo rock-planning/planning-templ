@@ -9,7 +9,7 @@ rock_library(templ
         PlanSpaceVisitor.cpp
         PlanningState.cpp
         Role.cpp
-        RoleInfoTuple.cpp
+        RoleInfo.cpp
         SpaceTime.cpp
         Symbol.cpp
         io/FluentTypes.cpp
@@ -88,7 +88,9 @@ rock_library(templ
         PlanSpaceVisitor.hpp
         PlanningState.hpp
         Role.hpp
+        RoleInfo.hpp
         RoleInfoTuple.hpp
+        RoleInfoWeightedEdge.hpp
         SpaceTime.hpp
         Symbol.hpp
         TemporallyExpandedNetwork.hpp
