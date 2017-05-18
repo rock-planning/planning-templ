@@ -68,7 +68,7 @@ public:
 protected:
 
     /// Make sure cloning works for this constraint
-    virtual graph_analysis::Edge* doClone() { return new IntervalConstraint(*this); }
+    virtual graph_analysis::Edge* getClone() const { return new IntervalConstraint(*this); }
 
 };
 

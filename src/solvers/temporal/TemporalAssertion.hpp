@@ -90,7 +90,7 @@ protected:
     symbols::StateVariable mStateVariable;
 
     /// Make sure cloning works
-    virtual graph_analysis::Vertex* doClone() { return new TemporalAssertion(*this); }
+    virtual graph_analysis::Vertex* getClone() const { return new TemporalAssertion(*this); }
 };
 
 typedef std::vector<TemporalAssertion::Ptr> TemporalAssertionList;

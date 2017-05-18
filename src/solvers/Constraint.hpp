@@ -53,7 +53,7 @@ public:
 
 protected:
     /// Make sure cloning works for this constraint
-    virtual graph_analysis::Edge* doClone() { return new Constraint(*this); }
+    graph_analysis::Edge* getClone() const override { return new Constraint(*this); }
 };
 
 typedef std::vector<Constraint::Ptr> ConstraintList;

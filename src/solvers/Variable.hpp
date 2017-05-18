@@ -30,7 +30,7 @@ public:
     virtual std::string toString() const;
 
 protected:
-    virtual graph_analysis::Vertex* doClone() { return new Variable(*this); }
+    virtual graph_analysis::Vertex* getClone() const { return new Variable(*this); }
 };
 
 } // end namespace solvers

@@ -64,7 +64,7 @@ public:
 
 protected:
     /// Make sure cloning works
-    virtual graph_analysis::Vertex* doClone() { return new PersistenceCondition(*this); }
+    virtual graph_analysis::Vertex* getClone() const { return new PersistenceCondition(*this); }
 };
 
 } // end namespace temporal

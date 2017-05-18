@@ -61,7 +61,7 @@ public:
 
 protected:
     /// Make sure cloning works
-    virtual graph_analysis::Vertex* doClone() { return new Event(*this); }
+    virtual graph_analysis::Vertex* getClone() const { return new Event(*this); }
 
 
 };
