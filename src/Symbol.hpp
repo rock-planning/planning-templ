@@ -30,6 +30,7 @@ public:
     virtual bool equals(const Symbol::Ptr& other) const { return first == other->first && second == other->second && mType == other->mType; }
 
     virtual std::string toString() const;
+    virtual std::string toString(size_t indent) const;
 
 private:
     Type mType;

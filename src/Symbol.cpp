@@ -19,7 +19,15 @@ Symbol::Symbol(const std::string& name, const std::string& type_name, Type type)
 
 std::string Symbol::toString() const
 {
-    return TypeTxt[mType] + ": (" + first + ", " + second + ")";
+    return toString(0);
+}
+std::string Symbol::toString(size_t indent) const
+{
+    std::string hspace(indent,' ');
+    std::string s = hspace + TypeTxt[mType] + "\n";
+    s += hspace + "    " + first + "\n";
+    s += hspace + "    " + second;
+    return s;
 }
 
 } // end namespace templ
