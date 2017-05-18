@@ -303,7 +303,7 @@ std::string Mission::toString() const
     std::vector<solvers::temporal::PersistenceCondition::Ptr>::const_iterator pit = mPersistenceConditions.begin();
     for(; pit != mPersistenceConditions.end(); ++pit)
     {
-        ss << "        " << (*pit)->toString() << std::endl;
+        ss << (*pit)->toString(8) << std::endl;
     }
 
     return ss.str();
