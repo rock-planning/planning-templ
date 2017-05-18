@@ -67,7 +67,7 @@ rock_library(templ
         solvers/temporal/point_algebra/TimePointComparator.cpp
         solvers/transshipment/Flaw.cpp
         solvers/transshipment/MinCostFlow.cpp
-        solvers/transshipment/TransportNetwork.cpp
+        solvers/transshipment/FlowNetwork.cpp
         symbols/Constant.cpp
         symbols/ObjectVariable.cpp
         symbols/StateVariable.cpp
@@ -153,7 +153,7 @@ rock_library(templ
         solvers/temporal/point_algebra/TimePointComparator.hpp
         solvers/transshipment/Flaw.hpp
         solvers/transshipment/MinCostFlow.hpp
-        solvers/transshipment/TransportNetwork.hpp
+        solvers/transshipment/FlowNetwork.hpp
         symbols/Constant.hpp
         symbols/ObjectVariable.hpp
         symbols/StateVariable.hpp

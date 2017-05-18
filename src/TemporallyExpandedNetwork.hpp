@@ -4,10 +4,14 @@
 #include <limits>
 #include <vector>
 #include <stdexcept>
+#include <algorithm>
 #include <graph_analysis/BaseGraph.hpp>
+#include <graph_analysis/io/GraphvizWriter.hpp>
+#include <graph_analysis/io/GraphvizGridStyle.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
 #include "solvers/temporal/point_algebra/TimePoint.hpp"
 #include "Tuple.hpp"
+#include "RoleInfoWeightedEdge.hpp"
 
 namespace templ {
 
@@ -46,6 +50,9 @@ protected:
     TupleMap mTupleMap;
 
 public:
+    TemporallyExpandedNetwork()
+    {}
+
     TemporallyExpandedNetwork(const ValueList& values, const TimePointList& timepoints, const graph_analysis::Edge::Ptr& locationTransitionEdge = graph_analysis::Edge::Ptr())
         : mValues(values)
         , mTimepoints(timepoints)
@@ -63,7 +70,7 @@ public:
         }
         if(!mpLocalTransitionEdge)
         {
-            graph_analysis::WeightedEdge::Ptr weightedEdge(new graph_analysis::WeightedEdge());
+            RoleInfoWeightedEdge::Ptr weightedEdge(new RoleInfoWeightedEdge());
             weightedEdge->setWeight(std::numeric_limits<graph_analysis::WeightedEdge::value_t>::max());
             mpLocalTransitionEdge = weightedEdge;
         }
@@ -117,6 +124,17 @@ public:
 
     const graph_analysis::BaseGraph::Ptr& getGraph() const { return mpGraph; }
 
+    /**
+     * Return the list of values, e.g. for the SpaceTime::Network that will mean
+     * the locations
+     */
+    const ValueList& getValues() const { return mValues; }
+
+    /**
+     * Return the list of timepoints
+     */
+    const TimePointList& getTimepoints() const { return mTimepoints; }
+
     void addTuple(const D0& value, const D1& timepoint, const typename tuple_t::Ptr& tuple)
     {
         mTupleMap[ ValueTimePair(value, timepoint) ] = tuple;
@@ -125,7 +143,7 @@ public:
     /**
      * Retrieve a tuple (actually a graph vertex) by the given key tuple
      */
-    typename tuple_t::Ptr tupleByKeys(const D0& value, const D1& timepoint)
+    typename tuple_t::Ptr tupleByKeys(const D0& value, const D1& timepoint) const
     {
         typename TupleMap::const_iterator cit = mTupleMap.find( ValueTimePair(value,timepoint) );
         if(cit != mTupleMap.end())
@@ -136,6 +154,71 @@ public:
         throw std::invalid_argument("TemporallyExpandedNetwork::tupleByKeys: key does not exist");
     }
 
+    void save(const std::string& filename) const
+    {
+        using namespace graph_analysis::io;
+        GraphvizWriter gvWriter("dot","canon");
+        GraphvizGridStyle::Ptr style(new GraphvizGridStyle(
+                    mValues.size(),
+                    mTimepoints.size(),
+                    bind(&TemporallyExpandedNetwork<D0,D1,TUPLE>::getRow,this, placeholder::_1),
+                    bind(&TemporallyExpandedNetwork<D0,D1,TUPLE>::getColumn,this, placeholder::_1)
+                    ));
+        style->setColumnScalingFactor(5.0);
+        style->setRowScalingFactor(5.0);
+
+        gvWriter.setStyle(style);
+        gvWriter.write(filename, getGraph());
+    }
+
+    const ValueTimePair& getValueTimePair(const typename tuple_t::Ptr& searchTuple) const
+    {
+        typename TupleMap::const_iterator cit = mTupleMap.begin();
+        for(; cit != mTupleMap.end(); ++cit)
+        {
+            const ValueTimePair& valueTimePair = cit->first;
+            typename tuple_t::Ptr tuple = cit->second;
+            if(tuple ==  searchTuple)
+            {
+                return valueTimePair;
+            }
+        }
+        throw std::invalid_argument("templ::TemporallyExpandedNetwork::getValueTimePair: could not find provided tuple in network");
+    }
+
+    const D0& getValue(const typename tuple_t::Ptr& tuple) const
+    {
+        return getValueTimePair(tuple).first;
+    }
+
+    const D1& getTimepoint(const typename tuple_t::Ptr& tuple) const
+    {
+        return getValueTimePair(tuple).second;
+    }
+
+    size_t getColumn(const graph_analysis::Vertex::Ptr& vertex) const
+    {
+        typename tuple_t::Ptr tuple = dynamic_pointer_cast<tuple_t>(vertex);
+        const D0& value = getValue(tuple);
+
+        typename ValueList::const_iterator cit = std::find_if(mValues.begin(), mValues.end(), [value](const D0& other)
+                {
+                    return value == other;
+                });
+        return std::distance(mValues.begin(), cit);
+    }
+
+    size_t getRow(const graph_analysis::Vertex::Ptr& vertex) const
+    {
+        typename tuple_t::Ptr tuple = dynamic_pointer_cast<tuple_t>(vertex);
+        const D1& timepoint = getTimepoint(tuple);
+
+        typename TimePointList::const_iterator cit = std::find_if(mTimepoints.begin(), mTimepoints.end(), [timepoint](const D1& other)
+                {
+                    return timepoint == other;
+                });
+        return std::distance(mTimepoints.begin(), cit);
+    }
 };
 
 } // end namespace templ

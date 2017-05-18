@@ -44,6 +44,7 @@ public:
         ModelDistribution mModelDistribution;
         RoleDistribution mRoleDistribution;
         SpaceTime::Timelines mTimelines;
+        SpaceTime::Network mMinCostFlowSolution;
 
     public:
         const ModelDistribution& getModelDistribution() const { return mModelDistribution; }
@@ -51,6 +52,8 @@ public:
 
         std::string toString(uint32_t indent = 0) const;
         SpaceTime::Network toNetwork() const;
+
+        SpaceTime::Network getMinCostFlowSolution() const { return mMinCostFlowSolution; }
     };
 
     typedef std::vector<Solution> SolutionList;

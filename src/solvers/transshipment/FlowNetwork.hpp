@@ -1,5 +1,5 @@
-#ifndef TEMPL_SOLVERS_TRANSSHIPMENT_TRANSPORT_NETWORK_HPP
-#define TEMPL_SOLVERS_TRANSSHIPMENT_TRANSPORT_NETWORK_HPP
+#ifndef TEMPL_SOLVERS_TRANSSHIPMENT_FLOW_NETWORK_HPP
+#define TEMPL_SOLVERS_TRANSSHIPMENT_FLOW_NETWORK_HPP
 
 #include <templ/Mission.hpp>
 #include <templ/SpaceTime.hpp>
@@ -12,10 +12,14 @@ namespace transshipment {
 /**
  * Graph-based representation of mobile systems
  */
-class TransportNetwork
+class FlowNetwork
 {
 public:
-    TransportNetwork(const Mission::Ptr& mission,
+    /**
+     * TODO: currently using timelines and expandedTimelines
+     * was intended to deal with different timeline definition
+     */
+    FlowNetwork(const Mission::Ptr& mission,
         const std::map<Role, csp::RoleTimeline>& timelines,
         const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines());
 
@@ -26,10 +30,29 @@ public:
      */
     SpaceTime::Network& getSpaceTimeNetwork() { return mSpaceTimeNetwork; }
 
+    /**
+     * Get the current set of timelines
+     */
     const std::map<Role, csp::RoleTimeline> getTimeslines() const { return mTimelines; }
+
+    /**
+     *
+     */
     const SpaceTime::Timelines getExpandedTimelines() const { return mExpandedTimelines; }
 
-    void save();
+    void save(const std::string& filename = "");
+
+    /**
+     * Get the row index of a vertex for supporting a GridLayout
+     * \return row index
+     */
+    size_t getRowIndex(const graph_analysis::Vertex::Ptr& vertex) const;
+
+    /**
+     * Get the column index of a vertex for supporting a GridLayout
+     * \return column index
+     */
+    size_t getColumnIndex(const graph_analysis::Vertex::Ptr& vertex) const;
 
 protected:
     void initialize();
@@ -48,4 +71,4 @@ private:
 } // end namespace transsshipment
 } // end namespace solvers
 } // end namespace templ
-#endif // TEMPL_SOLVERS_TRANSSHIPMENT_TRANSPORT_NETWORK_HPP
+#endif // TEMPL_SOLVERS_TRANSSHIPMENT_FLOW_NETWORK_HPP

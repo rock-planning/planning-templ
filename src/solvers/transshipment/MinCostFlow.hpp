@@ -6,7 +6,7 @@
 #include <graph_analysis/algorithms/MultiCommodityMinCostFlow.hpp>
 #include <templ/Mission.hpp>
 #include <templ/solvers/csp/RoleTimeline.hpp>
-#include <templ/solvers/transshipment/TransportNetwork.hpp>
+#include <templ/solvers/transshipment/FlowNetwork.hpp>
 #include "Flaw.hpp"
 
 namespace templ {
@@ -43,7 +43,7 @@ public:
      */
     std::vector<Flaw> run();
 
-    TransportNetwork& getTransportNetwork() { return mTransportNetwork; }
+    FlowNetwork& getFlowNetwork() { return mFlowNetwork; }
 protected:
     /**
      *  Translating the space time network into the mincommodity representation,
@@ -101,7 +101,7 @@ private:
     SpaceTime::Timelines mExpandedTimelines;
     std::vector<Role> mCommoditiesRoles;
 
-    TransportNetwork mTransportNetwork;
+    FlowNetwork mFlowNetwork;
     SpaceTime::Network mSpaceTimeNetwork;
     // Store the mapping between flow graph and space time network
     graph_analysis::BipartiteGraph mBipartiteGraph;

@@ -267,6 +267,7 @@ TransportNetwork::Solution TransportNetwork::getSolution() const
         solution.mTimelines = getTimelines();
         solution.mLocations = mLocations;
         solution.mTimepoints = mTimepoints;
+        solution.mMinCostFlowSolution = mMinCostFlowSolution;
     } catch(std::exception& e)
     {
         LOG_WARN_S << e.what();
@@ -749,6 +750,7 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
     , mActiveRoleList(other.mActiveRoleList)
     , mSupplyDemand(other.mSupplyDemand)
     , mMinCostFlowFlaws(other.mMinCostFlowFlaws)
+    , mMinCostFlowSolution(other.mMinCostFlowSolution)
 {
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
@@ -1362,7 +1364,9 @@ void TransportNetwork::postMinCostFlowConstraints()
         LOG_WARN_S << "Flaw: " << flaw.toString();
     }
 
-    minCostFlow.getTransportNetwork().save();
+    transshipment::FlowNetwork flowNetwork = minCostFlow.getFlowNetwork();
+    mMinCostFlowSolution = flowNetwork.getSpaceTimeNetwork();
+    flowNetwork.save();
     mMinCostFlowFlaws = flaws;
 
     std::cout << "Press ENTER to continue... (end post min cost flow), remaining flaws: " << flaws.size();

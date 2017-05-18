@@ -18,7 +18,6 @@
 #include <templ/solvers/GQReasoner.hpp>
 #include <templ/solvers/csp/ModelDistribution.hpp>
 #include <templ/solvers/csp/RoleDistribution.hpp>
-#include <templ/solvers/transshipment/TransportNetwork.hpp>
 #include <templ/solvers/transshipment/MinCostFlow.hpp>
 #include <templ/utils/PathConstructor.hpp>
 #include <templ/Plan.hpp>
@@ -125,7 +124,7 @@ std::vector<Plan> MissionPlanner::execute(uint32_t)
                 LOG_WARN_S << "Flaws in plan: " << flaws.size();
                 if(flaws.empty())
                 {
-                    Plan plan = renderPlan(mission, &minCostFlow.getTransportNetwork().getSpaceTimeNetwork(), timelines);
+                    Plan plan = renderPlan(mission, &minCostFlow.getFlowNetwork().getSpaceTimeNetwork(), timelines);
                     plans.push_back(plan);
                     mission->getLogger()->incrementSessionId();
                     LOG_WARN_S << "Solution found: " << plan.toString();

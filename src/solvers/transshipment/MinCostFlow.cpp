@@ -20,8 +20,8 @@ MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
     : mpMission(mission)
     , mTimelines(timelines)
     , mExpandedTimelines(expandedTimelines)
-    , mTransportNetwork(mission, timelines, expandedTimelines)
-    , mSpaceTimeNetwork(mTransportNetwork.getSpaceTimeNetwork())
+    , mFlowNetwork(mission, timelines, expandedTimelines)
+    , mSpaceTimeNetwork(mFlowNetwork.getSpaceTimeNetwork())
 {
 
     std::map<Role, csp::RoleTimeline>::const_iterator rit = mTimelines.begin();
@@ -229,7 +229,7 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
                 ////{
                 ////    // More transport availability needed
                 ////    // TODO: quantify request, e.g. for 1 more Payload
-                ////    Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mission), vocabulary::OM::resolve("TransportProvider")));
+                ////    Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mission), vocabulary::OM::resolve("FlowProvider")));
                 ////    state->addResolver(functionalityRequest);
                 ////}
 
@@ -248,10 +248,10 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
                 organization_model::facets::Robot robot(affectedRole.getModel(), mOrganizationModelAsk);
                 if(!robot.isMobile())
                 {
-                    std::cout << "Robot is not mobile thus requesting a TransportProvider" << std::endl;
+                    std::cout << "Robot is not mobile thus requesting a FlowProvider" << std::endl;
                    // More transport availability needed
                    // TODO: quantify request, e.g. for 1 more Payload
-                   Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mission), vocabulary::OM::resolve("TransportProvider")));
+                   Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mission), vocabulary::OM::resolve("FlowProvider")));
                    state->addResolver(functionalityRequest);
                 }
 
@@ -301,8 +301,8 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
                     << "    target: " << targetLocation->toString() << multicommodityEdge->getTargetVertex()->toString() << std::endl
                 ;
 
-                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(sourceLocation)->addRole(role, "result");
-                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(targetLocation)->addRole(role, "result");
+                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(sourceLocation)->addRole(role, "assigned");
+                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(targetLocation)->addRole(role, "assigned");
             }
         }
     }

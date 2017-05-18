@@ -1,4 +1,4 @@
-#include "TransportNetwork.hpp"
+#include "FlowNetwork.hpp"
 #include <organization_model/facets/Robot.hpp>
 #include <graph_analysis/GraphIO.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
@@ -14,7 +14,7 @@ namespace templ {
 namespace solvers {
 namespace transshipment {
 
-TransportNetwork::TransportNetwork(const Mission::Ptr& mission,
+FlowNetwork::FlowNetwork(const Mission::Ptr& mission,
         const std::map<Role, csp::RoleTimeline>& timelines,
         const SpaceTime::Timelines& expandedTimelines)
     : mpMission(mission)
@@ -31,7 +31,7 @@ TransportNetwork::TransportNetwork(const Mission::Ptr& mission,
         LOG_DEBUG_S << "Written temporal constraint network to: " << filename;
         LOG_DEBUG_S << "(e.g. view with 'xdot " << filename << "'" << ")";
 
-        throw std::runtime_error("templ::solvers::transshipment::TransportNetwork: "
+        throw std::runtime_error("templ::solvers::transshipment::FlowNetwork: "
                 "cannot create transport network from mission with inconsistent temporal constraint"
                 " network");
     }
@@ -39,15 +39,22 @@ TransportNetwork::TransportNetwork(const Mission::Ptr& mission,
     initialize();
 }
 
-void TransportNetwork::save()
+void FlowNetwork::save(const std::string& path)
 {
-    std::string filename = mpMission->getLogger()->filename("transport-network.dot");
-    graph_analysis::io::GraphIO::write(filename, mSpaceTimeNetwork.getGraph());
+    std::string filename = path;
+    if(filename.empty())
+    {
+        filename = mpMission->getLogger()->filename("transport-network.dot");
+    }
+    using namespace graph_analysis::io;
+
+    mSpaceTimeNetwork.save(filename);
+
     LOG_DEBUG_S << "Written transport network to: " << filename;
     LOG_DEBUG_S << "(e.g. view with 'xdot " << filename << "'" << ")";
 }
 
-void TransportNetwork::initialize()
+void FlowNetwork::initialize()
 {
     if(mExpandedTimelines.empty())
     {
@@ -57,7 +64,7 @@ void TransportNetwork::initialize()
     }
 }
 
-void TransportNetwork::initializeExpandedTimelines()
+void FlowNetwork::initializeExpandedTimelines()
 {
     // -----------------------------------------
     // Add capacity-weighted edges to the graph
@@ -109,18 +116,21 @@ void TransportNetwork::initializeExpandedTimelines()
                 startTuple = mSpaceTimeNetwork.tupleByKeys(prevLocation, prevIntervalEnd);
                 startTuple->addRole(role);
 
-                std::vector< WeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<WeightedEdge>(startTuple, endTuple);
+                std::vector< RoleInfoWeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<RoleInfoWeightedEdge>(startTuple, endTuple);
                 if(edges.empty())
                 {
-                    WeightedEdge::Ptr weightedEdge(new WeightedEdge(startTuple, endTuple, capacity));
+                    RoleInfoWeightedEdge::Ptr weightedEdge(new RoleInfoWeightedEdge(startTuple, endTuple, capacity));
+                    weightedEdge->addRole(role, "assigned");
                     mSpaceTimeNetwork.getGraph()->addEdge(weightedEdge);
                 } else if(edges.size() > 1)
                 {
-                    throw std::runtime_error("MissionPlanner: multiple capacity edges detected");
+                    throw std::runtime_error("templ::solvers::transshipment::FlowNetwork: multiple capacity edges detected");
                 } else { // one edge -- sum up capacities of mobile systems
-                    WeightedEdge::Ptr& existingEdge = edges[0];
+                    RoleInfoWeightedEdge::Ptr& existingEdge = edges[0];
                     double existingCapacity = existingEdge->getWeight();
-                    if(existingCapacity < std::numeric_limits<WeightedEdge::value_t>::max())
+                    existingEdge->addRole(role, "assigned");
+
+                    if(existingCapacity < std::numeric_limits<RoleInfoWeightedEdge::value_t>::max())
                     {
                         capacity += existingCapacity;
                         existingEdge->setWeight(capacity, 0 /*index of 'overall capacity'*/);
@@ -134,7 +144,7 @@ void TransportNetwork::initializeExpandedTimelines()
     }
 }
 
-void TransportNetwork::initializeMinimalTimelines()
+void FlowNetwork::initializeMinimalTimelines()
 {
     // -----------------------------------------
     // Add capacity-weighted edges to the graph
@@ -190,18 +200,18 @@ void TransportNetwork::initializeMinimalTimelines()
                 startTuple = mSpaceTimeNetwork.tupleByKeys(prevLocation, prevIntervalEnd);
                 startTuple->addRole(role);
 
-                std::vector< WeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<WeightedEdge>(startTuple, endTuple);
+                std::vector< RoleInfoWeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<RoleInfoWeightedEdge>(startTuple, endTuple);
                 if(edges.empty())
                 {
-                    WeightedEdge::Ptr weightedEdge(new WeightedEdge(startTuple, endTuple, capacity));
+                    RoleInfoWeightedEdge::Ptr weightedEdge(new RoleInfoWeightedEdge(startTuple, endTuple, capacity));
                     mSpaceTimeNetwork.getGraph()->addEdge(weightedEdge);
                 } else if(edges.size() > 1)
                 {
                     throw std::runtime_error("MissionPlanner: multiple capacity edges detected");
                 } else { // one edge -- sum up capacities of mobile systems
-                    WeightedEdge::Ptr& existingEdge = edges[0];
+                    RoleInfoWeightedEdge::Ptr& existingEdge = edges[0];
                     double existingCapacity = existingEdge->getWeight();
-                    if(existingCapacity < std::numeric_limits<WeightedEdge::value_t>::max())
+                    if(existingCapacity < std::numeric_limits<RoleInfoWeightedEdge::value_t>::max())
                     {
                         capacity += existingCapacity;
                         existingEdge->setWeight(capacity, 0 /*index of 'overall capacity'*/);
