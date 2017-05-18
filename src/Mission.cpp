@@ -460,9 +460,9 @@ const symbols::Constant::Ptr& Mission::getConstant(const std::string& id, symbol
     throw std::invalid_argument("templ::Mission: no constant named '" + id + "' of type '" + symbols::Constant::TypeTxt[type] + "' known");
 }
 
-graph_analysis::Edge::Ptr Mission::addRelation(graph_analysis::Vertex::Ptr source,
+graph_analysis::Edge::Ptr Mission::addRelation(const graph_analysis::Vertex::Ptr& source,
         const std::string& label,
-        graph_analysis::Vertex::Ptr target)
+        const graph_analysis::Vertex::Ptr& target)
 {
     using namespace graph_analysis;
     Edge::Ptr edge(new Edge(source, target, label));

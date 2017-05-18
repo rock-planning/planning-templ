@@ -222,9 +222,9 @@ public:
     /**
      * Add relation
      */
-    graph_analysis::Edge::Ptr addRelation(graph_analysis::Vertex::Ptr source,
+    graph_analysis::Edge::Ptr addRelation(const graph_analysis::Vertex::Ptr& source,
             const std::string& label,
-            graph_analysis::Vertex::Ptr target);
+            const graph_analysis::Vertex::Ptr& target);
 
     /**
      * Return the list of resource requirements
