@@ -24,6 +24,7 @@ namespace templ
     using ::boost::dynamic_pointer_cast;
     using ::boost::static_pointer_cast;
     using ::boost::function1;
+    namespace placeholder = ::boost;
 #else
     using ::std::shared_ptr;
     using ::std::make_shared;
@@ -31,6 +32,7 @@ namespace templ
     using ::std::static_pointer_cast;
     template <class T, class U>
     using function1 = ::std::function<T(U)>;
+    namespace placeholder = ::std::placeholders;
 #endif
 
     // Convert pointer array from a given type to target type
