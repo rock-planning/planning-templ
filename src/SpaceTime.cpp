@@ -51,7 +51,9 @@ std::string SpaceTime::toString(const Timelines& timelines, size_t indent)
     return ss.str();
 }
 
-SpaceTime::Network SpaceTime::toNetwork(const symbols::constants::Location::PtrList& locations, const templ::solvers::temporal::point_algebra::TimePoint::PtrList timepoints, const Timelines& timelines)
+SpaceTime::Network SpaceTime::toNetwork(const symbols::constants::Location::PtrList& locations,
+        const templ::solvers::temporal::point_algebra::TimePoint::PtrList timepoints,
+        const Timelines& timelines)
 {
     Network network(locations, timepoints);
     Timelines::const_iterator cit = timelines.begin();
@@ -69,15 +71,6 @@ SpaceTime::Network SpaceTime::toNetwork(const symbols::constants::Location::PtrL
 
             Network::tuple_t::Ptr roleInfo = network.tupleByKeys(location, timepoint);
             roleInfo->addRole(role);
-
-           // assert(stp.first);
-           // if(stp.first)
-           // {
-           // }
-
-           // if(stp.second)
-           // {
-           // }
         }
     }
     return network;
