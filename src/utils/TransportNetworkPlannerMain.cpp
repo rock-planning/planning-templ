@@ -1,6 +1,7 @@
 #include <templ/io/MissionReader.hpp>
 #include <templ/solvers/csp/TransportNetwork.hpp>
 #include <graph_analysis/GraphIO.hpp>
+#include "../solvers/SolutionAnalysis.hpp"
 
 using namespace templ;
 
@@ -40,7 +41,7 @@ int main(int argc, char** argv)
     {
         std::cout << "No solution found" << std::endl;
     } else {
-        std::cout << solutions.size() << " solutions have been found: " << std::endl << solutions;
+        std::cout << solutions.size() << " solutions have been found" << std::endl; // << solutions;
 
         for(size_t i = 0; i < solutions.size(); ++i)
         {
@@ -52,6 +53,28 @@ int main(int argc, char** argv)
             } catch(const std::exception& e)
             {
                 std::cout << "Saving file " << ss.str() << " failed: -- " << e.what();
+            }
+
+
+            std::cout << "Solution analysis" << std::endl;
+            solvers::SolutionAnalysis sa(mission, solutions[i].getMinCostFlowSolution());
+            std::cout << "    Required roles: " << Role::toString(sa.getRequiredRoles()) << std::endl;
+
+            for(const symbols::constants::Location::Ptr& location : mission->getLocations())
+            {
+                for(const solvers::temporal::Interval& interval : mission->getTimeIntervals())
+                {
+
+                    std::cout << "At location: " << location->toString() << std::endl;
+                    std::cout << "     " << interval.toString() << std::endl;
+
+                    std::vector<organization_model::ModelPool> pools = sa.getAvailableResources(location, interval);
+
+                    for(const organization_model::ModelPool& pool : pools)
+                    {
+                        std::cout << pool.toString(8) << std::endl;
+                    }
+                }
             }
         }
 

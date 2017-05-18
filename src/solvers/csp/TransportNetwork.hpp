@@ -191,12 +191,18 @@ private:
     // (t-1, loc-var-0)   |
     std::vector< Gecode::IntVarArray > mTimelineGraphs;
     Gecode::IntVarArray mCapacities;
+
     //std::vector< Gecode::IntVarArray > mProviderCapacities;
     //std::vector< Gecode::IntVarArray > mConsumerCapacities;
+    Gecode::IntVar mCost;
 
     // row column access
     //MatrixXi mProviderCapacities;
+    SpaceTime::Network mMinCostFlowSolution;
     std::vector<transshipment::Flaw> mMinCostFlowFlaws;
+    std::vector<bool> mFlawResolution;
+    mutable size_t mStartFlawIndex;
+    TransportNetwork* mMasterSpace;
 
 private:
 
@@ -255,6 +261,8 @@ private:
     static void generateTimelines(Gecode::Space& home);
     void postTimelines();
 
+    Gecode::IntVar cost(void) const { return mCost; }
+
 protected:
     // The general idea for implementing a LVNS approach
     //
@@ -285,7 +293,7 @@ protected:
     /**
      * Initalize slave for next solution
      */
-    void next(const TransportNetwork& n);
+    void next(const TransportNetwork& n, const Gecode::MetaInfo& mi);
 
     /**
      * Constraint this instance -- provide

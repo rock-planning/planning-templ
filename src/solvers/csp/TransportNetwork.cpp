@@ -132,11 +132,14 @@ bool TransportNetwork::master(const Gecode::MetaInfo& mi)
         case Gecode::MetaInfo::RESTART:
             LOG_WARN_S << "CALLING MASTER RESTART";
 
-            if(mi.last() != NULL)
-            {
-                constrain(*mi.last());
-            }
+            //if(mi.last() != NULL)
+            //{
+            //    constrain(*mi.last());
+            //}
             mi.nogoods().post(*this);
+
+            mMasterSpace = this;
+            // whether search is complete
             return true;
         case Gecode::MetaInfo::PORTFOLIO:
             Gecode::BrancherGroup::all.kill(*this);
@@ -158,43 +161,74 @@ void TransportNetwork::first()
     //Gecode::branch(*this, &TransportNetwork::assignRoles);
 }
 
-void TransportNetwork::next(const TransportNetwork& lastSpace)
+void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::MetaInfo& mi)
 {
+    // constrain the next space // but not the first
+    if(mi.last() != NULL)
+    {
+        constrain(*mi.last());
+    }
+
     std::cout << "Calling for next solution" << std::endl;
-    std::cout << "# flaws of lastSpace: " << lastSpace.mMinCostFlowFlaws.size() << std::endl;
+    std::cout << "last space: " << &lastSpace << std::endl;
+    std::cout << "    # flaws of lastSpace: " << lastSpace.mMinCostFlowFlaws.size() << std::endl;
+    std::cout << "    # lastSpace flaw index: " << lastSpace.mStartFlawIndex << std::endl;
+
     //LOG_WARN_S << "Timelines of lastSpace " << std::endl
     //     << Formatter::toString(lastSpace.mTimelines, mLocations.size());
+    //
+    size_t index = lastSpace.mStartFlawIndex;
+    //if(mi.solution() == 0)
+    //{
+    //    std::cout << "Previous resolution failed" << std::endl;
+    //    index = lastSpace.mStartFlawIndex;
+    //} else {
+    //    std::cout << "Previous resolution succeeded" << std::endl;
+    //}
 
     namespace ga = graph_analysis::algorithms;
 
-    for(const transshipment::Flaw& flaw : lastSpace.mMinCostFlowFlaws)
+    const transshipment::Flaw& flaw = lastSpace.mMinCostFlowFlaws[index];
+    switch(flaw.violation.getType())
     {
-        switch(flaw.violation.getType())
-        {
-            case ga::ConstraintViolation::TransFlow:
-                std::cout << "Adding distiction constraint" << std::endl
-                    << " to space " << this;
-                MissionConstraints::addDistinct(*this,
-                        lastSpace.mRoleUsage,
-                        mRoleUsage,
-                        mRoles, mResourceRequirements,
-                        flaw.ftr,
-                        flaw.subsequentFtr,
-                        flaw.affectedRole.getModel(),
-                        1);
-                if(failed())
-                {
-                    std::cout << "Add constraint failed the space";
-                }
-                break;
+        case ga::ConstraintViolation::TransFlow:
+            std::cout << "Transflow violation: adding distiction constraint" << std::endl
+                << " to space " << this
+                << " previous was " << &lastSpace
+                << std::endl;
 
-            case ga::ConstraintViolation::MinFlow:
-                break;
-            default:
-                break;
-        }
-        break;
+            MissionConstraints::addDistinct(*this,
+                    lastSpace.mRoleUsage,
+                    mRoleUsage,
+                    mRoles, mResourceRequirements,
+                    flaw.ftr,
+                    flaw.subsequentFtr,
+                    flaw.affectedRole.getModel(),
+                    1);
+
+            break;
+
+        case ga::ConstraintViolation::MinFlow:
+            std::cout << "Minflow violation: adding distiction constraint" << std::endl
+                << " to space " << this
+                << " previous was " << &lastSpace
+                << std::endl;
+            MissionConstraints::addDistinct(*this,
+                    lastSpace.mRoleUsage,
+                    mRoleUsage,
+                    mRoles, mResourceRequirements,
+                    flaw.previousFtr,
+                    flaw.ftr,
+                    flaw.affectedRole.getModel(),
+                    abs( flaw.violation.getDelta() )
+                    );
+            break;
+        default:
+            std::cout << "Default constraints violation" << std::endl;
+            break;
     }
+    lastSpace.mStartFlawIndex = ++index;
+    std::cout << "Updated index: " << &lastSpace << " " << lastSpace.mStartFlawIndex << std::endl;
 
     //Gecode::Rnd r(1U);
     //Gecode::relax(*this, mModelUsage, lastSpace.mModelUsage, r, 0.7);
@@ -203,16 +237,19 @@ void TransportNetwork::next(const TransportNetwork& lastSpace)
     //std::cout << "Before relax status:" << roleUsageToString() << std::endl;
     //std::cout << "After status:" << modelUsageToString() << std::endl;
     //std::cout << "After status:" << roleUsageToString() << std::endl;
-    std::cout << "Model Usage: " << mModelUsage;
-    std::cout << "Role Usage: " << mRoleUsage;
+    //std::cout << "Model Usage: " << mModelUsage;
+    //std::cout << "Role Usage: " << mRoleUsage;
     std::cout << "Press ENTER to continue... post adding distinction constraint" << std::endl;
-    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+    //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 }
 
 void TransportNetwork::constrain(const Gecode::Space& lastSpace)
 {
     std::cout << "Press ENTER to continue... post adding bab constrain" << std::endl;
-    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+    //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+    const TransportNetwork& lastTransportNetwork = static_cast<const TransportNetwork&>(lastSpace);
+
+    rel(*this, cost(), Gecode::IRT_LE, lastTransportNetwork.cost().val());
 }
 
 bool TransportNetwork::slave(const Gecode::MetaInfo& mi)
@@ -229,9 +266,23 @@ bool TransportNetwork::slave(const Gecode::MetaInfo& mi)
             return true;
         } else {
             std::cout << "Subsequent slave " << mi.restart();
-            std::cout << "Press ENTER to continue... post adding distinction constraint" << std::endl;
+            std::cout << "Subsequent slave solutions: " << mi.solution();
+            std::cout << "Press ENTER to try next slave by adding distinction constraint" << std::endl;
             std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-            next(static_cast<const TransportNetwork&>(*mi.last()));
+            const TransportNetwork& lastSpace = static_cast<const TransportNetwork&>(*mi.last());
+            if(lastSpace.mStartFlawIndex < lastSpace.mMinCostFlowFlaws.size())
+            {
+                std::cout << "Apply flaw resolution: " << lastSpace.mStartFlawIndex << std::endl;
+            } else
+            {
+                std::cout << "Apply flaw resolution: options are exhausted" << std::endl;
+                // Options are exhausted
+                // Search is complete
+                mpMission->getLogger()->incrementSessionId();
+                return true;
+            }
+
+            next(lastSpace, mi);
             //(assert( lastSpace.mTimelines.size() == mTimelines.size() );
 
             //(for(size_t i = 0; i < lastSpace.mTimelines.size(); ++i)
@@ -400,6 +451,9 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     , mAvailableModels(mpMission->getModels())
     , mRoleUsage(*this, /*width --> col */ mission->getRoles().size()* /*height --> row*/ mResourceRequirements.size(), 0, 1) // Domain 0,1 to represent activation
     , mRoles(mission->getRoles())
+    , mStartFlawIndex(0)
+    , mMasterSpace(0)
+    , mCost(*this,0, Gecode::Int::Limits::max)
    // , mCapacities(*this, (mLocations.size()+1)*(mLocations.size()+1)*mTimepoints.size()*mTimepoints.size(), 0, Gecode::Int::Limits::max)
 {
 
@@ -492,14 +546,14 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     // variable with the smallest domain size first, and assign the smallest
     // value of the selected variable
     //branch(*this, mRoleUsage, Gecode::INT_VAR_SIZE_MAX(), Gecode::INT_VAL_MIN(), symmetries);
-    branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN(), symmetries);
+    //branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN(), symmetries);
 
-    //Gecode::IntAFC roleUsageAfc(*this, mRoleUsage, 0.99);
-    //roleUsageAfc.decay(*this, 0.95);
+    Gecode::IntAFC roleUsageAfc(*this, mRoleUsage, 0.99);
+    roleUsageAfc.decay(*this, 0.95);
     //branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
 
-    //Gecode::Rnd roleUsageRnd(1U);
-    //branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_RND(roleUsageRnd), symmetries);
+    Gecode::Rnd roleUsageRnd(1U);
+    branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_RND(roleUsageRnd), symmetries);
 
     //Gecode::Gist::stopBranch(*this);
     // see 8.14 Executing code between branchers
@@ -751,11 +805,15 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
     , mSupplyDemand(other.mSupplyDemand)
     , mMinCostFlowFlaws(other.mMinCostFlowFlaws)
     , mMinCostFlowSolution(other.mMinCostFlowSolution)
+    , mFlawResolution(other.mFlawResolution)
+    , mStartFlawIndex(other.mStartFlawIndex)
+    , mMasterSpace(&other)
 {
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
     mModelUsage.update(*this, share, other.mModelUsage);
     mRoleUsage.update(*this, share, other.mRoleUsage);
+    mCost.update(*this, share, other.mCost);
 
     for(size_t i = 0; i < other.mTimelines.size(); ++i)
     {
@@ -814,8 +872,8 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
             //Gecode::BAB<TransportNetwork> searchEngine(distribution,options);
             //Gecode::DFS<TransportNetwork> searchEngine(distribution, options);
-            //Gecode::TemplRBS< TransportNetwork, Gecode::BAB > searchEngine(distribution, options);
-            Gecode::TemplRBS< TransportNetwork, Gecode::DFS > searchEngine(distribution, options);
+            Gecode::TemplRBS< TransportNetwork, Gecode::BAB > searchEngine(distribution, options);
+            //Gecode::TemplRBS< TransportNetwork, Gecode::DFS > searchEngine(distribution, options);
 
         try {
             TransportNetwork* best = NULL;
@@ -1045,7 +1103,7 @@ void TransportNetwork::assignRoles(Gecode::Space& home)
 {
     std::cout << "Assign Roles" << std::endl;
     std::cout << "Press ENTER to continue... (assign roles)";
-    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+    //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
     static_cast<TransportNetwork&>(home).postRoleAssignments();
 }
 
@@ -1348,7 +1406,7 @@ void TransportNetwork::minCostFlowAnalysis(Gecode::Space& home)
 void TransportNetwork::postMinCostFlowConstraints()
 {
     std::cout << "Press ENTER to continue... (begin post min cost flow)";
-    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+    //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 
     std::map<Role, csp::RoleTimeline> minimalTimelines =  RoleTimeline::computeTimelines(*mpMission.get(), getRoleDistribution());
     LOG_WARN_S << "RoleTimelines: " << std::endl
@@ -1369,9 +1427,11 @@ void TransportNetwork::postMinCostFlowConstraints()
     flowNetwork.save();
     mMinCostFlowFlaws = flaws;
 
+    // Set flaws as current cost of this solution
+    rel(*this, mCost, Gecode::IRT_EQ, mMinCostFlowFlaws.size());
+
     std::cout << "Press ENTER to continue... (end post min cost flow), remaining flaws: " << flaws.size();
-    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    std::cout << " Continuing search ..";
+    //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
     // Generate constraints to solve this issue
 }
 
