@@ -31,6 +31,7 @@ public:
 
     virtual bool equals(const Symbol::Ptr& symbol) const;
     virtual std::string toString() const;
+    virtual std::string toString(size_t indent) const;
 };
 
 } // end namespace object_variables

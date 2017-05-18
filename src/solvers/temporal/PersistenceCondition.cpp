@@ -58,11 +58,18 @@ bool PersistenceCondition::disjointFrom(const shared_ptr<PersistenceCondition>& 
     return !comparator.hasIntervalOverlap(mpFromTimepoint, mpToTimepoint, other->mpFromTimepoint, other->mpToTimepoint);
 }
 
+
 std::string PersistenceCondition::toString() const
 {
-    std::string ss = TemporalAssertion::toString() + "::";
-    ss += mpValue->toString();
-    ss += "@";
+    return toString(0);
+}
+
+std::string PersistenceCondition::toString(size_t indent) const
+{
+    std::string hspace(indent,' ');
+    std::string ss = TemporalAssertion::toString(indent) + "\n";
+    ss += mpValue->toString(indent + 4) + "\n";
+    ss += hspace + "    @";
     ss += "[" + mpFromTimepoint->toString() + ",";
     ss += mpToTimepoint->toString() + ")";
     return ss;

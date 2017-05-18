@@ -31,11 +31,17 @@ bool LocationCardinality::equals(const Symbol::Ptr& symbol) const
 
 std::string LocationCardinality::toString() const
 {
+    return toString(0);
+}
+
+std::string LocationCardinality::toString(size_t indent) const
+{
+    std::string hspace(indent,' ');
     std::stringstream ss;
-    ss << ObjectVariable::toString() << std::endl;
-    ss <<    " location:    " << mLocation->toString() << std::endl;
-    ss <<    " cardinality: " << mCardinality << std::endl;
-    ss <<    " restriction: " << owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionTypeTxt[mCardinalityRestrictionType] << std::endl;
+    ss << ObjectVariable::toString(indent) << std::endl;
+    ss << hspace << "        location:    " << mLocation->toString() << std::endl;
+    ss << hspace << "        cardinality: " << mCardinality << std::endl;
+    ss << hspace << "        restriction: " << owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionTypeTxt[mCardinalityRestrictionType];
     return ss.str();
 }
 

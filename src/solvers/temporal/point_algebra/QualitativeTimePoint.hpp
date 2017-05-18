@@ -10,7 +10,7 @@ namespace point_algebra {
 
 /**
  * \class QualitativeTimePoint
- * \details A QualitativeTimePoint represent a labelled timepoint, 
+ * \details A QualitativeTimePoint represent a labelled timepoint,
  * which allows to formulate qualitative timepoint relationships
  *
  * A QualitativeTimePoint can have one or more aliases and identical
@@ -69,7 +69,7 @@ public:
     /**
      * Stringify object
      */
-    virtual std::string toString(uint32_t indent) const { return std::string(indent,' ') + getClassName() + ": " + mLabel; }
+    virtual std::string toString(uint32_t indent) const { return std::string(indent,' ') + mLabel; }
 
 private:
     virtual Vertex* getClone() const { return new QualitativeTimePoint(*this); }

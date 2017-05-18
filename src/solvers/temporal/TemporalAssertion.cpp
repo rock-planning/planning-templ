@@ -59,7 +59,15 @@ bool TemporalAssertion::isReferringToSameValue(const TemporalAssertion::Ptr& oth
 
 std::string TemporalAssertion::toString() const
 {
-    return TypeTxt[mType] + "(" + mStateVariable.toString() + ")";
+    return toString(0);
+}
+
+std::string TemporalAssertion::toString(size_t indent) const
+{
+    std::string hspace(indent,' ');
+    std::string s = hspace + TypeTxt[mType] + '\n';
+    s += mStateVariable.toString(indent + 4);
+    return s;
 }
 
 } // end namespace temporal

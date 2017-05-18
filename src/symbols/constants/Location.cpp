@@ -1,5 +1,6 @@
 #include "Location.hpp"
 #include <sstream>
+#include <iomanip>
 
 namespace templ {
 namespace symbols {
@@ -20,7 +21,9 @@ Location::Location(const std::string& name, const base::Point& position)
 std::string Location::toString() const
 {
     std::stringstream ss;
-    ss << getInstanceName() << "(" << mPosition.x() << "," << mPosition.y() << ")";
+    ss << getInstanceName();
+        //<< "(" << std::setprecision(2) << mPosition.x()
+        //<< std::setprecision(2) << "," << mPosition.y() << ")";
     return ss.str();
 }
 

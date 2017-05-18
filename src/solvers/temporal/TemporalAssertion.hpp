@@ -79,6 +79,8 @@ public:
 
     virtual std::string toString() const;
 
+    virtual std::string toString(size_t indent) const;
+
     /**
      * Get the class name of this constraint
      * \return classname
