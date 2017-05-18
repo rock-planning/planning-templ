@@ -47,6 +47,12 @@ public:
     bool operator==(const Interval& other) const { return equals(other); }
 
     /**
+     * Check if interval [s,t) contains a particular timepoint t, i.e
+     * t in [s,t]
+     */
+    bool contains(const point_algebra::TimePoint::Ptr& t) const;
+
+    /**
      * Check before:
      * Symbol: b , inverse: bi
      \verbatim

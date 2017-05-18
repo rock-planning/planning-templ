@@ -27,6 +27,11 @@ void Interval::validate() const
     }
 }
 
+bool Interval::contains(const point_algebra::TimePoint::Ptr& t) const
+{
+    return !mTimePointComparator.greaterThan(t, mpTo) && !mTimePointComparator.lessThan(t,mpFrom);
+}
+
 bool Interval::before(const Interval& other) const
 {
     // assuming consistency of the interval, i.e.
