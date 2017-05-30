@@ -17,6 +17,12 @@ using namespace templ::utils;
 namespace templ {
 namespace io {
 
+Mission MissionReader::fromFile(const std::string& url, const std::string& organizationModelUrl)
+{
+    organization_model::OrganizationModel::Ptr organizationModel = organization_model::OrganizationModel::getInstance(organizationModelUrl);
+    return fromFile(url, organizationModel);
+}
+
 Mission MissionReader::fromFile(const std::string& url, const organization_model::OrganizationModel::Ptr& om)
 {
     Mission mission(om);

@@ -13,9 +13,8 @@ int main(int argc, char** argv)
     std::string filename = argv[1];
     std::string organizationModelFilename = argv[2];
 
-    organization_model::OrganizationModel::Ptr organizationModel = organization_model::OrganizationModel::getInstance(organizationModelFilename);
     using namespace templ;
-    Mission mission = io::MissionReader::fromFile(filename, organizationModel);
+    Mission mission = io::MissionReader::fromFile(filename, organizationModelFilename);
     mission.prepareTimeIntervals();
 
     printf("%s\n",mission.toString().c_str());

@@ -17,6 +17,15 @@ namespace io {
 class MissionReader
 {
 public:
+    /**
+     * Construct a mission from given specification and url to an organization
+     * model
+     */
+    static Mission fromFile(const std::string& url, const std::string& organizationModelUrl);
+
+    /**
+     * Construct a mission from given specification and organization model
+     */
     static Mission fromFile(const std::string& url, const organization_model::OrganizationModel::Ptr& organizationModel);
 
 private:
