@@ -3,6 +3,9 @@
 
 #include <map>
 #include <templ/solvers/Variable.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 
 namespace templ {
 namespace solvers {
@@ -27,11 +30,23 @@ protected:
     TimePoint(uint64_t lowerBound, uint64_t upperBound, Type type);
 
 public:
+    friend class boost::serialization::access;
+
+    /**
+     * Add default constructor to allow for serialization
+     */
+    TimePoint();
+
     TimePoint(uint64_t lowerBound, uint64_t upperBound);
 
     virtual ~TimePoint() {}
 
     Type getType() const { return mType; }
+
+    /**
+     * Creates a new timepoint reference
+     */
+    static TimePoint::Ptr create(const TimePoint& t);
 
     /**
      * Creates a new (qualitative) TimePoint
@@ -43,7 +58,7 @@ public:
      */
     static TimePoint::Ptr create(uint64_t lowerBound, uint64_t upperBound);
 
-    virtual bool equals(TimePoint::Ptr other) const;
+    virtual bool equals(const TimePoint::Ptr& other) const;
 
     virtual bool operator==(const TimePoint& other) const { return mLowerBound == other.mLowerBound && mUpperBound == other.mUpperBound; }
     bool operator<(const TimePoint& other) const;
@@ -70,10 +85,21 @@ public:
      */
     static void validateBounds(uint64_t lowerBound, uint64_t upperBound);
 
+    template<class Archive>
+    void serialize(Archive& ar, const unsigned int version)
+    {
+        ar & mLabel;
+        ar & mLowerBound;
+        ar & mUpperBound;
+        ar & mType;
+    }
+
 private:
     uint64_t mLowerBound;
     uint64_t mUpperBound;
     Type mType;
+
+    static TimePoint::PtrList msTimePoints;
 };
 
 typedef std::vector<TimePoint::Ptr> TimePointList;

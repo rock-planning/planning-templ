@@ -3,7 +3,8 @@
 #include "ui_TemplGui.h"
 
 #include <graph_analysis/gui/BaseGraphView/BaseGraphView.hpp>
-#include <graph_analysis/VertexTypeManager.hpp>
+#include <graph_analysis/gui/VertexItemTypeManager.hpp>
+#include <graph_analysis/gui/EdgeItemTypeManager.hpp>
 
 #include <QDebug>
 #include <QMessageBox>
@@ -29,6 +30,11 @@
 #include <templ/gui/MissionEditor/MissionEditor.hpp>
 #include <templ/gui/MissionView/MissionView.hpp>
 #include <templ/gui/OntologyView/OntologyView.hpp>
+
+#include <templ/SpaceTime.hpp>
+#include <templ/RoleInfoWeightedEdge.hpp>
+#include <templ/gui/edge_items/RoleInfoItem.hpp>
+#include <templ/gui/vertex_items/RoleInfoItem.hpp>
 
 using namespace graph_analysis;
 using namespace graph_analysis::gui;
@@ -90,11 +96,31 @@ TemplGui::TemplGui()
     toolBar->addAction(selectLayout);
     toolBar->setFloatable(true);
     addToolBar(toolBar);
+
+    registerGraphElementTypes();
 }
 
 TemplGui::~TemplGui()
 {
     delete mpUi;
+}
+
+void TemplGui::registerGraphElementTypes()
+{
+    using namespace templ;
+    using namespace graph_analysis;
+    // Edges
+    RoleInfoWeightedEdge::Ptr e(new RoleInfoWeightedEdge());
+
+    graph_analysis::gui::EdgeItemTypeManager* eManager = graph_analysis::gui::EdgeItemTypeManager::getInstance();
+    eManager->registerVisualization(e->getClassName(), new edge_items::RoleInfoItem());
+
+
+    SpaceTime::Network::tuple_t::Ptr v(new SpaceTime::Network::tuple_t());
+
+    graph_analysis::gui::VertexItemTypeManager* vManager = graph_analysis::gui::VertexItemTypeManager::getInstance();
+    vManager->registerVisualization(v->getClassName(), new vertex_items::RoleInfoItem());
+
 }
 
 void TemplGui::importGraph()

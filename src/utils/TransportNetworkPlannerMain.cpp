@@ -45,14 +45,25 @@ int main(int argc, char** argv)
 
         for(size_t i = 0; i < solutions.size(); ++i)
         {
-            std::stringstream ss;
-            ss << "templ-mission-solution-" << i << ".dot";
-            std::string filename = mission->getLogger()->filename(ss.str());
+            std::string filename;
             try {
-                graph_analysis::io::GraphIO::write(filename, solutions[i].toNetwork().getGraph());
+                std::stringstream ss;
+                ss << "templ-mission-solution-" << i << ".dot";
+                filename = mission->getLogger()->filename(ss.str());
+                graph_analysis::io::GraphIO::write(filename, solutions[i].getMinCostFlowSolution().getGraph());
             } catch(const std::exception& e)
             {
-                std::cout << "Saving file " << ss.str() << " failed: -- " << e.what();
+                std::cout << "Saving file " << filename << " failed: -- " << e.what();
+            }
+
+            try {
+                std::stringstream ss;
+                ss << "templ-mission-solution-" << i << ".gexf";
+                filename = mission->getLogger()->filename(ss.str());
+                solutions[i].getMinCostFlowSolution().save(filename, "gexf");
+            } catch(const std::exception& e)
+            {
+                std::cout << "Saving file " << filename << " failed: -- " << e.what();
             }
 
 
@@ -76,6 +87,18 @@ int main(int argc, char** argv)
                     }
                 }
             }
+
+            graph_analysis::BaseGraph::Ptr hyperGraph = sa.toHyperGraph();
+            try {
+                std::stringstream ss;
+                ss << "templ-mission-solution-hypergraph" << i << ".dot";
+                filename = mission->getLogger()->filename(ss.str());
+                graph_analysis::io::GraphIO::write(filename, hyperGraph);
+            } catch(const std::exception& e)
+            {
+                std::cout << "Saving file " << filename << " failed: -- " << e.what();
+            }
+
         }
 
         mission->getLogger()->disableSessions();

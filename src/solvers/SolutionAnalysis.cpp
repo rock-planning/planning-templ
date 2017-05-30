@@ -1,5 +1,6 @@
 #include "SolutionAnalysis.hpp"
 #include "csp/FluentTimeResource.hpp"
+#include "../RoleInfoVertex.hpp"
 
 namespace templ {
 namespace solvers {
@@ -10,7 +11,7 @@ SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission, const SpaceTime:
 {
 }
 
-std::set<Role> SolutionAnalysis::getRequiredRoles() const
+std::set<Role> SolutionAnalysis::getRequiredRoles(size_t minRequirement) const
 {
     using namespace graph_analysis;
 
@@ -33,7 +34,7 @@ std::set<Role> SolutionAnalysis::getRequiredRoles() const
 
     for(std::pair<Role, size_t> pair : mRoleUsage)
     {
-        if(pair.second > 1)
+        if(pair.second >= minRequirement)
         {
             requiredRoles.insert(pair.first);
         }
@@ -116,6 +117,78 @@ double SolutionAnalysis::degreeOfFulfillment(const solvers::csp::FluentTimeResou
 //
 //    std::set<organization_model::Functionality> availableFunctionalities = solution.getAvailableFunctionalities(dynamic_pointer_cast<symbols::constants::Location>(ftr.getFluent()), interval);
     return 0.0;
+}
+
+graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
+{
+    using namespace graph_analysis;
+    BaseGraph::Ptr hyperGraph = mSolutionNetwork.getGraph()->copy();
+
+    std::set<Role> roles = getRequiredRoles(2);
+    std::map<Role, RoleInfoVertex::Ptr> role2VertexMap;
+    for(const Role& role : roles)
+    {
+        RoleInfoVertex::Ptr roleInfo(new RoleInfoVertex());
+        roleInfo->addRole(role);
+        role2VertexMap[role] = roleInfo;
+        hyperGraph->addVertex(roleInfo);
+    }
+
+
+    VertexIterator::Ptr vertexIt = mSolutionNetwork.getGraph()->getVertexIterator();
+    while(vertexIt->next())
+    {
+        SpaceTime::Network::tuple_t::Ptr roleInfo = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(vertexIt->current());
+        std::set<Role> roles = roleInfo->getRoles("assigned");
+        if(roles.empty())
+        {
+            continue;
+        }
+        for(const Role& role : roles)
+        {
+            Edge::Ptr edge(new Edge("requires"));
+            edge->setSourceVertex(roleInfo);
+
+            RoleInfoVertex::Ptr targetRoleVertex = role2VertexMap[role];
+            edge->setTargetVertex(targetRoleVertex);
+            hyperGraph->addEdge(edge);
+        }
+    }
+
+    EdgeIterator::Ptr edgeIt = mSolutionNetwork.getGraph()->getEdgeIterator();
+    while(edgeIt->next())
+    {
+        SpaceTime::Network::edge_t::Ptr roleInfo = dynamic_pointer_cast<SpaceTime::Network::edge_t>(edgeIt->current());
+        std::set<Role> roles = roleInfo->getRoles("assigned");
+        if(roles.empty())
+        {
+            continue;
+        }
+
+        Vertex::PtrList vertices;
+        vertices.push_back(roleInfo->getSourceVertex());
+        vertices.push_back(roleInfo->getTargetVertex());
+
+        std::stringstream edgeLabel;
+        edgeLabel << "vertices: [";
+        edgeLabel << hyperGraph->getVertexId( roleInfo->getSourceVertex() );
+        edgeLabel << ", ";
+        edgeLabel << hyperGraph->getVertexId( roleInfo->getTargetVertex() );
+        edgeLabel << "]";
+
+        HyperEdge::Ptr hyperEdge(new HyperEdge(vertices, edgeLabel.str()));
+        hyperGraph->addHyperEdge(hyperEdge);
+
+        for(const Role& role : roles)
+        {
+            Edge::Ptr edge(new Edge("requires"));
+            edge->setSourceVertex(hyperEdge);
+            RoleInfoVertex::Ptr targetRoleVertex = role2VertexMap[role];
+            edge->setTargetVertex(targetRoleVertex);
+            hyperGraph->addEdge(edge);
+        }
+    }
+    return hyperGraph;
 }
 
 } // end namespace solvers

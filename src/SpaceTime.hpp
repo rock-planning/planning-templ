@@ -4,6 +4,7 @@
 #include <templ/TemporallyExpandedNetwork.hpp>
 #include <templ/symbols/constants/Location.hpp>
 #include <templ/RoleInfoTuple.hpp>
+#include <templ/RoleInfoWeightedEdge.hpp>
 
 namespace templ
 {
@@ -22,7 +23,8 @@ public:
     typedef TemporallyExpandedNetwork< templ::symbols::constants::Location::Ptr,
             templ::solvers::temporal::point_algebra::TimePoint::Ptr,
             RoleInfoTuple<templ::symbols::constants::Location::Ptr,
-                    templ::solvers::temporal::point_algebra::TimePoint::Ptr>
+                    templ::solvers::temporal::point_algebra::TimePoint::Ptr>,
+            RoleInfoWeightedEdge
             > Network;
 
     typedef std::pair<symbols::constants::Location::Ptr, solvers::temporal::point_algebra::TimePoint::Ptr> Point;

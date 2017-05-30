@@ -1,4 +1,4 @@
-find_package(Boost REQUIRED system filesystem)
+find_package(Boost REQUIRED system filesystem serialization)
 
 rock_library(templ
     SOURCES
@@ -10,6 +10,7 @@ rock_library(templ
         PlanningState.cpp
         Role.cpp
         RoleInfo.cpp
+        RoleInfoWeightedEdge.cpp
         SpaceTime.cpp
         Symbol.cpp
         io/FluentTypes.cpp
@@ -232,6 +233,8 @@ rock_library(templ_gui
         gui/MissionView/MissionView.hpp
         gui/OntologyView/OntologyView.hpp
         gui/OntologyView/OntologyTreeModel.hpp
+        gui/edge_items/RoleInfoItem.hpp
+        gui/vertex_items/RoleInfoItem.hpp
     SOURCES
         gui/TemplGui.cpp
         gui/SpatioTemporalRequirementItem.cpp
@@ -239,6 +242,8 @@ rock_library(templ_gui
         gui/MissionView/MissionView.cpp
         gui/OntologyView/OntologyView.cpp
         gui/OntologyView/OntologyTreeModel.cpp
+        gui/edge_items/RoleInfoItem.cpp
+        gui/vertex_items/RoleInfoItem.cpp
     MOC
         gui/TemplGui.hpp
         gui/SpatioTemporalRequirementItem.hpp
@@ -246,6 +251,8 @@ rock_library(templ_gui
         gui/MissionView/MissionView.hpp
         gui/OntologyView/OntologyView.hpp
         gui/OntologyView/OntologyTreeModel.hpp
+        gui/edge_items/RoleInfoItem.hpp
+        gui/vertex_items/RoleInfoItem.hpp
     DEPS
         templ
     DEPS_PKGCONFIG

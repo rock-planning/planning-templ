@@ -6,12 +6,12 @@
 #include <stdexcept>
 #include <algorithm>
 #include <graph_analysis/BaseGraph.hpp>
+#include <graph_analysis/GraphIO.hpp>
 #include <graph_analysis/io/GraphvizWriter.hpp>
 #include <graph_analysis/io/GraphvizGridStyle.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
 #include "solvers/temporal/point_algebra/TimePoint.hpp"
 #include "Tuple.hpp"
-#include "RoleInfoWeightedEdge.hpp"
 
 namespace templ {
 
@@ -25,7 +25,7 @@ namespace templ {
  * dimension (D0) if they belong to the same value of the second dimension D1
  * and assigns an infinite weight on this edge
  */
-template<typename D0, typename D1 = templ::solvers::temporal::point_algebra::TimePoint::Ptr, typename TUPLE = Tuple<D0,D1> >
+template<typename D0, typename D1 = templ::solvers::temporal::point_algebra::TimePoint::Ptr, typename TUPLE = Tuple<D0,D1>, typename EDGE_TYPE = graph_analysis::WeightedEdge >
 class TemporallyExpandedNetwork
 {
 
@@ -34,6 +34,7 @@ public:
     typedef D1 timepoint_t;
 
     typedef TUPLE tuple_t;
+    typedef EDGE_TYPE edge_t;
 
     typedef std::vector<D0> ValueList;
     typedef std::vector<D1> TimePointList;
@@ -53,6 +54,18 @@ public:
     TemporallyExpandedNetwork()
     {}
 
+    TemporallyExpandedNetwork(const TemporallyExpandedNetwork& other)
+        : mValues(other.mValues)
+        , mTimepoints(other.mTimepoints)
+        , mpLocalTransitionEdge(other.mpLocalTransitionEdge)
+        , mTupleMap(other.mTupleMap)
+    {
+        if(other.mpGraph)
+        {
+            mpGraph = other.mpGraph->copy();
+        }
+    }
+
     TemporallyExpandedNetwork(const ValueList& values, const TimePointList& timepoints, const graph_analysis::Edge::Ptr& locationTransitionEdge = graph_analysis::Edge::Ptr())
         : mValues(values)
         , mTimepoints(timepoints)
@@ -70,7 +83,7 @@ public:
         }
         if(!mpLocalTransitionEdge)
         {
-            RoleInfoWeightedEdge::Ptr weightedEdge(new RoleInfoWeightedEdge());
+            graph_analysis::WeightedEdge::Ptr weightedEdge(new edge_t());
             weightedEdge->setWeight(std::numeric_limits<graph_analysis::WeightedEdge::value_t>::max());
             mpLocalTransitionEdge = weightedEdge;
         }
@@ -154,21 +167,29 @@ public:
         throw std::invalid_argument("TemporallyExpandedNetwork::tupleByKeys: key does not exist");
     }
 
-    void save(const std::string& filename) const
+    void save(const std::string& filename, const std::string& type = "dot") const
     {
         using namespace graph_analysis::io;
-        GraphvizWriter gvWriter("dot","canon");
-        GraphvizGridStyle::Ptr style(new GraphvizGridStyle(
-                    mValues.size(),
-                    mTimepoints.size(),
-                    bind(&TemporallyExpandedNetwork<D0,D1,TUPLE>::getRow,this, placeholder::_1),
-                    bind(&TemporallyExpandedNetwork<D0,D1,TUPLE>::getColumn,this, placeholder::_1)
-                    ));
-        style->setColumnScalingFactor(5.0);
-        style->setRowScalingFactor(5.0);
+        if(type == "dot")
+        {
+            GraphvizWriter gvWriter("dot","canon");
+            GraphvizGridStyle::Ptr style(new GraphvizGridStyle(
+                        mValues.size(),
+                        mTimepoints.size(),
+                        bind(&TemporallyExpandedNetwork<D0,D1,TUPLE,EDGE_TYPE>::getRow,this, placeholder::_1),
+                        bind(&TemporallyExpandedNetwork<D0,D1,TUPLE,EDGE_TYPE>::getColumn,this, placeholder::_1)
+                        ));
+            style->setColumnScalingFactor(5.0);
+            style->setRowScalingFactor(5.0);
 
-        gvWriter.setStyle(style);
-        gvWriter.write(filename, getGraph());
+            gvWriter.setStyle(style);
+            assert(mpGraph);
+            gvWriter.write(filename, mpGraph);
+        } else if(type == "gexf")
+        {
+            assert(mpGraph);
+            graph_analysis::io::GraphIO::write(filename,mpGraph, graph_analysis::representation::GEXF);
+        }
     }
 
     const ValueTimePair& getValueTimePair(const typename tuple_t::Ptr& searchTuple) const

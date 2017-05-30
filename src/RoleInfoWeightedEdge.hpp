@@ -11,29 +11,38 @@ class RoleInfoWeightedEdge : public graph_analysis::WeightedEdge, public RoleInf
 public:
     typedef shared_ptr<RoleInfoWeightedEdge> Ptr;
 
-    RoleInfoWeightedEdge()
-        : graph_analysis::WeightedEdge()
-        , RoleInfo()
-    {}
+    RoleInfoWeightedEdge();
 
-    RoleInfoWeightedEdge(const graph_analysis::Vertex::Ptr& source, const graph_analysis::Vertex::Ptr& target, double weight)
-        : graph_analysis::WeightedEdge(source, target, weight)
-        , RoleInfo()
-    {}
+    RoleInfoWeightedEdge(const graph_analysis::Vertex::Ptr& source, const graph_analysis::Vertex::Ptr& target, double weight);
 
     std::string getClassName() const { return "RoleInfoWeightedEdge"; }
 
-    std::string toString() const
-    {
-        std::stringstream ss;
-        ss << getWeight() << std::endl;
-        ss << RoleInfo::toString();
+    std::string toString() const;
 
-        return ss.str();
-    }
+    std::string serializeRoles();
+    void deserializeRoles(const std::string& s);
+
+    // Serialization
+    //std::string serializeRoles();
+    std::string serializeTaggedRoles();
+
+    void deserializeTaggedRoles(const std::string& s);
+
+
 protected:
+    RoleInfoWeightedEdge(bool doInit);
+
     graph_analysis::Edge* getClone() const override { return new RoleInfoWeightedEdge(*this); }
 
+    void init();
+
+    class EdgeRegistration
+    {
+        public:
+             EdgeRegistration();
+        private:
+             bool mRegistered;
+    };
 };
 
 } // end namespace

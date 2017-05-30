@@ -49,6 +49,8 @@ private:
     void fromFile(const std::string& filename);
     void notifyAll();
 
+    void registerGraphElementTypes();
+
 private slots:
     void importGraph();
     void exportGraph();

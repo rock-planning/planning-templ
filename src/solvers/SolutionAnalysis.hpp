@@ -30,7 +30,7 @@ public:
      * A required role is given, it its usage exceeds 1 (since the initial usage
      * is given by its availability at the initial position)
      */
-    std::set<Role> getRequiredRoles() const;
+    std::set<Role> getRequiredRoles(size_t minRequirement = 1) const;
 
     /**
      * Get the model availability over the course of one interval
@@ -50,6 +50,7 @@ public:
 
     // getTransfer
 
+    graph_analysis::BaseGraph::Ptr toHyperGraph();
 
 private:
     /**

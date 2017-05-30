@@ -191,7 +191,7 @@ protected:
      * \throw std::invalid_argument if rendering of plan failed
      */
     Plan renderPlan(const Mission::Ptr& mission,
-            SpaceTime::Network* spaceTimeNetwork,
+            const SpaceTime::Network& spaceTimeNetwork,
             const std::map<Role, solvers::csp::RoleTimeline>& timelines,
             const std::string& markerLabel = "") const;
 

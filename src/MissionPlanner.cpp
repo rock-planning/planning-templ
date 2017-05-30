@@ -124,7 +124,7 @@ std::vector<Plan> MissionPlanner::execute(uint32_t)
                 LOG_WARN_S << "Flaws in plan: " << flaws.size();
                 if(flaws.empty())
                 {
-                    Plan plan = renderPlan(mission, &minCostFlow.getFlowNetwork().getSpaceTimeNetwork(), timelines);
+                    Plan plan = renderPlan(mission, minCostFlow.getFlowNetwork().getSpaceTimeNetwork(), timelines);
                     plans.push_back(plan);
                     mission->getLogger()->incrementSessionId();
                     LOG_WARN_S << "Solution found: " << plan.toString();
@@ -161,7 +161,7 @@ graph_analysis::BaseGraph::Ptr MissionPlanner::nextTemporalConstraintNetwork()
 
 
 Plan MissionPlanner::renderPlan(const Mission::Ptr& mission,
-        SpaceTime::Network* spaceTimeNetwork,
+        const SpaceTime::Network& spaceTimeNetwork,
         const std::map<Role, csp::RoleTimeline>& timelines,
         const std::string& markerLabel) const
 {
@@ -181,7 +181,7 @@ Plan MissionPlanner::renderPlan(const Mission::Ptr& mission,
 
         SpaceTime::Network::tuple_t::Ptr startTuple;
         try {
-            startTuple = spaceTimeNetwork->tupleByKeys(location, interval.getFrom());
+            startTuple = spaceTimeNetwork.tupleByKeys(location, interval.getFrom());
         } catch(const std::invalid_argument& e)
         {
             throw std::runtime_error("templ::MissionPlanner::renderPlan: failed to find initial tuple for role " + role.toString());
@@ -193,7 +193,7 @@ Plan MissionPlanner::renderPlan(const Mission::Ptr& mission,
         // foreach role -- find starting point and follow path
         PathConstructor::Ptr pathConstructor(new PathConstructor(role));
         Skipper skipper = boost::bind(&PathConstructor::isInvalidTransition, pathConstructor,_1);
-        DFS dfs(spaceTimeNetwork->getGraph(), pathConstructor, skipper);
+        DFS dfs(spaceTimeNetwork.getGraph(), pathConstructor, skipper);
         dfs.run(startTuple);
 
         std::vector<graph_analysis::Vertex::Ptr> path = pathConstructor->getPath();

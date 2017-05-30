@@ -11,6 +11,8 @@ class RoleInfo
 public:
     typedef shared_ptr<RoleInfo> Ptr;
 
+    RoleInfo();
+
     void addRole(const Role& role, const std::string& tag = "");
 
     bool hasRole(const Role& role, const std::string& tag = "") const;
@@ -19,9 +21,11 @@ public:
 
     std::set<Role> getAllRoles() const;
 
+    void clear();
+
     std::string toString(uint32_t indent = 0) const;
 
-private:
+protected:
     std::set<Role> mRoles;
     mutable std::map<std::string, std::set<Role> > mTaggedRoles;
 };

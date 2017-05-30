@@ -1,7 +1,21 @@
 #include "RoleInfoTuple.hpp"
 #include <algorithm>
 
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/set.hpp>
+#include <boost/serialization/list.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+
+#include <base-logging/Logging.hpp>
+
+
 namespace templ {
+
+RoleInfo::RoleInfo()
+    : mRoles()
+    , mTaggedRoles()
+{}
 
 void RoleInfo::addRole(const Role& role, const std::string& tag)
 {
@@ -51,28 +65,41 @@ std::string RoleInfo::toString(uint32_t indent) const
 {
     std::stringstream ss;
     std::string hspace(indent,' ');
-    ss << hspace << "    roles:" << std::endl;
+    if(!mRoles.empty())
     {
-        std::set<Role>::const_iterator it = mRoles.begin();
-        for(; it != mRoles.end(); ++it)
+        ss << hspace << "    roles:" << std::endl;
         {
-            ss << hspace << "        " << it->toString() << std::endl;
+            std::set<Role>::const_iterator it = mRoles.begin();
+            for(; it != mRoles.end(); ++it)
+            {
+                ss << hspace << "        " << it->toString() << std::endl;
+            }
         }
     }
 
     std::map<std::string, std::set<Role> >::const_iterator rit = mTaggedRoles.begin();
     for(; rit != mTaggedRoles.end(); ++rit)
     {
-        ss << hspace << "    roles (" << rit->first << "):" << std::endl;
         const std::set<Role>& roles = rit->second;
-        std::set<Role>::const_iterator it = roles.begin();
-        for(; it != roles.end(); ++it)
+        if(!roles.empty())
         {
-            ss << hspace << "        " << it->toString() << std::endl;
+            ss << hspace << "    roles (" << rit->first << "):" << std::endl;
+            std::set<Role>::const_iterator it = roles.begin();
+            for(; it != roles.end(); ++it)
+            {
+                ss << hspace << "        " << it->toString() << std::endl;
+            }
         }
     }
 
+
     return ss.str();
+}
+
+void RoleInfo::clear()
+{
+    mRoles.clear();
+    mTaggedRoles.clear();
 }
 
 } // end namespace templ

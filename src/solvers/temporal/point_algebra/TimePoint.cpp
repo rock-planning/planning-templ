@@ -1,11 +1,20 @@
 #include "TimePoint.hpp"
 #include "QualitativeTimePoint.hpp"
 #include <sstream>
+#include <algorithm>
 
 namespace templ {
 namespace solvers {
 namespace temporal {
 namespace point_algebra {
+
+TimePoint::PtrList TimePoint::msTimePoints;
+
+TimePoint::TimePoint()
+    : mLowerBound(0)
+    , mUpperBound(0)
+    , mType(QUANTITATIVE)
+{}
 
 TimePoint::TimePoint(uint64_t lowerBound, uint64_t upperBound, Type type)
     : mLowerBound(lowerBound)
@@ -34,7 +43,7 @@ void TimePoint::validateBounds(uint64_t lowerBound, uint64_t upperBound)
     }
 }
 
-bool TimePoint::equals(TimePoint::Ptr other) const
+bool TimePoint::equals(const TimePoint::Ptr& other) const
 {
     if(mType != other->getType())
     {
@@ -45,7 +54,7 @@ bool TimePoint::equals(TimePoint::Ptr other) const
     if(mType == QUANTITATIVE)
     {
         return *this == *other.get();
-    } else if(mType== QUALITATIVE)
+    } else if(mType == QUALITATIVE)
     {
         return *dynamic_cast<QualitativeTimePoint*>(const_cast<TimePoint*>(this)) == *dynamic_cast<QualitativeTimePoint*>(other.get());
     } else {
@@ -65,7 +74,32 @@ bool TimePoint::operator<(const TimePoint& other) const
 
 TimePoint::Ptr TimePoint::create(const Label& label)
 {
-    return TimePoint::Ptr( new QualitativeTimePoint(label) );
+    QualitativeTimePoint qt(label);
+    return create(qt);
+}
+
+TimePoint::Ptr TimePoint::create(const TimePoint& tp)
+{
+    if(tp.getType() == QUALITATIVE)
+    {
+        PtrList::iterator cit = std::find_if(msTimePoints.begin(), msTimePoints.end(),
+                [tp](const TimePoint::Ptr& otherTp) -> bool
+                {
+                    return otherTp->getLabel() == tp.getLabel();
+                });
+
+        if(cit != msTimePoints.end())
+        {
+            // return existing shared pointer
+            return *cit;
+        } else {
+            TimePoint::Ptr timepoint = QualitativeTimePoint::getInstance( tp.getLabel() );
+            msTimePoints.push_back(timepoint);
+            return timepoint;
+        }
+    } else {
+        return create(tp.mLowerBound, tp.mUpperBound);
+    }
 }
 
 TimePoint::Ptr TimePoint::create(uint64_t lowerBound, uint64_t upperBound)

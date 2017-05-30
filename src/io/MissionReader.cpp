@@ -513,7 +513,7 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
                 << " , z" << position.z();
 
             using namespace ::templ::symbols;
-            constants::Location::Ptr location(new constants::Location( name, position));
+            constants::Location::Ptr location = constants::Location::create(name, position);
             constants.insert(location);
             locations.insert(name);
         }

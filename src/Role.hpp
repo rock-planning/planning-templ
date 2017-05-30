@@ -3,6 +3,8 @@
 
 #include <owlapi/model/IRI.hpp>
 #include <organization_model/ModelPool.hpp>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/set.hpp>
 
 namespace templ {
 
@@ -12,6 +14,8 @@ namespace templ {
  */
 class Role
 {
+    friend class boost::serialization::access;
+
     /// name / identifier or the role
     std::string mName;
     /// type of model this role fulfills
@@ -43,6 +47,13 @@ public:
     bool operator<(const Role& other) const;
     bool operator==(const Role& other) const { return mName == other.mName && mModel == other.mModel; }
     bool operator!=(const Role& other) const { return ! (*this == other); }
+
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+        ar & mName;
+        ar & mModel;
+    }
 };
 
 } // end namespace templ

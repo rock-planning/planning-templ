@@ -41,17 +41,32 @@ FlowNetwork::FlowNetwork(const Mission::Ptr& mission,
 
 void FlowNetwork::save(const std::string& path)
 {
-    std::string filename = path;
-    if(filename.empty())
     {
-        filename = mpMission->getLogger()->filename("transport-network.dot");
+        std::string filename = path;
+        if(filename.empty())
+        {
+            filename = mpMission->getLogger()->filename("transport-network.dot");
+        }
+        using namespace graph_analysis::io;
+
+        mSpaceTimeNetwork.save(filename);
+
+        LOG_DEBUG_S << "Written transport network to: " << filename;
+        LOG_DEBUG_S << "(e.g. view with 'xdot " << filename << "'" << ")";
     }
-    using namespace graph_analysis::io;
+    {
+        std::string filename = path;
+        if(filename.empty())
+        {
+            filename = mpMission->getLogger()->filename("transport-network.gexf");
+        }
+        using namespace graph_analysis::io;
 
-    mSpaceTimeNetwork.save(filename);
+        mSpaceTimeNetwork.save(filename, "gexf");
 
-    LOG_DEBUG_S << "Written transport network to: " << filename;
-    LOG_DEBUG_S << "(e.g. view with 'xdot " << filename << "'" << ")";
+        LOG_DEBUG_S << "Written transport network to: " << filename;
+        LOG_DEBUG_S << "(e.g. view with 'gexf " << filename << "'" << ")";
+    }
 }
 
 void FlowNetwork::initialize()
@@ -109,12 +124,12 @@ void FlowNetwork::initializeExpandedTimelines()
 
             // create tuple if it does not exist?
             endTuple = mSpaceTimeNetwork.tupleByKeys(location, timepoint);
-            endTuple->addRole(role);
+            endTuple->addRole(role, "assigned");
 
             if(prevIntervalEnd)
             {
                 startTuple = mSpaceTimeNetwork.tupleByKeys(prevLocation, prevIntervalEnd);
-                startTuple->addRole(role);
+                startTuple->addRole(role, "assigned");
 
                 std::vector< RoleInfoWeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<RoleInfoWeightedEdge>(startTuple, endTuple);
                 if(edges.empty())

@@ -9,6 +9,10 @@ namespace templ {
 namespace symbols {
 namespace constants {
 
+/**
+ * \class Location
+ * \brief A location constant
+ */
 class Location : public Constant
 {
     base::Point mPosition;
@@ -18,6 +22,8 @@ public:
     typedef std::vector<Location> List;
     typedef std::vector<Ptr> PtrList;
 
+    friend class boost::serialization::access;
+
     Location();
 
     Location(const std::string& name, const base::Point& position = base::Point::Zero());
@@ -25,6 +31,10 @@ public:
     virtual ~Location() {}
 
     void setPosition(const base::Point& position) { mPosition = position; }
+
+    /**
+     * Get the current associated position with this constant
+     */
     const base::Point& getPosition() const { return mPosition; }
 
     virtual std::string toString() const;
@@ -32,7 +42,37 @@ public:
     static std::string toString(const List& l, size_t indent = 0);
 
     static std::string toString(const PtrList& l, size_t indent = 0);
+
+    static Location::Ptr create(const Location& location);
+    static Location::Ptr create(const std::string& name, const base::Point& position = base::Point::Zero());
+
+    template<class Archive>
+    void save(Archive& ar, const unsigned int version) const
+    {
+        ar & mPosition.x();
+        ar & mPosition.y();
+        ar & mPosition.z();
+        ar & first;
+        ar & second;
+    }
+
+    template<class Archive>
+    void load(Archive& ar, const unsigned int version)
+    {
+        ar & mPosition.x();
+        ar & mPosition.y();
+        ar & mPosition.z();
+        ar & first;
+        ar & second;
+    }
+
+    BOOST_SERIALIZATION_SPLIT_MEMBER();
+
+protected:
+    static PtrList msLocations;
 };
+
+//BOOST_SERIALIZATION_SHARED_PTR(Location);
 
 } // end namespace constants
 } // end namespace symbols

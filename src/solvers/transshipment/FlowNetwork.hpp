@@ -28,7 +28,7 @@ public:
     /**
      * Get the graph representation of the transport network, i.e. as a space time network
      */
-    SpaceTime::Network& getSpaceTimeNetwork() { return mSpaceTimeNetwork; }
+    const SpaceTime::Network& getSpaceTimeNetwork() const { return mSpaceTimeNetwork; }
 
     /**
      * Get the current set of timelines
