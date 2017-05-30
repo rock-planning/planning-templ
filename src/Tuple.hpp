@@ -25,6 +25,11 @@ public:
     typedef A a_t;
     typedef B b_t;
 
+    Tuple()
+        : mA()
+        , mB()
+    {}
+
     Tuple(const A& a, const B& b)
         : mA(a)
         , mB(b)
@@ -33,11 +38,27 @@ public:
     A first() const { return mA; }
     B second() const { return mB; }
 
+    void setFirst(const A& a) { mA = a; }
+    void setSecond(const B& b) { mB = b; }
+
     virtual std::string getClassName() const { return "templ::Tuple"; }
     virtual std::string toString() const
     {
         std::stringstream ss;
-        ss << tuple_get_pointer(mA)->toString() << "-" << tuple_get_pointer(mB)->toString();
+        if( tuple_get_pointer(mA) )
+        {
+            ss << tuple_get_pointer(mA)->toString();
+        } else {
+            ss << "<NULL>";
+        }
+        ss << "-";
+
+        if(tuple_get_pointer(mB))
+        {
+            ss << tuple_get_pointer(mB)->toString();
+        } else {
+            ss << "<NULL>";
+        }
         return ss.str();
     }
 
