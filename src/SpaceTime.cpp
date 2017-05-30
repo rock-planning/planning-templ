@@ -52,7 +52,7 @@ std::string SpaceTime::toString(const Timelines& timelines, size_t indent)
 }
 
 SpaceTime::Network SpaceTime::toNetwork(const symbols::constants::Location::PtrList& locations,
-        const templ::solvers::temporal::point_algebra::TimePoint::PtrList timepoints,
+        const templ::solvers::temporal::point_algebra::TimePoint::PtrList& timepoints,
         const Timelines& timelines)
 {
     Network network(locations, timepoints);

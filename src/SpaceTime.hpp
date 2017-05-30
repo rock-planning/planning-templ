@@ -45,7 +45,7 @@ public:
     /**
      * Convert to a graph representation
      */
-    static SpaceTime::Network toNetwork(const symbols::constants::Location::PtrList& locations, const templ::solvers::temporal::point_algebra::TimePoint::PtrList timepoints, const Timelines& timelines);
+    static SpaceTime::Network toNetwork(const symbols::constants::Location::PtrList& locations, const templ::solvers::temporal::point_algebra::TimePoint::PtrList& timepoints, const Timelines& timelines);
 
 };
 
