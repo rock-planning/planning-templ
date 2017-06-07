@@ -31,7 +31,7 @@ void XMLReader::read(const std::string& url, AgentRoutingProblem& arp)
     LIBXML_TEST_VERSION
 
     // The resulting document tree
-    xmlDocPtr doc;
+    xmlDocPtr doc = NULL;
 
     xmlParserOption options =  XML_PARSE_NOENT; // http://xmlsoft.org/html/libxml-parser.html#xmlParserOption
 

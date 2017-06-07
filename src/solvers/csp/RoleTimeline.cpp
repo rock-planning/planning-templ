@@ -112,8 +112,13 @@ double RoleTimeline::travelDistance() const
     constants::Location::Ptr fromLocation;
     constants::Location::Ptr toLocation;
 
+    if(mFluents.empty())
+    {
+        throw std::runtime_error("templ::solvers::csp::RoleTimeline::travelDistance:"
+                " no fluents available to compute travel distance");
+    }
     std::vector<FluentTimeResource>::const_iterator cit = mFluents.begin();
-    double totalDistance;
+    double totalDistance = 0.0;
     for(; cit != mFluents.end(); ++cit)
     {
         const FluentTimeResource& ftr = *cit;

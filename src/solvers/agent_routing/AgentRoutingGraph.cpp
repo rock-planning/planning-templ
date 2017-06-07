@@ -15,7 +15,7 @@ AgentRoutingGraph::AgentRoutingGraph(const AgentRoutingProblem& problem)
     // Set the default vertex
     MultiCommodityEdge::Ptr localTransitionEdge(new MultiCommodityEdge(numberOfCommodities));
     localTransitionEdge->setCapacityUpperBound(std::numeric_limits<uint32_t>::max());
-    for(int i = 0; i < numberOfCommodities; ++i)
+    for(size_t i = 0; i < numberOfCommodities; ++i)
     {
         localTransitionEdge->setCommodityCapacityUpperBound(i, std::numeric_limits<uint32_t>::max());
         // Cost for remaining still
