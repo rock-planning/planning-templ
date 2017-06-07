@@ -2,6 +2,8 @@
 #include "../TransportNetwork.hpp"
 #include <boost/numeric/conversion/cast.hpp>
 #include <gecode/set/branch.hh>
+#include <algorithm>
+#include <random>
 
 namespace templ {
 namespace solvers {
@@ -35,6 +37,7 @@ TimelineBrancher::TimelineBrancher(Gecode::Home home, MultiTimelineView& x0,
     , x(x0)
     , supplyDemand(supplyDemand)
     , rnd()
+    , randomGenerator()
     , start(x0.size(), 0)
     , currentRole(0)
     , nextRoles()
@@ -48,6 +51,7 @@ TimelineBrancher::TimelineBrancher(Gecode::Space& space, bool share, TimelineBra
     : Gecode::Brancher(space, share, b)
     , supplyDemand(b.supplyDemand)
     , rnd(b.rnd)
+    , randomGenerator(b.randomGenerator)
     , start(b.start)
     , currentRole(b.currentRole)
     , nextRoles(b.nextRoles)
@@ -90,6 +94,8 @@ void TimelineBrancher::updateChoices(std::vector<int>& choices, Gecode::Set::Set
     {
         choices.push_back(glb.val());
     }
+
+    std::shuffle(choices.begin(), choices.end(), randomGenerator);
 }
 
 Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
@@ -101,12 +107,18 @@ Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
     // The view to be branched upon
     Gecode::Set::SetView& view = x[currentRole][i];
     std::vector<int> choices;
+    // update the list of choices, based on the given view
     updateChoices(choices, view);
 
-    // if view is assigned it is either a single value or an empty set
-    // Allow to pass an empty set for supply Demand to neglect this constraint
+    // if view is assigned, then it is either a single value or an empty set
+    // Allow to pass an empty set for supplyDemand to neglect this constraint
     if(view.assigned() || supplyDemand.empty())
     {
+        if(supplyDemand.empty())
+        {
+            LOG_WARN_S << "Ignoring capacity for generation of choices";
+        }
+
         if(!choices.empty())
         {
             return new PosVal(*this, currentRole, i, choices, 0 /*includeEmptySet*/);
@@ -168,7 +180,7 @@ Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
     {
         int choice = choices[c];
 
-        // Local transition should alway belong to the list of choices
+        // Local transition should always belong to the list of choices
         // no matter what
         if(i + fluents == boost::numeric_cast<size_t>(choice) )
         {

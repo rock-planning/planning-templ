@@ -533,7 +533,8 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
     //Gecode::Gist::stopBranch(*this);
 
-    Gecode::Rnd modelUsageRnd(1U);
+    Gecode::Rnd modelUsageRnd;
+    modelUsageRnd.time();
     branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_RND(modelUsageRnd));
     //Gecode::Gist::stopBranch(*this);
 
@@ -552,8 +553,13 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     roleUsageAfc.decay(*this, 0.95);
     //branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
 
-    Gecode::Rnd roleUsageRnd(1U);
+    Gecode::Rnd roleUsageRnd;
+    roleUsageRnd.time();
     branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_RND(roleUsageRnd), symmetries);
+
+    Gecode::Rnd roleUsageVarRnd;
+    roleUsageVarRnd.time();
+    branch(*this, mRoleUsage, Gecode::INT_VAR_RND(roleUsageVarRnd), Gecode::INT_VAL_RND(roleUsageVarRnd), symmetries);
 
     //Gecode::Gist::stopBranch(*this);
     // see 8.14 Executing code between branchers

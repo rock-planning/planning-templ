@@ -32,6 +32,7 @@ public:
     std::vector<int> supplyDemand;
 
     mutable Gecode::Rnd rnd;
+    mutable std::default_random_engine randomGenerator;
 
     // The brancher has to maintain the invariant that all x_i are
     // assigned for 0 < i < start (see also Gecode MPG Section 31.2.2)
