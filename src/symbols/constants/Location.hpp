@@ -5,6 +5,9 @@
 #include <base/Point.hpp>
 #include <vector>
 
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+
 namespace templ {
 namespace symbols {
 namespace constants {

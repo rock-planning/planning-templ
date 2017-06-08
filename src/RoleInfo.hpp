@@ -2,7 +2,8 @@
 #define TEMPL_ROLE_INFO_HPP
 
 #include <set>
-#include "templ/Role.hpp"
+#include "SharedPtr.hpp"
+#include "Role.hpp"
 
 namespace templ {
 
