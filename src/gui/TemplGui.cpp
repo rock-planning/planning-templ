@@ -14,18 +14,15 @@
 #include <QCommonStyle>
 #include <QInputDialog>
 #include <QGraphicsGridLayout>
+#include <QSettings>
 
 #include <base-logging/Logging.hpp>
 
 #include <graph_analysis/GraphIO.hpp>
-#include <graph_analysis/io/YamlWriter.hpp>
-#include <graph_analysis/io/GexfWriter.hpp>
-#include <graph_analysis/io/GexfReader.hpp>
-#include <graph_analysis/io/YamlReader.hpp>
-#include <graph_analysis/io/GraphvizWriter.hpp>
 #include <graph_analysis/gui/GraphWidget.hpp>
 #include <graph_analysis/gui/dialogs/ExportFile.hpp>
 #include <graph_analysis/gui/ActionCommander.hpp>
+#include <graph_analysis/gui/dialogs/IODialog.hpp>
 
 #include <templ/gui/MissionEditor/MissionEditor.hpp>
 #include <templ/gui/MissionView/MissionView.hpp>
@@ -125,144 +122,25 @@ void TemplGui::registerGraphElementTypes()
 
 void TemplGui::importGraph()
 {
-    QString selectedFilter;
-    // Constructing the writer suffix filter
-    graph_analysis::io::GraphIO::SuffixMap suffixMap = graph_analysis::io::GraphIO::getSuffixMap();
-    graph_analysis::io::GraphIO::ReaderMap readerMap = graph_analysis::io::GraphIO::getReaderMap();
-    graph_analysis::io::GraphIO::ReaderMap::const_iterator rit = readerMap.begin();
-
-    std::stringstream ss;
-    for(;;)
+    graph_analysis::BaseGraph::Ptr graph = graph_analysis::gui::dialogs::IODialog::importGraph(this);
+    if(graph)
     {
-        ss << representation::TypeTxt[rit->first] << " (";
-        graph_analysis::io::GraphIO::SuffixMap::const_iterator sit = suffixMap.begin();
-        for(; sit != suffixMap.end(); ++sit)
-        {
-            if(sit->second == rit->first)
-            {
-                ss << "*." << sit->first << " ";
-            }
-        }
-        ss << ")";
-
-        ++rit;
-        if(rit != readerMap.end())
-        {
-            ss << ";;";
-        }
-        else
-        {
-            break;
-        }
-    }
-    // End constructing the writer suffix filter
-
-    QString filename = QFileDialog::getOpenFileName(
-        this, tr("Choose input file"), QDir::currentPath(),
-        tr(ss.str().c_str()), &selectedFilter);
-
-    if(!filename.isEmpty())
-    {
-        fromFile(filename.toStdString());
         //updateVisualization();
-    }
-    else
-    {
-        /* updateStatus("Failed to import graph: aborted by user - an empty
-         * input filename was provided"); */
+        mpBaseGraph = graph;
+
+        delete mpQBaseGraph;
+        mpQBaseGraph = new QBaseGraph(mpBaseGraph);
+
+        mpBaseGraphView->setGraph(mpBaseGraph);
+        mpBaseGraphView->clearVisualization();
+        mpBaseGraphView->refresh();
+        mpBaseGraphView->updateVisualization();
     }
 }
 
 void TemplGui::exportGraph()
 {
-    using namespace graph_analysis;
-
-    //if(mpQBaseGraph->getBaseGraph()->empty())
-    //{
-    //    QMessageBox::critical(this, tr("Graph Export Failed"),
-    //                          "Graph is empty");
-    //    return;
-    //}
-
-    //QString selectedFilter;
-
-    //// Constructing the writer suffix filter
-    //io::GraphIO::SuffixMap suffixMap = io::GraphIO::getSuffixMap();
-    //io::GraphIO::WriterMap writerMap = io::GraphIO::getWriterMap();
-    //io::GraphIO::WriterMap::const_iterator wit = writerMap.begin();
-
-    //std::stringstream ss;
-    //for(;;)
-    //{
-    //    ss << representation::TypeTxt[wit->first] << " (";
-    //    io::GraphIO::SuffixMap::const_iterator sit = suffixMap.begin();
-    //    for(; sit != suffixMap.end(); ++sit)
-    //    {
-    //        if(sit->second == wit->first)
-    //        {
-    //            ss << "*." << sit->first << " ";
-    //        }
-    //    }
-    //    ss << ")";
-
-    //    ++wit;
-    //    if(wit != writerMap.end())
-    //    {
-    //        ss << ";;";
-    //    }
-    //    else
-    //    {
-    //        break;
-    //    }
-    //}
-    //// End constructing the writer suffix filter
-
-    //dialogs::ExportFile dialog(ss.str().c_str());
-    //if(dialog.exec() == QFileDialog::Accepted)
-    //{
-    //    try
-    //    {
-    //        io::GraphIO::write(dialog.getFilename().toStdString(), mpQBaseGraph->getBaseGraph(),
-    //                           dialog.getTypeName());
-    //    }
-    //    catch(const std::exception& e)
-    //    {
-    //        std::string msg = "Export of graph to '" +
-    //                          dialog.getFilename().toStdString() + "' failed " +
-    //                          e.what();
-    //        QMessageBox::critical(this, tr("Graph Export Failed"), msg.c_str());
-    //        return;
-    //    }
-    //}
-    //else
-    //{
-    //    /* updateStatus("Exporting graph aborted by user"); */
-    //}
-}
-
-void TemplGui::fromFile(const std::string& filename)
-{
-    graph_analysis::BaseGraph::Ptr graph = graph_analysis::BaseGraph::getInstance();
-    try
-    {
-        graph_analysis::io::GraphIO::read(filename, graph);
-    }
-    catch(const std::exception& e)
-    {
-        std::string msg = "Failed to import '" + filename + "': " + e.what();
-        QMessageBox::critical(this, tr("Graph Import Failed"), msg.c_str());
-        return;
-    }
-
-    mpBaseGraph = graph;
-
-    delete mpQBaseGraph;
-    mpQBaseGraph = new QBaseGraph(mpBaseGraph);
-
-    mpBaseGraphView->setGraph(mpBaseGraph);
-    mpBaseGraphView->clearVisualization();
-    mpBaseGraphView->refresh();
-    mpBaseGraphView->updateVisualization();
+    graph_analysis::gui::dialogs::IODialog::exportGraph(mpBaseGraphView->graph());
 }
 
 void TemplGui::selectLayout()

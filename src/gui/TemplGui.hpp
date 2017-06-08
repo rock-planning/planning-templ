@@ -46,7 +46,6 @@ private:
     MissionView* mpMissionView;
     OntologyView* mpOntologyView;
 
-    void fromFile(const std::string& filename);
     void notifyAll();
 
     void registerGraphElementTypes();
