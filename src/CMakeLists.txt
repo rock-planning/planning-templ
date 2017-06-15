@@ -225,6 +225,11 @@ rock_executable(templ-tcn_reader
     DEPS templ
 )
 
+rock_executable(templ-solution_analysis
+    utils/SolutionAnalyserMain.cpp
+    DEPS templ
+)
+
 rock_library(templ_gui
     HEADERS
         gui/TemplGui.hpp

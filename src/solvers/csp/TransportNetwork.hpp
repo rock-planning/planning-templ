@@ -206,7 +206,7 @@ private:
 
 private:
 
-    std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelPoolSet& set) const;
+    std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelPool::Set& set) const;
     std::vector<uint32_t> toCSP(const organization_model::ModelPool& combination) const;
 
     /**
@@ -220,7 +220,7 @@ private:
      * extensional constraints out of the combination set
      * \return TupleSet
      */
-    void appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPoolSet& combinations) const;
+    void appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPool::Set& combinations) const;
 
     /**
      * Map a fluents to its index (id)
@@ -306,6 +306,12 @@ protected:
      * Get the solution of this Gecode::Space instance
      */
     Solution getSolution() const;
+
+    /**
+     * Save a found solution
+     */
+    static void saveSolution(const Solution& solution, const Mission::Ptr& mission);
+
 
     ModelDistribution getModelDistribution() const;
     RoleDistribution getRoleDistribution() const;

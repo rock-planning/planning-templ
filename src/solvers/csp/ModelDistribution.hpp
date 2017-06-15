@@ -153,7 +153,7 @@ private:
 
 private:
 
-    std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelPoolSet& set) const;
+    std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelPool::Set& set) const;
     std::vector<uint32_t> toCSP(const organization_model::ModelPool& combination) const;
 
     /**
@@ -167,7 +167,7 @@ private:
      * extensional constraints out of the combination set
      * \return TupleSet
      */
-    void appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPoolSet& combinations) const;
+    void appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPool::Set& combinations) const;
 
     size_t getFluentIndex(const FluentTimeResource& fluent) const;
     size_t getResourceModelIndex(const owlapi::model::IRI& model) const;

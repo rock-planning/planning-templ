@@ -45,6 +45,11 @@ public:
     void disableSessions() { mUseSessions = false; }
     void incrementSessionId() { ++mSessionId; }
 
+    /**
+     * Get the current session id
+     */
+    uint32_t getSessionId() const { return mSessionId; }
+
     std::string getBasePath() const;
 
     /**

@@ -61,6 +61,10 @@ struct FluentTimeResource
 
     Symbol::Ptr getFluent() const;
 
+    symbols::constants::Location::Ptr getLocation() const { return
+        dynamic_pointer_cast<symbols::constants::Location>(getFluent()); }
+
+
     /**
      * Get the set of functionalities this FluentTimeResource requires
      */
@@ -84,7 +88,7 @@ struct FluentTimeResource
      * Get the minimum requirements as set of ModelCombinations
      * \return ModelCombinations that fulfill the requirement
      */
-    organization_model::ModelPoolSet getDomain() const;
+    organization_model::ModelPool::Set getDomain() const;
 
     /**
      * Get the index of a fluent in a list of fluents

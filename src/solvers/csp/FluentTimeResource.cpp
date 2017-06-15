@@ -68,8 +68,8 @@ std::string FluentTimeResource::toString(uint32_t indent) const
     ss << hspace << "    min cardinalities: " << std::endl
         << minCardinalities.toString(indent + 8) << std::endl;
     ss << hspace << "    model pool set: " << std::endl;
-    organization_model::ModelPoolSet domain = getDomain();
-    organization_model::ModelPoolSet::const_iterator dit = domain.begin();
+    organization_model::ModelPool::Set domain = getDomain();
+    organization_model::ModelPool::Set::const_iterator dit = domain.begin();
     for(;dit != domain.end(); ++dit)
     {
         ss << dit->toString(indent + 8) << std::endl;
@@ -138,6 +138,7 @@ Symbol::Ptr FluentTimeResource::getFluent() const
     return mission->getLocations()[fluent];
 }
 
+// TODO: this will require quantification as well
 std::set<organization_model::Functionality> FluentTimeResource::getFunctionalities() const
 {
     owlapi::model::OWLOntologyAsk ontologyAsk(mission->getOrganizationModel()->ontology());
@@ -221,7 +222,7 @@ void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements, 
     LOG_DEBUG_S << "END compact requirements";
 }
 
-organization_model::ModelPoolSet FluentTimeResource::getDomain() const
+organization_model::ModelPool::Set FluentTimeResource::getDomain() const
 {
     assert(mission);
 
@@ -238,7 +239,7 @@ organization_model::ModelPoolSet FluentTimeResource::getDomain() const
     // complete set since this might conflict with the minCardinalities
     // constraint -- thus we need to first derive the functionalBound and then
     // apply the minCardinalities by expanding the set of model if required
-    organization_model::ModelPoolSet combinations = mission->getOrganizationModelAsk().getResourceSupport(functionalities);
+    organization_model::ModelPool::Set combinations = mission->getOrganizationModelAsk().getResourceSupport(functionalities);
     LOG_INFO_S << "Resources: " << organization_model::ModelPool::toString(combinations);
     LOG_INFO_S << "    max cardinalities: " << maxCardinalities.toString(8);
     combinations = mission->getOrganizationModelAsk().applyUpperBound(combinations, maxCardinalities);

@@ -67,9 +67,9 @@ public:
 
     TestValidTransportEdge(bool share, TestValidTransportEdge& other)
         : Gecode::Space(share, other)
-        , mNumberOfVertices(other.mNumberOfVertices)
-        , mNumberOfFluents(other.mNumberOfFluents)
         , mNumberOfTimepoints(other.mNumberOfTimepoints)
+        , mNumberOfFluents(other.mNumberOfFluents)
+        , mNumberOfVertices(other.mNumberOfVertices)
         , mNumberOfTimelines(other.mNumberOfTimelines)
         , mSupplyDemand(other.mSupplyDemand)
     {

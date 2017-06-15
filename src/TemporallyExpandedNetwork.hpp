@@ -52,6 +52,7 @@ protected:
 
 public:
     TemporallyExpandedNetwork()
+        : mpGraph( graph_analysis::BaseGraph::getInstance() )
     {}
 
     TemporallyExpandedNetwork(const TemporallyExpandedNetwork& other)
@@ -190,6 +191,13 @@ public:
             assert(mpGraph);
             graph_analysis::io::GraphIO::write(filename,mpGraph, graph_analysis::representation::GEXF);
         }
+    }
+
+    static TemporallyExpandedNetwork<D0,D1,TUPLE, EDGE_TYPE> fromFile(const std::string& filename)
+    {
+        TemporallyExpandedNetwork network;
+        graph_analysis::io::GraphIO::read(filename, network.mpGraph);
+        return network;
     }
 
     const ValueTimePair& getValueTimePair(const typename tuple_t::Ptr& searchTuple) const

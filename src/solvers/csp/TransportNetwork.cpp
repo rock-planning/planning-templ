@@ -27,6 +27,7 @@
 #include <graph_analysis/GraphIO.hpp>
 #include "MissionConstraints.hpp"
 #include "Search.hpp"
+#include "../SolutionAnalysis.hpp"
 
 using namespace templ::solvers::csp::utils;
 
@@ -326,6 +327,47 @@ TransportNetwork::Solution TransportNetwork::getSolution() const
     return solution;
 }
 
+void TransportNetwork::saveSolution(const Solution& solution, const Mission::Ptr& mission)
+{
+    std::string filename;
+    int i = mission->getLogger()->getSessionId();
+    try {
+        std::stringstream ss;
+        ss << "templ-mission-solution-" << i << ".dot";
+        filename = mission->getLogger()->filename(ss.str());
+        graph_analysis::io::GraphIO::write(filename, solution.getMinCostFlowSolution().getGraph());
+    } catch(const std::exception& e)
+    {
+        std::cout << "Saving file " << filename << " failed: -- " << e.what();
+    }
+
+    try {
+        std::stringstream ss;
+        ss << "templ-mission-solution-" << i << ".gexf";
+        filename = mission->getLogger()->filename(ss.str());
+        solution.getMinCostFlowSolution().save(filename, "gexf");
+    } catch(const std::exception& e)
+    {
+        std::cout << "Saving file " << filename << " failed: -- " << e.what();
+    }
+
+    std::cout << "Solution analysis" << std::endl;
+    solvers::SolutionAnalysis sa(mission, solution.getMinCostFlowSolution());
+    std::cout << "    Required roles: " << Role::toString(sa.getRequiredRoles()) << std::endl;
+
+    graph_analysis::BaseGraph::Ptr hyperGraph = sa.toHyperGraph();
+    try {
+        std::stringstream ss;
+        ss << "templ-mission-solution-hypergraph" << i << ".dot";
+        filename = mission->getLogger()->filename(ss.str());
+        graph_analysis::io::GraphIO::write(filename, hyperGraph);
+    } catch(const std::exception& e)
+    {
+        std::cout << "Saving file " << filename << " failed: -- " << e.what();
+    }
+
+}
+
 TransportNetwork::ModelDistribution TransportNetwork::getModelDistribution() const
 {
     ModelDistribution solution;
@@ -396,10 +438,10 @@ SpaceTime::Timelines TransportNetwork::getTimelines() const
     return TypeConversion::toTimelines(mActiveRoleList, mTimelines, mLocations, mTimepoints);
 }
 
-std::set< std::vector<uint32_t> > TransportNetwork::toCSP(const organization_model::ModelPoolSet& combinations) const
+std::set< std::vector<uint32_t> > TransportNetwork::toCSP(const organization_model::ModelPool::Set& combinations) const
 {
     std::set< std::vector<uint32_t> > csp_combinations;
-    organization_model::ModelPoolSet::const_iterator cit = combinations.begin();
+    organization_model::ModelPool::Set::const_iterator cit = combinations.begin();
     for(; cit != combinations.end(); ++cit)
     {
         csp_combinations.insert( toCSP(*cit) );
@@ -633,7 +675,7 @@ void TransportNetwork::initializeMinMaxConstraints()
 
                 // Prepare the extensional constraints, i.e. specifying the allowed
                 // combinations
-                organization_model::ModelPoolSet allowedCombinations = fts.getDomain();
+                organization_model::ModelPool::Set allowedCombinations = fts.getDomain();
                 appendToTupleSet(mExtensionalConstraints[requirementIndex], allowedCombinations);
 
                 // there can be no empty assignment for resource requirement
@@ -891,7 +933,15 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
                 using namespace organization_model;
 
                 LOG_INFO_S << "Solution found:" << current->toString();
-                solutions.push_back(current->getSolution());
+                Solution solution = current->getSolution();
+
+                solvers::SolutionAnalysis sa(mission, solution.getMinCostFlowSolution());
+                //sa.remainingFlaws();
+
+                solutions.push_back(solution);
+                // Saving solution
+                saveSolution(solution, mission);
+
                 if(minNumberOfSolutions != 0)
                 {
                     if(solutions.size() == minNumberOfSolutions)
@@ -963,7 +1013,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
     return solutions;
 }
 
-void TransportNetwork::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPoolSet& combinations) const
+void TransportNetwork::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPool::Set& combinations) const
 {
     std::set< std::vector<uint32_t> > csp = toCSP( combinations );
     std::set< std::vector<uint32_t> >::const_iterator cit = csp.begin();

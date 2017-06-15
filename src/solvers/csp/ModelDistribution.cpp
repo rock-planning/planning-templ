@@ -177,10 +177,10 @@ ModelDistribution::RoleDistributionSolution ModelDistribution::getRoleDistributi
     return solution;
 }
 
-std::set< std::vector<uint32_t> > ModelDistribution::toCSP(const organization_model::ModelPoolSet& combinations) const
+std::set< std::vector<uint32_t> > ModelDistribution::toCSP(const organization_model::ModelPool::Set& combinations) const
 {
     std::set< std::vector<uint32_t> > csp_combinations;
-    organization_model::ModelPoolSet::const_iterator cit = combinations.begin();
+    organization_model::ModelPool::Set::const_iterator cit = combinations.begin();
     for(; cit != combinations.end(); ++cit)
     {
         csp_combinations.insert( toCSP(*cit) );
@@ -338,7 +338,7 @@ ModelDistribution::ModelDistribution(const templ::Mission::Ptr& mission)
 
                 // Extensional constraints, i.e. specifying the allowed
                 // combinations
-                organization_model::ModelPoolSet allowedCombinations = fts.getDomain();
+                organization_model::ModelPool::Set allowedCombinations = fts.getDomain();
                 appendToTupleSet(mExtensionalConstraints[requirementIndex], allowedCombinations);
 
                 // there can be no empty assignment for a service
@@ -552,7 +552,7 @@ std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::M
     return solutions;
 }
 
-void ModelDistribution::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPoolSet& combinations) const
+void ModelDistribution::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPool::Set& combinations) const
 {
     std::set< std::vector<uint32_t> > csp = toCSP( combinations );
     std::set< std::vector<uint32_t> >::const_iterator cit = csp.begin();
