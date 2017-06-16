@@ -12,6 +12,7 @@
 #include <graph_analysis/WeightedEdge.hpp>
 #include "solvers/temporal/point_algebra/TimePoint.hpp"
 #include "Tuple.hpp"
+#include "Mission.hpp"
 
 namespace templ {
 
@@ -136,6 +137,16 @@ public:
         }
     }
 
+    void reconstructTupleMap()
+    {
+        graph_analysis::VertexIterator::Ptr vertexIt = mpGraph->getVertexIterator();
+        while(vertexIt->next())
+        {
+            typename tuple_t::Ptr currentTuple = dynamic_pointer_cast<tuple_t>( vertexIt->current() );
+            mTupleMap[ ValueTimePair(currentTuple->first(), currentTuple->second()) ] = currentTuple;
+        }
+    }
+
     const graph_analysis::BaseGraph::Ptr& getGraph() const { return mpGraph; }
 
     /**
@@ -193,10 +204,15 @@ public:
         }
     }
 
-    static TemporallyExpandedNetwork<D0,D1,TUPLE, EDGE_TYPE> fromFile(const std::string& filename)
+    static TemporallyExpandedNetwork<D0,D1,TUPLE, EDGE_TYPE> fromFile(const std::string& filename, const Mission::Ptr& mission)
     {
         TemporallyExpandedNetwork network;
         graph_analysis::io::GraphIO::read(filename, network.mpGraph);
+
+        network.mValues = mission->getLocations();
+        network.mTimepoints = mission->getTimepoints();
+        network.reconstructTupleMap();
+
         return network;
     }
 

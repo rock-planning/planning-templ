@@ -79,6 +79,8 @@ std::vector<organization_model::ModelPool> SolutionAnalysis::getAvailableResourc
     // the interval (the list of timepoints is sorted)
     bool partOfInterval = false;
     TimePoint::PtrList timepoints = mSolutionNetwork.getTimepoints();
+    assert(!timepoints.empty());
+
     for(TimePoint::Ptr timepoint : timepoints)
     {
         if( mTimepointComparator.inInterval(timepoint, interval.getFrom(), interval.getTo()) )
@@ -89,18 +91,7 @@ std::vector<organization_model::ModelPool> SolutionAnalysis::getAvailableResourc
             Role::List roles(foundRoles.begin(), foundRoles.end());
             organization_model::ModelPool currentPool = Role::getModelPool(roles);
 
-            graph_analysis::EdgeIterator::Ptr inEdgeIt = mSolutionNetwork.getGraph()->getInEdgeIterator(tuple);
-            while(inEdgeIt->next())
-            {
-                RoleInfoWeightedEdge::Ptr roleInfoEdge = dynamic_pointer_cast<RoleInfoWeightedEdge>(inEdgeIt->current());
-                assert(roleInfoEdge);
 
-                Role::Set roles = roleInfoEdge->getRoles("assigned");
-                for(const Role& role : roles)
-                {
-                    currentPool[role.getModel()] += 1;
-                }
-            }
 
             modelPools.push_back(currentPool);
         }
@@ -317,8 +308,14 @@ std::string SolutionAnalysis::toString(size_t indent) const
 {
     std::string hspace(indent, ' ');
     std::stringstream ss;
-    ss << indent << "SolutionAnalysis:" << std::endl;
-    ss << indent << "    required roles: " << Role::toString( getRequiredRoles() ) << std::endl;
+    ss << hspace << "SolutionAnalysis:" << std::endl;
+    ss << hspace << "    required roles: " << Role::toString( getRequiredRoles() ) << std::endl;
+
+    for(const solvers::csp::FluentTimeResource& ftr : mResourceRequirements)
+    {
+        ss << ftr.toString(indent + 4) << std::endl;
+        ss << getMinAvailableResources(ftr).toString(indent + 4) << std::endl;
+    }
 
     return ss.str();
 }

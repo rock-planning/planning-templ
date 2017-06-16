@@ -10,6 +10,7 @@ rock_library(templ
         PlanningState.cpp
         Role.cpp
         RoleInfo.cpp
+        RoleInfoTuple.cpp
         RoleInfoWeightedEdge.cpp
         SpaceTime.cpp
         Symbol.cpp

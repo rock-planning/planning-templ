@@ -8,28 +8,18 @@
 
 namespace templ {
 
+const graph_analysis::EdgeRegistration<RoleInfoWeightedEdge> RoleInfoWeightedEdge::msRoleInfoWeightedEdgeRegistration;
+
 RoleInfoWeightedEdge::RoleInfoWeightedEdge()
     : graph_analysis::WeightedEdge()
     , RoleInfo()
 {
-    init();
 }
 
 RoleInfoWeightedEdge::RoleInfoWeightedEdge(const graph_analysis::Vertex::Ptr& source, const graph_analysis::Vertex::Ptr& target, double weight)
     : graph_analysis::WeightedEdge(source, target, weight)
     , RoleInfo()
 {
-    init();
-}
-
-RoleInfoWeightedEdge::RoleInfoWeightedEdge(bool doInit)
-    : graph_analysis::WeightedEdge()
-    , RoleInfo()
-{
-    if(doInit)
-    {
-        init();
-    }
 }
 
 std::string RoleInfoWeightedEdge::toString() const
@@ -48,37 +38,25 @@ std::string RoleInfoWeightedEdge::toString() const
     return ss.str();
 }
 
-void RoleInfoWeightedEdge::init()
+void RoleInfoWeightedEdge::registerAttributes(graph_analysis::EdgeTypeManager* eManager) const
 {
-    static EdgeRegistration edgeRegistration;
-}
+    using namespace graph_analysis;
 
-RoleInfoWeightedEdge::EdgeRegistration::EdgeRegistration()
-    : mRegistered(false)
-{
-    if(!mRegistered)
-    {
-        mRegistered = true;
+    eManager->registerAttribute("RoleInfoWeightedEdge", "weights",
+               (io::AttributeSerializationCallbacks::serialize_func_t)&RoleInfoWeightedEdge::serializeWeights,
+               (io::AttributeSerializationCallbacks::deserialize_func_t)&RoleInfoWeightedEdge::deserializeWeights,
+               (io::AttributeSerializationCallbacks::print_func_t)&RoleInfoWeightedEdge::serializeWeights);
 
-        using namespace graph_analysis;
+    eManager->registerAttribute("RoleInfoWeightedEdge", "roles",
+               (io::AttributeSerializationCallbacks::serialize_func_t)&RoleInfoWeightedEdge::serializeRoles,
+               (io::AttributeSerializationCallbacks::deserialize_func_t)&RoleInfoWeightedEdge::deserializeRoles,
+               (io::AttributeSerializationCallbacks::print_func_t)&RoleInfoWeightedEdge::serializeRoles);
 
-        LOG_WARN_S << "Performing edge registration";
-        EdgeTypeManager* eManager = EdgeTypeManager::getInstance();
-        RoleInfoWeightedEdge::Ptr edge( new RoleInfoWeightedEdge(false));
-        eManager->registerType("RoleInfoWeightedEdge", edge, true);
-        eManager->registerAttribute("RoleInfoWeightedEdge", "weights",
-                   (io::AttributeSerializationCallbacks::serialize_func_t)&RoleInfoWeightedEdge::serializeWeights,
-                   (io::AttributeSerializationCallbacks::deserialize_func_t)&RoleInfoWeightedEdge::deserializeWeights,
-                   (io::AttributeSerializationCallbacks::print_func_t)&RoleInfoWeightedEdge::serializeWeights);
-        eManager->registerAttribute("RoleInfoWeightedEdge", "roles",
-                   (io::AttributeSerializationCallbacks::serialize_func_t)&RoleInfoWeightedEdge::serializeRoles,
-                   (io::AttributeSerializationCallbacks::deserialize_func_t)&RoleInfoWeightedEdge::deserializeRoles,
-                   (io::AttributeSerializationCallbacks::print_func_t)&RoleInfoWeightedEdge::serializeRoles);
-        eManager->registerAttribute("RoleInfoWeightedEdge", "tagged_roles",
-                   (io::AttributeSerializationCallbacks::serialize_func_t)&RoleInfoWeightedEdge::serializeTaggedRoles,
-                   (io::AttributeSerializationCallbacks::deserialize_func_t)&RoleInfoWeightedEdge::deserializeTaggedRoles,
-                   (io::AttributeSerializationCallbacks::print_func_t)&RoleInfoWeightedEdge::serializeTaggedRoles);
-    }
+    eManager->registerAttribute("RoleInfoWeightedEdge", "tagged_roles",
+               (io::AttributeSerializationCallbacks::serialize_func_t)&RoleInfoWeightedEdge::serializeTaggedRoles,
+               (io::AttributeSerializationCallbacks::deserialize_func_t)&RoleInfoWeightedEdge::deserializeTaggedRoles,
+               (io::AttributeSerializationCallbacks::print_func_t)&RoleInfoWeightedEdge::serializeTaggedRoles);
+
 }
 
 std::string RoleInfoWeightedEdge::serializeRoles()

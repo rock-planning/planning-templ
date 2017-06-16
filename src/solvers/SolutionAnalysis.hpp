@@ -137,14 +137,9 @@ public:
     graph_analysis::BaseGraph::Ptr toHyperGraph();
 
     /**
-     * Get the list of missing resources
-     */
-    organization_model::ModelPool getMissingResources(const solvers::csp::FluentTimeResource& requirement);
-
-    /**
      * Get the set of available resources
      */
-    organization_model::ModelPool getAvailableResources(const solvers::csp::FluentTimeResource& e);
+    //organization_model::ModelPool getAvailableResources(const solvers::csp::FluentTimeResource& e) const;
 
     std::string toString(size_t indent = 0) const;
 

@@ -2,7 +2,12 @@
 #include <templ/Role.hpp>
 #include <templ/RoleInfoWeightedEdge.hpp>
 #include <templ/RoleInfoWeightedEdge.hpp>
+#include <templ/symbols/constants/Location.hpp>
+#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
+#include <templ/RoleInfoTuple.hpp>
+
 #include <boost/archive/text_oarchive.hpp>
+
 
 #include <graph_analysis/BaseGraph.hpp>
 #include <graph_analysis/GraphIO.hpp>
@@ -49,15 +54,32 @@ BOOST_AUTO_TEST_CASE(role_info_weighted_edge_serialization_0)
     using namespace graph_analysis;
 
     std::string filename = "/tmp/templ-test_io-role_info_weighted_edge_serialization.gexf";
+    RoleInfoWeightedEdge original;
     {
-        Vertex::Ptr v0(new Vertex("v0"));
-        Vertex::Ptr v1(new Vertex("v1"));
+        namespace con = templ::symbols::constants;
+        namespace pa = templ::solvers::temporal::point_algebra;
+
+        typedef RoleInfoTuple<con::Location::Ptr, pa::TimePoint::Ptr> RoleInfoSpaceTimeTuple;
+
+        con::Location::Ptr l0 = con::Location::create("l0");
+        con::Location::Ptr l1 = con::Location::create("l1");
+
+        pa::TimePoint::Ptr t0 = pa::TimePoint::create("t0");
+        pa::TimePoint::Ptr t1 = pa::TimePoint::create("t1");
+
+        RoleInfoSpaceTimeTuple::Ptr v0(new RoleInfoSpaceTimeTuple(l0,t0));
+        RoleInfoSpaceTimeTuple::Ptr v1(new RoleInfoSpaceTimeTuple(l1,t1));
+
+        //Vertex::Ptr v0(new Vertex("v0"));
+        //Vertex::Ptr v1(new Vertex("v1"));
+
         RoleInfoWeightedEdge::Ptr edge(new RoleInfoWeightedEdge(e));
         edge->setSourceVertex(v0);
         edge->setTargetVertex(v1);
 
         BaseGraph::Ptr graph = BaseGraph::getInstance();
         graph->addEdge(edge);
+        original = *edge.get();
 
         graph_analysis::io::GraphIO::write(filename, graph, representation::GEXF);
     }
@@ -71,8 +93,16 @@ BOOST_AUTO_TEST_CASE(role_info_weighted_edge_serialization_0)
         {
             RoleInfoWeightedEdge::Ptr roleInfoEdge = dynamic_pointer_cast<RoleInfoWeightedEdge>(edgeIt->current());
             std::set<Role> roles = roleInfoEdge->getRoles();
+
+            BOOST_REQUIRE_MESSAGE(roleInfoEdge->getRoles() == original.getRoles(), "Reloaded edge same roles as original");
             BOOST_REQUIRE_MESSAGE(roles.size() == 5, "RoleInfoEdge expected 5 Roles, but has " << roles.size());
             BOOST_TEST_MESSAGE("RoleInfoEdge: " << roleInfoEdge->toString());
+
+            BOOST_REQUIRE_MESSAGE(roleInfoEdge->getSourceVertex(), "Source vertex is not null");
+            BOOST_REQUIRE_MESSAGE(roleInfoEdge->getTargetVertex(), "Target vertex is not null");
+
+            BOOST_TEST_MESSAGE("Source vertex: " << roleInfoEdge->getSourceVertex()->toString());
+            BOOST_TEST_MESSAGE("Target vertex: " << roleInfoEdge->getTargetVertex()->toString());
         }
     }
 }

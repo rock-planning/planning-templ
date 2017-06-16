@@ -3,7 +3,8 @@
 
 #include <set>
 #include <graph_analysis/Vertex.hpp>
-#include <graph_analysis/VertexTypeManager.hpp>
+#include <graph_analysis/VertexRegistration.hpp>
+
 #include "Role.hpp"
 #include "Tuple.hpp"
 #include "RoleInfo.hpp"
@@ -26,21 +27,20 @@ class RoleInfoTuple : public Tuple<A, B>, public virtual RoleInfo
 public:
     typedef shared_ptr< RoleInfoTuple<A,B> > Ptr;
 
+    static const graph_analysis::VertexRegistration< RoleInfoTuple<A,B> > msRoleInfoTupleRegistration;
+
     RoleInfoTuple()
         : RoleInfo()
         , BaseClass()
-    {
-        init();
-    }
+    {}
 
     RoleInfoTuple(const typename BaseClass::a_t& a, const typename BaseClass::b_t& b)
         : RoleInfo()
         , BaseClass(a,b)
     {
-        init();
     }
 
-    std::string getClassName() const override { return "RoleInfoTuple"; }
+    std::string getClassName() const override { return "RoleInfoTuple"; } //typeid(*this).name(); }
 
     std::string toString() const override
     {
@@ -49,11 +49,6 @@ public:
         ss << RoleInfo::toString();
 
         return ss.str();
-    }
-
-    void init()
-    {
-        static VertexRegistration edgeRegistration;
     }
 
     std::string serializeTuple()
@@ -116,59 +111,31 @@ public:
         iarch >> mTaggedRoles;
     }
 
-protected:
-    graph_analysis::Vertex* getClone() const override { return new RoleInfoTuple(*this); }
-
-    RoleInfoTuple(bool doInit)
-        : RoleInfo()
-        , BaseClass()
+    // Todo: for registration to work the particular VertexRegistration for this
+    // type must be added to the source cpp file
+    virtual void registerAttributes(graph_analysis::VertexTypeManager* vManager) const override
     {
-        if(doInit)
-        {
-            init();
-        }
+        vManager->registerAttribute(getClassName(), "roles",
+                   (graph_analysis::io::AttributeSerializationCallbacks::serialize_func_t)&RoleInfoTuple::serializeRoles,
+                   (graph_analysis::io::AttributeSerializationCallbacks::deserialize_func_t)&RoleInfoTuple::deserializeRoles,
+                   (graph_analysis::io::AttributeSerializationCallbacks::print_func_t)&RoleInfoTuple::serializeRoles);
+        vManager->registerAttribute(getClassName(), "tagged_roles",
+                   (graph_analysis::io::AttributeSerializationCallbacks::serialize_func_t)&RoleInfoTuple::serializeTaggedRoles,
+                   (graph_analysis::io::AttributeSerializationCallbacks::deserialize_func_t)&RoleInfoTuple::deserializeTaggedRoles,
+                   (graph_analysis::io::AttributeSerializationCallbacks::print_func_t)&RoleInfoTuple::serializeTaggedRoles);
+
+        vManager->registerAttribute(getClassName(), "tuple",
+                (graph_analysis::io::AttributeSerializationCallbacks::serialize_func_t)
+                &RoleInfoTuple::serializeTuple,
+                (graph_analysis::io::AttributeSerializationCallbacks::deserialize_func_t)
+                &RoleInfoTuple::deserializeTuple,
+                (graph_analysis::io::AttributeSerializationCallbacks::print_func_t)
+                &RoleInfoTuple::serializeTuple);
     }
 
 
-    class VertexRegistration
-    {
-        bool mRegistered;
-
-    public:
-        VertexRegistration()
-            : mRegistered(false)
-        {
-            if(!mRegistered)
-            {
-                mRegistered = true;
-
-                using namespace graph_analysis;
-
-                LOG_WARN_S << "Performing vertex registration";
-                VertexTypeManager* vManager = VertexTypeManager::getInstance();
-                RoleInfoTuple::Ptr vertex( new RoleInfoTuple(false));
-                vManager->registerType("RoleInfoTuple", vertex, true);
-                vManager->registerAttribute("RoleInfoTuple", "roles",
-                           (graph_analysis::io::AttributeSerializationCallbacks::serialize_func_t)&RoleInfoTuple::serializeRoles,
-                           (graph_analysis::io::AttributeSerializationCallbacks::deserialize_func_t)&RoleInfoTuple::deserializeRoles,
-                           (graph_analysis::io::AttributeSerializationCallbacks::print_func_t)&RoleInfoTuple::serializeRoles);
-                vManager->registerAttribute("RoleInfoTuple", "tagged_roles",
-                           (graph_analysis::io::AttributeSerializationCallbacks::serialize_func_t)&RoleInfoTuple::serializeTaggedRoles,
-                           (graph_analysis::io::AttributeSerializationCallbacks::deserialize_func_t)&RoleInfoTuple::deserializeTaggedRoles,
-                           (graph_analysis::io::AttributeSerializationCallbacks::print_func_t)&RoleInfoTuple::serializeTaggedRoles);
-
-                vManager->registerAttribute("RoleInfoTuple", "tuple",
-                        (graph_analysis::io::AttributeSerializationCallbacks::serialize_func_t)
-                        &RoleInfoTuple::serializeTuple,
-                        (graph_analysis::io::AttributeSerializationCallbacks::deserialize_func_t)
-                        &RoleInfoTuple::deserializeTuple,
-                        (graph_analysis::io::AttributeSerializationCallbacks::print_func_t)
-                        &RoleInfoTuple::serializeTuple);
-
-            }
-        }
-    };
-
+protected:
+    graph_analysis::Vertex* getClone() const override { return new RoleInfoTuple(*this); }
 };
 
 } // end namespace templ

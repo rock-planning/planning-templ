@@ -2,6 +2,7 @@
 #define TEMPL_ROLE_INFO_WEIGHTED_EDGE_HPP
 
 #include <graph_analysis/WeightedEdge.hpp>
+#include <graph_analysis/EdgeRegistration.hpp>
 #include "RoleInfo.hpp"
 
 namespace templ {
@@ -28,21 +29,12 @@ public:
 
     void deserializeTaggedRoles(const std::string& s);
 
+    virtual void registerAttributes(graph_analysis::EdgeTypeManager* eManager) const;
 
 protected:
-    RoleInfoWeightedEdge(bool doInit);
-
     graph_analysis::Edge* getClone() const override { return new RoleInfoWeightedEdge(*this); }
 
-    void init();
-
-    class EdgeRegistration
-    {
-        public:
-             EdgeRegistration();
-        private:
-             bool mRegistered;
-    };
+    static const graph_analysis::EdgeRegistration<RoleInfoWeightedEdge> msRoleInfoWeightedEdgeRegistration;
 };
 
 } // end namespace
