@@ -54,8 +54,17 @@ organization_model::ModelPool SolutionAnalysis::getMinAvailableResources(const c
 
     std::vector<organization_model::ModelPool> availableResources = getAvailableResources(location, ftr.getInterval());
 
+    using namespace organization_model;
     // return the minimum available resources of the
-    return organization_model::Algebra::min( availableResources );
+    ModelPool minAvailableResources = organization_model::Algebra::min( availableResources );
+
+    // Infer functionality from this set of resources
+    OrganizationModelAsk ask(mpMission->getOrganizationModel(),
+            minAvailableResources,
+            true);
+    // Creating model pool from available functionalities
+    ModelPool functionalities = ask.getSupportedFunctionalities();
+    return organization_model::Algebra::max(minAvailableResources, functionalities);
 }
 
 organization_model::ModelPool SolutionAnalysis::getMaxAvailableResources(const csp::FluentTimeResource& ftr) const
@@ -65,8 +74,17 @@ organization_model::ModelPool SolutionAnalysis::getMaxAvailableResources(const c
 
     std::vector<organization_model::ModelPool> availableResources = getAvailableResources(location, ftr.getInterval());
 
+    using namespace organization_model;
     // return the minimum available resources of the
-    return organization_model::Algebra::max( availableResources );
+    ModelPool maxAvailableResources = Algebra::max( availableResources );
+
+    // Infer functionality from this set of resources
+    OrganizationModelAsk ask(mpMission->getOrganizationModel(),
+            maxAvailableResources,
+            true);
+    // Creating model pool from available functionalities
+    ModelPool functionalities = ask.getSupportedFunctionalities();
+    return organization_model::Algebra::max(maxAvailableResources, functionalities);
 }
 
 std::vector<organization_model::ModelPool> SolutionAnalysis::getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::Interval& interval) const
@@ -79,6 +97,7 @@ std::vector<organization_model::ModelPool> SolutionAnalysis::getAvailableResourc
     // the interval (the list of timepoints is sorted)
     bool partOfInterval = false;
     TimePoint::PtrList timepoints = mSolutionNetwork.getTimepoints();
+
     assert(!timepoints.empty());
 
     for(TimePoint::Ptr timepoint : timepoints)
@@ -91,7 +110,18 @@ std::vector<organization_model::ModelPool> SolutionAnalysis::getAvailableResourc
             Role::List roles(foundRoles.begin(), foundRoles.end());
             organization_model::ModelPool currentPool = Role::getModelPool(roles);
 
+            //graph_analysis::EdgeIterator::Ptr inEdgeIt = mSolutionNetwork.getGraph()->getInEdgeIterator(tuple);
+            //while(inEdgeIt->next())
+            //{
+            //    RoleInfoWeightedEdge::Ptr roleInfoEdge = dynamic_pointer_cast<RoleInfoWeightedEdge>(inEdgeIt->current());
+            //    assert(roleInfoEdge);
 
+            //    Role::Set roles = roleInfoEdge->getRoles("assigned");
+            //    for(const Role& role : roles)
+            //    {
+            //        currentPool[role.getModel()] += 1;
+            //    }
+            //}
 
             modelPools.push_back(currentPool);
         }

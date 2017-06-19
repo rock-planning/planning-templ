@@ -87,12 +87,18 @@ public:
     /**
      * Get the minimum number of available resources for the given fluent time
      * resource definition
+     * \return ModelPool containing the available resources (including inferred
+     * functionalities)
      */
     organization_model::ModelPool getMinAvailableResources(const csp::FluentTimeResource& ftr) const;
 
     /**
      * Get the maximum number of available resources for the given fluent time
      * resource definition
+     *
+     * This function includes all infered functionality
+     * \return ModelPool containing the available resources (including inferred
+     * functionalities)
      */
     organization_model::ModelPool getMaxAvailableResources(const csp::FluentTimeResource& ftr) const;
 
