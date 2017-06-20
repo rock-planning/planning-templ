@@ -54,16 +54,17 @@ void TemporalConstraintNetwork::stp()
     double max, min;
     while (edgeIt->next())
     {
-        // for each edge of the temp.const.network, check each interval and find the min lower bound and the max upper bound
+        // for each edge of the temp.const.network, check each interval and find the overall
+        // min lower bound and the max upper bound
         edge = dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
-        max = 0; min = std::numeric_limits<double>::infinity();
-        std::vector<Bounds> v = edge->getIntervals();
-        std::vector<Bounds>::iterator it = v.begin();
-        while (it!=v.end())
+        max = 0;
+        min = std::numeric_limits<double>::infinity();
+        std::vector<Bounds> intervals = edge->getIntervals();
+        std::vector<Bounds>::const_iterator cit = intervals.begin();
+        for( ; cit != intervals.end(); ++cit)
         {
-            if (it->getLowerBound() < min) min = it->getLowerBound();
-            if (it->getUpperBound() > max) max = it->getUpperBound();
-            it++;
+            if (cit->getLowerBound() < min) min = cit->getLowerBound();
+            if (cit->getUpperBound() > max) max = cit->getUpperBound();
         }
         // create a new interval constraint using only the interval [min,max]
         IntervalConstraint::Ptr i(new IntervalConstraint(edge->getSourceTimePoint(),edge->getTargetTimePoint()));
@@ -77,16 +78,16 @@ void TemporalConstraintNetwork::stp()
 // the intersection between a temporal constraint network and a simple temporal constraint network
 graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::intersection(graph_analysis::BaseGraph::Ptr other)
 {
-    // complex temporal constraint network
-    BaseGraph::Ptr graph0 = mpDistanceGraph->copy();
+    //// complex temporal constraint network
+    //BaseGraph::Ptr graph0 = mpDistanceGraph->copy();
 
-    // simple temporal constraint network
-    BaseGraph::Ptr graph1 = other->copy();
+    //// simple temporal constraint network
+    //BaseGraph::Ptr graph1 = other->copy();
 
     // the intersection result
     TemporalConstraintNetwork tcn;
 
-    EdgeIterator::Ptr edgeIt1 = graph1->getEdgeIterator();
+    EdgeIterator::Ptr edgeIt1 = other->getEdgeIterator();
     TimePoint::Ptr source,target;
     IntervalConstraint::Ptr edge0,edge1;
 
@@ -96,9 +97,11 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::intersection(graph_ana
         edge1 = dynamic_pointer_cast<IntervalConstraint>( edgeIt1->current() );
         source = edge1 -> getSourceTimePoint();
         target = edge1 -> getTargetTimePoint();
-        std::vector<Bounds> x = edge1->getIntervals();
-        std::vector<Bounds>::iterator interval = x.begin();
-        EdgeIterator::Ptr edgeIt0 = graph0->getEdgeIterator();
+
+        std::vector<Bounds> intervals = edge1->getIntervals();
+        std::vector<Bounds>::iterator interval = intervals.begin();
+
+        EdgeIterator::Ptr edgeIt0 = mpDistanceGraph->getEdgeIterator();
         // for each edge from the simple temporal constraint network; iterate through the complex temporal constraint network
         while (edgeIt0->next())
         {
@@ -190,20 +193,19 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::toWeightedGraph()
     {
         IntervalConstraint::Ptr edge0 = dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
 
-        std::vector<Bounds> v = edge0->getIntervals();
-        std::vector<Bounds>::iterator it = v.begin();
-        while (it!=v.end())
+        std::vector<Bounds> intervals = edge0->getIntervals();
+        std::vector<Bounds>::const_iterator cit = intervals.begin();
+        for( ; cit != intervals.end(); ++cit)
         {
-            WeightedEdge::Ptr edge1(new WeightedEdge(it->getUpperBound()));
+            WeightedEdge::Ptr edge1(new WeightedEdge(cit->getUpperBound()));
             edge1->setSourceVertex(edge0->getSourceTimePoint());
             edge1->setTargetVertex(edge0->getTargetTimePoint());
             graph->addEdge(edge1);
 
-            WeightedEdge::Ptr edge2(new WeightedEdge(-it->getLowerBound()));
+            WeightedEdge::Ptr edge2(new WeightedEdge(-cit->getLowerBound()));
             edge2->setSourceVertex(edge0->getTargetTimePoint());
             edge2->setTargetVertex(edge0->getSourceTimePoint());
             graph->addEdge(edge2);
-            it++;
         }
     }
 

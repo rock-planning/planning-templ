@@ -53,9 +53,15 @@ public:
     /**
      * Add interval, i.e., and edge between two TimePoints to the internal
      * (distance) graph
+     *
+     * An interval constraint provides a lower and upper bound for the duration
+     * of this particular interval
      */
     void addIntervalConstraint(const IntervalConstraint::Ptr& i) { mpDistanceGraph->addEdge(i); }
 
+    /**
+     * Check if the temporal constraint network is consistent
+     */
     virtual bool isConsistent() { throw std::runtime_error("templ::solvers::temporal::TemporalConstraintNetwork::isConsistent is not implemented"); }
 
     /**
@@ -64,17 +70,22 @@ public:
      */
     void stp();
 
-    // the intersection between a temporal constraint network and a simple temporal constraint network given as argument by its DistanceGraph
+    /**
+     *
+     * the intersection between a temporal constraint network and a simple temporal constraint network given as argument by its DistanceGraph
+     */
     graph_analysis::BaseGraph::Ptr intersection(graph_analysis::BaseGraph::Ptr other);
 
     graph_analysis::BaseGraph::Ptr getDistanceGraph() const { return mpDistanceGraph; }
 
-    // change a simple temporal constraint network into a weighted graph
-    // Upper and lower bounds of each interval are added as edges in forward and backward
-    // direction between two edges
-    // A --- weight: upper bound   --> B
-    // B --- weight: - lower bound --> A
-    // the lower bound will be added as negative cost
+    /**
+     * This methods transforms a simple temporal constraint network into a weighted graph
+     * Upper and lower bounds of each interval are added as edges in forward and backward
+     * direction between two edges
+     * A --- weight: upper bound   --> B
+     * B --- weight: - lower bound --> A
+     * the lower bound will be added as negative cost
+     */
     graph_analysis::BaseGraph::Ptr toWeightedGraph();
 
     /**
@@ -99,6 +110,7 @@ public:
      *      N3 <- intersection between N2 and N
      * until (N3 = N) or inconsistent
      * \throw If we get an inconsistent network; the algorithm will throw (from Floyd-Warshall)
+     * \see http://www.ics.uci.edu/~csp/R40.pdf
      */
     void upperLowerTightening();
 
