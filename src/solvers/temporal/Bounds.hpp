@@ -1,6 +1,9 @@
 #ifndef TEMPL_SOLVERS_TEMPORAL_BOUNDS_HPP
 #define TEMPL_SOLVERS_TEMPORAL_BOUNDS_HPP
 
+#include <vector>
+#include <string>
+
 namespace templ {
 namespace solvers {
 namespace temporal {
@@ -15,10 +18,29 @@ class Bounds
     double mUpperBound;
 
 public:
+    typedef std::vector<Bounds> List;
+
+    Bounds() {}
+
     Bounds(double lowerBound, double upperBound);
 
-    double getLowerBound() const { return mLowerBound; } 
+    void setLowerBound(double l) { mLowerBound = l; }
+    void setUpperBound(double l) { mUpperBound = l; }
+
+    double getLowerBound() const { return mLowerBound; }
     double getUpperBound() const { return mUpperBound; }
+
+    bool operator==(const Bounds& other) const { return mLowerBound == other.mLowerBound &&
+        mUpperBound == other.mUpperBound; }
+
+    bool operator<(const Bounds& other) const;
+
+    bool overlaps(const Bounds& other) const;
+
+    bool isValid() const { return mLowerBound <= mUpperBound; }
+
+    std::string toString(size_t indent = 0) const;
+    static std::string toString(const List& list, size_t indent = 0);
 };
 
 } // end namespace temporal
