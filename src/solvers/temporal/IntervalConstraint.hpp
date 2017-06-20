@@ -2,6 +2,7 @@
 #define TEMPL_SOLVERS_INTERVAL_CONSTRAINT_HPP
 
 #include <graph_analysis/Edge.hpp>
+#include <graph_analysis/EdgeRegistration.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
 #include <templ/solvers/temporal/Bounds.hpp>
 
@@ -18,16 +19,20 @@ namespace temporal {
 class IntervalConstraint : public graph_analysis::Edge
 {
 private:
-    std::vector<Bounds> intervals;
+    std::vector<Bounds> mIntervals;
+    static const graph_analysis::EdgeRegistration<IntervalConstraint> msRegistration;
 
 public:
 
     typedef shared_ptr<IntervalConstraint> Ptr;
 
+    IntervalConstraint();
+
     /**
      * Default constructor for an interval constraint
      */
-    IntervalConstraint(point_algebra::TimePoint::Ptr source, point_algebra::TimePoint::Ptr target);
+    IntervalConstraint(const point_algebra::TimePoint::Ptr& source,
+            const point_algebra::TimePoint::Ptr& target);
 
     virtual ~IntervalConstraint() {}
 
@@ -43,6 +48,9 @@ public:
      */
     virtual std::string toString() const;
 
+    std::string serializeBounds() const;
+    void deserializeBounds(const std::string& blob);
+
     /**
      * Get the source vertex/TimePoint of this interval constraint
      */
@@ -54,16 +62,21 @@ public:
     point_algebra::TimePoint::Ptr getTargetTimePoint() { return dynamic_pointer_cast<point_algebra::TimePoint>( getTargetVertex()); }
 
     // add a new interval
-    void addInterval(Bounds newInterval) { intervals.push_back(newInterval); }
+    void addInterval(Bounds newInterval) { mIntervals.push_back(newInterval); }
 
     // returns the set of intervals for an interval constraint
-    std::vector<Bounds> getIntervals() { return intervals; }
+    const std::vector<Bounds>& getIntervals() const { return mIntervals; }
 
     // returns the number of intervals of an interval constraint
-    int getIntervalsNumber() {return intervals.size(); }
+    size_t getIntervalsNumber() const {return mIntervals.size(); }
 
     // check if a given interval is included in an interval constraint
-    bool checkInterval(Bounds x);
+    bool checkInterval(const Bounds& x);
+
+    /**
+     * Register attributes for serialization
+     */
+    virtual void registerAttributes(graph_analysis::EdgeTypeManager*) const override;
 
 protected:
 
