@@ -53,6 +53,29 @@ bool Bounds::overlaps(const Bounds& other) const
     return !(mUpperBound <= other.mLowerBound || other.mUpperBound <= mLowerBound);
 }
 
+bool Bounds::includesNegative(const List& list)
+{
+    for(const Bounds& b : list)
+    {
+        if(b.mLowerBound < 0 || b.mUpperBound < 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+Bounds::List Bounds::reverse(const List& boundsList)
+{
+    std::vector<Bounds> result;
+    for(const Bounds& b : boundsList)
+    {
+        result.push_back(Bounds(- b.getUpperBound(), -b.getLowerBound()));
+    }
+    return result;
+}
+
+
 } // end namespace temporal
 } // end namespace solvers
 } // end namespace templ

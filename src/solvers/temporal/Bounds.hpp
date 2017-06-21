@@ -39,6 +39,16 @@ public:
 
     bool isValid() const { return mLowerBound <= mUpperBound; }
 
+    static bool equals(const List& a, const List& b) { return a == b; }
+    static bool includesNegative(const List& a);
+
+    /**
+     * Reverse all intervals, i.e.
+     * change [a,b] into [-b,-a] for each interval of a set v
+     */
+    static std::vector<Bounds> reverse(const List& v);
+
+
     std::string toString(size_t indent = 0) const;
     static std::string toString(const List& list, size_t indent = 0);
 };

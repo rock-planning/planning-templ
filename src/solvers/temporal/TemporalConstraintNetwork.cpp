@@ -5,6 +5,7 @@
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 #include <limits>
 #include <boost/lexical_cast.hpp>
+#include <numeric/Combinatorics.hpp>
 
 using namespace templ::solvers::temporal::point_algebra;
 using namespace graph_analysis;
@@ -249,54 +250,67 @@ void TemporalConstraintNetwork::minNetwork()
 bool TemporalConstraintNetwork::equals(const graph_analysis::BaseGraph::Ptr& other)
 {
     // check if the graphs have the same number of vertices and edges
-    if (mpDistanceGraph->size() == other->size() && mpDistanceGraph->order() == other->order())
+    if (mpDistanceGraph->size() != other->size() || mpDistanceGraph->order() != other->order())
     {
-        EdgeIterator::Ptr edgeIt1 = mpDistanceGraph->getEdgeIterator();
-        while (edgeIt1->next())
-        {
-            EdgeIterator::Ptr edgeIt2 = other->getEdgeIterator();
-            bool ok = false;
-            // for each edge(source,target) from the first graph;
-            // search for an edge with the same source and target vertices in the second graph
-            while (edgeIt2->next())
-            {
-                // check each two edges if they have the same source;target;uppper and lower bounds
-                // if not; then the graphs are not the same
-                IntervalConstraint::Ptr i1 = dynamic_pointer_cast<IntervalConstraint>(edgeIt1->current());
-                IntervalConstraint::Ptr i2 = dynamic_pointer_cast<IntervalConstraint>(edgeIt2->current());
-                if (i1->getSourceTimePoint() == i2->getSourceTimePoint() && i1->getTargetTimePoint() == i2->getTargetTimePoint())
-                {
-                    ok = true;
-                    // check if the constraints have the same number of intervals
-                    if (i1->getIntervalsNumber() == i2->getIntervalsNumber())
-                    {
-                        std::vector<Bounds> v = i1->getIntervals();
-                        std::vector<Bounds>::const_iterator it = v.begin();
-                        // for each interval in the first constratint, check if it is also in the second constraint
-                        for(; it != v.end(); ++it)
-                        {
-                            // if we find one which is not in both constraints then the graphs are not the same
-                            if (i2->checkInterval(*it) == false)
-                            {
-                                return false;
-                            }
-                        }
-                    } else
-                    {
-                        return false;
-                    }
-                    break;
-                }
-            }
-            // we found one edge from graph1 which is not in graph2 => graphs are not the same
-            if (ok == false) return ok;
-        }
-        return true;
-    }
-    else
-    {
+        LOG_WARN_S << "Expected size: " << mpDistanceGraph->size() << " order: " << mpDistanceGraph->order()
+            << " got other with: size:" << other->size() << " order: " << other->order();
         return false;
     }
+
+    Vertex::PtrList allVertices = mpDistanceGraph->getAllVertices();
+    numeric::Combination<Vertex::Ptr> combination(allVertices, 2, numeric::EXACT);
+    do
+    {
+        const Vertex::PtrList& edge = combination.current();
+        const point_algebra::TimePoint::Ptr& sourceTimePoint = dynamic_pointer_cast<point_algebra::TimePoint>(edge[0]);
+        const point_algebra::TimePoint::Ptr& targetTimePoint = dynamic_pointer_cast<point_algebra::TimePoint>(edge[1]);
+
+        std::vector<graph_analysis::Edge::Ptr> thisEdgeList, otherEdgeList;
+        thisEdgeList = mpDistanceGraph->getEdges(sourceTimePoint,targetTimePoint);
+        otherEdgeList = other->getEdges(sourceTimePoint,targetTimePoint);
+
+        Bounds::List thisIntervals;
+        Bounds::List otherIntervals;
+
+        if(!thisEdgeList.empty())
+        {
+            IntervalConstraint::Ptr thisEdge = dynamic_pointer_cast<IntervalConstraint>(thisEdgeList.front());
+            thisIntervals.insert(thisIntervals.begin(), thisEdge->getIntervals().begin(), thisEdge->getIntervals().end());
+        }
+        if(!otherEdgeList.empty())
+        {
+            IntervalConstraint::Ptr otherEdge = dynamic_pointer_cast<IntervalConstraint>(otherEdgeList.front());
+            otherIntervals.insert(otherIntervals.begin(), otherEdge->getIntervals().begin(), otherEdge->getIntervals().end());
+        }
+
+        // check reverse
+        thisEdgeList = mpDistanceGraph->getEdges(targetTimePoint, sourceTimePoint);
+        otherEdgeList = other->getEdges(targetTimePoint, sourceTimePoint);
+        if(!thisEdgeList.empty())
+        {
+            IntervalConstraint::Ptr edge = dynamic_pointer_cast<IntervalConstraint>(thisEdgeList.front());
+            Bounds::List intervals = Bounds::reverse( edge->getIntervals() );
+            thisIntervals.insert(thisIntervals.begin(), intervals.begin(), intervals.end());
+        }
+        if(!otherEdgeList.empty())
+        {
+            IntervalConstraint::Ptr edge = dynamic_pointer_cast<IntervalConstraint>(otherEdgeList.front());
+            Bounds::List intervals = Bounds::reverse( edge->getIntervals() );
+            otherIntervals.insert(otherIntervals.begin(), intervals.begin(), intervals.end());
+        }
+
+        if(!Bounds::equals(thisIntervals, otherIntervals))
+        {
+            LOG_WARN_S << "From: " << sourceTimePoint->getLabel()
+                << " to: " << targetTimePoint->getLabel() << std::endl << " BOUNDS are not equal: " << Bounds::toString(thisIntervals) << " vs "
+                << Bounds::toString(otherIntervals) << std::endl;
+
+            return false;
+        }
+
+    } while(combination.next());
+
+    return true;
 }
 
 // Upper-Lower-Tightening Algorithm
