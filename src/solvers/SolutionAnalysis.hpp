@@ -5,6 +5,7 @@
 #include "../SpaceTime.hpp"
 #include "Solution.hpp"
 #include "csp/FluentTimeResource.hpp"
+#include "../Plan.hpp"
 
 namespace templ {
 namespace solvers {
@@ -149,6 +150,10 @@ public:
 
     std::string toString(size_t indent = 0) const;
 
+    /**
+     * Compute a plan for all robot systems
+     */
+    Plan computePlan() const;
 
 private:
     /**

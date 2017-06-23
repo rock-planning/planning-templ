@@ -1,7 +1,10 @@
 #include "SolutionAnalysis.hpp"
 #include "../RoleInfoVertex.hpp"
+#include "../utils/PathConstructor.hpp"
 
 #include <organization_model/Algebra.hpp>
+#include <graph_analysis/algorithms/DFS.hpp>
+#include <boost/bind.hpp>
 
 namespace templ {
 namespace solvers {
@@ -95,7 +98,6 @@ std::vector<organization_model::ModelPool> SolutionAnalysis::getAvailableResourc
 
     // Iterate over all known timepoints and check if the timepoint belongs to
     // the interval (the list of timepoints is sorted)
-    bool partOfInterval = false;
     TimePoint::PtrList timepoints = mSolutionNetwork.getTimepoints();
 
     assert(!timepoints.empty());
@@ -109,19 +111,6 @@ std::vector<organization_model::ModelPool> SolutionAnalysis::getAvailableResourc
             Role::Set foundRoles = tuple->getRoles("assigned");
             Role::List roles(foundRoles.begin(), foundRoles.end());
             organization_model::ModelPool currentPool = Role::getModelPool(roles);
-
-            //graph_analysis::EdgeIterator::Ptr inEdgeIt = mSolutionNetwork.getGraph()->getInEdgeIterator(tuple);
-            //while(inEdgeIt->next())
-            //{
-            //    RoleInfoWeightedEdge::Ptr roleInfoEdge = dynamic_pointer_cast<RoleInfoWeightedEdge>(inEdgeIt->current());
-            //    assert(roleInfoEdge);
-
-            //    Role::Set roles = roleInfoEdge->getRoles("assigned");
-            //    for(const Role& role : roles)
-            //    {
-            //        currentPool[role.getModel()] += 1;
-            //    }
-            //}
 
             modelPools.push_back(currentPool);
         }
@@ -334,6 +323,65 @@ graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
     return hyperGraph;
 }
 
+Plan SolutionAnalysis::computePlan() const
+{
+    Plan plan(mpMission);
+
+
+    using namespace solvers::temporal;
+    using namespace symbols::constants;
+    point_algebra::TimePoint::PtrList timepoints = mpMission->getTimepoints();    Location::PtrList locations = mpMission->getLocations();
+
+    assert(!timepoints.empty());
+    point_algebra::TimePoint::Ptr startingTimepoint = timepoints.front();
+
+    std::set<Role> requiredRoles = getRequiredRoles(2);
+    for(const Role& role : requiredRoles)
+    {
+        SpaceTime::Network::tuple_t::Ptr startTuple;
+        // Find the start point of a role
+        for(const Location::Ptr& location : locations)
+        {
+            try {
+                SpaceTime::Network::tuple_t::Ptr tuple = mSolutionNetwork.tupleByKeys(location, startingTimepoint);
+
+                Role::Set assignedRoles = tuple->getRoles("assigned");
+                if( assignedRoles.find(role) != assignedRoles.end())
+                {
+                    startTuple = tuple;
+                    break;
+                }
+            } catch(const std::exception& e)
+            {
+                LOG_WARN_S << e.what() << " " << location->toString() << " " << startingTimepoint->toString();
+            }
+        }
+
+        if(!startTuple)
+        {
+            LOG_WARN_S << "Could not find start tuple for role " + role.toString() << " solution seems to be incomplete";
+            continue;
+        }
+
+
+        // Finding the starting tuple
+        using namespace graph_analysis::algorithms;
+        // use SpaceTime::Network, which contains information on role for each edge
+        // after update from the flow graph
+        // foreach role -- find starting point and follow path
+        PathConstructor::Ptr pathConstructor(new PathConstructor(role, "assigned"));
+        Skipper skipper = boost::bind(&PathConstructor::isInvalidTransition, pathConstructor,_1);
+        DFS dfs(mSolutionNetwork.getGraph(), pathConstructor, skipper);
+        dfs.run(startTuple);
+
+        std::vector<graph_analysis::Vertex::Ptr> path = pathConstructor->getPath();
+        path.insert(path.begin(), startTuple);
+        plan.add(role,path);
+    }
+
+    return plan;
+}
+
 std::string SolutionAnalysis::toString(size_t indent) const
 {
     std::string hspace(indent, ' ');
@@ -346,6 +394,10 @@ std::string SolutionAnalysis::toString(size_t indent) const
         ss << ftr.toString(indent + 4) << std::endl;
         ss << getMinAvailableResources(ftr).toString(indent + 4) << std::endl;
     }
+
+    Plan plan = computePlan();
+    ss << hspace << "Resulting plan:" << std::endl;
+    ss << plan.toString(indent + 4);
 
     return ss.str();
 }

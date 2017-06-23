@@ -41,10 +41,15 @@ public:
     void setFirst(const A& a) { mA = a; }
     void setSecond(const B& b) { mB = b; }
 
-    virtual std::string getClassName() const { return "templ::Tuple"; }
-    virtual std::string toString() const
+    std::string getClassName() const override { return "templ::Tuple"; }
+
+    std::string toString() const override { return toString(0); }
+
+    std::string toString(uint32_t indent = 0) const override
     {
+        std::string hspace (indent,' ');
         std::stringstream ss;
+        ss << hspace;
         if( tuple_get_pointer(mA) )
         {
             ss << tuple_get_pointer(mA)->toString();

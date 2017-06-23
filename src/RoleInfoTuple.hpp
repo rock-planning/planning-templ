@@ -42,11 +42,12 @@ public:
 
     std::string getClassName() const override { return "RoleInfoTuple"; } //typeid(*this).name(); }
 
-    std::string toString() const override
+    std::string toString(uint32_t indent = 0) const override
     {
+        std::string hspace(indent,' ');
         std::stringstream ss;
-        ss << BaseClass::toString() << std::endl;
-        ss << RoleInfo::toString();
+        ss << BaseClass::toString(indent) << std::endl;
+        ss << RoleInfo::toString(indent);
 
         return ss.str();
     }

@@ -38,7 +38,7 @@ std::string Plan::toString(uint32_t indent) const
         std::vector<graph_analysis::Vertex::Ptr>::const_iterator vit = (cit->second).begin();
         for(; vit != (cit->second).end(); ++vit)
         {
-            ss << hspace << "    - " << (*vit)->toString() << std::endl;
+            ss << (*vit)->toString(indent + 4) << std::endl;
         }
     }
     typedef std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> TimepointList;
@@ -50,7 +50,7 @@ std::string Plan::toString(uint32_t indent) const
         ss << hspace << "    " << (*tit)->toString() << std::endl;
     }
 
-    ss << "Mission: " << mpMission.get() << ", temporal constraint: " << mpMission->getTemporalConstraintNetwork()->getGraph().get();
+    //ss << "Mission: " << mpMission.get() << ", temporal constraint: " << mpMission->getTemporalConstraintNetwork()->getGraph().get();
 
     return ss.str();
 }
