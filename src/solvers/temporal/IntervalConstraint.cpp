@@ -23,8 +23,15 @@ IntervalConstraint::IntervalConstraint(const point_algebra::TimePoint::Ptr& sour
 
 std::string IntervalConstraint::toString() const
 {
+    return toString(0);
+}
+
+std::string IntervalConstraint::toString(uint32_t indent) const
+{
+    std::string hspace(indent,' ');
     std::stringstream ss;
-    ss << "Interval Constraint: from " << getSourceVertex()->toString() << " to " << getTargetVertex()->toString() << " ";
+    ss << hspace << "Interval Constraint: from " << getSourceVertex()->toString() << " to " << getTargetVertex()->toString() << std::endl;
+    ss << hspace << "    " << serializeBounds();
         return ss.str();
 }
 

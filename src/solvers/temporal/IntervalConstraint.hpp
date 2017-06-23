@@ -40,13 +40,15 @@ public:
      * Get the class name of this constraint
      * \return classname
      */
-    virtual std::string getClassName() const { return "IntervalConstraint"; }
+    virtual std::string getClassName() const override { return "IntervalConstraint"; }
 
     /**
      * Get stringified object
      * \return string repr
      */
-    virtual std::string toString() const;
+    virtual std::string toString() const override;
+
+    virtual std::string toString(uint32_t indent = 0) const override;
 
     std::string serializeBounds() const;
     void deserializeBounds(const std::string& blob);

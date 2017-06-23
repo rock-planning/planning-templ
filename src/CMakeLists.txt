@@ -19,6 +19,7 @@ rock_library(templ
         io/MissionRequirements.cpp
         problems/Scheduling.cpp
         solvers/Constraint.cpp
+        solvers/Cost.cpp
         solvers/ConstraintNetwork.cpp
         solvers/GQReasoner.cpp
         solvers/SolutionAnalysis.cpp
@@ -103,6 +104,7 @@ rock_library(templ
         io/MissionRequirements.hpp
         solvers/Constraint.hpp
         solvers/ConstraintNetwork.hpp
+        solvers/Cost.hpp
         solvers/GQReasoner.hpp
         solvers/SolutionAnalysis.hpp
         solvers/Variable.hpp

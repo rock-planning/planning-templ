@@ -1,6 +1,7 @@
 #include "RoleTimeline.hpp"
 #include <organization_model/facets/Robot.hpp>
 #include <base-logging/Logging.hpp>
+#include "../Cost.hpp"
 
 namespace templ {
 namespace solvers {
@@ -46,7 +47,8 @@ std::string RoleTimeline::toString() const
         ss << fluent.toString() << std::endl;
     }
 
-    organization_model::facets::Robot robot(mRole.getModel(), mOrganizationModel);
+    organization_model::OrganizationModelAsk ask(mOrganizationModel);
+    organization_model::facets::Robot robot(mRole.getModel(), ask);
     ss << "    " << robot.toString() << std::endl;
 
     ss << "    travel distance (in km):         " << travelDistance()/1.0E3 << std::endl;
@@ -109,42 +111,35 @@ std::string RoleTimeline::toString(const std::map<Role, RoleTimeline>& timelines
 double RoleTimeline::travelDistance() const
 {
     using namespace ::templ::symbols;
-    constants::Location::Ptr fromLocation;
-    constants::Location::Ptr toLocation;
-
     if(mFluents.empty())
     {
         throw std::runtime_error("templ::solvers::csp::RoleTimeline::travelDistance:"
                 " no fluents available to compute travel distance");
     }
+
+    constants::Location::PtrList path;
     std::vector<FluentTimeResource>::const_iterator cit = mFluents.begin();
-    double totalDistance = 0.0;
     for(; cit != mFluents.end(); ++cit)
     {
         const FluentTimeResource& ftr = *cit;
-        if(!fromLocation)
-        {
-            fromLocation = mLocations[ftr.fluent];
-            continue;
-        }
-        toLocation = mLocations[ftr.fluent];
-        totalDistance += (toLocation->getPosition() - fromLocation->getPosition()).norm();
-
-        fromLocation = toLocation;
+        path.push_back(ftr.getLocation());
     }
-    return totalDistance;
+    return Cost::getTravelDistance(path);
 }
 
 double RoleTimeline::estimatedEnergyCost() const
 {
-    organization_model::facets::Robot robot(mRole.getModel(), mOrganizationModel);
     double distance = travelDistance();
+
+    organization_model::OrganizationModelAsk ask(mOrganizationModel);
+    organization_model::facets::Robot robot(mRole.getModel(), ask);
     return robot.estimatedEnergyCost(distance);
 }
 
 double RoleTimeline::duration() const
 {
-    organization_model::facets::Robot robot(mRole.getModel(), mOrganizationModel);
+    organization_model::OrganizationModelAsk ask(mOrganizationModel);
+    organization_model::facets::Robot robot(mRole.getModel(), ask);
     return travelDistance()/robot.getNominalVelocity();
 }
 

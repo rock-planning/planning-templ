@@ -1,10 +1,14 @@
 #include "SolutionAnalysis.hpp"
 #include "../RoleInfoVertex.hpp"
 #include "../utils/PathConstructor.hpp"
+#include "Cost.hpp"
 
 #include <organization_model/Algebra.hpp>
 #include <graph_analysis/algorithms/DFS.hpp>
+#include <graph_analysis/GraphIO.hpp>
 #include <boost/bind.hpp>
+
+using namespace graph_analysis;
 
 namespace templ {
 namespace solvers {
@@ -323,6 +327,53 @@ graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
     return hyperGraph;
 }
 
+void SolutionAnalysis::quantifyTime() const
+{
+    using namespace solvers::temporal;
+    TemporalConstraintNetwork tcn;
+    Cost cost(mpMission->getOrganizationModel());
+
+    // Apply constraints from the current solution
+    // TODO: space time network: iterator over all 'solution' edges
+    using namespace graph_analysis;
+    graph_analysis::EdgeIterator::Ptr edgeIt = mSolutionNetwork.getGraph()->getEdgeIterator();
+    while(edgeIt->next())
+    {
+        SpaceTime::Network::edge_t::Ptr edge = dynamic_pointer_cast<SpaceTime::Network::edge_t>( edgeIt->current() );
+
+        Role::Set roles = edge->getRoles("assigned");
+        if(roles.empty())
+        {
+            continue;
+        }
+
+        SpaceTime::Network::tuple_t::Ptr sourceTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(edge->getSourceVertex());
+        SpaceTime::Network::tuple_t::Ptr targetTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(edge->getTargetVertex());
+
+        symbols::constants::Location::Ptr sourceLocation = sourceTuple->first();
+        symbols::constants::Location::Ptr targetLocation = targetTuple->first();
+
+        double minTravelTime = cost.estimateTravelTime(sourceLocation, targetLocation, roles);
+
+        point_algebra::TimePoint::Ptr sourceTimepoint = sourceTuple->second();
+        point_algebra::TimePoint::Ptr targetTimepoint = targetTuple->second();
+
+        IntervalConstraint::Ptr intervalConstraint(
+                new IntervalConstraint(sourceTimepoint, targetTimepoint)
+                );
+
+        // Compute the required transition time
+        Bounds bounds(minTravelTime, std::numeric_limits<double>::max());
+        intervalConstraint->addInterval(bounds);
+        tcn.addIntervalConstraint(intervalConstraint);
+    }
+
+    tcn.stp();
+    tcn.minNetwork();
+
+    mpTimeDistanceGraph = tcn.getDistanceGraph();
+}
+
 Plan SolutionAnalysis::computePlan() const
 {
     Plan plan(mpMission);
@@ -398,6 +449,25 @@ std::string SolutionAnalysis::toString(size_t indent) const
     Plan plan = computePlan();
     ss << hspace << "Resulting plan:" << std::endl;
     ss << plan.toString(indent + 4);
+
+    quantifyTime();
+
+    using namespace temporal::point_algebra;
+    TimePoint::PtrList timepoints = mSolutionNetwork.getTimepoints();
+    // leaving out the last timepoint
+    for(size_t i = 0; i < timepoints.size()-2; ++i)
+    {
+        TimePoint::Ptr from = timepoints[i];
+        TimePoint::Ptr to = timepoints[i+1];
+
+        ss << hspace << "from: " << from->toString() << " to: " << to->toString() << std::endl;
+        Edge::PtrList edges = mpTimeDistanceGraph->getEdges(from, to);
+        for(const Edge::Ptr& edge : edges)
+        {
+            ss << edge->toString(indent + 4);
+            ss << std::endl;
+        }
+    }
 
     return ss.str();
 }

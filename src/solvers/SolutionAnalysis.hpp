@@ -144,6 +144,11 @@ public:
     graph_analysis::BaseGraph::Ptr toHyperGraph();
 
     /**
+     * Provide a quantification on the transition times for this planner
+     */
+    void quantifyTime() const;
+
+    /**
      * Get the set of available resources
      */
     //organization_model::ModelPool getAvailableResources(const solvers::csp::FluentTimeResource& e) const;
@@ -169,6 +174,8 @@ private:
 
     std::vector<solvers::csp::FluentTimeResource> mResourceRequirements;
     solvers::temporal::point_algebra::TimePointComparator mTimepointComparator;
+
+    mutable graph_analysis::BaseGraph::Ptr mpTimeDistanceGraph;
 
     double mQuality;
     double mCost;

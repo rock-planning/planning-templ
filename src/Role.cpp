@@ -27,31 +27,56 @@ std::string Role::toString() const
     return ss.str();
 }
 
-std::string Role::toString(const Role::List& roles)
+std::string Role::toString(const Role::List& roles, size_t indent)
 {
+    std::string hspace(indent,' ');
     std::stringstream ss;
+    if(roles.empty())
+    {
+        ss << hspace << "Roles: empty " << std::endl;
+        return ss.str();
+    }
+
     Role::List::const_iterator cit = roles.begin();
-    ss << "Roles: " << std::endl;
+    ss << hspace << "Roles: " << std::endl;
     for(; cit != roles.end(); ++cit)
     {
-        ss << "    - " << cit->toString() << std::endl;
+        ss << hspace << "    - " << cit->toString() << std::endl;
     }
     return ss.str();
 }
 
-std::string Role::toString(const Role::Set& roles)
+std::string Role::toString(const Role::Set& roles, size_t indent)
 {
+    std::string hspace(indent,' ');
     std::stringstream ss;
+    if(roles.empty())
+    {
+        ss << hspace << "Roles: empty " << std::endl;
+        return ss.str();
+    }
+
+    ss << hspace << "Roles: " << std::endl;
     Role::Set::const_iterator cit = roles.begin();
-    ss << "Roles: " << std::endl;
     for(; cit != roles.end(); ++cit)
     {
-        ss << "    - " << cit->toString() << std::endl;
+        ss << hspace << "    - " << cit->toString() << std::endl;
     }
     return ss.str();
 }
 
 organization_model::ModelPool Role::getModelPool(const Role::List& roles)
+{
+    organization_model::ModelPool modelPool;
+    for(const Role& role : roles)
+    {
+        owlapi::model::IRI model = role.getModel();
+        modelPool[model] +=1;
+    }
+    return modelPool;
+}
+
+organization_model::ModelPool Role::getModelPool(const Role::Set& roles)
 {
     organization_model::ModelPool modelPool;
     for(const Role& role : roles)

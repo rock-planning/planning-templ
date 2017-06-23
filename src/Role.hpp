@@ -40,9 +40,10 @@ public:
     const owlapi::model::IRI& getModel() const { return mModel; }
 
     std::string toString() const;
-    static std::string toString(const List& roles);
-    static std::string toString(const Set& roles);
+    static std::string toString(const List& roles, size_t indent = 0);
+    static std::string toString(const Set& roles, size_t indent = 0);
     static organization_model::ModelPool getModelPool(const List& roles);
+    static organization_model::ModelPool getModelPool(const Set& roles);
 
     bool operator<(const Role& other) const;
     bool operator==(const Role& other) const { return mName == other.mName && mModel == other.mModel; }

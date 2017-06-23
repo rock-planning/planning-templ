@@ -58,15 +58,17 @@ void TemporalConstraintNetwork::stp()
         // for each edge of the temp.const.network, check each interval and find the overall
         // min lower bound and the max upper bound
         edge = dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
-        max = 0;
-        min = std::numeric_limits<double>::infinity();
+        max = std::numeric_limits<double>::lowest();
+        min = std::numeric_limits<double>::max();
+
         std::vector<Bounds> intervals = edge->getIntervals();
         std::vector<Bounds>::const_iterator cit = intervals.begin();
         for( ; cit != intervals.end(); ++cit)
         {
-            if (cit->getLowerBound() < min) min = cit->getLowerBound();
-            if (cit->getUpperBound() > max) max = cit->getUpperBound();
+            min = std::min(cit->getLowerBound(), min);
+            max = std::max(cit->getLowerBound(), max);
         }
+
         // create a new interval constraint using only the interval [min,max]
         IntervalConstraint::Ptr i(new IntervalConstraint(edge->getSourceTimePoint(),edge->getTargetTimePoint()));
         i->addInterval(Bounds(min,max));
@@ -198,15 +200,15 @@ graph_analysis::BaseGraph::Ptr TemporalConstraintNetwork::toWeightedGraph()
         std::vector<Bounds>::const_iterator cit = intervals.begin();
         for( ; cit != intervals.end(); ++cit)
         {
-            WeightedEdge::Ptr edge1(new WeightedEdge(cit->getUpperBound()));
-            edge1->setSourceVertex(edge0->getSourceTimePoint());
-            edge1->setTargetVertex(edge0->getTargetTimePoint());
-            graph->addEdge(edge1);
+            WeightedEdge::Ptr forwardEdge(new WeightedEdge(cit->getUpperBound()));
+            forwardEdge->setSourceVertex(edge0->getSourceTimePoint());
+            forwardEdge->setTargetVertex(edge0->getTargetTimePoint());
+            graph->addEdge(forwardEdge);
 
-            WeightedEdge::Ptr edge2(new WeightedEdge(-cit->getLowerBound()));
-            edge2->setSourceVertex(edge0->getTargetTimePoint());
-            edge2->setTargetVertex(edge0->getSourceTimePoint());
-            graph->addEdge(edge2);
+            WeightedEdge::Ptr reverseEdge(new WeightedEdge(-cit->getLowerBound()));
+            reverseEdge->setSourceVertex(edge0->getTargetTimePoint());
+            reverseEdge->setTargetVertex(edge0->getSourceTimePoint());
+            graph->addEdge(reverseEdge);
         }
     }
 

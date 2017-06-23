@@ -55,7 +55,9 @@ public:
      */
     static std::string toString(const ActionPlan& plan, uint32_t indent = 0);
 
-    ///
+    /**
+     * Create a string representation of a set of action plans
+     */
     static std::string toString(const std::vector<ActionPlan>& plans, uint32_t indent = 0);
 
     /**
