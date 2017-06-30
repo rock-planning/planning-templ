@@ -14,8 +14,9 @@ double Cost::getTravelDistance(const symbols::constants::Location::PtrList& path
 {
     if(path.size() < 2)
     {
-        throw std::runtime_error("templ::solvers::Cost::getTravelDistance:"
-                " not enough locations available to compute travel distance");
+        LOG_INFO_S << "templ::solvers::Cost::getTravelDistance:"
+                << " not enough locations available to compute travel distance";
+        return 0;
     }
 
     using namespace ::templ::symbols;
