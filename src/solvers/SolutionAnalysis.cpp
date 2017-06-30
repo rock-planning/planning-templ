@@ -444,6 +444,15 @@ std::string SolutionAnalysis::toString(size_t indent) const
     {
         ss << ftr.toString(indent + 4) << std::endl;
         ss << getMinAvailableResources(ftr).toString(indent + 4) << std::endl;
+
+        organization_model::ModelPoolDelta delta = getMinMissingResourceRequirements(ftr);
+        if(delta.isNegative())
+        {
+            ss << "Missing resources (negative values mean missing):" << std::endl;
+            ss << delta.toString(indent + 4) << std::endl;
+        } else {
+            ss << "No missing resources" << std::endl;
+        }
     }
 
     Plan plan = computePlan();
