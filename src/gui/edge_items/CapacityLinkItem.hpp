@@ -32,6 +32,9 @@ protected:
     QGraphicsPolygonItem* mpMultiLine;
     QGraphicsPolygonItem* mpArrowHead;
 
+    void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
+
     EdgeItemBase* createNewItem(graph_analysis::gui::GraphWidget* graphWidget,
                 const graph_analysis::Edge::Ptr& edge,
                 QGraphicsItem* parent) const;

@@ -15,7 +15,7 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
     : EdgeItemBase(graphWidget, edge, parent)
     , mArrowSize(10)
 {
-    mpLabel = new QGraphicsTextItem(QString(edge->toString().c_str()), this);
+    mpLabel = new QGraphicsTextItem("", this);
     mpClassName =
         new QGraphicsTextItem(QString(edge->getClassName().c_str()), this);
     mpClassName->setDefaultTextColor(Qt::gray);
@@ -25,8 +25,6 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
     mpArrowHead->setBrush(QBrush(Qt::black));
 
     setFlag(ItemIsMovable, false);
-
-    //mpGraphWidget->registerEdgeItem(mpEdge, this);
 }
 
 CapacityLinkItem::~CapacityLinkItem()
@@ -35,13 +33,11 @@ CapacityLinkItem::~CapacityLinkItem()
     delete mpClassName;
     delete mpMultiLine;
     delete mpArrowHead;
-
-    //mpGraphWidget->deregisterEdgeItem(mpEdge, this);
 }
 
 int CapacityLinkItem::type() const
 {
-    return static_cast<int>(graph_analysis::gui::UserType) + 10;
+    return static_cast<int>(graph_analysis::gui::UserType) + 11;
 }
 
 void CapacityLinkItem::adjustEdgePositioning()
@@ -99,6 +95,18 @@ QPainterPath CapacityLinkItem::shape() const
     path = mpMultiLine->shape() + mpArrowHead->shape() + mpLabel->shape() +
            mpClassName->shape();
     return path;
+}
+
+void CapacityLinkItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+    mpClassName->setPlainText("");
+    mpLabel->setPlainText(getEdge()->toString().c_str());
+}
+
+void CapacityLinkItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+    mpClassName->setPlainText(getEdge()->getClassName().c_str());
+    mpLabel->setPlainText("");
 }
 
 EdgeItemBase* CapacityLinkItem::createNewItem(graph_analysis::gui::GraphWidget* graphWidget,

@@ -268,6 +268,12 @@ void Plan::computeGraphAndActionPlan() const
                         // if edge is not part of the graph then the item
                         // remains at the current location
                         LOG_WARN_S << "Looks like the items remains: " << previousWaypoint->toString() << " -- " << currentWaypoint->toString() << " -- nothing to do";
+                        using namespace graph_analysis;
+                        CapacityLink::Ptr localLink( new CapacityLink(Role("local-transition",owlapi::model::IRI()), std::numeric_limits<uint32_t>::max()));
+                        localLink->setSourceVertex(previousWaypoint);
+                        localLink->setTargetVertex(currentWaypoint);
+
+                        mpBaseGraph->addEdge(localLink);
                     }
 
                     if(edges.empty())
