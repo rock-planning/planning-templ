@@ -25,34 +25,13 @@ public:
     /// The list of multiple timelines
     typedef std::vector<TimelineView> MultiTimelineView;
 
-    /// The views to branch upon
-    MultiTimelineView x;
-
-    /// Supply demand per Role
-    std::vector<int> supplyDemand;
-
-    mutable Gecode::Rnd rnd;
-    mutable std::default_random_engine randomGenerator;
-
-    // The brancher has to maintain the invariant that all x_i are
-    // assigned for 0 < i < start (see also Gecode MPG Section 31.2.2)
-    // The start is maintained per individual timeline
-    mutable std::vector<int> start;
-
-    /// The current role (and thus timeline) the brancher operates on
-    mutable size_t currentRole;
-    //// The next roles that have to be handled
-    mutable std::vector<size_t> nextRoles;
-
-    /// The current timepoint
-    mutable int timepoint;
-    /// of this particular timepoint
-    mutable std::vector<int> assignedRoles;
-
     /**
      * A PosVal represents the Choice for the brancher and
      * refers to a particular role (to identify the timeline)
      * and a position in this timeline
+     *
+     * Additionally is has a flag to tell whether the empty set should be
+     * included or not
      */
     class PosVal : public Gecode::Choice
     {
@@ -75,26 +54,32 @@ public:
     };
 
     TimelineBrancher(Gecode::Home home, MultiTimelineView& x0,
-            const std::vector<int>& supplyDemand);
+            const std::vector<int>& mSupplyDemand);
 
     TimelineBrancher(Gecode::Space& space, bool share, TimelineBrancher& b);
 
-    size_t getChoiceSize(Gecode::Space& space) const;
+    void initialize(Gecode::Space& space);
+
+    size_t getChoiceSize(Gecode::Space& space) const { return mChoiceSize; }
 
     /**
      * Update the list of choices by extraction of feasible values from a given SetView
+     * \param choices list of choices to update
+     * \param view SetView to extract feasible values from
      */
     void updateChoices(std::vector<int>& choices, Gecode::Set::SetView& view);
 
-    static void post(Gecode::Home home, MultiTimelineView& x, const std::vector<int> supplyDemand);
+    static void post(Gecode::Home home, MultiTimelineView& x, const std::vector<int> mSupplyDemand);
 
     /**
-     * Return true if alternatives are left
-     *
      * Checks all timelines if there are unassigned views
+     * \return true if alternatives are left
      */
     virtual bool status(const Gecode::Space& home) const;
 
+    /**
+     * Create a choice
+     */
     virtual Gecode::Choice* choice(Gecode::Space& home);
 
     /**
@@ -125,10 +110,41 @@ public:
     virtual Gecode::Actor* copy(Gecode::Space& home, bool share);
     virtual size_t dispose(Gecode::Space& home);
 
+private:
+    /// The views to branch upon
+    MultiTimelineView x;
+
+    /// Supply demand per Role
+    std::vector<int> mSupplyDemand;
+
+    mutable Gecode::Rnd mRandom;
+    mutable std::default_random_engine mRandomGenerator;
+
+    // The brancher has to maintain the invariant that all x_i are
+    // assigned for 0 < i < start (see also Gecode MPG Section 31.2.2)
+    // The mStart is maintained per individual timeline
+    mutable std::vector<int> mStart;
+
+    /// The current role (and thus timeline) the brancher operates on
+    mutable size_t mCurrentRole;
+    //// The next roles that have to be handled
+    mutable std::vector<size_t> mNextRoles;
+
+    /// The current timepoint
+    mutable int mCurrentTimepoint;
+    /// of this particular timepoint
+    mutable std::vector<int> mAssignedRoles;
+
+    size_t mChoiceSize;
+    size_t mNumberOfTimepoints;
+    size_t mNumberOfFluents;
+    size_t mNumberOfRoles;
+
+
 };
 
 void branchTimelines(Gecode::Home home, const std::vector<Gecode::SetVarArray>& x,
-        const std::vector<int>& supplyDemand);
+        const std::vector<int>& mSupplyDemand);
 
 } // end namespace templ
 } // end namespace solvers

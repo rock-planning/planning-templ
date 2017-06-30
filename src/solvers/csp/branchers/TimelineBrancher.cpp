@@ -25,7 +25,7 @@ void TimelineBrancher::PosVal::archive(Gecode::Archive& e) const
 {
     Gecode::Choice::archive(e);
     e << role << pos << includeEmptySet;
-    for(const auto& c : choices)
+    for(const int& c : choices)
     {
         e << c;
     }
@@ -35,28 +35,34 @@ TimelineBrancher::TimelineBrancher(Gecode::Home home, MultiTimelineView& x0,
         const std::vector<int>& supplyDemand)
     : Gecode::Brancher(home)
     , x(x0)
-    , supplyDemand(supplyDemand)
-    , rnd()
-    , randomGenerator()
-    , start(x0.size(), 0)
-    , currentRole(0)
-    , nextRoles()
-    , timepoint(-1)
-    , assignedRoles(x0.size(), -1)
+    , mSupplyDemand(supplyDemand)
+    , mRandom()
+    , mRandomGenerator()
+    , mStart(x0.size(), 0)
+    , mCurrentRole(0)
+    , mNextRoles()
+    , mCurrentTimepoint(-1)
+    , mAssignedRoles(x0.size(), -1)
 {
-    rnd.time();
+    mRandom.time();
+
+    initialize(home);
 }
 
 TimelineBrancher::TimelineBrancher(Gecode::Space& space, bool share, TimelineBrancher& b)
     : Gecode::Brancher(space, share, b)
-    , supplyDemand(b.supplyDemand)
-    , rnd(b.rnd)
-    , randomGenerator(b.randomGenerator)
-    , start(b.start)
-    , currentRole(b.currentRole)
-    , nextRoles(b.nextRoles)
-    , timepoint(b.timepoint)
-    , assignedRoles(b.assignedRoles)
+    , mSupplyDemand(b.mSupplyDemand)
+    , mRandom(b.mRandom)
+    , mRandomGenerator(b.mRandomGenerator)
+    , mStart(b.mStart)
+    , mCurrentRole(b.mCurrentRole)
+    , mNextRoles(b.mNextRoles)
+    , mCurrentTimepoint(b.mCurrentTimepoint)
+    , mAssignedRoles(b.mAssignedRoles)
+    , mChoiceSize(b.mChoiceSize)
+    , mNumberOfTimepoints(b.mNumberOfTimepoints)
+    , mNumberOfFluents(b.mNumberOfFluents)
+    , mNumberOfRoles(b.mNumberOfRoles)
 {
     for(size_t i = 0; i < b.x.size(); ++i)
     {
@@ -67,24 +73,25 @@ TimelineBrancher::TimelineBrancher(Gecode::Space& space, bool share, TimelineBra
     assert(x.size() == b.x.size());
 }
 
-size_t TimelineBrancher::getChoiceSize(Gecode::Space& space) const
+void TimelineBrancher::initialize(Gecode::Space& space)
 {
     const TransportNetwork& network = static_cast<TransportNetwork&>(space);
-    size_t numberOfFluents = network.getNumberOfFluents();
-    size_t numberOfRoles = network.getActiveRoleList().size();
+    mNumberOfTimepoints = network.getNumberOfTimepoints();
+    mNumberOfFluents = network.getNumberOfFluents();
+    mNumberOfRoles = network.getActiveRoleList().size();
 
     // Upper bound on choice
-    // An edge can start from any fluent at timepoint t and
+    // An edge can mStart from any fluent at timepoint t and
     // end at any fluent at timepoint t+1
-    return numberOfFluents*numberOfFluents* numberOfRoles ;
+    mChoiceSize = mNumberOfFluents*mNumberOfFluents* mNumberOfRoles ;
 }
 
 void TimelineBrancher::updateChoices(std::vector<int>& choices, Gecode::Set::SetView& view)
 {
-    // Identify possible values
+    // Identify possible values from the setview
     for(Gecode::SetVarLubRanges lub(view); lub(); ++lub)
     {
-        for(int m = lub.min(); m < lub.max(); ++m)
+        for(int m = lub.min(); m <= lub.max(); ++m)
         {
             choices.push_back(m);
         }
@@ -95,57 +102,61 @@ void TimelineBrancher::updateChoices(std::vector<int>& choices, Gecode::Set::Set
         choices.push_back(glb.val());
     }
 
-    std::shuffle(choices.begin(), choices.end(), randomGenerator);
 }
 
 Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
 {
     // next best role activity
-    int i = start[currentRole];
-    LOG_DEBUG_S << "CHOICE: role " << currentRole << ", fluent: " << i << " val: " << x.at(currentRole)[i].lubMax() << " -- val: " << x[currentRole][i] <<  " assigned: " << x[currentRole][i].assigned();
+    int i = mStart[mCurrentRole];
+
+    LOG_DEBUG_S << "CHOICE: role " << mCurrentRole << ", fluent: " << i << " val: " << x.at(mCurrentRole)[i].lubMax() << " -- val: " << x[mCurrentRole][i] <<  " assigned: " << x[mCurrentRole][i].assigned();
 
     // The view to be branched upon
-    Gecode::Set::SetView& view = x[currentRole][i];
+    Gecode::Set::SetView& view = x[mCurrentRole][i];
     std::vector<int> choices;
     // update the list of choices, based on the given view
     updateChoices(choices, view);
 
     // if view is assigned, then it is either a single value or an empty set
-    // Allow to pass an empty set for supplyDemand to neglect this constraint
-    if(view.assigned() || supplyDemand.empty())
+    // Allow to pass an empty set for mSupplyDemand to neglect this constraint
+    if(view.assigned() || mSupplyDemand.empty())
     {
-        if(supplyDemand.empty())
+        if(mSupplyDemand.empty())
         {
             LOG_WARN_S << "Ignoring capacity for generation of choices";
         }
 
         if(!choices.empty())
         {
-            return new PosVal(*this, currentRole, i, choices, 0 /*includeEmptySet*/);
+            // Shuffle the choices
+            // TODO: were should the randomization be best placed
+            // Selection strategies etc.
+            std::shuffle(choices.begin(), choices.end(), mRandomGenerator);
+
+            return new PosVal(*this, mCurrentRole, i, choices, 0 /*includeEmptySet*/);
         } else {
-            // When view is assiged, but there are no choices, then the set is empty
-            return new PosVal(*this, currentRole, i, choices, 1 /*includeEmptySet*/);
+            // When view is assigned, but there are no choices, then the set is empty
+            return new PosVal(*this, mCurrentRole, i, choices, 1 /*includeEmptySet*/);
         }
     }
-
     std::map<int, int> targetSupply;
 
     size_t fluents = static_cast<const TransportNetwork&>(home).getNumberOfFluents();
 
-    int roleDemand = supplyDemand[currentRole];
+    int roleDemand = mSupplyDemand[mCurrentRole];
     if(!choices.empty())
     {
         // Find the best option -- so compute current target supply status first
-        size_t end = (timepoint + 1)*fluents;
+        size_t end = (mCurrentTimepoint + 1)*fluents;
         for(size_t i = 0; i < boost::numeric_cast<size_t>(x.size()); ++i)
         {
-            if(i == currentRole)
+            if(i == mCurrentRole)
             {
                 continue;
             }
 
             // check where we have an assignment
-            for(size_t f = timepoint*fluents; f < end; ++f)
+            for(size_t f = mCurrentTimepoint*fluents; f < end; ++f)
             {
                 const Gecode::Set::SetView& view = x[i][f];
                 if(view.assigned() && view.lubSize() == 1)
@@ -154,16 +165,14 @@ Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
 
                     if(!targetSupply.count(target))
                     {
-                        targetSupply[target] = supplyDemand[i];
+                        targetSupply[target] = mSupplyDemand[i];
                     } else {
-                        targetSupply[target] += supplyDemand[i];
+                        targetSupply[target] += mSupplyDemand[i];
                     }
                 }
             }
-
         }
     }
-
 
     {
         std::stringstream ss;
@@ -179,12 +188,14 @@ Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
     for(size_t c = 0; c < choices.size(); ++c)
     {
         int choice = choices[c];
+        LOG_INFO_S << "Target supply for choice: " << choice << " is: " << targetSupply[choice];
 
         // Local transition should always belong to the list of choices
         // no matter what
         if(i + fluents == boost::numeric_cast<size_t>(choice) )
         {
             bestChoices.push_back(choice);
+            LOG_INFO_S << "Local transition is always best choice: " << choice;
             continue;
         }
 
@@ -192,7 +203,8 @@ Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
         {
             if( targetSupply[choice] > 0)
             {
-                bestChoices.push_back(choice);
+                bestChoices.insert(bestChoices.begin(), choice);
+                LOG_INFO_S << "Insert choice " << choice << " to benefit from existing transport";
                 continue;
             }
         } else
@@ -200,21 +212,23 @@ Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
             // mobile system attracted by demand
             if( targetSupply[choice] < 0)
             {
-                bestChoices.push_back(choice);
+                bestChoices.insert(bestChoices.begin(), choice);
+                LOG_INFO_S << "Insert choice " << choice << " to support existing demand";
                 continue;
             }
         }
     }
     if(bestChoices.empty())
     {
-        // TODO: use only usefull other choices, e.g.
-        // next hard commitments of particular roles --> cooperative approach
-        for(size_t i = 0; i < choices.size()*4/fluents; ++i)
-        {
-            int targetIdx = rnd(choices.size() -1);
-            bestChoices.push_back(targetIdx);
-            choices.erase(choices.begin() + targetIdx);
-        }
+        //// TODO: use only usefull other choices, e.g.
+        //// next hard commitments of particular roles --> cooperative approach
+        //for(size_t i = 0; i < choices.size()*4/fluents; ++i)
+        //{
+        //    int targetIdx = mRandom(choices.size() -1);
+        //    bestChoices.push_back(targetIdx);
+        //    choices.erase(choices.begin() + targetIdx);
+        //}
+        bestChoices = choices;
     }
 
     {
@@ -223,14 +237,16 @@ Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
         {
             ss << bestChoices[i] << ", ";
         }
-        LOG_DEBUG_S << "Number of best choices " << ss.str();
+        LOG_DEBUG_S << "Best choices for role " << mCurrentRole << ": "  << ss.str();
     }
 
-    return new PosVal(*this, currentRole, i, bestChoices, 1);
+
+    return new PosVal(*this, mCurrentRole, i, bestChoices, 0);
 }
 
 const Gecode::Choice* TimelineBrancher::choice(const Gecode::Space& home, Gecode::Archive& e)
 {
+    // Extracting choice from the given archive
     int role = e[0];
     int pos = e[1];
     int includeEmptySet = e[2];
@@ -258,9 +274,9 @@ Gecode::NGL* TimelineBrancher::ngl(Gecode::Space& home, const Gecode::Choice& c,
     }
 }
 
-void TimelineBrancher::post(Gecode::Home home, MultiTimelineView& x, const std::vector<int> supplyDemand)
+void TimelineBrancher::post(Gecode::Home home, MultiTimelineView& x, const std::vector<int> mSupplyDemand)
 {
-    (void) new (home) TimelineBrancher(home, x, supplyDemand);
+    (void) new (home) TimelineBrancher(home, x, mSupplyDemand);
 }
 
 bool TimelineBrancher::status(const Gecode::Space& home) const
@@ -269,51 +285,78 @@ bool TimelineBrancher::status(const Gecode::Space& home) const
         << static_cast<const TransportNetwork&>(home).toString();
 
     // ------------------------------------------------------------
-    // (A) Find the view with the fewest remaining unassigned views
+    // (A) Find the view with the fewest remaining unassigned views for the
+    // mCurrentRole
     //
-    size_t timepoints = static_cast<const TransportNetwork&>(home).getNumberOfTimepoints();
-    size_t fluents = static_cast<const TransportNetwork&>(home).getNumberOfFluents();
-
     // If we are currently not dealing with one particular waypoint
-    if( timepoint == -1 || x[currentRole][ start[currentRole] ].assigned() )
+    // meaning no particular timepoint and no assigned value
+    if( mCurrentTimepoint == -1 || x[mCurrentRole][ mStart[mCurrentRole] ].assigned() )
     {
-        size_t numberOfUnassignedViews = fluents*x.size();
-        for(size_t t = 0; t < timepoints; ++t)
+        // initialize with maximum number of unassigned views
+        size_t numberOfUnassignedViews = mNumberOfFluents*x.size();
+        // initialize with the maximum number of roles
+        size_t numberOfAssignedWaypoints = x.size();
+
+        size_t preferredWaypointByUnassignedViews = mNumberOfTimepoints;
+        size_t preferredWaypointByAssignedWaypoints = mNumberOfTimepoints;
+        for(size_t t = 0; t < mNumberOfTimepoints; ++t)
         {
             size_t unassigned = 0;
-            for(size_t f = 0; f < fluents; ++f)
+            size_t assignedWaypoints = 0;
+            for(size_t f = 0; f < mNumberOfFluents; ++f)
             {
                 // pick new timepoint for status computation
                 for(size_t i = 0; i < x.size(); ++i)
                 {
-                    const Gecode::Set::SetView& view = x[i][t*fluents + f];
+                    const Gecode::Set::SetView& view = x[i][t*mNumberOfFluents + f];
                     if(!view.assigned())
                     {
                         ++unassigned;
+                    } else if(view.cardMin() == 1) // if set is not empty
+                    {
+                        ++assignedWaypoints;
                     }
                 }
             }
             if(unassigned > 0 && unassigned < numberOfUnassignedViews)
             {
-                timepoint = t;
+                preferredWaypointByUnassignedViews = t;
                 numberOfUnassignedViews = unassigned;
+
             }
-            LOG_DEBUG_S << "TIMEPOINT: " << t << " with " << unassigned <<
-                " unassigned views";
+
+            if(assignedWaypoints > 0 && assignedWaypoints < numberOfAssignedWaypoints)
+            {
+                preferredWaypointByAssignedWaypoints = t;
+                numberOfAssignedWaypoints = assignedWaypoints;
+            }
+            LOG_DEBUG_S << "TIMEPOINT: " << t << " with:" << std::endl
+                << "    " << unassigned << " unassigned views"
+                << "    " << assignedWaypoints << " assigned waypoints";
         }
-        LOG_DEBUG_S << "SELECTED TIMEPOINT: " << timepoint << " with " << numberOfUnassignedViews <<
+        if(preferredWaypointByAssignedWaypoints != mNumberOfTimepoints)
+        {
+            mCurrentTimepoint = preferredWaypointByAssignedWaypoints;
+            LOG_DEBUG_S << "Timepoint selection using assigned waypoints preference";
+        } else if (preferredWaypointByUnassignedViews != mNumberOfTimepoints)
+        {
+            mCurrentTimepoint = preferredWaypointByUnassignedViews;
+            LOG_DEBUG_S << "Timepoint selection using unassigned view preference";
+        }
+        LOG_DEBUG_S << "SELECTED TIMEPOINT: " << mCurrentTimepoint << " with " << numberOfUnassignedViews <<
             " unassigned view";
 
-        // reset start points -- since we have a new timeline view
-        // we start at a particular timepoint
+        // reset mStart points -- since we have a new timeline view
+        // we mStart at a particular timepoint
         for(size_t i = 0; i < x.size(); ++i)
         {
-            start[i] = timepoint*fluents;
+            mStart[i] = mCurrentTimepoint*mNumberOfFluents;
         }
     }
 
-    // If timepoint remains at -1 -- a fully assigned multitimeline view has been computed
-    if(timepoint == -1)
+    // If timepoint remains at -1 -- no unassigned view has been found
+    // and thus a fully assigned multitimeline view has been computed
+    if(mCurrentTimepoint == -1)
     {
         MultiTimelineView::const_iterator cit = x.begin();
         assert(!x.empty());
@@ -334,46 +377,51 @@ bool TimelineBrancher::status(const Gecode::Space& home) const
     // -------------------------------------------------------------
     // (B) Identify the corresponding timeline to choose from
     // , i.e. identify first index of role to be used
-    if( nextRoles.empty() )
+    if( mNextRoles.empty() )
     {
         LOG_DEBUG_S << "No roles in list -- repopulating";
         for(size_t i = 0; i < x.size(); ++i)
         {
-            nextRoles.push_back(i);
+            mNextRoles.push_back(i);
         }
     }
 
-    while(!nextRoles.empty())
+    while(!mNextRoles.empty())
     {
-        // Pick role randomly
-        size_t nextRoleIdx = rnd(nextRoles.size() - 1);
-        size_t role = nextRoles[nextRoleIdx];
+        // Pick role randomly from the remaining set of roles
+        size_t nextRoleIdx = mRandom(mNextRoles.size() - 1);
+        size_t role = mNextRoles[nextRoleIdx];
 
         LOG_DEBUG_S << "Brancher: " << id() << " trying role " << role;
 
+        // Pick view corresponding to randomly chosen role
+        // and mark the end range
         const TimelineView& timelineView = x[role];
-        size_t end = (timepoint + 1)*fluents;
-        for(size_t f = start[role]; f < end; ++f)
+        size_t end = (mCurrentTimepoint + 1)*mNumberOfFluents;
+        for(size_t f = mStart[role]; f < end; ++f)
         {
+            // pick first unassigned view and set it as new
+            // mStart value
             if(!timelineView[f].assigned())
             {
-                currentRole = role;
+                mCurrentRole = role;
                 LOG_DEBUG_S << "Brancher: " << id() << " found unassigned: "
                     << " role: " << role << " fluent " << f << " " << timelineView[f];
-                start[role] = f;
+                mStart[role] = f;
 
                 // make sure the next time we use a different role first
-                nextRoles.erase(nextRoles.begin() + nextRoleIdx);
+                mNextRoles.erase(mNextRoles.begin() + nextRoleIdx);
                 LOG_DEBUG_S << "Return status: true";
                 // Return true if there are unassigned views left
                 return true;
             }
         }
-        nextRoles.erase(nextRoles.begin() + nextRoleIdx);
+        mNextRoles.erase(mNextRoles.begin() + nextRoleIdx);
     }
 
     // For this timepoint we did not find any particular open assignment
-    timepoint = -1;
+    // so trigger
+    mCurrentTimepoint = -1;
     LOG_DEBUG_S << "Return status: true";
     // Return true if there are unassigned views left
     return true;
@@ -455,7 +503,7 @@ size_t TimelineBrancher::dispose(Gecode::Space& home)
 
 
 void branchTimelines(Gecode::Home home, const std::vector<Gecode::SetVarArray>& x,
-        const std::vector<int>& supplyDemand)
+        const std::vector<int>& mSupplyDemand)
 {
     if(home.failed())
     {
@@ -467,7 +515,7 @@ void branchTimelines(Gecode::Home home, const std::vector<Gecode::SetVarArray>& 
         TimelineBrancher::TimelineView y(home, Gecode::SetVarArgs(x[i]));
         timelinesView.push_back(y);
     }
-    TimelineBrancher::post(home, timelinesView, supplyDemand);
+    TimelineBrancher::post(home, timelinesView, mSupplyDemand);
 }
 
 

@@ -1393,19 +1393,20 @@ void TransportNetwork::postRoleAssignments()
     // Compute a network with proper activation
     //branch(*this, &TransportNetwork::postRoleTimelines);
     std::vector<int32_t> supplyDemand;
-    //for(uint32_t roleIdx = 0; roleIdx < mActiveRoles.size(); ++roleIdx)
-    //{
-    //    const Role& role = mRoles[ mActiveRoles[roleIdx] ];
-    //    organization_model::facets::Robot robot(role.getModel(), mAsk);
-    //    int32_t transportSupplyDemand = robot.getPayloadTransportSupplyDemand();
-    //    if(transportSupplyDemand == 0)
-    //    {
-    //        throw std::invalid_argument("templ::solvers::csp::TransportNetwork: " +  role.getModel().toString() + " has"
-    //                " a transportSupplyDemand of 0 -- must be either positive of negative integer");
-    //    }
-    //    supplyDemand.push_back(transportSupplyDemand);
-    //}
-    supplyDemand = mSupplyDemand;
+    for(uint32_t roleIdx = 0; roleIdx < mActiveRoles.size(); ++roleIdx)
+    {
+        const Role& role = mRoles[ mActiveRoles[roleIdx] ];
+        organization_model::facets::Robot robot(role.getModel(), mAsk);
+        int32_t transportSupplyDemand = robot.getPayloadTransportSupplyDemand();
+        if(transportSupplyDemand == 0)
+        {
+            throw std::invalid_argument("templ::solvers::csp::TransportNetwork: " +  role.getModel().toString() + " has"
+                    " a transportSupplyDemand of 0 -- must be either positive of negative integer");
+        }
+        supplyDemand.push_back(transportSupplyDemand);
+    }
+    mSupplyDemand = supplyDemand;
+    assert(!supplyDemand.empty());
 
 //    for(size_t t = 0; t < numberOfTimepoints; ++t)
 //    {
