@@ -30,6 +30,7 @@ int main(int argc, char** argv)
 
     Mission::Ptr mission(new Mission(baseMission));
 
+    mission->getLogger()->saveInputData(*mission.get());
     std::string dotFilename = mission->getLogger()->filename("templ-mission-relations.dot");
     graph_analysis::io::GraphIO::write(dotFilename, mission->getRelations());
     printf("Written: %s\n", dotFilename.c_str() );
