@@ -242,6 +242,7 @@ rock_library(templ_gui
         gui/OntologyView/OntologyView.hpp
         gui/OntologyView/OntologyTreeModel.hpp
         gui/edge_items/RoleInfoItem.hpp
+        gui/edge_items/CapacityLinkItem.hpp
         gui/vertex_items/RoleInfoItem.hpp
     SOURCES
         gui/TemplGui.cpp
@@ -251,6 +252,7 @@ rock_library(templ_gui
         gui/OntologyView/OntologyView.cpp
         gui/OntologyView/OntologyTreeModel.cpp
         gui/edge_items/RoleInfoItem.cpp
+        gui/edge_items/CapacityLinkItem.cpp
         gui/vertex_items/RoleInfoItem.cpp
     MOC
         gui/TemplGui.hpp
@@ -260,6 +262,7 @@ rock_library(templ_gui
         gui/OntologyView/OntologyView.hpp
         gui/OntologyView/OntologyTreeModel.hpp
         gui/edge_items/RoleInfoItem.hpp
+        gui/edge_items/CapacityLinkItem.hpp
         gui/vertex_items/RoleInfoItem.hpp
     DEPS
         templ

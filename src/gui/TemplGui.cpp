@@ -31,6 +31,7 @@
 #include <templ/SpaceTime.hpp>
 #include <templ/RoleInfoWeightedEdge.hpp>
 #include <templ/gui/edge_items/RoleInfoItem.hpp>
+#include <templ/gui/edge_items/CapacityLinkItem.hpp>
 #include <templ/gui/vertex_items/RoleInfoItem.hpp>
 
 using namespace graph_analysis;
@@ -106,11 +107,19 @@ void TemplGui::registerGraphElementTypes()
 {
     using namespace templ;
     using namespace graph_analysis;
-    // Edges
-    RoleInfoWeightedEdge::Ptr e(new RoleInfoWeightedEdge());
-
     graph_analysis::gui::EdgeItemTypeManager* eManager = graph_analysis::gui::EdgeItemTypeManager::getInstance();
-    eManager->registerVisualization(e->getClassName(), new edge_items::RoleInfoItem());
+
+    // Edges
+    {
+        {
+            RoleInfoWeightedEdge::Ptr e(new RoleInfoWeightedEdge());
+            eManager->registerVisualization(e->getClassName(), new edge_items::RoleInfoItem());
+        }
+        {
+            CapacityLink::Ptr e(new CapacityLink());
+            eManager->registerVisualization(e->getClassName(), new edge_items::CapacityLinkItem());
+        }
+    }
 
 
     SpaceTime::Network::tuple_t::Ptr v(new SpaceTime::Network::tuple_t());
