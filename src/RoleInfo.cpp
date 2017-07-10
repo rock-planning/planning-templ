@@ -12,13 +12,25 @@
 
 namespace templ {
 
+std::map<RoleInfo::Tag, std::string> RoleInfo::TagTxt =
+{{ RoleInfo::UNKNOWN, "UNKNOWN"},
+ { RoleInfo::ASSIGNED, "assigned"}
+}
+ ;
+
 RoleInfo::RoleInfo()
     : mRoles()
     , mTaggedRoles()
 {}
 
+void RoleInfo::addRole(const Role& role, const Tag& tag)
+{
+    addRole(role, TagTxt[ tag ]);
+}
+
 void RoleInfo::addRole(const Role& role, const std::string& tag)
 {
+    assert(!role.getName().empty());
     if(tag.empty())
     {
         mRoles.insert(role);
@@ -35,6 +47,11 @@ const std::set<Role>& RoleInfo::getRoles(const std::string& tag) const
         return mRoles;
     }
     return mTaggedRoles[tag];
+}
+
+const std::set<Role>& RoleInfo::getRoles(const Tag& tag) const
+{
+    return getRoles( TagTxt[tag] );
 }
 
 
@@ -94,6 +111,69 @@ std::string RoleInfo::toString(uint32_t indent) const
 
 
     return ss.str();
+}
+
+
+Role::List RoleInfo::getRelativeComplement(const std::string& tag0, const std::string& tag1) const
+{
+    std::set<Role> tag0Roles = getRoles(tag0);
+    std::set<Role> tag1Roles = getRoles(tag1);
+    std::vector<Role> delta(tag0Roles.begin(), tag0Roles.end());
+
+    for(size_t r0 = 0; r0 < delta.size();)
+    {
+        bool found = false;
+        for(const Role& tag1Role : tag1Roles)
+        {
+            if( delta[r0] == tag1Role)
+            {
+                delta.erase( delta.begin() + r0);
+                found = true;
+                break;
+            }
+        }
+        if(!found)
+        {
+            ++r0;
+        }
+    }
+
+    return delta;
+}
+
+
+Role::List RoleInfo::getIntersection(const std::string& tag0, const std::string& tag1) const
+{
+
+    std::set<Role> tag0Roles = getRoles(tag0);
+    std::set<Role> tag1Roles = getRoles(tag1);
+
+    Role::List result(tag0Roles.size() + tag1Roles.size());
+    Role::List::iterator it;
+
+    it = std::set_intersection(tag0Roles.begin(), tag0Roles.end(),
+            tag1Roles.begin(),
+            tag1Roles.end(), result.begin());
+
+    result.resize(it - result.begin());
+    return result;
+}
+
+Role::List RoleInfo::getSymmetricDifference(const std::string& tag0, const std::string& tag1) const
+{
+
+    std::set<Role> tag0Roles = getRoles(tag0);
+    std::set<Role> tag1Roles = getRoles(tag1);
+
+    Role::List result(tag0Roles.size() + tag1Roles.size());
+    Role::List::iterator it;
+
+    it = std::set_symmetric_difference(tag0Roles.begin(), tag0Roles.end(),
+            tag1Roles.begin(),
+            tag1Roles.end(), result.begin());
+
+    result.resize(it - result.begin());
+    return result;
 }
 
 void RoleInfo::clear()

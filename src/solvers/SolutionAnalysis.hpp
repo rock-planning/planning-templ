@@ -20,6 +20,20 @@ public:
     typedef std::pair< organization_model::ModelPool::List, organization_model::ModelPool::List >
         MinMaxModelPools;
 
+    /**
+     * An existing solution will provide contain RoleInfoTuple as vertices
+     * and An existing solution will provide contain RoleInfoTuple as vertices
+     * and RoleInfoWeightedEdge as edges
+     *
+     * The successful assignment of roles to a vertex will result in a entry of
+     * the RoleInfo::ASSIGNED tagged set
+     * Meanwhile the default set, contains all the required roles
+     * Note, that for the first timepoint the starting requirement vs. assiged have to be
+     * interpreted differently, i.e. the requirements are merley defining what
+     * is available at this 'source' hub
+     *
+     * \see SpaceTime::Network
+     */
     SolutionAnalysis(const Mission::Ptr& mission, const SpaceTime::Network& solution);
 
     void analyse();

@@ -301,8 +301,8 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
                     << "    target: " << targetLocation->toString() << multicommodityEdge->getTargetVertex()->toString() << std::endl
                 ;
 
-                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(sourceLocation)->addRole(role, "assigned");
-                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(targetLocation)->addRole(role, "assigned");
+                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(sourceLocation)->addRole(role, RoleInfo::ASSIGNED);
+                dynamic_pointer_cast<SpaceTime::Network::tuple_t>(targetLocation)->addRole(role, RoleInfo::ASSIGNED);
             }
         }
     }

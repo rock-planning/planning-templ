@@ -115,6 +115,8 @@ void FlowNetwork::initializeExpandedTimelines()
         co::Location::Ptr prevLocation;
         SpaceTime::Network::tuple_t::Ptr startTuple, endTuple;
 
+        // Iterator over all role-specific timelines and annotate vertices and
+        // edges with the information of the role that is assigned to it
         SpaceTime::Timeline::const_iterator cit = roleTimeline.begin();
         for(; cit != roleTimeline.end(); ++cit)
         {
@@ -124,18 +126,18 @@ void FlowNetwork::initializeExpandedTimelines()
 
             // create tuple if it does not exist?
             endTuple = mSpaceTimeNetwork.tupleByKeys(location, timepoint);
-            endTuple->addRole(role, "assigned");
+            endTuple->addRole(role, RoleInfo::ASSIGNED);
 
             if(prevIntervalEnd)
             {
                 startTuple = mSpaceTimeNetwork.tupleByKeys(prevLocation, prevIntervalEnd);
-                startTuple->addRole(role, "assigned");
+                startTuple->addRole(role, RoleInfo::ASSIGNED);
 
                 std::vector< RoleInfoWeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<RoleInfoWeightedEdge>(startTuple, endTuple);
                 if(edges.empty())
                 {
                     RoleInfoWeightedEdge::Ptr weightedEdge(new RoleInfoWeightedEdge(startTuple, endTuple, capacity));
-                    weightedEdge->addRole(role, "assigned");
+                    weightedEdge->addRole(role, RoleInfo::ASSIGNED);
                     mSpaceTimeNetwork.getGraph()->addEdge(weightedEdge);
                 } else if(edges.size() > 1)
                 {
@@ -143,7 +145,7 @@ void FlowNetwork::initializeExpandedTimelines()
                 } else { // one edge -- sum up capacities of mobile systems
                     RoleInfoWeightedEdge::Ptr& existingEdge = edges[0];
                     double existingCapacity = existingEdge->getWeight();
-                    existingEdge->addRole(role, "assigned");
+                    existingEdge->addRole(role, RoleInfo::ASSIGNED);
 
                     if(existingCapacity < std::numeric_limits<RoleInfoWeightedEdge::value_t>::max())
                     {

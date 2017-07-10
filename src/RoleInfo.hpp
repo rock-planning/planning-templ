@@ -7,12 +7,20 @@
 
 namespace templ {
 
+/**
+ * Allow to collect related roles into a single object
+ */
 class RoleInfo
 {
 public:
     typedef shared_ptr<RoleInfo> Ptr;
 
+    enum Tag { UNKNOWN, ASSIGNED = 1 };
+    static std::map<Tag, std::string> TagTxt;
+
     RoleInfo();
+
+    void addRole(const Role& role, const Tag& tag);
 
     void addRole(const Role& role, const std::string& tag = "");
 
@@ -20,7 +28,30 @@ public:
 
     const std::set<Role>& getRoles(const std::string& tag ="") const;
 
+    const std::set<Role>& getRoles(const Tag& tag) const;
+
     std::set<Role> getAllRoles() const;
+
+    /**
+     * Compute the complement C between two role sets with respect to the tag0 set,
+     * defined as:
+     *
+     \f[
+        C = TAG0 \ TAG1
+     \f]
+     * \return complement
+     */
+    Role::List getRelativeComplement(const std::string& tag0, const std::string& tag1) const;
+
+    /**
+     * Get intersection between tag0 and tag1 set
+     */
+    Role::List getIntersection(const std::string& tag0, const std::string& tag1) const;
+
+    /**
+     * Get the symmetric difference between tag0 and tag1 set
+     */
+    Role::List getSymmetricDifference(const std::string& tag0, const std::string& tag1) const;
 
     void clear();
 

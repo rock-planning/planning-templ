@@ -11,6 +11,8 @@ namespace transshipment {
 
 /**
  * Graph-based representation of mobile systems
+ *
+ *
  */
 class FlowNetwork
 {
@@ -27,6 +29,9 @@ public:
 
     /**
      * Get the graph representation of the transport network, i.e. as a space time network
+     *
+     * The transport netowkr will contain RoleInfo tuples which are augmented
+     * with the roles that are assigned to it under the key 'assigned'
      */
     const SpaceTime::Network& getSpaceTimeNetwork() const { return mSpaceTimeNetwork; }
 
@@ -55,8 +60,20 @@ public:
     size_t getColumnIndex(const graph_analysis::Vertex::Ptr& vertex) const;
 
 protected:
+    /**
+     * check if expanded or minimal timelines shall be used for initialization
+     * and call appropriate initialization function
+     */
     void initialize();
+
+    /**
+     * Initialize network (from a vector of FluentTimeResource)
+     */
     void initializeMinimalTimelines();
+
+    /**
+     * Initialize network (from a
+     */
     void initializeExpandedTimelines();
 
 private:

@@ -6,6 +6,7 @@
 #include <graph_analysis/gui/EdgeMimeData.hpp>
 #include <graph_analysis/gui/BaseGraphView/AddEdgeDialog.hpp>
 #include <graph_analysis/EdgeTypeManager.hpp>
+#include "../../SpaceTime.hpp"
 
 #include <base-logging/Logging.hpp>
 
@@ -20,7 +21,7 @@ RoleInfoItem::RoleInfoItem()
     : VertexItemBase()
     , mpLabel(0)
     , mpClassName(0)
-    , mpCoordinate(0)
+    , mpInfoBox(0)
     , mpRect(0)
 {}
 
@@ -35,7 +36,7 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     : VertexItemBase(graphWidget, vertex, parent)
     , mpLabel(0)
     , mpClassName(0)
-    , mpCoordinate(0)
+    , mpInfoBox(0)
     , mpRect(0)
 {
 
@@ -54,8 +55,8 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
                         QPoint(0, mpLabel->boundingRect().height()));
     mpClassName->setDefaultTextColor(Qt::gray);
     // we wanna show the current qt-coordinate on the canvas
-    mpCoordinate = new QGraphicsTextItem(getScenePosAsString(), this);
-    mpCoordinate->setDefaultTextColor(Qt::darkGreen);
+    mpInfoBox = new QGraphicsTextItem("", this);
+    mpInfoBox->setDefaultTextColor(Qt::darkGreen);
 
     // now that all the children are there, we use their bounding-rect to
     // enlarge the background-rect. note that we never modify the boundingRect
@@ -64,8 +65,8 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
 
     // change the position of the "coordinate" label to be pinned in the
     // top-right corner of the blue rect
-    mpCoordinate->setPos(mpRect->rect().topRight()-
-                         QPointF(mpCoordinate->boundingRect().width(), 0));
+    mpInfoBox->setPos(mpRect->rect().topRight()-
+                         QPointF(mpInfoBox->boundingRect().width(), 0));
 
     // for this "Simple" type we want to have it movable. this graphical
     // "object" will not be contained inside other items, so thats ok
@@ -74,13 +75,50 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     // for thi specific "Simple" implmentation, we accept drops -- and allow
     // drops -- to create new edges. see later.
     setAcceptDrops(true);
+
+
+
+    // Identify items with missing roles
+    SpaceTime::Network::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>( getVertex() );
+    assert(tuple);
+
+    QPen pen = mpRect->pen();
+    std::stringstream ss;
+    Role::List missing = tuple->getRelativeComplement("", RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]);
+    if(!missing.empty())
+    {
+        ss << "Missing roles:" << std::endl;
+        for(const Role& r : missing)
+        {
+            ss << "    " << r.toString() << std::endl;
+        }
+        pen.setColor(Qt::red);
+        mpRect->setPen(pen);
+    }
+    Role::List superfluous = tuple->getRelativeComplement(RoleInfo::TagTxt[ RoleInfo::ASSIGNED ], "");
+    if(!superfluous.empty())
+    {
+        ss << "Superfluous roles:" << std::endl;
+        for(const Role& r : superfluous)
+        {
+            ss << "    " << r.toString() << std::endl;
+        }
+
+        //pen.setStyle(Qt::DashLine);
+        //mpRect->setPen(pen);
+        mpInfoBox->setPlainText("+");
+        font.setPointSize(25);
+        mpInfoBox->setFont(font);
+    }
+
+    setToolTip(QString( ss.str().c_str() ));
 }
 
 RoleInfoItem::~RoleInfoItem()
 {
     delete mpLabel;
     delete mpClassName;
-    delete mpCoordinate;
+    delete mpInfoBox;
     delete mpRect;
 }
 
@@ -199,12 +237,9 @@ QVariant RoleInfoItem::itemChange(GraphicsItemChange change,
     {
     case ItemScenePositionHasChanged:
     {
-        // notify the graph widget about our new position. there, relevant
-        // caching and updating of connected items is performed.
-        mpCoordinate->setPlainText(getScenePosAsString());
         // and also move the whole label a bit to stay aligned with the rect
-        mpCoordinate->setPos(mpRect->rect().topRight()-
-                             QPointF(mpCoordinate->boundingRect().width(), 0));
+        mpInfoBox->setPos(mpRect->rect().topRight()-
+                             QPointF(mpInfoBox->boundingRect().height(), 0));
         break;
     }
     default:
@@ -215,6 +250,14 @@ QVariant RoleInfoItem::itemChange(GraphicsItemChange change,
     return VertexItemBase::itemChange(change, value);
 }
 
+void RoleInfoItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+    //mpLabel->setPlainText(getVertex()->toString().c_str());
+}
+
+void RoleInfoItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+}
 VertexItemBase* RoleInfoItem::createNewItem(graph_analysis::gui::GraphWidget* graphWidget,
            const graph_analysis::Vertex::Ptr& vertex,
             QGraphicsItem* parent) const

@@ -46,6 +46,8 @@ protected:
     void dropEvent(QGraphicsSceneDragDropEvent* event);
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
 
+    void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
 
     VertexItemBase* createNewItem(graph_analysis::gui::GraphWidget* graphWidget,
                 const graph_analysis::Vertex::Ptr& vertex,
@@ -54,7 +56,7 @@ protected:
 private:
     QGraphicsTextItem* mpLabel;
     QGraphicsTextItem* mpClassName;
-    QGraphicsTextItem* mpCoordinate;
+    QGraphicsTextItem* mpInfoBox;
     QGraphicsRectItem* mpRect;
 
     /** convert the current scenePos of the item to smth like "(23, -14)" */

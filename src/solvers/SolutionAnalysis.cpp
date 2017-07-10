@@ -112,7 +112,7 @@ std::vector<organization_model::ModelPool> SolutionAnalysis::getAvailableResourc
         {
             // identified relevant tuple
             SpaceTime::Network::tuple_t::Ptr tuple = mSolutionNetwork.tupleByKeys(location, timepoint);
-            Role::Set foundRoles = tuple->getRoles("assigned");
+            Role::Set foundRoles = tuple->getRoles(RoleInfo::ASSIGNED);
             Role::List roles(foundRoles.begin(), foundRoles.end());
             organization_model::ModelPool currentPool = Role::getModelPool(roles);
 
@@ -223,6 +223,7 @@ organization_model::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequir
     OrganizationModelAsk ask(mpMission->getOrganizationModel(),
             maxAvailableResources,
             true);
+
     // Creating model pool from available functionalities
     ModelPool functionalities = ask.getSupportedFunctionalities();
     ModelPool availableResources = organization_model::Algebra::max(maxAvailableResources, functionalities);
@@ -273,7 +274,7 @@ graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
     while(vertexIt->next())
     {
         SpaceTime::Network::tuple_t::Ptr roleInfo = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(vertexIt->current());
-        std::set<Role> roles = roleInfo->getRoles("assigned");
+        std::set<Role> roles = roleInfo->getRoles(RoleInfo::ASSIGNED);
         if(roles.empty())
         {
             continue;
@@ -295,7 +296,7 @@ graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
     while(edgeIt->next())
     {
         SpaceTime::Network::edge_t::Ptr roleInfo = dynamic_pointer_cast<SpaceTime::Network::edge_t>(edgeIt->current());
-        std::set<Role> roles = roleInfo->getRoles("assigned");
+        std::set<Role> roles = roleInfo->getRoles(RoleInfo::ASSIGNED);
         if(roles.empty())
         {
             continue;
@@ -341,7 +342,7 @@ void SolutionAnalysis::quantifyTime() const
     {
         SpaceTime::Network::edge_t::Ptr edge = dynamic_pointer_cast<SpaceTime::Network::edge_t>( edgeIt->current() );
 
-        Role::Set roles = edge->getRoles("assigned");
+        Role::Set roles = edge->getRoles(RoleInfo::ASSIGNED);
         if(roles.empty())
         {
             continue;
@@ -396,7 +397,7 @@ Plan SolutionAnalysis::computePlan() const
             try {
                 SpaceTime::Network::tuple_t::Ptr tuple = mSolutionNetwork.tupleByKeys(location, startingTimepoint);
 
-                Role::Set assignedRoles = tuple->getRoles("assigned");
+                Role::Set assignedRoles = tuple->getRoles(RoleInfo::ASSIGNED);
                 if( assignedRoles.find(role) != assignedRoles.end())
                 {
                     startTuple = tuple;
@@ -420,7 +421,7 @@ Plan SolutionAnalysis::computePlan() const
         // use SpaceTime::Network, which contains information on role for each edge
         // after update from the flow graph
         // foreach role -- find starting point and follow path
-        PathConstructor::Ptr pathConstructor(new PathConstructor(role, "assigned"));
+        PathConstructor::Ptr pathConstructor(new PathConstructor(role, RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]));
         Skipper skipper = boost::bind(&PathConstructor::isInvalidTransition, pathConstructor,_1);
         DFS dfs(mSolutionNetwork.getGraph(), pathConstructor, skipper);
         dfs.run(startTuple);
@@ -458,6 +459,8 @@ std::string SolutionAnalysis::toString(size_t indent) const
     Plan plan = computePlan();
     ss << hspace << "Resulting plan:" << std::endl;
     ss << plan.toString(indent + 4);
+
+    graph_analysis::io::GraphIO::write("/tmp/final_plan.gexf", plan.getGraph());
 
     quantifyTime();
 
