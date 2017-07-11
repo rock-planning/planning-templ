@@ -42,6 +42,9 @@ private:
     // the subwigets, present in this window
     graph_analysis::gui::BaseGraphView* mpBaseGraphView;
 
+    QList<QAction*> mpRecentFileActions;
+    enum { MaxRecentFiles = 5 };
+
     MissionEditor* mpMissionEditor;
     MissionView* mpMissionView;
     OntologyView* mpOntologyView;
@@ -50,10 +53,18 @@ private:
 
     void registerGraphElementTypes();
 
+    QString strippedName(const QString& fullFileName);
+
+    void updateRecentFileActions();
+
+    void activateGraph(graph_analysis::BaseGraph::Ptr& graph);
+
 private slots:
     void importGraph();
     void exportGraph();
     void selectLayout();
+    void importRecentFile();
+
 
     /*Connected to QBaseGraph*/
     void updateVisualization();

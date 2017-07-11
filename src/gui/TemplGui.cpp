@@ -73,12 +73,11 @@ TemplGui::TemplGui()
     //        this, SLOT(updateVisualization()));
 
 
-    QMenuBar *bar = menuBar();
-
     ActionCommander comm(this);
 
     QMenu *fileMenu = new QMenu(QObject::tr("&File"));
     QStyle* style = new QCommonStyle();
+
     QAction *actionImport = comm.addAction("Import", SLOT(importGraph()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open ), tr("Import graph from file"));
     QAction *actionExport = comm.addAction("Export", SLOT(exportGraph()), style->standardIcon(QStyle::SP_DialogSaveButton), QKeySequence( QKeySequence::SaveAs), tr("Export graph to file"));
     QAction *selectLayout = comm.addAction("Layout", SLOT(selectLayout()), style->standardIcon(QStyle::SP_FileDialogListView), QKeySequence( Qt::ControlModifier & Qt::Key_L), tr("Export graph to file"));
@@ -88,12 +87,33 @@ TemplGui::TemplGui()
     fileMenu->addAction(selectLayout);
     fileMenu->addSeparator();
 
+    // Populate the recent files list
+    for(int i = 0; i < MaxRecentFiles; ++i)
+    {
+        QAction* action = new QAction(this);
+        action->setVisible(false);
+        mpRecentFileActions.push_back(action);
+        connect(action, SIGNAL(triggered()), this, SLOT(importRecentFile()));
+    }
+
+    // account only for the existing files
+    int existingRecentFiles = qMin(mpRecentFileActions.size(), (int) MaxRecentFiles);
+    for(int i = 0; i < existingRecentFiles; ++i)
+    {
+        fileMenu->addAction(mpRecentFileActions[i]);
+    }
+    fileMenu->addSeparator();
+    QMenuBar *bar = menuBar();
+    bar->addMenu(fileMenu);
+
     QToolBar* toolBar = new QToolBar("Toolbar");
     toolBar->addAction(actionImport);
     toolBar->addAction(actionExport);
     toolBar->addAction(selectLayout);
     toolBar->setFloatable(true);
     addToolBar(toolBar);
+
+    updateRecentFileActions();
 
     registerGraphElementTypes();
 }
@@ -129,9 +149,38 @@ void TemplGui::registerGraphElementTypes()
 
 }
 
+void TemplGui::updateRecentFileActions()
+{
+    QSettings settings;
+    QStringList files = settings.value("recentImportFileList").toStringList();
+
+    int numRecentFiles = qMin(files.size(), (int) MaxRecentFiles);
+    for(int i = 0; i < numRecentFiles; ++i)
+    {
+        QString text = tr("&%1 %2").arg(i + 1).arg(strippedName(files[i]));
+        mpRecentFileActions[i]->setText(text);
+        mpRecentFileActions[i]->setData(files[i]);
+        mpRecentFileActions[i]->setVisible(true);
+    }
+    for(int j = numRecentFiles; j < MaxRecentFiles; ++j)
+    {
+        mpRecentFileActions[j]->setVisible(false);
+    }
+}
+
+QString TemplGui::strippedName(const QString& fullFileName)
+{
+    return QFileInfo(fullFileName).fileName();
+}
+
 void TemplGui::importGraph()
 {
     graph_analysis::BaseGraph::Ptr graph = graph_analysis::gui::dialogs::IODialog::importGraph(this);
+    activateGraph(graph);
+}
+
+void TemplGui::activateGraph(graph_analysis::BaseGraph::Ptr& graph)
+{
     if(graph)
     {
         //updateVisualization();
@@ -144,12 +193,27 @@ void TemplGui::importGraph()
         mpBaseGraphView->clearVisualization();
         mpBaseGraphView->refresh();
         mpBaseGraphView->updateVisualization();
+        mpBaseGraphView->applyLayout("dot");
+    } else {
+        qDebug() << "Failed to activate graph";
     }
 }
 
 void TemplGui::exportGraph()
 {
     graph_analysis::gui::dialogs::IODialog::exportGraph(mpBaseGraphView->graph());
+}
+
+void TemplGui::importRecentFile()
+{
+    QAction *action = qobject_cast<QAction*>(sender());
+    if(action)
+    {
+        qDebug() << "Importing file from: " << action->data().toString();
+        graph_analysis::BaseGraph::Ptr graph = graph_analysis::gui::dialogs::IODialog::importGraph(this, action->data().toString());
+
+        activateGraph(graph);
+    }
 }
 
 void TemplGui::selectLayout()
