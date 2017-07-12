@@ -7,6 +7,7 @@
 #include <graph_analysis/gui/EdgeItemTypeManager.hpp>
 
 #include <QDebug>
+#include <QFileInfo>
 #include <QMessageBox>
 #include <QMenu>
 #include <QMenuBar>
@@ -20,7 +21,6 @@
 
 #include <graph_analysis/GraphIO.hpp>
 #include <graph_analysis/gui/GraphWidget.hpp>
-#include <graph_analysis/gui/dialogs/ExportFile.hpp>
 #include <graph_analysis/gui/ActionCommander.hpp>
 #include <graph_analysis/gui/dialogs/IODialog.hpp>
 
