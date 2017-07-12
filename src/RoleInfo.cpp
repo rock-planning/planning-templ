@@ -2,7 +2,6 @@
 #include <algorithm>
 
 #include <boost/serialization/map.hpp>
-#include <boost/serialization/set.hpp>
 #include <boost/serialization/list.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>

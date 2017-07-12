@@ -3,6 +3,7 @@
 
 #include <owlapi/model/IRI.hpp>
 #include <organization_model/ModelPool.hpp>
+#include <boost/serialization/serialization.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/set.hpp>
 
