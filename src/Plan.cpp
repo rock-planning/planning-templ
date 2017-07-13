@@ -232,6 +232,7 @@ void Plan::computeGraphAndActionPlan() const
 
     }
 
+    Role locationTransitionRole("local-transition",owlapi::model::IRI());
     // handle only immobile robots and map to CapacityLinks
     {
         RoleBasedPlan::const_iterator cit = mRolebasedPlan.begin();
@@ -265,23 +266,19 @@ void Plan::computeGraphAndActionPlan() const
                         edges = mpBaseGraph->getEdges(previousWaypoint, currentWaypoint);
                     } catch(const std::runtime_error& e)
                     {
-                        // if edge is not part of the graph then the item
-                        // remains at the current location
-                        LOG_WARN_S << "Looks like the items remains: " << previousWaypoint->toString() << " -- " << currentWaypoint->toString() << " -- nothing to do";
-                        using namespace graph_analysis;
-                        CapacityLink::Ptr localLink( new CapacityLink(Role("local-transition",owlapi::model::IRI()), std::numeric_limits<uint32_t>::max()));
-                        localLink->setSourceVertex(previousWaypoint);
-                        localLink->setTargetVertex(currentWaypoint);
-
-                        mpBaseGraph->addEdge(localLink);
+                        LOG_WARN_S << "Looks like the items remains: " << previousWaypoint->toString() << " -- " << currentWaypoint->toString() << " -- nothing to do since when egdes are empty we will add the local link: " << e.what();
                     }
 
                     if(edges.empty())
                     {
-                        //throw std::runtime_error("templ::Plan::getActionPlan: no CapacityLink available to route immobile unit -- this should never happen: please inform the developer");
-                        // items remains at the same location (or has to be
-                        // dropped
-                        capacityProvider = Role();
+                        // Lazily creating the link of a local transition
+                        CapacityLink::Ptr localLink( new CapacityLink(locationTransitionRole, std::numeric_limits<uint32_t>::max()));
+                        localLink->addUser(role, capacityUsage);
+                        localLink->setSourceVertex(previousWaypoint);
+                        localLink->setTargetVertex(currentWaypoint);
+
+                        mpBaseGraph->addEdge(localLink);
+                        capacityProvider = locationTransitionRole;
                     } else if(edges.size() == 1)
                     {
                         CapacityLink::Ptr link = dynamic_pointer_cast<CapacityLink>(edges[0]);
