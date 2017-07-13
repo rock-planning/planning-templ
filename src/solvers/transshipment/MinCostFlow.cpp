@@ -168,8 +168,17 @@ std::vector<Flaw> MinCostFlow::run()
 
     // LOGGING
     {
-        std::string filename  = mpMission->getLogger()->filename("min-cost-flow-result.dot");
+        std::string filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow-graph.gexf");
         graph_analysis::io::GraphIO::write(filename, flowGraph);
+
+        filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow.gexf");
+        minCostFlow.save(filename);
+
+        filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow.cplex");
+        minCostFlow.saveProblem(filename);
+
+        filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow.solution");
+        minCostFlow.saveSolution(filename);
     }
 
     // Update roles in the space time network using the information of the
@@ -185,7 +194,7 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
 
     // Check on violations of the current network
     std::vector<ConstraintViolation> violations = minCostFlow.validateInflow();
-    LOG_INFO_S << "Violoations found: " << violations.size() << " violations in the commodity flow";
+    LOG_INFO_S << "Violations found: " << violations.size() << " violations in the commodity flow";
     std::vector<ConstraintViolation>::const_iterator vit = violations.begin();
     for(; vit != violations.end(); ++vit)
     {
