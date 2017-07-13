@@ -3,11 +3,15 @@
 
 #include <graph_analysis/gui/EdgeItemBase.hpp>
 #include "../../CapacityLink.hpp"
+#include <QGraphicsRectItem>
 
 namespace templ {
 namespace gui {
 namespace edge_items {
 
+/**
+ * The graphical representation for CapacityLink
+ */
 class CapacityLinkItem : public graph_analysis::gui::EdgeItemBase
 {
 public:
@@ -31,6 +35,12 @@ protected:
     QGraphicsTextItem* mpClassName;
     QGraphicsPolygonItem* mpMultiLine;
     QGraphicsPolygonItem* mpArrowHead;
+
+    /// Representation for the outer shape of a fill bar, to display the status of the capacity
+    /// consumption
+    QGraphicsRectItem* mpFillBar;
+    /// Representation of th filling for the fill bar
+    QGraphicsRectItem* mpFillStatus;
 
     void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);

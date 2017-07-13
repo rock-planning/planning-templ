@@ -9,6 +9,13 @@
 
 namespace templ {
 
+/**
+ * \class CapacityLink
+ * \brief Represent a link with an upper bound on the capacity it can transport
+ * \details A capacity link allows for a detailled description of the link
+ * provider and users including an further inspection of the capacities that are
+ * used by these users
+ */
 class CapacityLink : public graph_analysis::Edge
 {
 public:
@@ -24,12 +31,39 @@ public:
 
     virtual std::string toString(uint32_t indent = 0) const override;
 
-    void addUser(const Role& role, uint32_t capacity = 1);
+    /**
+     * Add a user of this capacity link
+     */
+    void addConsumer(const Role& role, uint32_t capacity = 1);
 
-    uint32_t getRemainingCapacity();
+    /**
+     * Get total capacity
+     */
+    uint32_t getCapacity() const { return mMaxCapacity; }
 
+    /**
+     * Return the consumption level in percent of the max capacity
+     */
+    double getConsumptionLevel() const;
+
+    /**
+     * Get used capacity
+     */
+    uint32_t getUsedCapacity() const;
+
+    /**
+     * Get the remaining capacity of this capacity link
+     */
+    uint32_t getRemainingCapacity() const;
+
+    /**
+     * Get the provider for this capacity link
+     */
     const Role& getProvider() const { return mProvider; }
 
+    /**
+     * Register attributes for serialization of this capacity link
+     */
     virtual void registerAttributes(graph_analysis::EdgeTypeManager* eManager) const override;
 
 protected:
@@ -38,8 +72,11 @@ protected:
     std::string serializeProvider() const;
     void deserializeProvider(const std::string& data);
 
-    std::string serializeUsers() const;
-    void deserializeUsers(const std::string& data);
+    std::string serializeConsumers() const;
+    void deserializeConsumers(const std::string& data);
+
+    std::string serializeMaxCapacity() const;
+    void deserializeMaxCapacity(const std::string& data);
 
 private:
     Role mProvider;

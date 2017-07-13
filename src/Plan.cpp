@@ -273,7 +273,7 @@ void Plan::computeGraphAndActionPlan() const
                     {
                         // Lazily creating the link of a local transition
                         CapacityLink::Ptr localLink( new CapacityLink(locationTransitionRole, std::numeric_limits<uint32_t>::max()));
-                        localLink->addUser(role, capacityUsage);
+                        localLink->addConsumer(role, capacityUsage);
                         localLink->setSourceVertex(previousWaypoint);
                         localLink->setTargetVertex(currentWaypoint);
 
@@ -282,7 +282,7 @@ void Plan::computeGraphAndActionPlan() const
                     } else if(edges.size() == 1)
                     {
                         CapacityLink::Ptr link = dynamic_pointer_cast<CapacityLink>(edges[0]);
-                        link->addUser(role, capacityUsage);
+                        link->addConsumer(role, capacityUsage);
                         // prefer remaining with the same provider
                         capacityProvider = link->getProvider();
                     } else {
@@ -313,7 +313,7 @@ void Plan::computeGraphAndActionPlan() const
                                 bestLink = link;
                             }
                         }
-                        bestLink->addUser(role, capacityUsage);
+                        bestLink->addConsumer(role, capacityUsage);
                         capacityProvider = bestLink->getProvider();
                     }
 

@@ -24,6 +24,16 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
     mpArrowHead = new QGraphicsPolygonItem(this);
     mpArrowHead->setBrush(QBrush(Qt::black));
 
+    mpFillBar = new QGraphicsRectItem(mpMultiLine->pos().x(), mpMultiLine->pos().y(), 100, 10, this);
+    mpFillBar->setPen( QPen(Qt::black) );
+    mpFillBar->setBrush(QBrush(Qt::white));
+
+    double consumptionInPercent = dynamic_pointer_cast<CapacityLink>( getEdge() )->getConsumptionLevel();
+
+    mpFillStatus = new QGraphicsRectItem(mpMultiLine->pos().x(), mpMultiLine->pos().y(), consumptionInPercent*100 , 10, this);
+    mpFillStatus->setPen( QPen(Qt::black) );
+    mpFillStatus->setBrush(QBrush(Qt::black));
+
     setFlag(ItemIsMovable, false);
 }
 
@@ -49,6 +59,9 @@ void CapacityLinkItem::adjustEdgePositioning()
                     mpLabel->boundingRect().center());
     mpClassName->setPos(mpLabel->pos() +
                         QPointF(0, mpLabel->boundingRect().height()));
+
+    mpFillBar->setPos(mpLabel->pos().x(), mpLabel->pos().y() - mpFillBar->rect().height());
+    mpFillStatus->setPos(mpLabel->pos().x(), mpLabel->pos().y() - mpFillStatus->rect().height());
 
     // draw the arrow!
     QLineF lastSegment(mPoints.at((size_t)mPoints.size() - 2),
