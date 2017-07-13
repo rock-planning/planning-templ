@@ -353,6 +353,9 @@ void TransportNetwork::saveSolution(const Solution& solution, const Mission::Ptr
 
     std::cout << "Solution analysis" << std::endl;
     solvers::SolutionAnalysis sa(mission, solution.getMinCostFlowSolution());
+    sa.analyse();
+    sa.save();
+
     std::cout << "    Required roles: " << Role::toString(sa.getRequiredRoles()) << std::endl;
 
     graph_analysis::BaseGraph::Ptr hyperGraph = sa.toHyperGraph();

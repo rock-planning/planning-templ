@@ -7,6 +7,12 @@
 
 namespace templ {
 
+Plan::Plan()
+    : mpMission()
+    , mLabel("empty plan")
+    , mRequiresRefresh(false)
+{}
+
 Plan::Plan(const Mission::Ptr& mission, const std::string& label)
     : mpMission(mission)
     , mLabel(label)

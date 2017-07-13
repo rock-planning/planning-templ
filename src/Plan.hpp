@@ -19,6 +19,8 @@ public:
     typedef std::map<Role, std::vector<graph_analysis::Vertex::Ptr> > RoleBasedPlan;
     typedef std::map<Role, std::vector<std::string> > ActionPlan;
 
+    Plan();
+
     Plan(const Mission::Ptr& mission, const std::string& label = "");
 
     void setLabel(const std::string& label) { mLabel = label; }

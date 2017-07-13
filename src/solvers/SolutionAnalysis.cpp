@@ -181,6 +181,15 @@ void SolutionAnalysis::analyse()
 //    {
 //        analyse(ftr);
 //    }
+    mPlan = computePlan();
+}
+
+void SolutionAnalysis::save() const
+{
+
+    std::string filename = mpMission->getLogger()->filename("final_plan.gexf");
+    graph_analysis::io::GraphIO::write(filename, mPlan.getGraph());
+
 }
 
 void SolutionAnalysis::analyse(const solvers::csp::FluentTimeResource& ftr)
@@ -456,11 +465,8 @@ std::string SolutionAnalysis::toString(size_t indent) const
         }
     }
 
-    Plan plan = computePlan();
     ss << hspace << "Resulting plan:" << std::endl;
-    ss << plan.toString(indent + 4);
-
-    graph_analysis::io::GraphIO::write("/tmp/final_plan.gexf", plan.getGraph());
+    ss << mPlan.toString(indent + 4);
 
     quantifyTime();
 

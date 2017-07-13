@@ -38,6 +38,8 @@ public:
 
     void analyse();
 
+    void save() const;
+
     double getQuality() const { return mQuality; }
     double getCost() const { return mCost; }
     double getRedundancy() const { return mRedundancy; }
@@ -185,6 +187,7 @@ private:
 
     Mission::Ptr mpMission;
     SpaceTime::Network mSolutionNetwork;
+    Plan mPlan;
 
     std::vector<solvers::csp::FluentTimeResource> mResourceRequirements;
     solvers::temporal::point_algebra::TimePointComparator mTimepointComparator;
