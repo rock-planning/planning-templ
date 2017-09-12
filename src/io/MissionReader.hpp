@@ -21,12 +21,12 @@ public:
      * Construct a mission from given specification and url to an organization
      * model
      */
-    static Mission fromFile(const std::string& url, const std::string& organizationModelUrl);
+    static Mission fromFile(const std::string& url, const std::string& organizationModelUrl = "");
 
     /**
      * Construct a mission from given specification and organization model
      */
-    static Mission fromFile(const std::string& url, const organization_model::OrganizationModel::Ptr& organizationModel);
+    static Mission fromFile(const std::string& url, const organization_model::OrganizationModel::Ptr& organizationModel = organization_model::OrganizationModel::Ptr());
 
 private:
     static std::pair<owlapi::model::IRI, size_t> parseResource(xmlDocPtr doc, xmlNodePtr current);
@@ -68,7 +68,37 @@ private:
 
     static std::vector<SpatioTemporalRequirement> parseRequirements(xmlDocPtr doc, xmlNodePtr current);
 
+    /**
+     * Parse the set of constants
+     \verbatim
+      <constants>
+          <location>
+              <id>lander</id>
+              <radius>moon</radius>
+              <latitude>-83.82009</latitude>
+              <longitude>87.53932</longitude>
+          </location>
+      </constants>
+     \endverbatim
+     */
     static std::set<templ::symbols::Constant::Ptr> parseConstants(xmlDocPtr doc, xmlNodePtr current);
+
+    /**
+     * If the mission specification file contains a node organization model,
+     * then the provided IRI will be taken to initialize load the organization
+     * model.
+     * If not provided, then other means (e.g. command line argument) might be
+     * available. Still, this will be the preferred option to set the
+     * organization model.
+     *
+     \verbatim
+     <mission>
+        ...
+        <organization_model>http://www.rock-robotics.org/2015/12/projects/TransTerrA</organization_model>
+     </mission>
+     \endverbatim
+     */
+    static organization_model::OrganizationModel::Ptr getOrganizationModel(const std::string& url);
 };
 
 } // end namespace io

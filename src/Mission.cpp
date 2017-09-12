@@ -158,6 +158,11 @@ void Mission::prepareTimeIntervals()
 
 void Mission::validateForPlanning() const
 {
+    if(!mpOrganizationModel)
+    {
+        throw std::runtime_error("templ::Mission::validate no organization model hase been set.");
+    }
+
     validateAvailableResources();
     if(!mpTemporalConstraintNetwork->isConsistent())
     {
@@ -311,7 +316,7 @@ std::string Mission::toString() const
 
 void Mission::validateAvailableResources() const
 {
-    for(auto pair : mModelPool)
+    for(const std::pair<owlapi::model::IRI, size_t>& pair : mModelPool)
     {
         if(pair.second > 0)
             return;

@@ -19,13 +19,89 @@ namespace io {
 
 Mission MissionReader::fromFile(const std::string& url, const std::string& organizationModelUrl)
 {
-    organization_model::OrganizationModel::Ptr organizationModel = organization_model::OrganizationModel::getInstance(organizationModelUrl);
+    organization_model::OrganizationModel::Ptr organizationModel;
+    if(!organizationModelUrl.empty())
+    {
+        organizationModel = organization_model::OrganizationModel::getInstance(organizationModelUrl);
+    }
     return fromFile(url, organizationModel);
+}
+
+organization_model::OrganizationModel::Ptr MissionReader::getOrganizationModel(const std::string& url)
+{
+    organization_model::OrganizationModel::Ptr organizationModel;
+    /*
+     * this initialize the library and check potential ABI mismatches
+     * between the version it was compiled for and the actual shared
+     * library used.
+     */
+    LIBXML_TEST_VERSION
+
+    // The resulting document tree
+    xmlDocPtr doc;
+
+    xmlParserOption options =  XML_PARSE_NOENT; // http://xmlsoft.org/html/libxml-parser.html#xmlParserOption
+
+    try {
+        // xmlReadFile can take filename or url
+        doc = xmlReadFile(url.c_str(), NULL, options);
+        if(doc == NULL)
+        {
+            throw std::runtime_error("templ::io::MissionReader::fromFile: Failed to parse url '" + url + "'");
+        }
+
+        xmlNodePtr rootNode;
+        rootNode = xmlDocGetRootElement(doc);
+        if(rootNode == NULL)
+        {
+            throw std::invalid_argument("templ::io::MissionReader::fromFile: Empty document");
+        }
+
+        if(xmlStrcmp(rootNode->name, (const xmlChar*) "mission"))
+        {
+            throw std::invalid_argument("templ::io::MissionReader::fromFile: Unexpected root node type: '" + std::string((const char*) rootNode->name) + "' -- expected <mission> tag");
+        }
+        LOG_INFO_S << "Found root node: " << rootNode->name;
+
+        xmlNodePtr firstLevelChild = rootNode->xmlChildrenNode;
+        while(firstLevelChild != NULL)
+        {
+            if(XMLUtils::nameMatches(firstLevelChild, "organization_model"))
+            {
+                owlapi::model::IRI iri( XMLUtils::getContent(doc, firstLevelChild) );
+                LOG_DEBUG_S << "Found first node: 'organization_model' " << iri;
+                using namespace organization_model;
+                organizationModel = OrganizationModel::getInstance(iri);
+                break;
+            }
+            firstLevelChild = firstLevelChild->next;
+        }
+    } catch(const std::exception& e)
+    {
+        xmlFreeDoc(doc);
+        xmlCleanupParser();
+        throw;
+    }
+
+    /*
+     * Cleanup function for the XML library.
+     */
+    xmlCleanupParser();
+
+    return organizationModel;
 }
 
 Mission MissionReader::fromFile(const std::string& url, const organization_model::OrganizationModel::Ptr& om)
 {
-    Mission mission(om);
+    organization_model::OrganizationModel::Ptr organizationModel;
+    if(!om)
+    {
+        organizationModel = getOrganizationModel(url);
+    } else {
+        organizationModel = om;
+    }
+
+    Mission mission(organizationModel);
     mission.setScenarioFile(url);
 
     /*
