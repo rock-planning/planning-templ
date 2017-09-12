@@ -1,26 +1,54 @@
 #include <templ/io/MissionReader.hpp>
 #include <templ/MissionPlanner.hpp>
+#include <boost/program_options.hpp>
 
 using namespace templ;
 
 int main(int argc, char** argv)
 {
-    if(argc < 3)
+
+    namespace po = boost::program_options;
+
+    po::options_description description("allowed options");
+    description.add_options()
+        ("help","describe arguments")
+        ("mission", po::value<std::string>(), "Path to the mission specification")
+        ("om", po::value<std::string>(), "IRI of the organization model (optional)")
+        ("min_solutions", po::value<size_t>(), "Minimum number of solutions (optional)")
+        ;
+
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, description), vm);
+    po::notify(vm);
+
+    if(vm.count("help"))
     {
-        printf("usage: %s <mission> <organization-model> [<min-number-of-solutions>]\n", argv[0]);
-        exit(-1);
+        std::cout << description << std::endl;
+        exit(1);
     }
 
-    int minimumNumberOfSolutions = 1;
-    if(argc == 4)
+    size_t minimumNumberOfSolutions = 1;
+    if(vm.count("solutions"))
     {
-        minimumNumberOfSolutions = atoi(argv[3]);
+        minimumNumberOfSolutions = vm["solutions"].as<size_t>();
         std::cout << "Minimum number of requested solutions: " << minimumNumberOfSolutions << std::endl;
     }
 
-    std::string missionFilename = argv[1];
-    std::string organizationModelFilename = argv[2];
-    organization_model::OrganizationModel::Ptr organizationModel = organization_model::OrganizationModel::getInstance(organizationModelFilename);
+    std::string missionFilename;
+    if(vm.count("mission"))
+    {
+        missionFilename = vm["mission"].as<std::string>();
+    } else {
+        printf("Please provide at least a mission to start the planning process\n");
+        exit(2);
+    }
+
+    organization_model::OrganizationModel::Ptr organizationModel;
+    if(vm.count("om"))
+    {
+        owlapi::model::IRI organizationModelFilename(vm["om"].as<std::string>());
+        organizationModel = organization_model::OrganizationModel::getInstance(organizationModelFilename);
+    }
 
     using namespace templ;
     Mission mission = io::MissionReader::fromFile(missionFilename, organizationModel);

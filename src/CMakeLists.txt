@@ -1,4 +1,4 @@
-find_package(Boost REQUIRED system filesystem serialization)
+find_package(Boost REQUIRED system filesystem serialization program_options)
 
 rock_library(templ
     SOURCES
