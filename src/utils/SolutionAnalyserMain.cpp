@@ -25,6 +25,8 @@ int main(int argc, char** argv)
     SpaceTime::Network solution = SpaceTime::Network::fromFile(solutionFilename, mission);
 
     solvers::SolutionAnalysis solutionAnalysis(mission, solution);
+    solutionAnalysis.analyse();
+    solutionAnalysis.save();
 
     printf("Report:\n%s", solutionAnalysis.toString().c_str());
 
