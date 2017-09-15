@@ -29,9 +29,9 @@ int main(int argc, char** argv)
     }
 
     size_t minimumNumberOfSolutions = 1;
-    if(vm.count("solutions"))
+    if(vm.count("min_solutions"))
     {
-        minimumNumberOfSolutions = vm["solutions"].as<size_t>();
+        minimumNumberOfSolutions = vm["min_solutions"].as<size_t>();
         std::cout << "Minimum number of requested solutions: " << minimumNumberOfSolutions << std::endl;
     }
 
