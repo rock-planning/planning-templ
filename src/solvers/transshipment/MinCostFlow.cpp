@@ -23,7 +23,6 @@ MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
     , mFlowNetwork(mission, timelines, expandedTimelines)
     , mSpaceTimeNetwork(mFlowNetwork.getSpaceTimeNetwork())
 {
-
     std::map<Role, csp::RoleTimeline>::const_iterator rit = mTimelines.begin();
     for(; rit != mTimelines.end(); ++rit)
     {
@@ -105,6 +104,9 @@ void MinCostFlow::setCommoditySupplyAndDemand()
         std::vector<Role>::const_iterator cit = std::find(mCommoditiesRoles.begin(), mCommoditiesRoles.end(), role);
         if(cit != mCommoditiesRoles.end())
         {
+            LOG_INFO_S << "Set supply/demand for immobile role '" << role.toString() << "'"
+                << roleTimeline.toString();
+
             size_t commodityId = cit - mCommoditiesRoles.begin();
             // Retrieve the (time-based) sorted list of FluentTimeResources
             const std::vector<csp::FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
@@ -155,26 +157,40 @@ std::vector<Flaw> MinCostFlow::run()
     BaseGraph::Ptr flowGraph = createFlowGraph(numberOfCommodities);
     setCommoditySupplyAndDemand();
 
-    MultiCommodityMinCostFlow minCostFlow(flowGraph, numberOfCommodities);
+    MultiCommodityMinCostFlow minCostFlow(flowGraph, numberOfCommodities, LPSolver::SCIP_SOLVER);
     // LOGGING
     {
-        std::string filename  = mpMission->getLogger()->filename("min-cost-flow-init.dot");
+        std::string filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow-init.dot");
         graph_analysis::io::GraphIO::write(filename, flowGraph);
     }
 
-    uint32_t cost = minCostFlow.run();
-    LOG_DEBUG_S << "Ran flow optimization: min cost: " << cost << std::endl;
-    minCostFlow.storeResult();
+    std::string prefixPath = mpMission->getLogger()->filename("multicommodity-min-cost-flow");
+
+    algorithms::LPSolver::Status status = minCostFlow.solve(prefixPath);
+    switch(status)
+    {
+        case algorithms::LPSolver::SOLUTION_FOUND:
+        case algorithms::LPSolver::STATUS_OPTIMAL:
+            break;
+        case algorithms::LPSolver::NO_SOLUTION_FOUND:
+        case algorithms::LPSolver::STATUS_INFEASIBLE:
+        case algorithms::LPSolver::STATUS_UNBOUNDED:
+        case algorithms::LPSolver::STATUS_UNKNOWN:
+        case algorithms::LPSolver::INVALID_PROBLEM_DEFINITION:
+        default:
+            throw std::runtime_error("templ::solvers::transshipment::MinCostFlow: no solution found");
+    }
+    LOG_DEBUG_S << "Ran flow optimization: min cost: " << minCostFlow.getObjectiveValue() << std::endl;
 
     // LOGGING
     {
-        std::string filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow-graph.gexf");
+        std::string filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow-final-flow.gexf");
         graph_analysis::io::GraphIO::write(filename, flowGraph);
 
         filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow.gexf");
         minCostFlow.save(filename);
 
-        filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow.cplex");
+        filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow-problem.cplex");
         minCostFlow.saveProblem(filename);
 
         filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow.solution");
