@@ -3,6 +3,7 @@
 <description>    
     Immobile system needs one transport service -- part of the backtracking
 </description>
+<organization_model>http://www.rock-robotics.org/2015/12/projects/TransTerrA</organization_model>
 <resources>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>

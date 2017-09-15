@@ -4,6 +4,7 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
 >
 <name>Immobile and mobile system deployment</name>
+<organization_model>http://www.rock-robotics.org/2015/12/projects/TransTerrA</organization_model>
 <description>    
     Immobile system needs a transport, but the mobile system is not dedicated to transport the 
     device
@@ -111,14 +112,14 @@
             <resource>
                 <model>om:TransportProvider</model>
                 <minCardinality>1</minCardinality>
-                <attributes>
+                <!--<attributes>
                     <attribute name="payloadTransportCapacity">
                         <xsd:restriction>
                             <xsd:minInclusive>1</xsd:minInclusive>
                             <xsd:maxInclusive>100</xsd:maxInclusive>
                         </xsd:restriction>
                     </attribute>
-                </attributes>
+                </attributes>-->
             </resource>
         </resource-requirement>
     </requirement>

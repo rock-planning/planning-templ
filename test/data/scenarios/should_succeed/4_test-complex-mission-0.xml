@@ -6,6 +6,7 @@
     are expected as well.
 
 </description>
+<organization_model>http://www.rock-robotics.org/2015/12/projects/TransTerrA</organization_model>
 <resources>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>

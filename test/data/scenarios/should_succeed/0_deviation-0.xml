@@ -8,6 +8,7 @@
     Immobile system needs a transport, but the mobile system is not dedicated to transport the 
     device
 </description>
+<organization_model>http://www.rock-robotics.org/2015/12/projects/TransTerrA</organization_model>
 <resources>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
@@ -83,14 +84,10 @@
 <requirements>
     <requirement id='0'>
         <spatial-requirement>
-            <!-- where it is required -->
             <location>
                 <id>lander</id>
             </location>
         </spatial-requirement>
-
-        <!-- when it is required / mixing qualitative and quantitative
-        information -->
         <temporal-requirement type="persistence-condition | event" >
             <from>t0</from>
             <to>t1</to>
@@ -99,10 +96,12 @@
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
                 <minCardinality>1</minCardinality>
+                <maxCardinality>1</maxCardinality>
             </resource>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
                 <minCardinality>1</minCardinality>
+                <maxCardinality>1</maxCardinality>
             </resource>
         </resource-requirement>
     </requirement>
@@ -121,10 +120,6 @@
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
                 <minCardinality>1</minCardinality>
             </resource>
-            <!--<resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
-                <minCardinality>1</minCardinality>
-            </resource>-->
         </resource-requirement>
     </requirement>
     <requirement id='2'>
