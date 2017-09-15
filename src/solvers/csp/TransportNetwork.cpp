@@ -928,6 +928,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
         try {
             TransportNetwork* best = NULL;
+            int i = 0;
             while(TransportNetwork* current = searchEngine.next())
             {
                 delete best;
@@ -935,7 +936,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
                 using namespace organization_model;
 
-                LOG_INFO_S << "Solution found:" << current->toString();
+                LOG_INFO_S << "#" << i << "/" << minNumberOfSolutions << " solution found:" << current->toString();
                 Solution solution = current->getSolution();
 
                 solvers::SolutionAnalysis sa(mission, solution.getMinCostFlowSolution());
@@ -981,6 +982,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             csvLogger.addToRow(searchEngine.statistics().restart, "restart");
             csvLogger.addToRow(searchEngine.statistics().nogood, "nogood");
             csvLogger.commitRow();
+
 
         } catch(const std::exception& e)
         {
@@ -1465,7 +1467,7 @@ void TransportNetwork::minCostFlowAnalysis(Gecode::Space& home)
 
 void TransportNetwork::postMinCostFlowConstraints()
 {
-    std::cout << "Press ENTER to continue... (begin post min cost flow)";
+    std::cout << "Press ENTER to continue... (begin post min cost flow)" << std::endl;
     //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 
     std::map<Role, csp::RoleTimeline> minimalTimelines =  RoleTimeline::computeTimelines(*mpMission.get(), getRoleDistribution());
@@ -1473,26 +1475,33 @@ void TransportNetwork::postMinCostFlowConstraints()
         << RoleTimeline::toString(minimalTimelines, 4);
 
     //assert(!timelines.empty());
-    transshipment::MinCostFlow minCostFlow(mpMission, minimalTimelines, getTimelines());
-    std::vector<transshipment::Flaw> flaws = minCostFlow.run();
+    try {
+        transshipment::MinCostFlow minCostFlow(mpMission, minimalTimelines, getTimelines());
+        std::vector<transshipment::Flaw> flaws = minCostFlow.run();
 
-    LOG_WARN_S << "FOUND " << flaws.size() << " flaws";
-    for(const transshipment::Flaw& flaw: flaws)
+        LOG_WARN_S << "FOUND " << flaws.size() << " flaws";
+        for(const transshipment::Flaw& flaw: flaws)
+        {
+            LOG_WARN_S << "Flaw: " << flaw.toString();
+        }
+
+        transshipment::FlowNetwork flowNetwork = minCostFlow.getFlowNetwork();
+        mMinCostFlowSolution = flowNetwork.getSpaceTimeNetwork();
+        flowNetwork.save();
+        mMinCostFlowFlaws = flaws;
+        // Set flaws as current cost of this solution
+        rel(*this, mCost, Gecode::IRT_EQ, mMinCostFlowFlaws.size());
+
+        std::cout << "Press ENTER to continue... (end post min cost flow), remaining flaws: " << flaws.size() << std::endl;
+        //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+        // Generate constraints to solve this issue
+    } catch(const std::runtime_error& e)
     {
-        LOG_WARN_S << "Flaw: " << flaw.toString();
+        std::cout << "Could not find solution";
+        this->fail();
+        return;
     }
 
-    transshipment::FlowNetwork flowNetwork = minCostFlow.getFlowNetwork();
-    mMinCostFlowSolution = flowNetwork.getSpaceTimeNetwork();
-    flowNetwork.save();
-    mMinCostFlowFlaws = flaws;
-
-    // Set flaws as current cost of this solution
-    rel(*this, mCost, Gecode::IRT_EQ, mMinCostFlowFlaws.size());
-
-    std::cout << "Press ENTER to continue... (end post min cost flow), remaining flaws: " << flaws.size();
-    //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    // Generate constraints to solve this issue
 }
 
 void TransportNetwork::generateTimelines(Gecode::Space& home)
