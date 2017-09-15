@@ -101,6 +101,11 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
         organizationModel = om;
     }
 
+    if(!organizationModel)
+    {
+        throw std::invalid_argument("templ::io::MissionReader::fromFile: no organization model given in the specification or manually.");
+    }
+
     Mission mission(organizationModel);
     mission.setScenarioFile(url);
 
