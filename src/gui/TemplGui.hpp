@@ -64,6 +64,7 @@ private slots:
     void exportGraph();
     void selectLayout();
     void importRecentFile();
+    void clearView();
 
 
     /*Connected to QBaseGraph*/

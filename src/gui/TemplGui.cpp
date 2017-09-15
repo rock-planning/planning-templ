@@ -51,6 +51,7 @@ TemplGui::TemplGui()
     , mpOntologyView(new OntologyView(this))
 {
     mpUi->setupUi(this);
+
     mpUi->tabWidget->clear();
     mpUi->tabWidget->addTab(mpBaseGraphView, mpBaseGraphView->getClassName());
     mpUi->tabWidget->addTab(mpMissionEditor,
@@ -74,9 +75,9 @@ TemplGui::TemplGui()
 
 
     ActionCommander comm(this);
+    QStyle* style = new QCommonStyle();
 
     QMenu *fileMenu = new QMenu(QObject::tr("&File"));
-    QStyle* style = new QCommonStyle();
 
     QAction *actionImport = comm.addAction("Import", SLOT(importGraph()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open ), tr("Import graph from file"));
     QAction *actionExport = comm.addAction("Export", SLOT(exportGraph()), style->standardIcon(QStyle::SP_DialogSaveButton), QKeySequence( QKeySequence::SaveAs), tr("Export graph to file"));
@@ -103,8 +104,14 @@ TemplGui::TemplGui()
         fileMenu->addAction(mpRecentFileActions[i]);
     }
     fileMenu->addSeparator();
+
+    QMenu *viewMenu = new QMenu(QObject::tr("&View"));
+    QAction *clearView = comm.addAction("Clear", SLOT(clearView()), style->standardIcon(QStyle::SP_TrashIcon), QKeySequence( Qt::ControlModifier & Qt::Key_X), tr("Clear view"));
+    viewMenu->addAction(clearView);
+
     QMenuBar *bar = menuBar();
     bar->addMenu(fileMenu);
+    bar->addMenu(viewMenu);
 
     QToolBar* toolBar = new QToolBar("Toolbar");
     toolBar->addAction(actionImport);
@@ -184,16 +191,16 @@ void TemplGui::activateGraph(graph_analysis::BaseGraph::Ptr& graph)
     if(graph)
     {
         //updateVisualization();
+        mpBaseGraphView->clearVisualization();
         mpBaseGraph = graph;
 
         delete mpQBaseGraph;
         mpQBaseGraph = new QBaseGraph(mpBaseGraph);
-
         mpBaseGraphView->setGraph(mpBaseGraph);
-        mpBaseGraphView->clearVisualization();
         mpBaseGraphView->refresh();
         mpBaseGraphView->updateVisualization();
         mpBaseGraphView->applyLayout("dot");
+        mpBaseGraphView->updateVisualization();
     } else {
         qDebug() << "Failed to activate graph";
     }
@@ -214,6 +221,11 @@ void TemplGui::importRecentFile()
 
         activateGraph(graph);
     }
+}
+
+void TemplGui::clearView()
+{
+    mpBaseGraphView->clearVisualization();
 }
 
 void TemplGui::selectLayout()
