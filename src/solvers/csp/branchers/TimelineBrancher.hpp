@@ -36,8 +36,11 @@ public:
     class PosVal : public Gecode::Choice
     {
     public:
+        /// Role idx to identify the timeline
         int role;
+        /// Position to identify the position in the timeline
         int pos;
+        /// Flag to define if the empty set is part of the chocies or not
         int includeEmptySet;
         std::vector<int> choices;
 

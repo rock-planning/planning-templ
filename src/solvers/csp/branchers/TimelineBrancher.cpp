@@ -188,7 +188,7 @@ Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
     for(size_t c = 0; c < choices.size(); ++c)
     {
         int choice = choices[c];
-        LOG_INFO_S << "Target supply for choice: " << choice << " is: " << targetSupply[choice];
+        LOG_INFO_S << "Target supply for choice: " << choice << " is: " << targetSupply[choice] << "(negative value represents demand)";
 
         // Local transition should always belong to the list of choices
         // no matter what
@@ -263,13 +263,15 @@ Gecode::NGL* TimelineBrancher::ngl(Gecode::Space& home, const Gecode::Choice& c,
     const PosVal& pv = static_cast<const PosVal&>(c);
 
     // We focus the NGL on the (Not) empty branches which set the empty set
-    // implicitly du to related path constraints
-    if(pv.includeEmptySet && a == pv.alternatives() -1)
+    // implicitly due to related path constraints
+    if(pv.includeEmptySet && a == pv.alternatives()-1)
     {
         return NULL;
     } else {
-        // Set Branch have IncNGL and ExcNGL to available by default
+        // Set branchers have IncNGL and ExcNGL available by default
         //return new (home) Gecode::Set::Branch::ExcNGL(home, x[ pv.role ] [ pv.pos ], pv.choices[a]);
+        // initialize by ExcNGL( space, SetView and int
+        LOG_DEBUG_S << "TimelineBrancher: disallow for role " << pv.role << " and pos: " << pv.pos <<" particular value for setview: " << pv.choices[a];
         return new (home) ExcNGL(home, x[ pv.role ] [ pv.pos ], pv.choices[a]);
     }
 }
@@ -281,7 +283,7 @@ void TimelineBrancher::post(Gecode::Home home, MultiTimelineView& x, const std::
 
 bool TimelineBrancher::status(const Gecode::Space& home) const
 {
-    LOG_INFO_S << "STATUS OF TIMELINEBRANCHER with transportnetowrk"
+    LOG_DEBUG_S << "Status of timelinebrancher with transportnetowrk"
         << static_cast<const TransportNetwork&>(home).toString();
 
     // ------------------------------------------------------------
@@ -466,8 +468,6 @@ Gecode::ExecStatus TimelineBrancher::commit(Gecode::Space& home,
         return Gecode::ES_FAILED;
     } else {
         LOG_INFO_S << "Operation success: result is" << view << " with status: " << me;
-        LOG_INFO_S << " transportnetwork" << std::endl
-            << static_cast<const TransportNetwork&>(home).toString();
         return Gecode::ES_OK;
     }
 }
