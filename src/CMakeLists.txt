@@ -51,6 +51,7 @@ rock_library(templ
         solvers/csp/propagators/MultiCommodityFlow.cpp
         solvers/csp/search/rbs.cpp
         solvers/csp/search/meta/rbs.cpp
+        solvers/csp/utils/Converter.cpp
         solvers/csp/utils/FluentTimeIndex.cpp
         solvers/csp/utils/Formatter.cpp
         solvers/temporal/Bounds.cpp
@@ -138,6 +139,7 @@ rock_library(templ
         solvers/csp/search/rbs.hpp
         solvers/csp/search/meta/rbs.hh
         solvers/csp/search/meta/rbs.hpp
+        solvers/csp/utils/Converter.hpp
         solvers/csp/utils/FluentTimeIndex.hpp
         solvers/csp/utils/Formatter.hpp
         solvers/temporal/Bounds.hpp
