@@ -1,0 +1,11 @@
+<templ-configuration>
+    <property_a>a</property_a>
+    <property_b>b</property_b>
+    <property_c>
+        <property_d>cd</property_d>
+    </property_c>
+    <numeric_properties>
+        <int>121</int>
+        <double>1.21</double>
+    </numeric_properties>
+</templ-configuration>

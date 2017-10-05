@@ -3,6 +3,7 @@ find_package(Boost REQUIRED system filesystem serialization program_options)
 rock_library(templ
     SOURCES
         CapacityLink.cpp
+        Configuration.cpp
         Mission.cpp
         MissionPlanner.cpp
         Plan.cpp
@@ -85,6 +86,7 @@ rock_library(templ
         utils/XMLUtils.cpp
     HEADERS
         CapacityLink.hpp
+        Configuration.hpp
         Mission.hpp
         MissionPlanner.hpp
         Plan.hpp

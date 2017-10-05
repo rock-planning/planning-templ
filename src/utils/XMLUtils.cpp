@@ -6,7 +6,7 @@
 namespace templ {
 namespace utils {
 
-bool XMLUtils::nameMatches(xmlNodePtr node, const std::string& name, bool useNamespace)
+std::string XMLUtils::getName(xmlNodePtr node, bool useNamespace)
 {
     std::string nodeName;
     if(node->ns && useNamespace)
@@ -14,7 +14,23 @@ bool XMLUtils::nameMatches(xmlNodePtr node, const std::string& name, bool useNam
         nodeName = std::string( (const char*) node->ns->href);
     }
     nodeName += std::string((const char*) node->name);
-    return nodeName == name;
+    return nodeName;
+}
+
+bool XMLUtils::nameMatches(xmlNodePtr node, const std::string& name, bool useNamespace)
+{
+    return getName(node, useNamespace) == name;
+}
+
+bool XMLUtils::hasContent(xmlDocPtr doc, xmlNodePtr node, size_t count)
+{
+    xmlChar* key = xmlNodeListGetString(doc, node->xmlChildrenNode, count);
+    if(key)
+    {
+        xmlFree(key);
+        return true;
+    }
+    return false;
 }
 
 std::string XMLUtils::getContent(xmlDocPtr doc, xmlNodePtr node, size_t count)
@@ -99,6 +115,29 @@ std::string XMLUtils::getProperty(xmlNodePtr node, const std::string& name)
     ss << "templ::utils::XMLUtils::getProperty: could not find property ";
     ss << "'" << name << "' at line " << xmlGetLineNo(node);
     throw std::invalid_argument(ss.str());
+}
+
+std::string XMLUtils::getFullPath(xmlDocPtr doc, xmlNodePtr node, const std::string& separator, bool includeRoot)
+{
+    std::string s;
+    xmlNodePtr root = xmlDocGetRootElement(doc);
+
+    xmlNodePtr currentNode = node->parent;
+    while(currentNode->parent)
+    {
+        if(s.empty())
+        {
+            s = getName(currentNode, false);
+        } else {
+            s = getName(currentNode,false) + separator + s;
+        }
+        if(!includeRoot && currentNode->parent == root)
+        {
+            break;
+        }
+        currentNode = currentNode->parent;
+    }
+    return s;
 }
 
 std::string XMLUtils::getSubNodeContent(xmlDocPtr doc, xmlNodePtr node, const std::string& name)

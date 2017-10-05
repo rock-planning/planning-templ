@@ -9,6 +9,7 @@ rock_testsuite(test_suite suite.cpp
     solvers/test_TemporalCSP.cpp
     solvers/test_TemporallyExpandedGraph.cpp
     test_CartographicMapping.cpp
+    test_Configuration.cpp
     test_IO.cpp
     test_LoosePathConsistency.cpp
     test_Mission.cpp

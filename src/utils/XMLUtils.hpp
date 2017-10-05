@@ -11,16 +11,40 @@
 namespace templ {
 namespace utils {
 
+/**
+ * \class XMLUtils
+ * \brief Provide a set of helper functions to parse XML files and extract
+ * information from xml nodes
+ */
 class XMLUtils
 {
 public:
+    /**
+     * Get name of the node
+     * \param node xml node to retrieve the name from
+     * \param useNamespace whether to prepend the namespace or not
+     * \return name
+     */
+    static std::string getName(xmlNodePtr node, bool useNamespace = false);
+
+    /**
+     * Check if the name of the node matches the given string
+     * \param node xml node to retrieve the name from
+     * \param name name to match against the name of the given node
+     * \param useNamespace whether to prepend the namespace or not
+     * \return true if name matches, false otherwise
+     */
     static bool nameMatches(xmlNodePtr node, const std::string& name, bool useNamespace = false);
 
     static std::string resolveNamespacePrefix(xmlDocPtr doc, xmlNodePtr node, const std::string& prefix);
 
     static std::string getContent(xmlDocPtr doc, xmlNodePtr node, size_t count = 1);
 
+    static bool hasContent(xmlDocPtr doc, xmlNodePtr node, size_t count = 1);
+
     static std::string getProperty(xmlNodePtr node, const std::string& name);
+
+    static std::string getFullPath(xmlDocPtr doc, xmlNodePtr node, const std::string& separator = "/", bool includeRoot = false);
 
     template <typename T>
     static T getNumericProperty(xmlNodePtr node, const std::string& name)
