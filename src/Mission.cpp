@@ -23,6 +23,11 @@ Mission::Mission(organization_model::OrganizationModel::Ptr om, const std::strin
     , mpLogger(new Logger())
 {
     requireConstant(mpTransferLocation);
+
+    // add all functionalities (which could be requested)
+    //
+    owlapi::model::IRIList list = mOrganizationModelAsk.ontology().allSubClassesOf(organization_model::vocabulary::OM::Functionality());
+    mRequestedResources.insert(mRequestedResources.begin(), list.begin(), list.end());
 }
 
 Mission::Mission(const Mission& other)
