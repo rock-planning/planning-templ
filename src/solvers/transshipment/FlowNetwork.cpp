@@ -97,8 +97,8 @@ void FlowNetwork::initializeExpandedTimelines()
         SpaceTime::Timeline roleTimeline = rit->second;
 
         // Check if this item is mobile, i.e. change change the location
-        // WARNING: this is domain specific
-        // transportCapacity
+        // WARNING: this is domain specific based on using the dataProperty payloadTransportCapacity
+        //
         organization_model::facets::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
         if(!robot.isMobile())
         {
