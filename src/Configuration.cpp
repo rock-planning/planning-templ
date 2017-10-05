@@ -23,6 +23,31 @@ const std::string& Configuration::getValue(const std::string& key) const
     throw std::invalid_argument("templ::Configuration::getValue: key '" + key + "' does not exist");
 }
 
+template<>
+bool Configuration::getValueAs(const std::string& key, const bool& defaultValue) const
+{
+    try {
+        if(!key.empty())
+        {
+            std::string value = getValue(key);
+            std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+            if(value == "true")
+            {
+                return true;
+            } else if(value == "false")
+            {
+                return false;
+            }
+            throw std::runtime_error("templ::Configuration: value for key '" + key + "' cannot be converted to bool, expected one of true or false");
+        }
+    } catch(const std::invalid_argument& e)
+    {
+        LOG_DEBUG_S << e.what();
+    }
+
+    return defaultValue;
+}
+
 void Configuration::loadXML(const std::string& url)
 {
     if(url.empty())

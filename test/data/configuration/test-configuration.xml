@@ -8,4 +8,9 @@
         <int>121</int>
         <double>1.21</double>
     </numeric_properties>
+    <bool_property>
+        <true>true</true>
+        <false>false</false>
+        <nonsense>nonsense</nonsense>
+    </bool_property>
 </templ-configuration>

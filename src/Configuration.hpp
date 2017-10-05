@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <boost/lexical_cast.hpp>
 #include <base-logging/Logging.hpp>
+#include <algorithm>
 
 namespace templ {
 
@@ -24,7 +25,7 @@ public:
     const std::string& getValue(const std::string& key) const;
 
     template<typename T>
-    T getValueAsNumeric(const std::string& key, T defaultValue = T())
+    T getValueAs(const std::string& key, const T& defaultValue = T()) const
     {
         try {
             if(!key.empty())
@@ -38,7 +39,6 @@ public:
 
         return defaultValue;
     }
-
     std::string toString() const;
 
 private:
@@ -48,6 +48,9 @@ private:
 
 
 };
+
+template<>
+bool Configuration::getValueAs(const std::string& key, const bool& defaultValue) const;
 
 } // end namespace templ
 #endif // TEMPL_CONFIGURATION_HPP
