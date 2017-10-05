@@ -39,9 +39,11 @@ public:
     /**
      * Run the min cost flow optimization and return the list of flaws found in
      * this solution
+     * \param doThrow throw when the underlying simplex does not a return a
+     * proper solution
      * \return flaws found
      */
-    std::vector<Flaw> run();
+    std::vector<Flaw> run(bool doThrow = false);
 
     FlowNetwork& getFlowNetwork() { return mFlowNetwork; }
 protected:

@@ -148,7 +148,7 @@ void MinCostFlow::setCommoditySupplyAndDemand()
     } // end for role timelines
 }
 
-std::vector<Flaw> MinCostFlow::run()
+std::vector<Flaw> MinCostFlow::run(bool doThrow)
 {
     using namespace graph_analysis;
     using namespace graph_analysis::algorithms;
@@ -157,7 +157,7 @@ std::vector<Flaw> MinCostFlow::run()
     BaseGraph::Ptr flowGraph = createFlowGraph(numberOfCommodities);
     setCommoditySupplyAndDemand();
 
-    MultiCommodityMinCostFlow minCostFlow(flowGraph, numberOfCommodities, LPSolver::SCIP_SOLVER);
+    MultiCommodityMinCostFlow minCostFlow(flowGraph, numberOfCommodities, LPSolver::GLPK_SOLVER);
     // LOGGING
     {
         std::string filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow-init.dot");
@@ -178,7 +178,10 @@ std::vector<Flaw> MinCostFlow::run()
         case algorithms::LPSolver::STATUS_UNKNOWN:
         case algorithms::LPSolver::INVALID_PROBLEM_DEFINITION:
         default:
-            throw std::runtime_error("templ::solvers::transshipment::MinCostFlow: no solution found");
+            if(doThrow)
+            {
+                throw std::runtime_error("templ::solvers::transshipment::MinCostFlow: no solution found");
+            }
     }
     LOG_DEBUG_S << "Ran flow optimization: min cost: " << minCostFlow.getObjectiveValue() << std::endl;
 
