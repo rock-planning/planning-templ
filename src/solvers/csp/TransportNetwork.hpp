@@ -205,6 +205,9 @@ private:
     /// Configuration object
     Configuration mConfiguration;
 
+    /// Flag to control the interactive mode
+    static bool msInteractive;
+
 private:
 
     std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelPool::Set& set) const;

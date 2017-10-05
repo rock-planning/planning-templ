@@ -1,0 +1,21 @@
+<templ-configuration>
+    <TransportNetwork>
+        <search>
+            <options>
+                <threads>1</threads>
+                <cutoff>1</cutoff>
+                <nogoods_limit>128</nogoods_limit>
+                <computation_distance>0</computation_distance>
+                <adaptive_computation_distance>0</adaptive_computation_distance>
+                <timeout_in_ms>600000</timeout_in_ms><!-- stop cutoff -->
+                <model-usage>
+                    <afc-decay>0.95</afc-decay>
+                </model-usage>
+                <role-usage>
+                    <afc-decay>0.95</afc-decay>
+                </role-usage>
+            </options>
+            <interactive>true</interactive>
+        </search>
+    </TransportNetwork>
+</templ-configuration>
