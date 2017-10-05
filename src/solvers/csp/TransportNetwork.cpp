@@ -23,6 +23,7 @@
 #include "propagators/IsValidTransportEdge.hpp"
 #include "propagators/MultiCommodityFlow.hpp"
 #include "utils/Formatter.hpp"
+#include "utils/Converter.hpp"
 #include "../../utils/CSVLogger.hpp"
 #include <graph_analysis/GraphIO.hpp>
 #include "MissionConstraints.hpp"
@@ -126,6 +127,8 @@ TransportNetwork::SearchState TransportNetwork::SearchState::next() const
     return searchState;
 }
 
+// return true in order to enforce a restart
+// return false would continue search without a restart
 bool TransportNetwork::master(const Gecode::MetaInfo& mi)
 {
     switch(mi.type())
@@ -133,10 +136,10 @@ bool TransportNetwork::master(const Gecode::MetaInfo& mi)
         case Gecode::MetaInfo::RESTART:
             LOG_WARN_S << "CALLING MASTER RESTART";
 
-            //if(mi.last() != NULL)
-            //{
-            //    constrain(*mi.last());
-            //}
+            if(mi.last() != NULL)
+            {
+                constrain(*mi.last());
+            }
             mi.nogoods().post(*this);
 
             mMasterSpace = this;
@@ -156,10 +159,10 @@ void TransportNetwork::first()
 {
     LOG_WARN_S << "Calling for first solution";
 
-    //branch(*this, &TransportNetwork::generateTimelines);
-    //branch(*this, &TransportNetwork::minCostFlowAnalysis);
+    //branch(*this, &TransportNetwork::doPostTimelines);
+    //branch(*this, &TransportNetwork::doPostMinCostFlowAnalysis);
 
-    //Gecode::branch(*this, &TransportNetwork::assignRoles);
+    //Gecode::branch(*this, &TransportNetwork::doPostRoleAssignment);
 }
 
 void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::MetaInfo& mi)
@@ -196,6 +199,7 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
             std::cout << "Transflow violation: adding distiction constraint" << std::endl
                 << " to space " << this
                 << " previous was " << &lastSpace
+                << " add distinction for role " << flaw.affectedRole.getModel()
                 << std::endl;
 
             MissionConstraints::addDistinct(*this,
@@ -213,6 +217,7 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
             std::cout << "Minflow violation: adding distiction constraint" << std::endl
                 << " to space " << this
                 << " previous was " << &lastSpace
+                << " requesting additional distinction for: " << abs(flaw.violation.getDelta()) << " and role: " << flaw.affectedRole.toString()
                 << std::endl;
             MissionConstraints::addDistinct(*this,
                     lastSpace.mRoleUsage,
@@ -244,13 +249,19 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
     //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 }
 
+// Constrain function is called with the last solution found as argument (if a
+// solution has already been found
 void TransportNetwork::constrain(const Gecode::Space& lastSpace)
 {
     std::cout << "Press ENTER to continue... post adding bab constrain" << std::endl;
     //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
     const TransportNetwork& lastTransportNetwork = static_cast<const TransportNetwork&>(lastSpace);
 
+    const TransportNetwork& lastTransportNetwork = static_cast<const TransportNetwork&>(lastSpace);
     rel(*this, cost(), Gecode::IRT_LE, lastTransportNetwork.cost().val());
+    // TODO:
+    // check on the number of flows and the cost of the solution in order to
+    // find an improved solution
 }
 
 bool TransportNetwork::slave(const Gecode::MetaInfo& mi)
@@ -271,9 +282,12 @@ bool TransportNetwork::slave(const Gecode::MetaInfo& mi)
             std::cout << "Press ENTER to try next slave by adding distinction constraint" << std::endl;
             std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
             const TransportNetwork& lastSpace = static_cast<const TransportNetwork&>(*mi.last());
-            if(lastSpace.mStartFlawIndex < lastSpace.mMinCostFlowFlaws.size())
+            if(!mi.last())
             {
                 std::cout << "Apply flaw resolution: " << lastSpace.mStartFlawIndex << std::endl;
+                return false;
+            } if(lastSpace.mStartFlawIndex < lastSpace.mMinCostFlowFlaws.size())
+            {
             } else
             {
                 std::cout << "Apply flaw resolution: options are exhausted" << std::endl;
@@ -333,7 +347,7 @@ void TransportNetwork::saveSolution(const Solution& solution, const Mission::Ptr
     int i = mission->getLogger()->getSessionId();
     try {
         std::stringstream ss;
-        ss << "templ-mission-solution-" << i << ".dot";
+        ss << "transport-network-solution-" << i << ".dot";
         filename = mission->getLogger()->filename(ss.str());
         graph_analysis::io::GraphIO::write(filename, solution.getMinCostFlowSolution().getGraph());
     } catch(const std::exception& e)
@@ -343,7 +357,7 @@ void TransportNetwork::saveSolution(const Solution& solution, const Mission::Ptr
 
     try {
         std::stringstream ss;
-        ss << "templ-mission-solution-" << i << ".gexf";
+        ss << "transport-network-solution-" << i << ".gexf";
         filename = mission->getLogger()->filename(ss.str());
         solution.getMinCostFlowSolution().save(filename, "gexf");
     } catch(const std::exception& e)
@@ -361,7 +375,7 @@ void TransportNetwork::saveSolution(const Solution& solution, const Mission::Ptr
     graph_analysis::BaseGraph::Ptr hyperGraph = sa.toHyperGraph();
     try {
         std::stringstream ss;
-        ss << "templ-mission-solution-hypergraph" << i << ".dot";
+        ss << "transport-networkt-solution-hypergraph" << i << ".dot";
         filename = mission->getLogger()->filename(ss.str());
         graph_analysis::io::GraphIO::write(filename, hyperGraph);
     } catch(const std::exception& e)
@@ -441,47 +455,7 @@ SpaceTime::Timelines TransportNetwork::getTimelines() const
     return TypeConversion::toTimelines(mActiveRoleList, mTimelines, mLocations, mTimepoints);
 }
 
-std::set< std::vector<uint32_t> > TransportNetwork::toCSP(const organization_model::ModelPool::Set& combinations) const
-{
-    std::set< std::vector<uint32_t> > csp_combinations;
-    organization_model::ModelPool::Set::const_iterator cit = combinations.begin();
-    for(; cit != combinations.end(); ++cit)
-    {
-        csp_combinations.insert( toCSP(*cit) );
-    }
-    return csp_combinations;
-}
-
-std::vector<uint32_t> TransportNetwork::toCSP(const organization_model::ModelPool& combination) const
-{
-    // return index of model and count per model
-    std::vector<uint32_t> csp_combination(mModelPool.size(),0);
-
-    organization_model::ModelPool::const_iterator cit = combination.begin();
-    for(; cit != combination.end(); ++cit)
-    {
-        uint32_t index = systemModelToCSP(cit->first);
-        csp_combination.at(index) = cit->second;
-    }
-    return csp_combination;
-}
-
-uint32_t TransportNetwork::systemModelToCSP(const owlapi::model::IRI& model) const
-{
-    owlapi::model::IRIList::const_iterator cit = std::find(mAvailableModels.begin(),
-            mAvailableModels.end(), model);
-
-    if(cit == mAvailableModels.end())
-    {
-        throw std::invalid_argument("templ::solvers::csp::TransportNetwork::systemModelToCSP:"
-                " unknown model '" + model.toString() );
-    } else {
-        return (cit - mAvailableModels.begin());
-    }
-
-}
-
-TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
+TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Configuration& configuration)
     : Gecode::Space()
     , mpMission(mission)
     , mModelPool(mpMission->getAvailableResources())
@@ -492,13 +466,14 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     , mLocations(mpMission->getLocations())
     , mResourceRequirements(Mission::getResourceRequirements(mpMission))
     , mModelUsage(*this, /*# of models*/ mpMission->getAvailableResources().size()*
-            /*# of fluent time services*/mResourceRequirements.size(), 0, getMaxResourceCount(mModelPool)) // maximum number of model at that point
+            /*# of fluent time services*/mResourceRequirements.size(), 0, mModelPool.getMaxResourceCount()) // maximum number of model at that point
     , mAvailableModels(mpMission->getModels())
     , mRoleUsage(*this, /*width --> col */ mission->getRoles().size()* /*height --> row*/ mResourceRequirements.size(), 0, 1) // Domain 0,1 to represent activation
     , mRoles(mission->getRoles())
     , mStartFlawIndex(0)
-    , mMasterSpace(0)
+    , mParentSpace(0)
     , mCost(*this,0, Gecode::Int::Limits::max)
+    , mConfiguration(configuration)
    // , mCapacities(*this, (mLocations.size()+1)*(mLocations.size()+1)*mTimepoints.size()*mTimepoints.size(), 0, Gecode::Int::Limits::max)
 {
 
@@ -549,15 +524,10 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     //
     // extensional(*this, resourceDistribution.row(0), tupleSet);
 
-    // Outline:
-    // (A) for each requirement add the min/max and existential constraints
-    // for all overlapping requirements create maximum resource constraints
-    //
-    initializeMinMaxConstraints();
 
-    // (B) General resource constraints
-    //     - identify overlapping fts, limit resources for these (TODO: better
-    //     indentification of overlapping requirements)
+    // General resource constraints
+    //  - identify overlapping fts, limit resources for these (TODO: better
+    //    identification of overlapping requirements)
     //
     setUpperBoundForConcurrentRequirements();
 
@@ -573,8 +543,16 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     //
     Gecode::Symmetries symmetries = identifySymmetries();
 
+    // For each requirement add the min/max and extensional constraints
+    // for all overlapping requirements create maximum resource constraints
+    Gecode::branch(*this, &TransportNetwork::doPostMinMaxConstraints);
+
+    // allow
+    Gecode::branch(*this, &TransportNetwork::doPostExtensionalContraints);
+
     Gecode::IntAFC modelUsageAfc(*this, mModelUsage, 0.99);
-    modelUsageAfc.decay(*this, 0.95);
+    double modelAfcDecay = mConfiguration.getValueAsNumeric<double>("search/options/model-usage/afc-decay",0.95);
+    modelUsageAfc.decay(*this, modelAfcDecay);
     branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
     //Gecode::Gist::stopBranch(*this);
 
@@ -595,7 +573,8 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
     //branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN(), symmetries);
 
     Gecode::IntAFC roleUsageAfc(*this, mRoleUsage, 0.99);
-    roleUsageAfc.decay(*this, 0.95);
+    double roleAfcDecay = mConfiguration.getValueAsNumeric<double>("search/options/role-usage/afc-decay",0.95);
+    roleUsageAfc.decay(*this, roleAfcDecay);
     //branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
 
     Gecode::Rnd roleUsageRnd;
@@ -608,7 +587,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission)
 
     //Gecode::Gist::stopBranch(*this);
     // see 8.14 Executing code between branchers
-    Gecode::branch(*this, &TransportNetwork::assignRoles);
+    Gecode::branch(*this, &TransportNetwork::doPostRoleAssignments);
 
     //Gecode::Gist::Print<TransportNetwork> p("Print solution");
     //Gecode::Gist::Options options;
@@ -651,9 +630,10 @@ void TransportNetwork::initializeMinMaxConstraints()
                     Gecode::IntVar v = resourceDistribution(mi, requirementIndex);
 
                     {
-                        // default min requirement is 0
+                        // default min requirement is 0 for a model
                         uint32_t minCardinality = 0;
                         /// Consider resource cardinality constraint
+                        /// Check what is set for the given model
                         LOG_DEBUG_S << "Check min cardinality for " << mAvailableModels[mi];
                         organization_model::ModelPool::const_iterator cardinalityIt = fts.minCardinalities.find( mAvailableModels[mi] );
                         if(cardinalityIt != fts.minCardinalities.end())
@@ -676,11 +656,6 @@ void TransportNetwork::initializeMinMaxConstraints()
                     rel(*this, v, Gecode::IRT_LQ, maxCardinality);
                 }
 
-                // Prepare the extensional constraints, i.e. specifying the allowed
-                // combinations
-                organization_model::ModelPool::Set allowedCombinations = fts.getDomain();
-                appendToTupleSet(mExtensionalConstraints[requirementIndex], allowedCombinations);
-
                 // there can be no empty assignment for resource requirement
                 rel(*this, sum( resourceDistribution.row(requirementIndex) ) > 0);
 
@@ -692,19 +667,43 @@ void TransportNetwork::initializeMinMaxConstraints()
             }
         }
 
-        // use the prepared list of extensional constraints to activate the
-        // constraints
-        for(auto pair : mExtensionalConstraints)
-        {
-            uint32_t requirementIndex = pair.first;
-            Gecode::TupleSet& tupleSet = pair.second;
-
-            tupleSet.finalize();
-            extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
-        }
-
         LOG_INFO_S << constraintMatrix.toString();
     }
+}
+
+void TransportNetwork::addExtensionalConstraints()
+{
+    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mpMission->getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
+        std::map<uint32_t, Gecode::TupleSet> extensionalConstraints;
+
+   std::vector<FluentTimeResource>::const_iterator fit = mResourceRequirements.begin();
+   for(; fit != mResourceRequirements.end(); ++fit)
+   {
+        const FluentTimeResource& ftr = *fit;
+        LOG_DEBUG_S << "(A) Define requirement: " << ftr.toString()
+                    << "        available models: " << mAvailableModels << std::endl;
+
+        // row: index of requirement
+        // col: index of model type
+        size_t requirementIndex = fit - mResourceRequirements.begin();
+
+        // Prepare the extensional constraints, i.e. specifying the allowed
+        // combinations for each requirement
+        organization_model::ModelPool::Set allowedCombinations = ftr.getDomain();
+        std::cout << "ExtensionalConstraints: add ftr: " << ftr.toString() << std::endl;
+        appendToTupleSet(extensionalConstraints[requirementIndex], allowedCombinations);
+   }
+
+   // use the prepared list of extensional constraints to activate the
+   // constraints
+   for(auto pair : extensionalConstraints)
+   {
+       uint32_t requirementIndex = pair.first;
+       Gecode::TupleSet& tupleSet = pair.second;
+       // one a tuple set has been fully defined it has to be finalized
+       tupleSet.finalize();
+       extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
+   }
 }
 
 
@@ -845,6 +844,7 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
     , mModelPool(other.mModelPool)
     , mAsk(other.mAsk)
     , mServices(other.mServices)
+    , mResources(other.mResources)
     , mIntervals(other.mIntervals)
     , mTimepoints(other.mTimepoints)
     , mLocations(other.mLocations)
@@ -854,11 +854,12 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
     , mActiveRoles(other.mActiveRoles)
     , mActiveRoleList(other.mActiveRoleList)
     , mSupplyDemand(other.mSupplyDemand)
-    , mMinCostFlowFlaws(other.mMinCostFlowFlaws)
     , mMinCostFlowSolution(other.mMinCostFlowSolution)
+    , mMinCostFlowFlaws(other.mMinCostFlowFlaws)
     , mFlawResolution(other.mFlawResolution)
     , mStartFlawIndex(other.mStartFlawIndex)
-    , mMasterSpace(&other)
+    , mParentSpace(&other)
+    , mConfiguration(other.mConfiguration)
 {
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
@@ -881,7 +882,7 @@ Gecode::Space* TransportNetwork::copy(bool share)
     return new TransportNetwork(share, *this);
 }
 
-std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions)
+std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const Configuration& configuration)
 {
     SolutionList solutions;
     mission->validateForPlanning();
@@ -889,6 +890,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
     assert(mission->getOrganizationModel());
     assert(!mission->getTimeIntervals().empty());
 
+    /// Allow to log the final results into a csv file
     CSVLogger csvLogger({"solution-found",
             "solution-stopped",
             "propagate",
@@ -896,20 +898,40 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             "node",
             "depth",
             "restart",
-            "nogood" });
+            "nogood",
+            "flaws",
+            "cost"});
 
 
 
-    TransportNetwork* distribution = new TransportNetwork(mission);
+    TransportNetwork* distribution = new TransportNetwork(mission, configuration);
     {
+        // Search options: Gecode 9.3.1
+        // threads (double) number of parallel threads to use
+	// c_d (unsigned int) commit recomputation distance
+        // a_d                adaptive recomputation distance
+        // clone (bool)  whether engine uses a clone when created
+        // d_l           discrepancy limit when using LDS
+        // nogoods_limit depth limit for no-good generation
+        // assets        number of assets in a portfolio
+        // share_rbs     (bool) whether AFC is shared between restarts
+        // share_pbs     (bool) whether AFC is shared between assets
+        // stop                 Stop object   (NULL if none)
+        // cutoff               cutoff object (NULL if none)
+            int threads = distribution->mConfiguration.getValueAsNumeric<int>("search/options/threads",1);
+
+            int cutoff = distribution->mConfiguration.getValueAsNumeric<int>("search/options/cutoff",1);
+            int nogoods_limit = distribution->mConfiguration.getValueAsNumeric<int>("search/options/nogoods_limit",128);
+            int stoptimeInMs = distribution->mConfiguration.getValueAsNumeric<int>("search/options/timeout_in_ms",600000);
+
             Gecode::Search::Options options;
-            options.threads = 1;
-            Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(5);
+            options.threads = threads;
+            Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(cutoff);
             options.cutoff = c;
             // p 172 "the value of nogoods_limit described to which depth limit
             // no-goods should be extracted from the path of the search tree
             // maintained by the search engine
-            options.nogoods_limit = 128;
+            options.nogoods_limit = nogoods_limit;
             // recomputation distance
             // options.c_d =
             // adaptive recomputation distance
@@ -918,16 +940,15 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             // options.node =
             // default failure cutoff
             // options.fail
-            // default time cutoff
-            //options.stop = Gecode::Search::Stop::time(5000);
+            options.stop = Gecode::Search::Stop::time(stoptimeInMs);
 
             //Gecode::BAB<TransportNetwork> searchEngine(distribution,options);
             //Gecode::DFS<TransportNetwork> searchEngine(distribution, options);
             Gecode::TemplRBS< TransportNetwork, Gecode::BAB > searchEngine(distribution, options);
             //Gecode::TemplRBS< TransportNetwork, Gecode::DFS > searchEngine(distribution, options);
 
+        TransportNetwork* best = NULL;
         try {
-            TransportNetwork* best = NULL;
             int i = 0;
             while(TransportNetwork* current = searchEngine.next())
             {
@@ -956,23 +977,18 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
                 }
             }
 
-            if(best == NULL)
-            {
-                delete distribution;
-                throw std::runtime_error("templ::solvers::csp::TransportNetwork::solve: no solution found");
-            }
-        //    delete best;
-            best = NULL;
-
             std::cout << "Solution Search (successful) stopped: " << searchEngine.stopped() << std::endl;
             std::cout << "Statistics: " << std::endl;
             std::cout << std::setw(15) << "    propagate " << searchEngine.statistics().propagate << std::endl;
 
             std::cout << std::setw(15) << "    fail " << searchEngine.statistics().fail << std::endl;
             std::cout << std::setw(15) << "    node " << searchEngine.statistics().node << std::endl;
-            std::cout << std::setw(15) << "    depth" << searchEngine.statistics().depth << std::endl;
+            std::cout << std::setw(15) << "    depth " << searchEngine.statistics().depth << std::endl;
             std::cout << std::setw(15) << "    restart " << searchEngine.statistics().restart << std::endl;
             std::cout << std::setw(15) << "    nogood " << searchEngine.statistics().nogood << std::endl;
+            std::cout << std::setw(15) << "    flaws " << best->mMinCostFlowFlaws.size() << std::endl;
+            std::cout << std::setw(15) << "    cost " << best->cost().val() << std::endl;
+
             csvLogger.addToRow(1.0, "solution-found");
             csvLogger.addToRow(searchEngine.stopped(), "solution-stopped");
             csvLogger.addToRow(searchEngine.statistics().propagate, "propagate");
@@ -981,6 +997,8 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             csvLogger.addToRow(searchEngine.statistics().depth, "depth");
             csvLogger.addToRow(searchEngine.statistics().restart, "restart");
             csvLogger.addToRow(searchEngine.statistics().nogood, "nogood");
+            csvLogger.addToRow(best->mMinCostFlowFlaws.size(), "flaws");
+            csvLogger.addToRow(best->cost().val(), "cost");
             csvLogger.commitRow();
 
 
@@ -996,6 +1014,8 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             std::cout << std::setw(15) << "    depth " << searchEngine.statistics().depth << std::endl;
             std::cout << std::setw(15) << "    restart " << searchEngine.statistics().restart << std::endl;
             std::cout << std::setw(15) << "    nogood " << searchEngine.statistics().nogood << std::endl;
+            std::cout << std::setw(15) << "    flaws " << best->mMinCostFlowFlaws.size() << std::endl;
+            std::cout << std::setw(15) << "    cost " << best->cost().val() << std::endl;
             csvLogger.addToRow(1.0, "solution-found");
             csvLogger.addToRow(searchEngine.stopped(), "solution-stopped");
             csvLogger.addToRow(searchEngine.statistics().propagate, "propagate");
@@ -1004,14 +1024,16 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             csvLogger.addToRow(searchEngine.statistics().depth, "depth");
             csvLogger.addToRow(searchEngine.statistics().restart, "restart");
             csvLogger.addToRow(searchEngine.statistics().nogood, "nogood");
+            csvLogger.addToRow(best->mMinCostFlowFlaws.size(), "flaws");
+            csvLogger.addToRow(best->cost().val(), "cost");
             csvLogger.commitRow();
 
             throw;
         }
     }
 
-    std::string filename = mission->getLogger()->filename("search.csv");
-    LOG_WARN_S << "Saving stats in: " << filename;
+    std::string filename = mission->getLogger()->filename("search-statistics.csv");
+    LOG_INFO_S << "Saving stats in: " << filename;
     csvLogger.save(filename);
 
     delete distribution;
@@ -1020,7 +1042,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
 void TransportNetwork::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPool::Set& combinations) const
 {
-    std::set< std::vector<uint32_t> > csp = toCSP( combinations );
+    std::set< std::vector<uint32_t> > csp = utils::Converter::toCSP(mpMission, combinations);
     std::set< std::vector<uint32_t> >::const_iterator cit = csp.begin();
 
     for(; cit != csp.end(); ++cit)
@@ -1160,14 +1182,6 @@ bool TransportNetwork::isRoleForModel(uint32_t roleIndex, uint32_t modelIndex) c
     return mRoles.at(roleIndex).getModel() == mAvailableModels.at(modelIndex);
 }
 
-void TransportNetwork::assignRoles(Gecode::Space& home)
-{
-    std::cout << "Assign Roles" << std::endl;
-    std::cout << "Press ENTER to continue... (assign roles)";
-    //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    static_cast<TransportNetwork&>(home).postRoleAssignments();
-}
-
 std::vector<uint32_t> TransportNetwork::computeActiveRoles() const
 {
     std::vector<uint32_t> activeRoles;
@@ -1202,6 +1216,21 @@ std::vector<uint32_t> TransportNetwork::computeActiveRoles() const
     LOG_WARN_S << "Role usage: " << roleUsageToString();
 
     return activeRoles;
+}
+
+void TransportNetwork::doPostMinMaxConstraints(Gecode::Space& home)
+{
+    static_cast<TransportNetwork&>(home).initializeMinMaxConstraints();
+}
+
+void TransportNetwork::doPostExtensionalContraints(Gecode::Space& home)
+{
+    static_cast<TransportNetwork&>(home).addExtensionalConstraints();
+}
+
+void TransportNetwork::doPostRoleAssignments(Gecode::Space& home)
+{
+    static_cast<TransportNetwork&>(home).postRoleAssignments();
 }
 
 void TransportNetwork::postRoleAssignments()
@@ -1453,21 +1482,22 @@ void TransportNetwork::postRoleAssignments()
         propagators::isPath(*this, mTimelines[i], mActiveRoleList[i].toString(), numberOfTimepoints, mLocations.size());
     }
 
-    branchTimelines(*this, mTimelines, mSupplyDemand); //(*this, &TransportNetwork::generateTimelines);
-    branch(*this, &TransportNetwork::minCostFlowAnalysis);
+    branchTimelines(*this, mTimelines, mSupplyDemand);
+    Gecode::branch(*this, &TransportNetwork::doPostMinCostFlow);
+
 //    Gecode::Gist::stopBranch(*this);
 }
 
 
-void TransportNetwork::minCostFlowAnalysis(Gecode::Space& home)
+void TransportNetwork::doPostMinCostFlow(Gecode::Space& home)
 {
-    LOG_WARN_S << "Post MinCostFlow";
-    static_cast<TransportNetwork&>(home).postMinCostFlowConstraints();
+    static_cast<TransportNetwork&>(home).postMinCostFlow();
 }
 
-void TransportNetwork::postMinCostFlowConstraints()
+void TransportNetwork::postMinCostFlow()
 {
-    std::cout << "Press ENTER to continue... (begin post min cost flow)" << std::endl;
+    LOG_INFO_S << "Post MinCostFlow";
+    save();
     //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 
     std::map<Role, csp::RoleTimeline> minimalTimelines =  RoleTimeline::computeTimelines(*mpMission.get(), getRoleDistribution());
@@ -1479,15 +1509,11 @@ void TransportNetwork::postMinCostFlowConstraints()
         transshipment::MinCostFlow minCostFlow(mpMission, minimalTimelines, getTimelines());
         std::vector<transshipment::Flaw> flaws = minCostFlow.run();
 
-        LOG_WARN_S << "FOUND " << flaws.size() << " flaws";
-        for(const transshipment::Flaw& flaw: flaws)
-        {
-            LOG_WARN_S << "Flaw: " << flaw.toString();
-        }
 
         transshipment::FlowNetwork flowNetwork = minCostFlow.getFlowNetwork();
         mMinCostFlowSolution = flowNetwork.getSpaceTimeNetwork();
         flowNetwork.save();
+        // store all flaws
         mMinCostFlowFlaws = flaws;
         // Set flaws as current cost of this solution
         rel(*this, mCost, Gecode::IRT_EQ, mMinCostFlowFlaws.size());
@@ -1504,7 +1530,7 @@ void TransportNetwork::postMinCostFlowConstraints()
 
 }
 
-void TransportNetwork::generateTimelines(Gecode::Space& home)
+void TransportNetwork::doPostTimelines(Gecode::Space& home)
 {
     static_cast<TransportNetwork&>(home).postTimelines();
 }
@@ -1513,17 +1539,6 @@ void TransportNetwork::postTimelines()
 {
     LOG_WARN_S << "BRANCH TIMELINES";
     branchTimelines(*this, mTimelines, mSupplyDemand);
-}
-
-size_t TransportNetwork::getMaxResourceCount(const organization_model::ModelPool& pool) const
-{
-    size_t maxValue = std::numeric_limits<size_t>::min();
-    organization_model::ModelPool::const_iterator cit = pool.begin();
-    for(; cit != pool.end(); ++cit)
-    {
-        maxValue = std::max( maxValue, cit->second);
-    }
-    return maxValue;
 }
 
 std::string TransportNetwork::toString() const
@@ -1558,6 +1573,7 @@ std::string TransportNetwork::toString() const
     try {
         for(size_t i = 0; i < mTimelines.size(); ++i)
         {
+            ss << mActiveRoleList[i].toString();
             ss << Formatter::toString(mTimelines[i], mLocations.size()) << std::endl;
         }
 
@@ -1683,7 +1699,7 @@ std::ostream& operator<<(std::ostream& os, const TransportNetwork::SolutionList&
     return os;
 }
 
-void TransportNetwork::addFunctionRequirement(const FluentTimeResource& fts, owlapi::model::IRI& function)
+void TransportNetwork::addFunctionRequirement(const FluentTimeResource& fts, const owlapi::model::IRI& function)
 {
     // Find the function requirement index
     size_t index = 0;
@@ -1699,15 +1715,9 @@ void TransportNetwork::addFunctionRequirement(const FluentTimeResource& fts, owl
     // If function cannot be found add the function to the (known) required resources
     if(index >= mResources.size())
     {
-        if( mAsk.ontology().isSubClassOf(function, organization_model::vocabulary::OM::Functionality()) )
-        {
-            LOG_INFO_S << "AUTO ADDED '" << function << "' to required resources";
-            mResources.push_back(function);
-        } else {
             throw std::invalid_argument("templ::solvers::csp::TransportNetwork: could not find the resource index for: '" + function.toString() + "' -- which is not a service class");
-        }
     }
-    LOG_DEBUG_S << "Using index: " << index;
+    LOG_DEBUG_S << "Using resource index: " << index;
 
     // identify the fluent time resource
     std::vector<FluentTimeResource>::iterator fit = std::find(mResourceRequirements.begin(), mResourceRequirements.end(), fts);
@@ -1721,6 +1731,18 @@ void TransportNetwork::addFunctionRequirement(const FluentTimeResource& fts, owl
     fit->resources.insert(index);
     fit->maxCardinalities = organization_model::Algebra::max(fit->maxCardinalities, mAsk.getFunctionalSaturationBound(function) );
     LOG_DEBUG_S << "Fluent after adding function requirement: " << fit->toString();
+void TransportNetwork::save(const std::string& _filename) const
+{
+    std::string filename = _filename;
+    if(filename.empty())
+    {
+        base::Time timestamp = base::Time::now();
+        filename = mpMission->getLogger()->filename(timestamp.toString(base::Time::Seconds) + "-transport-network.status");
+    }
+    std::ofstream file;
+    file.open(filename );
+    file << toString();
+    file.close();
 }
 
 } // end namespace csp

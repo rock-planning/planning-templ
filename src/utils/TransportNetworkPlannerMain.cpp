@@ -14,6 +14,7 @@ int main(int argc, char** argv)
     description.add_options()
         ("help","describe arguments")
         ("mission", po::value<std::string>(), "Path to the mission specification")
+        ("configuration", po::value<std::string>(), "Path to the search configuration file")
         ("om", po::value<std::string>(), "IRI of the organization model (optional)")
         ("min_solutions", po::value<size_t>(), "Minimum number of solutions (optional)")
         ;
@@ -43,6 +44,11 @@ int main(int argc, char** argv)
         printf("Please provide at least a mission to start the planning process\n");
         exit(2);
     }
+    std::string configurationFilename;
+    if(vm.count("configuration"))
+    {
+        configurationFilename = vm["configuration"].as<std::string>();
+    }
 
     organization_model::OrganizationModel::Ptr organizationModel;
     if(vm.count("om"))
@@ -65,7 +71,8 @@ int main(int argc, char** argv)
     printf("Base Mission:\n %s\n",mission->toString().c_str());
 
 
-    std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission,minimumNumberOfSolutions);
+    Configuration configuration(configurationFilename);
+    std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission,minimumNumberOfSolutions, configuration);
     if(solutions.empty())
     {
         std::cout << "No solution found" << std::endl;

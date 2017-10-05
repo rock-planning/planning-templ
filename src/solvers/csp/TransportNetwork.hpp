@@ -10,6 +10,7 @@
 #include <organization_model/OrganizationModelAsk.hpp>
 
 #include "../../Mission.hpp"
+#include "../../Configuration.hpp"
 #include "Types.hpp"
 #include "FluentTimeResource.hpp"
 #include "utils/FluentTimeIndex.hpp"
@@ -142,11 +143,6 @@ private:
     Gecode::IntVarArray mModelUsage;
     owlapi::model::IRIList mAvailableModels;
 
-    // Per requirement: collect the extensional constraints for the models that
-    // can fulfill the requirement
-    std::map<uint32_t, Gecode::TupleSet> mExtensionalConstraints;
-
-
     // #######################
     // Role based mapping
     // #######################
@@ -202,7 +198,12 @@ private:
     std::vector<transshipment::Flaw> mMinCostFlowFlaws;
     std::vector<bool> mFlawResolution;
     mutable size_t mStartFlawIndex;
-    TransportNetwork* mMasterSpace;
+
+    /// the space that this space was initialized with
+    TransportNetwork* mParentSpace;
+
+    /// Configuration object
+    Configuration mConfiguration;
 
 private:
 
@@ -235,8 +236,6 @@ private:
     const owlapi::model::IRI& getResourceModelFromIndex(size_t index) const;
     size_t getResourceModelMaxCardinality(size_t model) const;
 
-    size_t getMaxResourceCount(const organization_model::ModelPool& model) const;
-
     /**
      * Check if given role (by id) is model (by id)
      * \return true if this is the case, false otherwise
@@ -245,20 +244,22 @@ private:
 
     /**
      * Get the set of roles that are actively used in the solutions
+     * \todo depending on the solution heuristic it should be possible to
+     * set
      * \return set of roles (by index id) that are active
      */
     std::vector<uint32_t> computeActiveRoles() const;
 
-    static void assignRoles(Gecode::Space& home);
-    /**
-     *
-     */
+    static void doPostMinMaxConstraints(Gecode::Space& home);
+    static void doPostExtensionalContraints(Gecode::Space& home);
+
+    static void doPostRoleAssignments(Gecode::Space& home);
     void postRoleAssignments();
 
-    static void minCostFlowAnalysis(Gecode::Space& home);
-    void postMinCostFlowConstraints();
+    static void doPostMinCostFlow(Gecode::Space& home);
+    void postMinCostFlow();
 
-    static void generateTimelines(Gecode::Space& home);
+    static void doPostTimelines(Gecode::Space& home);
     void postTimelines();
 
     Gecode::IntVar cost(void) const { return mCost; }
@@ -317,14 +318,21 @@ protected:
     RoleDistribution getRoleDistribution() const;
     SpaceTime::Timelines getTimelines() const;
 
+    /**
+     * Identify the index of the given timepoint
+     */
     uint32_t getTimepointIndex(const temporal::point_algebra::TimePoint::Ptr& timePoint) const;
-
-    std::string toString(const std::vector<Gecode::IntVarArray>& timelines) const;
 
     /**
      * Set the cardinality constraints
      */
     void initializeMinMaxConstraints();
+
+    /**
+     * Compute the extensional constraints, i.e.
+     * allowed composite agents
+     */
+    void addExtensionalConstraints();
 
     /**
      * Identify overlapping constraints and set and upper resource bound
@@ -347,7 +355,7 @@ protected:
     Gecode::Symmetries identifySymmetries();
 
 public:
-    TransportNetwork(const templ::Mission::Ptr& mission);
+    TransportNetwork(const templ::Mission::Ptr& mission, const Configuration& configuration = Configuration());
 
     /**
      * Search support
@@ -364,10 +372,15 @@ public:
 
     /**
      * Solve the mission
+     * \param mission The mission specification to solve
+     * \param minNumberOfSolutions Minimum number of solutions
+     * \param configuration Configuration for this planning instance
      */
-    static SolutionList solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions = 0);
+    static SolutionList solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions = 0, const Configuration& configuration = Configuration());
 
     std::string toString() const;
+
+    std::string toString(const std::vector<Gecode::IntVarArray>& timelines) const;
 
     std::string modelUsageToString() const;
     std::string roleUsageToString() const;
@@ -375,10 +388,18 @@ public:
     void print(std::ostream& os) const { os << toString() << std::endl; }
 
     /**
-     * Add a particular function requirement with respect to a
-     * FluentTimeResource instance
+     * Save the output of toString() into a file
+     * default is saved in the session folder as 'transport-network.status'
      */
-    void addFunctionRequirement(const FluentTimeResource& fts, owlapi::model::IRI& function);
+    void save(const std::string& filename = "") const;
+
+    /**
+     * Add a particular function requirement to the current mission with respect to a
+     * FluentTimeResource instance
+     * \throws std::invalid_argument when fluent time resource could not be
+     * found
+     */
+    void addFunctionRequirement(const FluentTimeResource& ftr, const owlapi::model::IRI& function);
 
     size_t getNumberOfTimepoints() const { return mTimepoints.size(); }
     size_t getNumberOfFluents() const { return mLocations.size(); }
