@@ -4,6 +4,7 @@
 #include "FluentTimeResource.hpp"
 #include <gecode/int.hh>
 #include <set>
+#include "../../Mission.hpp"
 
 namespace templ {
 namespace solvers {
@@ -42,7 +43,8 @@ public:
      * Increment the distinction for model instances between two requirements
      * for \a additional
      */
-    static void addDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
+    static void addDistinct(Gecode::Space& home,
+            Gecode::IntVarArray& roleUsage,
             const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
             const FluentTimeResource& fts0, const FluentTimeResource& fts1,
             const owlapi::model::IRI& roleModel, uint32_t additional);
@@ -52,8 +54,8 @@ public:
      * for \a additional
      *
      */
-    static void addDistinct(Gecode::Space& home,
-            const Gecode::IntVarArray& roleUsageCurrent, Gecode::IntVarArray& roleUsage,
+    static void addDistinct(Gecode::Space& home, const Gecode::IntVarArray& roleUsageCurrent,
+            Gecode::IntVarArray& roleUsage,
             const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
             const FluentTimeResource& fts0, const FluentTimeResource& fts1,
             const owlapi::model::IRI& roleModel, uint32_t additional);
@@ -62,6 +64,17 @@ public:
             const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
             const FluentTimeResource& fts0, const FluentTimeResource& fts1,
             const owlapi::model::IRI& roleModel);
+
+    /**
+     * Add a model requirement (to one of the fluent time resource of the given
+     * interval)
+     */
+    static void addModelRequirement(
+            std::vector<FluentTimeResource>& requirements,
+            const FluentTimeResource& ftr,
+            const owlapi::model::IRI& model,
+            uint32_t additional = 1);
+
 
 };
 

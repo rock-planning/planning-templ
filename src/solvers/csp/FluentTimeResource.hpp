@@ -94,6 +94,11 @@ struct FluentTimeResource
      * Get the index of a fluent in a list of fluents
      */
     static size_t getIndex(const List& list, const FluentTimeResource& fluent);
+
+    /**
+     * Increment additional resource requirement
+     */
+    void incrementResourceRequirement(const owlapi::model::IRI& model, size_t number);
 };
 
 } // end namespace csp

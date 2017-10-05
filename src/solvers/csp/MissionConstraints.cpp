@@ -1,5 +1,6 @@
 #include "MissionConstraints.hpp"
 #include <gecode/minimodel.hh>
+#include "utils/Converter.hpp"
 
 namespace templ {
 namespace solvers {
@@ -150,6 +151,27 @@ std::set<Role> MissionConstraints::getUniqueRoles(const Gecode::IntVarArray& con
         }
     }
     return assignedRoles;
+}
+
+void MissionConstraints::addModelRequirement(
+        std::vector<FluentTimeResource>& requirements,
+        const FluentTimeResource& ftr,
+        const owlapi::model::IRI& model,
+        uint32_t additional)
+{
+    std::vector<FluentTimeResource>::iterator it = requirements.begin();
+    for(; it != requirements.end(); ++it)
+    {
+        if(*it == ftr)
+        {
+            // add function requirement --> check addFunctionRequirement
+            // update FTR modelpool
+            // (add max cardinalities)
+            std::cout << "Updated min cardinalities: for " << model.toString() << std::endl << it->toString(4);
+            return;
+        }
+    }
+    throw std::invalid_argument("templ::solvers::csp::MissionConstraints::addModelRequirement: given FluentTimeResource is not part of the given list");
 }
 
 } // end namespace csp

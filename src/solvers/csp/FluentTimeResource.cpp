@@ -234,7 +234,6 @@ organization_model::ModelPool::Set FluentTimeResource::getDomain() const
     //
     // Collect functionality requirements
     std::set<organization_model::Functionality> functionalities = getFunctionalities();
-
     // When retrieving combinations for requested functionality, then this is not the
     // complete set since this might conflict with the minCardinalities
     // constraint -- thus we need to first derive the functionalBound and then
@@ -267,6 +266,21 @@ size_t FluentTimeResource::getIndex(const List& list, const FluentTimeResource& 
     }
 
     throw std::runtime_error("templ::solvers::csp::FluentTimeResource::getIndex: could not find fluent index for '" + fluent.toString() + "'");
+}
+
+void FluentTimeResource::incrementResourceRequirement(const owlapi::model::IRI& model, size_t number)
+{
+    owlapi::model::IRIList mappedResources = mission->getRequestedResources();
+    for(size_t idx = 0; idx != mappedResources.size(); ++idx)
+    {
+        if(mappedResources[idx] == model)
+        {
+            resources.insert(idx);
+            minCardinalities[model] += number;
+            return;
+        }
+    }
+    throw std::invalid_argument("FluentTimeResource::incrementResourceRequirement: failed to increment model '" + model.toString() + "'");
 }
 
 } // end namespace csp
