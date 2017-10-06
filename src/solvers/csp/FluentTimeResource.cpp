@@ -257,12 +257,30 @@ organization_model::ModelPool::Set FluentTimeResource::getDomain() const
 
 size_t FluentTimeResource::getIndex(const List& list, const FluentTimeResource& fluent)
 {
-    std::vector<FluentTimeResource>::const_iterator ftsIt = std::find(list.begin(), list.end(), fluent);
-    if(ftsIt != list.end())
+    size_t index = 0;
+    for(const FluentTimeResource& ftr : list)
     {
-        int index = ftsIt - list.begin();
-        assert(index >= 0);
-        return (size_t) index;
+        if(ftr.time == fluent.time && ftr.fluent == fluent.fluent)
+        {
+            std::set<uint32_t> intersect;
+            std::set_intersection(ftr.resources.begin(), ftr.resources.end(),
+                    fluent.resources.begin(), fluent.resources.end(),
+                    std::inserter(intersect, intersect.begin()) );
+
+            if(intersect == fluent.resources)
+            {
+                return index;
+            } else {
+                std::cout << "no match, with intersect" << std::endl;
+                for(uint32_t a : intersect)
+                {
+                    std::cout << a << " " << std::endl;
+                }
+            }
+        }
+
+        ++index;
+    }
     }
 
     throw std::runtime_error("templ::solvers::csp::FluentTimeResource::getIndex: could not find fluent index for '" + fluent.toString() + "'");
