@@ -15,6 +15,7 @@
 #include "FluentTimeResource.hpp"
 #include "utils/FluentTimeIndex.hpp"
 #include "../transshipment/MinCostFlow.hpp"
+#include "FlawResolution.hpp"
 
 namespace templ {
 namespace solvers {
@@ -191,16 +192,13 @@ private:
     //std::vector< Gecode::IntVarArray > mProviderCapacities;
     //std::vector< Gecode::IntVarArray > mConsumerCapacities;
     Gecode::IntVar mCost;
+    Gecode::IntVar mNumberOfFlaws;
 
     // row column access
     //MatrixXi mProviderCapacities;
     SpaceTime::Network mMinCostFlowSolution;
     std::vector<transshipment::Flaw> mMinCostFlowFlaws;
-    std::vector<bool> mFlawResolution;
-    mutable size_t mStartFlawIndex;
-
-    /// the space that this space was initialized with
-    TransportNetwork* mParentSpace;
+    FlawResolution mFlawResolution;
 
     /// Configuration object
     Configuration mConfiguration;
@@ -289,12 +287,6 @@ protected:
     virtual bool slave(const Gecode::MetaInfo& mi);
 
     /**
-     * Initialize first for slave
-     */
-    void first();
-
-
-    /**
      * Initalize slave for next solution
      */
     void next(const TransportNetwork& n, const Gecode::MetaInfo& mi);
@@ -304,6 +296,12 @@ protected:
      * a previous space to extract information for constrain
      */
     virtual void constrain(const Gecode::Space& n);
+
+    /**
+     * Constraint this instance -- provide
+     * a previous space to extract information for constrain
+     */
+    virtual void constrainSlave(const Gecode::Space& n);
 
 
     /**

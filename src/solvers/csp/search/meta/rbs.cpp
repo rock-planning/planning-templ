@@ -37,7 +37,7 @@
 
 
 #include "rbs.hh"
-#include <base-logging/Logging.hpp>
+#include "../../TransportNetwork.hpp"
 
 namespace Gecode { namespace Search { namespace Meta {
 
@@ -60,12 +60,20 @@ namespace Gecode { namespace Search { namespace Meta {
 
   Space*
   TemplRBS::next(void) {
+    using namespace templ::solvers::csp;
+    TransportNetwork* tn = dynamic_cast<TransportNetwork*>(master);
+
     if (restart) {
       restart = false;
       sslr++;
       NoGoods& ng = e->nogoods();
       // Reset number of no-goods found
       ng.ng(0);
+      // restart: number of restarts
+      // sslr: number of solutions since last restart
+      // fail: number of fails since last restart
+      // last: last space
+      // ng: nogoods
       MetaInfo mi(stop->m_stat.restart,sslr,e->statistics().fail,last,ng);
       bool r = master->master(mi);
       stop->m_stat.nogood += ng.ng();
@@ -97,7 +105,6 @@ namespace Gecode { namespace Search { namespace Meta {
                   (e->stopped() && stop->enginestopped()) ) {
         // The engine must perform a true restart
         // The number of the restart has been incremented in the stop object
-        //
         sslr = 0;
         NoGoods& ng = e->nogoods();
         ng.ng(0);
@@ -107,10 +114,7 @@ namespace Gecode { namespace Search { namespace Meta {
         long unsigned int nl = ++(*co);
         stop->limit(e->statistics(),nl);
         if (master->status(stop->m_stat) == SS_FAILED)
-        {
-          assert(false);
           return NULL;
-        }
         Space* slave = master;
         master = master->clone(shared_data,shared_info);
         complete = slave->slave(mi);
