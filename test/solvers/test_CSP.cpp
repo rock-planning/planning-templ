@@ -2,6 +2,7 @@
 #include <templ/Mission.hpp>
 #include <templ/solvers/csp/ModelDistribution.hpp>
 #include <templ/solvers/csp/RoleDistribution.hpp>
+#include <templ/solvers/csp/FlawResolution.hpp>
 #include <organization_model/vocabularies/OM.hpp>
 
 #include "../test_utils.hpp"
@@ -374,6 +375,43 @@ BOOST_AUTO_TEST_CASE(symmetry_breaking)
         std::vector<solvers::csp::RoleDistribution::Solution> roleSolutions = solvers::csp::RoleDistribution::solve(mission, solutions[0].getModelDistributionSolution());
         BOOST_REQUIRE_MESSAGE(roleSolutions.size() < 10, "Number of solution founds (using symmetry breaking): # of found solutions less than 10 (since symmetry "
             "breaking is not complete: action number of solutions: " << roleSolutions.size());
+    }
+}
+
+BOOST_AUTO_TEST_CASE(flaw_resolution)
+{
+    using namespace templ::solvers::csp;
+
+    {
+        FlawResolution flawResolution;
+        flawResolution.prepare(2);
+        BOOST_REQUIRE_MESSAGE(flawResolution.remaining().size() == 3, "Flaw resolution options should be 3 but was " <<
+                flawResolution.remaining().size());
+
+        while(flawResolution.next(false))
+        {
+            std::stringstream ss;
+            ss << "Draw: " << std::endl;
+            FlawResolution::Draw draw = flawResolution.current();
+            BOOST_TEST_MESSAGE(FlawResolution::toString(draw));
+        }
+    }
+
+    {
+
+        FlawResolution flawResolution;
+        flawResolution.prepare(2);
+        BOOST_REQUIRE_MESSAGE(flawResolution.remaining().size() == 3, "Flaw resolution options should be 3 but was " <<
+                flawResolution.remaining().size());
+
+        while(flawResolution.next())
+        {
+
+            std::stringstream ss;
+            ss << "Random draw: " << std::endl;
+            FlawResolution::Draw draw = flawResolution.current();
+            BOOST_TEST_MESSAGE(FlawResolution::toString(draw));
+        }
     }
 }
 
