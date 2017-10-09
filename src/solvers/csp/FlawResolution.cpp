@@ -11,32 +11,70 @@ FlawResolution::FlawResolution()
 
 FlawResolution::FlawResolution(const FlawResolution& other)
     : mGenerator(other.mGenerator)
-    , mOptions(other.mOptions)
-    , mDraw(other.mDraw)
+    , mDraws(other.mDraws)
+    , mCurrentDraw(other.mCurrentDraw)
+    , mResolutionOptions(other.mResolutionOptions)
 {
 }
 
-void FlawResolution::prepare(size_t size)
+void FlawResolution::prepare(const std::vector<transshipment::Flaw>& flaws)
 {
-    mDraw.clear();
-    mOptions.clear();
+    namespace ga = graph_analysis::algorithms;
+    mResolutionOptions.clear();
 
-    if(size == 0)
+    if(flaws.empty())
     {
         return;
     }
 
-    std::vector<size_t> indices;
-    for(size_t i = 0; i < size; ++i)
+    // Add the flaw with the number of resolution option
+    for(const transshipment::Flaw& flaw : flaws)
+    {
+        switch(flaw.violation.getType())
+        {
+            case ga::ConstraintViolation::TransFlow:
+                mResolutionOptions.push_back( ResolutionOption(flaw,0) );
+                break;
+            case ga::ConstraintViolation::MinFlow:
+                mResolutionOptions.push_back( ResolutionOption(flaw,0) );
+                mResolutionOptions.push_back( ResolutionOption(flaw,1) );
+                break;
+            default:
+                LOG_WARN_S << "Unknown flaw type";
+                break;
+        }
+    }
+
+    Draw indices;
+    for(size_t i = 0; i < mResolutionOptions.size(); ++i)
     {
         indices.push_back(i);
     }
 
     numeric::Combination<size_t> combinations(indices, indices.size(), numeric::MAX);
     do {
-        std::vector<size_t> combination = combinations.current();
-        mOptions.push_back(combination);
+        Draw combination = combinations.current();
+        mDraws.push_back(combination);
     } while(combinations.next());
+}
+
+FlawResolution::ResolutionOptions FlawResolution::current() const
+{
+    return select<ResolutionOption>(mResolutionOptions, mCurrentDraw);
+}
+
+std::string FlawResolution::toString(const ResolutionOptions& options)
+{
+    std::stringstream ss;
+    ss << "Combinations:" << std::endl;
+    ss << "[ ";
+    for(const ResolutionOption& option : options)
+    {
+        const transshipment::Flaw& flaw = option.first;
+        ss << flaw.toString() + " -- alternative " << option.second << " ";
+    }
+    ss << "]";
+    return ss.str();
 }
 
 std::string FlawResolution::toString(const Draw& draw)
@@ -44,9 +82,9 @@ std::string FlawResolution::toString(const Draw& draw)
     std::stringstream ss;
     ss << "Combinations:" << std::endl;
     ss << "[ ";
-    for(size_t index : draw)
+    for(size_t idx : draw)
     {
-        ss << index << " ";
+        ss << idx << " ";
     }
     ss << "]";
     return ss.str();
@@ -54,22 +92,22 @@ std::string FlawResolution::toString(const Draw& draw)
 
 bool FlawResolution::next(bool random) const
 {
-    if(mOptions.empty())
+    if(mDraws.empty())
     {
         return false;
     }
 
     if(!random)
     {
-        mDraw = mOptions.back();
-        mOptions.pop_back();
+        mCurrentDraw = mDraws.back();
+        mDraws.pop_back();
     } else {
-        size_t optionsSize = mOptions.size();
+        size_t optionsSize = mDraws.size();
         std::uniform_int_distribution<> dis(0,optionsSize-1);
         size_t idx = dis(mGenerator);
-        mDraw = mOptions.at(idx);
-        mOptions.erase( mOptions.begin() + idx);
-        mOptions.resize(optionsSize-1);
+        mCurrentDraw = mDraws.at(idx);
+        mDraws.erase( mDraws.begin() + idx);
+        mDraws.resize(optionsSize-1);
     }
     return true;
 }

@@ -6,28 +6,31 @@ namespace templ {
 namespace solvers {
 namespace transshipment {
 
-std::string Flaw::toString() const
+std::string Flaw::toString(size_t indent) const
 {
     std::stringstream ss;
+    std::string hspace(indent,' ');
     switch(violation.getType())
     {
         case ConstraintViolation::MinFlow:
-                ss << "Minflow violation in timeline: enforce distiction on timeline for: " << affectedRole.toString()
-                    << " between " << std::endl
-                    << previousFtr.toString() << " and " << ftr.toString() << std::endl
-                    << previousFtr.getInterval().toString() << std::endl
-                    << ftr.getInterval().toString() << std::endl
+                ss << hspace << "Minflow violation in timeline:" << std::endl
+                    << hspace << "    enforce distiction on timeline for: " << affectedRole.toString() << std::endl
+                    << hspace << " between " << std::endl
+                    << hspace << previousFtr.toString() << " and " << ftr.toString() << std::endl
+                    << hspace << previousFtr.getInterval().toString() << std::endl
+                    << hspace << ftr.getInterval().toString() << std::endl
                     ;
                     //<< " timeline: " << std::endl
                     //<< roleTimeline.toString()
                     //<< std::endl;
                 break;
         case ConstraintViolation::TransFlow:
-                ss << "Transflow violation in timeline: enforce distiction on timeline for: " << affectedRole.toString()
-                    << " between " << std::endl
-                    << ftr.toString() << " and " << subsequentFtr.toString() << std::endl
-                    << ftr.getInterval().toString() << std::endl
-                    << subsequentFtr.getInterval().toString() << std::endl
+                ss << hspace << "Transflow violation in timeline:" << std::endl
+                    << hspace << "    enforce distiction on timeline for: " << affectedRole.toString() << std::endl
+                    << hspace << " between " << std::endl
+                    << hspace << ftr.toString() << " and " << subsequentFtr.toString() << std::endl
+                    << hspace << ftr.getInterval().toString() << std::endl
+                    << hspace << subsequentFtr.getInterval().toString() << std::endl
                     ;
                     //<< " timeline: " << std::endl
                     //<< roleTimeline.toString()
@@ -37,7 +40,6 @@ std::string Flaw::toString() const
     }
     return ss.str();
 }
-
 
 } // end namespace transshipment
 } // end namespace solvers

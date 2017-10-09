@@ -30,7 +30,7 @@ struct Flaw
         , affectedRole(role)
     {}
 
-    std::string toString() const;
+    std::string toString(size_t indent = 0) const;
 };
 
 } // end namespace transshipment

@@ -4,6 +4,7 @@
 #include <vector>
 #include <random>
 #include <numeric/Combinatorics.hpp>
+#include "../transshipment/Flaw.hpp"
 
 namespace templ {
 namespace solvers {
@@ -12,6 +13,10 @@ namespace csp {
 class FlawResolution
 {
 public:
+
+    typedef std::pair<transshipment::Flaw, size_t> ResolutionOption;
+    typedef std::vector< ResolutionOption > ResolutionOptions;
+
     typedef std::vector<size_t> Draw;
     typedef std::vector< Draw > DrawList;
 
@@ -23,20 +28,18 @@ public:
      * Prepare the flaw resolution for an array of the
      * given size
      */
-    void prepare(size_t size);
+    void prepare(const std::vector<transshipment::Flaw>& flaws);
 
     /**
      *
      */
     bool next(bool random = true) const;
 
-    Draw current() const { return mDraw; }
+    ResolutionOptions current() const;
 
-    const DrawList& remaining() const { return mOptions; }
+    const DrawList& remainingDraws() const { return mDraws; }
 
-    bool exhausted() { return mOptions.empty(); }
-
-    static std::string toString(const Draw& draw);
+    bool exhausted() { return mDraws.empty(); }
 
     /**
      * Select items from a list according to a given draw
@@ -52,14 +55,20 @@ public:
         return selection;
     }
 
+    static std::string toString(const ResolutionOptions& options);
+    static std::string toString(const Draw& draw);
+
 private:
     mutable std::mt19937 mGenerator;
 
-    mutable DrawList mOptions;
-    mutable Draw mDraw;
+    mutable DrawList mDraws;
+    mutable Draw mCurrentDraw;
+
+    mutable ResolutionOptions mResolutionOptions;
 
 };
 } // end namespace csp
 } // end namespace solvers
 } // end namespace templ
+
 #endif // TEMPL_SOLVERS_CSP_FLAW_RESOLUTION_HPP
