@@ -13,6 +13,8 @@
                 </model-usage>
                 <role-usage>
                     <force-min>false</force-min><!-- enforce minimum role usage -->
+                    <bounded>true</bounded><!-- if force min is deactivated then optionally use bounded with given bound -->
+                    <bound-offset>0</bound-offset>
                     <!-- todo: consider random upper bound -->
                     <afc-decay>0.95</afc-decay>
                 </role-usage>
