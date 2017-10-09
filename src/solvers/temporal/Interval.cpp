@@ -97,7 +97,12 @@ std::string Interval::toString(uint32_t indent, bool compact) const
             ss << hspace << "    to: n/a" << std::endl;
         }
     } else {
-        ss << hspace << mpFrom->getLabel() << "-" << mpTo->getLabel();
+        if(mpFrom && mpTo)
+        {
+            ss << hspace << mpFrom->getLabel() << "-" << mpTo->getLabel();
+        } else {
+            ss << hspace << "from: n/a - to: n/a";
+        }
     }
     return ss.str();
 }
