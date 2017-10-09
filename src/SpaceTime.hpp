@@ -17,13 +17,19 @@ namespace templ
 class SpaceTime
 {
 public:
+
+    typedef Tuple<templ::symbols::constants::Location::Ptr,
+        templ::solvers::temporal::point_algebra::TimePoint::Ptr> SpaceTimeTuple;
+
+    typedef RoleInfoTuple<templ::symbols::constants::Location::Ptr,
+        templ::solvers::temporal::point_algebra::TimePoint::Ptr> RoleInfoSpaceTimeTuple;
+
     /// The standard representation of a space time network -- which is a
     /// temporally expanded network with locations-timepoints tuples
     /// RoleInfoTuple is associated in order to associate content with each edge
     typedef TemporallyExpandedNetwork< templ::symbols::constants::Location::Ptr,
             templ::solvers::temporal::point_algebra::TimePoint::Ptr,
-            RoleInfoTuple<templ::symbols::constants::Location::Ptr,
-                    templ::solvers::temporal::point_algebra::TimePoint::Ptr>,
+            RoleInfoSpaceTimeTuple,
             RoleInfoWeightedEdge
             > Network;
 

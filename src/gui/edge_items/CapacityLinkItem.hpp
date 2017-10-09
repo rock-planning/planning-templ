@@ -28,13 +28,10 @@ protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                QWidget* widget = 0);
     QRectF boundingRect() const;
-    QPainterPath shape() const;
 
     int mArrowSize;
     QGraphicsTextItem* mpLabel;
     QGraphicsTextItem* mpClassName;
-    QGraphicsPolygonItem* mpMultiLine;
-    QGraphicsPolygonItem* mpArrowHead;
 
     /// Representation for the outer shape of a fill bar, to display the status of the capacity
     /// consumption

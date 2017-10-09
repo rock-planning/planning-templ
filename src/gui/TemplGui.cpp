@@ -23,16 +23,19 @@
 #include <graph_analysis/gui/GraphWidget.hpp>
 #include <graph_analysis/gui/ActionCommander.hpp>
 #include <graph_analysis/gui/dialogs/IODialog.hpp>
+#include <graph_analysis/gui/GraphLayoutManager.hpp>
+#include <graph_analysis/gui/layouts/GridLayout.hpp>
 
 #include <templ/gui/MissionEditor/MissionEditor.hpp>
 #include <templ/gui/MissionView/MissionView.hpp>
 #include <templ/gui/OntologyView/OntologyView.hpp>
 
-#include <templ/SpaceTime.hpp>
-#include <templ/RoleInfoWeightedEdge.hpp>
-#include <templ/gui/edge_items/RoleInfoItem.hpp>
-#include <templ/gui/edge_items/CapacityLinkItem.hpp>
-#include <templ/gui/vertex_items/RoleInfoItem.hpp>
+#include "../SpaceTime.hpp"
+#include "../RoleInfoWeightedEdge.hpp"
+#include "../gui/edge_items/RoleInfoItem.hpp"
+#include "../gui/edge_items/CapacityLinkItem.hpp"
+#include "../gui/vertex_items/RoleInfoItem.hpp"
+#include "../solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
 
 using namespace graph_analysis;
 using namespace graph_analysis::gui;
@@ -54,6 +57,16 @@ TemplGui::TemplGui()
 
     mpUi->tabWidget->clear();
     mpUi->tabWidget->addTab(mpBaseGraphView, mpBaseGraphView->getClassName());
+
+    GraphLayoutManager* layoutManager = GraphLayoutManager::getInstance();
+    GraphLayout::Ptr layout = layoutManager->getGraphLayout("grid-layout-default");
+    layouts::GridLayout::Ptr gridLayout = dynamic_pointer_cast<layouts::GridLayout>(layout);
+    gridLayout->setColumnLabelFunction(bind(&TemplGui::getColumnLabel, std::placeholders::_1));
+    gridLayout->setRowLabelFunction(bind(&TemplGui::getRowLabel, std::placeholders::_1));
+    gridLayout->setSortRowLabelFunction(bind(&TemplGui::sortRowLabel, std::placeholders::_1, std::placeholders::_2));
+    gridLayout->setColumnScalingFactor(10.0);
+    gridLayout->setRowScalingFactor(10.0);
+
     mpUi->tabWidget->addTab(mpMissionEditor,
                             mpMissionEditor->getClassName());
     mpUi->tabWidget->addTab(mpMissionView,
@@ -261,6 +274,88 @@ void TemplGui::updateVisualization()
     {
         mpMissionEditor->update();
     }
+}
+
+std::string TemplGui::getColumnLabel(const graph_analysis::Vertex::Ptr& vertex)
+{
+    std::string columnLabel;
+    SpaceTime::SpaceTimeTuple::Ptr tuple = dynamic_pointer_cast<SpaceTime::SpaceTimeTuple>(vertex);
+    if(tuple)
+    {
+        columnLabel = tuple->first()->toString();
+    }
+    return columnLabel;
+}
+
+std::string TemplGui::getRowLabel(const graph_analysis::Vertex::Ptr& vertex)
+{
+    std::string rowLabel;
+    SpaceTime::SpaceTimeTuple::Ptr tuple = dynamic_pointer_cast<SpaceTime::SpaceTimeTuple>(vertex);
+    if(tuple)
+    {
+        rowLabel = tuple->second()->getLabel();
+    }
+    return rowLabel;
+}
+
+void TemplGui::sortRowLabel(const graph_analysis::BaseGraph::Ptr& graph, graph_analysis::gui::layouts::GridLayout::RowLabels& labels)
+{
+    using namespace graph_analysis;
+    using namespace templ::solvers;
+    using namespace templ::solvers::temporal;
+
+    QualitativeTemporalConstraintNetwork::Ptr qtcn(new QualitativeTemporalConstraintNetwork());
+
+    // Get the start vertices (which have no incoming vertices)
+    std::vector<Vertex::Ptr> vertices;
+    VertexIterator::Ptr vertexIt = graph->getVertexIterator();
+    while(vertexIt->next())
+    {
+        Vertex::Ptr vertex = vertexIt->current();
+        if(graph->getInEdges(vertex).empty())
+        {
+            vertices.push_back(vertex);
+        }
+    }
+
+    // In the temporal network a forward edge can only be between this and the
+    // next timepoint
+    // Thus, trying to infer the timepoint network from the existing
+    // relationship to construct a QualitativeTemporalConstraintNetwork
+    while(!vertices.empty())
+    {
+        Vertex::Ptr vertex = vertices.back();
+        vertices.pop_back();
+
+        SpaceTime::SpaceTimeTuple::Ptr sourceTuple = dynamic_pointer_cast<SpaceTime::SpaceTimeTuple>(vertex);
+        if(sourceTuple)
+        {
+            // Get the outgoing edges
+            EdgeIterator::Ptr edgeIt = graph->getOutEdgeIterator(vertex);
+            while(edgeIt->next())
+            {
+                Vertex::Ptr targetVertex = edgeIt->current()->getTargetVertex();
+                vertices.push_back(targetVertex);
+
+                // Add the temporal constraint
+                SpaceTime::SpaceTimeTuple::Ptr targetTuple = dynamic_pointer_cast<SpaceTime::SpaceTimeTuple>(targetVertex);
+                qtcn->addQualitativeConstraint(sourceTuple->second(),
+                        targetTuple->second(), point_algebra::QualitativeTimePointConstraint::Less);
+            }
+        }
+    }
+    assert(qtcn->isConsistent());
+    point_algebra::TimePointComparator comparator(qtcn);
+
+    // Now that we have the temporal constraint network, we can sort the labels,
+    // using the temporal relationships
+    std::sort( labels.begin(), labels.end(), [comparator](const std::string& t0, const std::string& t1)
+            {
+                point_algebra::TimePoint::Ptr tp0 = comparator.getTemporalConstraintNetwork()->getTimePoint(t0);
+                point_algebra::TimePoint::Ptr tp1 = comparator.getTemporalConstraintNetwork()->getTimePoint(t1);
+
+                return comparator.lessThan(tp0, tp1);
+            });
 }
 
 } // end namespace gui

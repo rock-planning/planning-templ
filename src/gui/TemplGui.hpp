@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <graph_analysis/gui/QBaseGraph.hpp>
+#include <graph_analysis/gui/layouts/GridLayout.hpp>
 
 namespace Ui {
     class TemplGui;
@@ -58,6 +59,11 @@ private:
     void updateRecentFileActions();
 
     void activateGraph(graph_analysis::BaseGraph::Ptr& graph);
+
+    static std::string getColumnLabel(const graph_analysis::Vertex::Ptr& vertex);
+    static std::string getRowLabel(const graph_analysis::Vertex::Ptr& vertex);
+
+    static void sortRowLabel(const graph_analysis::BaseGraph::Ptr& graph, graph_analysis::gui::layouts::GridLayout::ColumnLabels& labels);
 
 private slots:
     void importGraph();
