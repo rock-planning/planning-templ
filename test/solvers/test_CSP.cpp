@@ -381,36 +381,55 @@ BOOST_AUTO_TEST_CASE(symmetry_breaking)
 BOOST_AUTO_TEST_CASE(flaw_resolution)
 {
     using namespace templ::solvers::csp;
+    using namespace templ::solvers;
+    using namespace graph_analysis::algorithms;
+
+    std::vector<transshipment::Flaw> flaws;
+    graph_analysis::algorithms::ConstraintViolation violation0(MultiCommodityVertex::Ptr(),
+            0,0,ConstraintViolation::MinFlow);
+    transshipment::Flaw flaw0(violation0, Role());
+    flaws.push_back(flaw0);
+
+    graph_analysis::algorithms::ConstraintViolation violation1(MultiCommodityVertex::Ptr(),
+            0,0,ConstraintViolation::TransFlow);
+    transshipment::Flaw flaw1(violation1, Role());
+    flaws.push_back(flaw1);
 
     {
         FlawResolution flawResolution;
-        flawResolution.prepare(2);
-        BOOST_REQUIRE_MESSAGE(flawResolution.remaining().size() == 3, "Flaw resolution options should be 3 but was " <<
-                flawResolution.remaining().size());
+        flawResolution.prepare(flaws);
+        BOOST_REQUIRE_MESSAGE(flawResolution.remainingDraws().size() == 7, "Flaw resolution options should be 3 but was " <<
+                flawResolution.remainingDraws().size());
 
         while(flawResolution.next(false))
         {
             std::stringstream ss;
-            ss << "Draw: " << std::endl;
-            FlawResolution::Draw draw = flawResolution.current();
-            BOOST_TEST_MESSAGE(FlawResolution::toString(draw));
+            BOOST_TEST_MESSAGE("Draw:");
+            FlawResolution::ResolutionOptions draw = flawResolution.current();
+            for(FlawResolution::ResolutionOption d : draw)
+            {
+                BOOST_TEST_MESSAGE("    " << ConstraintViolation::TypeTxt[ d.first.violation.getType() ] << " - alternative: " << d.second);
+            }
         }
     }
 
     {
 
         FlawResolution flawResolution;
-        flawResolution.prepare(2);
-        BOOST_REQUIRE_MESSAGE(flawResolution.remaining().size() == 3, "Flaw resolution options should be 3 but was " <<
-                flawResolution.remaining().size());
+        flawResolution.prepare(flaws);
+        BOOST_REQUIRE_MESSAGE(flawResolution.remainingDraws().size() == 7, "Flaw resolution options should be 3 but was " <<
+                flawResolution.remainingDraws().size());
 
         while(flawResolution.next())
         {
 
             std::stringstream ss;
-            ss << "Random draw: " << std::endl;
-            FlawResolution::Draw draw = flawResolution.current();
-            BOOST_TEST_MESSAGE(FlawResolution::toString(draw));
+            BOOST_TEST_MESSAGE("Draw:");
+            FlawResolution::ResolutionOptions draw = flawResolution.current();
+            for(FlawResolution::ResolutionOption d : draw)
+            {
+                BOOST_TEST_MESSAGE("    " << ConstraintViolation::TypeTxt[ d.first.violation.getType() ] << " - alternative: " << d.second);
+            }
         }
     }
 }
