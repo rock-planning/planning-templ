@@ -41,32 +41,18 @@ FlowNetwork::FlowNetwork(const Mission::Ptr& mission,
 
 void FlowNetwork::save(const std::string& path)
 {
+    std::string filename = path;
+    if(filename.empty())
     {
-        std::string filename = path;
-        if(filename.empty())
-        {
-            filename = mpMission->getLogger()->filename("transport-network.dot");
-        }
-        using namespace graph_analysis::io;
-
-        mSpaceTimeNetwork.save(filename);
-
-        LOG_DEBUG_S << "Written transport network to: " << filename;
-        LOG_DEBUG_S << "(e.g. view with 'xdot " << filename << "'" << ")";
+        filename = mpMission->getLogger()->filename("transhipment-flow-network.gexf");
     }
-    {
-        std::string filename = path;
-        if(filename.empty())
-        {
-            filename = mpMission->getLogger()->filename("transport-network.gexf");
-        }
-        using namespace graph_analysis::io;
+    using namespace graph_analysis::io;
 
-        mSpaceTimeNetwork.save(filename, "gexf");
+    mSpaceTimeNetwork.save(filename, "gexf");
 
-        LOG_DEBUG_S << "Written transport network to: " << filename;
-        LOG_DEBUG_S << "(e.g. view with 'gexf " << filename << "'" << ")";
-    }
+    LOG_DEBUG_S << "Written transport network to: " << filename;
+    LOG_DEBUG_S << "(e.g. view with 'templ-gui " << filename << "'" << ")";
+
 }
 
 void FlowNetwork::initialize()
