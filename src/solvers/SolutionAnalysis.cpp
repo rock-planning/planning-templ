@@ -186,7 +186,6 @@ void SolutionAnalysis::analyse()
 
 void SolutionAnalysis::save() const
 {
-
     std::string filename = mpMission->getLogger()->filename("final_plan.gexf");
     graph_analysis::io::GraphIO::write(filename, mPlan.getGraph());
 
@@ -391,7 +390,8 @@ Plan SolutionAnalysis::computePlan() const
 
     using namespace solvers::temporal;
     using namespace symbols::constants;
-    point_algebra::TimePoint::PtrList timepoints = mpMission->getTimepoints();    Location::PtrList locations = mpMission->getLocations();
+    point_algebra::TimePoint::PtrList timepoints = mpMission->getTimepoints();
+    Location::PtrList locations = mpMission->getLocations();
 
     assert(!timepoints.empty());
     point_algebra::TimePoint::Ptr startingTimepoint = timepoints.front();
