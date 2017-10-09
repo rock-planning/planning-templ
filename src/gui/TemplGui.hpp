@@ -71,6 +71,7 @@ private slots:
     void selectLayout();
     void importRecentFile();
     void clearView();
+    void customizeGridLayout();
 
 
     /*Connected to QBaseGraph*/

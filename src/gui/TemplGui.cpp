@@ -25,6 +25,7 @@
 #include <graph_analysis/gui/dialogs/IODialog.hpp>
 #include <graph_analysis/gui/GraphLayoutManager.hpp>
 #include <graph_analysis/gui/layouts/GridLayout.hpp>
+#include <graph_analysis/gui/dialogs/GridLayout.hpp>
 
 #include <templ/gui/MissionEditor/MissionEditor.hpp>
 #include <templ/gui/MissionView/MissionView.hpp>
@@ -118,9 +119,13 @@ TemplGui::TemplGui()
     }
     fileMenu->addSeparator();
 
+    // https://joekuan.wordpress.com/2015/09/23/list-of-qt-icons/ for list of
+    // standard icons
     QMenu *viewMenu = new QMenu(QObject::tr("&View"));
     QAction *clearView = comm.addAction("Clear", SLOT(clearView()), style->standardIcon(QStyle::SP_TrashIcon), QKeySequence( Qt::ControlModifier & Qt::Key_X), tr("Clear view"));
     viewMenu->addAction(clearView);
+    QAction *gridLayoutAction = comm.addAction("Customize GridLayout", SLOT(customizeGridLayout()), style->standardIcon(QStyle::SP_FileDialogListView), QKeySequence(Qt::ControlModifier & Qt::Key_G), tr("Customize grid layout"));
+    viewMenu->addAction(gridLayoutAction);
 
     QMenuBar *bar = menuBar();
     bar->addMenu(fileMenu);
@@ -255,6 +260,11 @@ void TemplGui::selectLayout()
         }
     }
     updateVisualization();
+}
+
+void TemplGui::customizeGridLayout()
+{
+    graph_analysis::gui::dialogs::GridLayout::execute();
 }
 
 void TemplGui::on_tabWidget_currentChanged(int index)
