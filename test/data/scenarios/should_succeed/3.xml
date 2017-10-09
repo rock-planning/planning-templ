@@ -56,6 +56,11 @@
         </temporal-requirement>
         <resource-requirement>
             <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+                <minCardinality>2</minCardinality>
+                <maxCardinality>2</maxCardinality>
+            </resource>
+            <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
                 <minCardinality>2</minCardinality>
                 <maxCardinality>2</maxCardinality>
