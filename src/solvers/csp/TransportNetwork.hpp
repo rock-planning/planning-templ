@@ -391,7 +391,14 @@ public:
 
     size_t getNumberOfTimepoints() const { return mTimepoints.size(); }
     size_t getNumberOfFluents() const { return mLocations.size(); }
+    /**
+     * Get the active roles (as index list)
+     */
     std::vector<uint32_t> getActiveRoles() const { return mActiveRoles; }
+
+    /**
+     * Get the list of active role (as role list)
+     */
     Role::List getActiveRoleList() const { return mActiveRoleList; }
 
 };
