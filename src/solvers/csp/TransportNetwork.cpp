@@ -823,10 +823,11 @@ void TransportNetwork::setUpperBoundForConcurrentRequirements()
                 std::vector<FluentTimeResource>::const_iterator fit = concurrentFluents.begin();
                 for(; fit != concurrentFluents.end(); ++fit)
                 {
-                    Gecode::IntVar v = resourceDistribution(mi, getFluentIndex(*fit));
+                    size_t fluentIdx = FluentTimeResource::getIndex(mResourceRequirements, *fit);
+                    Gecode::IntVar v = resourceDistribution(mi,fluentIdx);
                     args << v;
 
-                    LOG_DEBUG_S << "    index: " << mi << "/" << getFluentIndex(*fit);
+                    LOG_DEBUG_S << "    index: " << mi << "/" << fluentIdx;
                 }
 
                 uint32_t maxCardinality = mModelPool[ mAvailableModels[mi] ];
@@ -916,7 +917,7 @@ void TransportNetwork::enforceUnaryResourceUsage()
                 std::vector<FluentTimeResource>::const_iterator fit = concurrentFluents.begin();
                 for(; fit != concurrentFluents.end(); ++fit)
                 {
-                    size_t row = getFluentIndex(*fit);
+                    size_t row = FluentTimeResource::getIndex(mResourceRequirements, *fit);
                     LOG_DEBUG_S << "    index: " << roleIndex << "/" << row;
                     Gecode::IntVar v = roleDistribution(roleIndex, row);
                     args << v;
@@ -1216,19 +1217,6 @@ void TransportNetwork::appendToTupleSet(Gecode::TupleSet& tupleSet, const organi
 
         tupleSet.add( args );
     }
-}
-
-size_t TransportNetwork::getFluentIndex(const FluentTimeResource& fluent) const
-{
-    std::vector<FluentTimeResource>::const_iterator ftsIt = std::find(mResourceRequirements.begin(), mResourceRequirements.end(), fluent);
-    if(ftsIt != mResourceRequirements.end())
-    {
-        int index = ftsIt - mResourceRequirements.begin();
-        assert(index >= 0);
-        return (size_t) index;
-    }
-
-    throw std::runtime_error("templ::solvers::csp::TransportNetwork::getFluentIndex: could not find fluent index for '" + fluent.toString() + "'");
 }
 
 size_t TransportNetwork::getResourceModelIndex(const owlapi::model::IRI& model) const

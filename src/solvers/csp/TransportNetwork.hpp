@@ -225,11 +225,6 @@ private:
     void appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPool::Set& combinations) const;
 
     /**
-     * Map a fluents to its index (id)
-     * \return index of the fluent
-     */
-    size_t getFluentIndex(const FluentTimeResource& fluent) const;
-    /**
      * Map the resource model to its index (id)
      * \return index of the resource model
      */
