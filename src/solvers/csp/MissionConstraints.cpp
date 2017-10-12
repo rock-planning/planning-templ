@@ -1,6 +1,7 @@
 #include "MissionConstraints.hpp"
 #include <gecode/minimodel.hh>
 #include "utils/Converter.hpp"
+#include <organization_model/Algebra.hpp>
 
 namespace templ {
 namespace solvers {
@@ -172,6 +173,41 @@ void MissionConstraints::addModelRequirement(
         }
     }
     throw std::invalid_argument("templ::solvers::csp::MissionConstraints::addModelRequirement: given FluentTimeResource is not part of the given list");
+}
+
+void MissionConstraints::addFunctionRequirement(const owlapi::model::IRIList& allAvailableResources, std::vector<FluentTimeResource>& resourceRequirements,
+        const FluentTimeResource& fts,
+        const owlapi::model::IRI& function,
+        organization_model::OrganizationModelAsk ask)
+{
+    // Find the function requirement index
+    size_t index = 0;
+    owlapi::model::IRIList::const_iterator cit = allAvailableResources.begin();
+    for(; cit != allAvailableResources.end(); ++cit, ++index)
+    {
+        if(*cit == function)
+        {
+            break;
+        }
+    }
+
+    // If function cannot be found add the function to the (known) required resources
+    if(index >= allAvailableResources.size())
+    {
+            throw std::invalid_argument("templ::solvers::csp::MissionConstraints: could not find the resource index for: '" + function.toString() + "' -- which is not a service class");
+    }
+    LOG_DEBUG_S << "Using resource index: " << index;
+
+    // identify the fluent time resource
+    size_t idx = FluentTimeResource::getIndex(resourceRequirements, fts);
+    FluentTimeResource& ftr = resourceRequirements[idx];
+
+    LOG_DEBUG_S << "Fluent before adding function requirement: " << ftr.toString();
+
+    // insert the function requirement
+    ftr.resources.insert(index);
+    ftr.maxCardinalities = organization_model::Algebra::max(ftr.maxCardinalities, ask.getFunctionalSaturationBound(function) );
+    LOG_DEBUG_S << "Fluent after adding function requirement: " << ftr.toString();
 }
 
 } // end namespace csp

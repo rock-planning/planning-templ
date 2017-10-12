@@ -5,6 +5,7 @@
 #include <gecode/int.hh>
 #include <set>
 #include "../../Mission.hpp"
+#include <organization_model/OrganizationModelAsk.hpp>
 
 namespace templ {
 namespace solvers {
@@ -53,6 +54,8 @@ public:
      * Increment the distinction for model instances between two requirements
      * for \a additional
      *
+     * add-model-distinction (fts0,fts1,roleModel,add)
+     *
      */
     static void addDistinct(Gecode::Space& home, const Gecode::IntVarArray& roleUsageCurrent,
             Gecode::IntVarArray& roleUsage,
@@ -74,6 +77,18 @@ public:
             const FluentTimeResource& ftr,
             const owlapi::model::IRI& model,
             uint32_t additional = 1);
+
+    /**
+     * Add a particular function requirement to the current mission with respect to a
+     * FluentTimeResource instance
+     * \throws std::invalid_argument when fluent time resource could not be
+     * found
+     */
+    static void addFunctionRequirement(const owlapi::model::IRIList& allAvailableResources,
+            std::vector<FluentTimeResource>& resourceRequirements,
+            const FluentTimeResource& fts,
+            const owlapi::model::IRI& function,
+            organization_model::OrganizationModelAsk ask);
 
 
 };

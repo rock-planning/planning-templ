@@ -247,9 +247,23 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
                                     << flaw.ftr.toString(8);
                             std::cout << "        Resulting requirements: " << std::endl;
 
-                            addFunctionRequirement(flaw.ftr, organization_model::vocabulary::OM::resolve("TransportProvider"));
                             if(msInteractive)
                             {
+                                std::cout << "Add function requirement: available resources are" << std::endl;
+                                std::cout << mResources << std::endl;
+                                std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+                            }
+
+                            MissionConstraints::addFunctionRequirement(
+                                    mResources,
+                                    mResourceRequirements,
+                                    flaw.ftr,
+                                    organization_model::vocabulary::OM::resolve("TransportProvider"),
+                                    mAsk);
+
+                            if(msInteractive)
+                            {
+                                std::cout << "Fluents after adding function requirement: " << std::endl;
                                 for(const FluentTimeResource& ftr : mResourceRequirements)
                                 {
                                     std::cout << ftr.toString(12) << std::endl;
@@ -1880,59 +1894,6 @@ std::ostream& operator<<(std::ostream& os, const TransportNetwork::SolutionList&
     }
     os << "END SolutionList" << std::endl;
     return os;
-}
-
-void TransportNetwork::addFunctionRequirement(const FluentTimeResource& fts, const owlapi::model::IRI& function)
-{
-    if(msInteractive)
-    {
-        std::cout << "Add function requirement: available resources are" << std::endl;
-        std::cout << mResources << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
-
-    // Find the function requirement index
-    size_t index = 0;
-    owlapi::model::IRIList::const_iterator cit = mResources.begin();
-    for(; cit != mResources.end(); ++cit, ++index)
-    {
-        if(*cit == function)
-        {
-            break;
-        }
-    }
-
-    // If function cannot be found add the function to the (known) required resources
-    if(index >= mResources.size())
-    {
-    //    if( mAsk.ontology().isSubClassOf(function, organization_model::vocabulary::OM::Functionality()) )
-    //    {
-    //        LOG_INFO_S << "Auto-add requirement for '" << function << "' to known set of required resources";
-    //        mResources.push_back(function);
-    //    } else {
-            throw std::invalid_argument("templ::solvers::csp::TransportNetwork: could not find the resource index for: '" + function.toString() + "' -- which is not a service class");
-    //    }
-    }
-    LOG_DEBUG_S << "Using resource index: " << index;
-
-    // identify the fluent time resource
-    std::vector<FluentTimeResource>::iterator fit = std::find(mResourceRequirements.begin(), mResourceRequirements.end(), fts);
-    if(fit == mResourceRequirements.end())
-    {
-        throw std::invalid_argument("templ::solvers::csp::TransportNetwork: could not find the fluent time resource: '" + fts.toString() + "'");
-    }
-    LOG_DEBUG_S << "Fluent before adding function requirement: " << fit->toString();
-
-    // insert the function requirement
-    fit->resources.insert(index);
-    fit->maxCardinalities = organization_model::Algebra::max(fit->maxCardinalities, mAsk.getFunctionalSaturationBound(function) );
-    LOG_DEBUG_S << "Fluent after adding function requirement: " << fit->toString();
-    if(msInteractive)
-    {
-        std::cout << "Fluent after adding function requirement: " << fit->toString() << std::endl;
-        std::cout << "Press ENTER to continue ..." << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
 }
 
 void TransportNetwork::save(const std::string& _filename) const

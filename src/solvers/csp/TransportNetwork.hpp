@@ -394,14 +394,6 @@ public:
      */
     void save(const std::string& filename = "") const;
 
-    /**
-     * Add a particular function requirement to the current mission with respect to a
-     * FluentTimeResource instance
-     * \throws std::invalid_argument when fluent time resource could not be
-     * found
-     */
-    void addFunctionRequirement(const FluentTimeResource& ftr, const owlapi::model::IRI& function);
-
     size_t getNumberOfTimepoints() const { return mTimepoints.size(); }
     size_t getNumberOfFluents() const { return mLocations.size(); }
     std::vector<uint32_t> getActiveRoles() const { return mActiveRoles; }
