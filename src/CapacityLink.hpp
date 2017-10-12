@@ -59,18 +59,25 @@ public:
     /**
      * Get the provider for this capacity link
      */
-    const Role& getProvider() const { return mProvider; }
+    const Role::Set& getProviders() const { return mProviders; }
+
+    /**
+     * Add a provider to this capacity link
+     */
+    void addProvider(const Role& role, uint32_t capacity);
 
     /**
      * Register attributes for serialization of this capacity link
      */
     virtual void registerAttributes(graph_analysis::EdgeTypeManager* eManager) const override;
 
+    static const Role& getLocalTransitionRole() { return msLocationTransitionRole; }
+
 protected:
     virtual graph_analysis::Edge* getClone() const override { return new CapacityLink(*this); }
 
-    std::string serializeProvider() const;
-    void deserializeProvider(const std::string& data);
+    std::string serializeProviders() const;
+    void deserializeProviders(const std::string& data);
 
     std::string serializeConsumers() const;
     void deserializeConsumers(const std::string& data);
@@ -79,9 +86,12 @@ protected:
     void deserializeMaxCapacity(const std::string& data);
 
 private:
-    Role mProvider;
+    Role::Set mProviders;
     uint32_t mMaxCapacity;
+    std::map<Role, uint32_t> mAvailableCapacities;
     std::map<Role, uint32_t> mUsedCapacity;
+
+    static Role msLocationTransitionRole;
 
     static const graph_analysis::EdgeRegistration<CapacityLink> msRegistration;
 };

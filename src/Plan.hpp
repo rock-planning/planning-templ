@@ -66,7 +66,12 @@ public:
      * Save plan into file of the given name
      * \throws if file cannot be created (e.g. missing parent folder)
      */
-    void save( const std::string& filename);
+    void save( const std::string& filename) const;
+
+    /**
+     * Save the plan as graph
+     */
+    void saveGraph(const std::string& filename) const;
 
     /**
      * Save all plans in the list into file of the given name
@@ -99,6 +104,10 @@ public:
      */
     const ActionPlan& getActionPlan() const;
 
+    void computeGraph() const;
+
+    void computeActionPlan() const;
+
     /**
      * Compute the action plan and graph in one go
      * only perform an update if required
@@ -109,6 +118,11 @@ public:
      * Return the graph representing the plan
      */
     graph_analysis::BaseGraph::Ptr getGraph() const;
+
+    /**
+     * Check if the transition is a local transition, i.e. requires no transport
+     */
+    bool isLocalTransition(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1) const;
 
 private:
     Mission::Ptr mpMission;

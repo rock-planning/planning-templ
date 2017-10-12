@@ -4,22 +4,26 @@
 #include <boost/serialization/map.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
+#include <base-logging/Logging.hpp>
 
 namespace templ {
 
 const graph_analysis::EdgeRegistration<CapacityLink> CapacityLink::msRegistration;
 
+Role CapacityLink::msLocationTransitionRole = Role("local-transition",owlapi::model::IRI());
+
 CapacityLink::CapacityLink()
     : graph_analysis::Edge()
-    , mProvider()
+    , mProviders()
     , mMaxCapacity(0)
 {}
 
 CapacityLink::CapacityLink(const Role& role, uint32_t capacity)
     : graph_analysis::Edge()
-    , mProvider(role)
     , mMaxCapacity(capacity)
-{}
+{
+    mProviders.insert(role);
+}
 
 CapacityLink::~CapacityLink() {}
 
@@ -28,13 +32,44 @@ std::string CapacityLink::toString(uint32_t indent) const
     std::string hspace(indent,' ');
     std::stringstream ss;
     ss << hspace << "CapacityLink " << "(max: " << getCapacity() << ")" << std::endl;
-    ss << hspace << "    provider: " << mProvider.toString() << std::endl;
-    ss << hspace << "    consumers: " << std::endl;
+    //if(getSourceVertex())
+    //{
+    //    ss << hspace << "    from: " << getSourceVertex()->toString() << std::endl;
+    //} else {
+    //    ss << hspace << "    from: n/a" << std::endl;
+    //}
+    //if(getTargetVertex())
+    //{
+    //    ss << hspace << "    to: " << getTargetVertex()->toString() << std::endl;
+    //} else {
+    //    ss << hspace << "    to: n/a" << std::endl;
+    //}
+    ss << hspace << "    providers: " << std::endl;
+    ss << Role::toString(mProviders, indent + 8);
+    ss << hspace << "    consumers: " << mUsedCapacity.size() << std::endl;
     for(const std::pair<Role, uint32_t>& consumer : mUsedCapacity)
     {
         ss << hspace << "        - " << consumer.first.toString() << ": " << consumer.second << std::endl;
     }
     return ss.str();
+}
+
+void CapacityLink::addProvider(const Role& role, uint32_t capacity)
+{
+    Role::Set::const_iterator cit = std::find(mProviders.begin(), mProviders.end(), role);
+    if(cit != mProviders.end())
+    {
+        throw std::invalid_argument("templ::CapacityLink::addProvider: provider '" + role.toString() + "'"
+                "does already exist for this link");
+    }
+
+    mProviders.insert(role);
+
+    if(capacity == std::numeric_limits<uint32_t>::max() || mMaxCapacity == std::numeric_limits<uint32_t>::max())
+    {
+        mMaxCapacity = std::numeric_limits<uint32_t>::max();
+    }
+    mMaxCapacity += capacity;
 }
 
 void CapacityLink::addConsumer(const Role& role, uint32_t capacity)
@@ -49,9 +84,11 @@ void CapacityLink::addConsumer(const Role& role, uint32_t capacity)
     if(remainingCapacity < capacity)
     {
         std::stringstream ss;
-        ss << "templ::CapacitLink::addConsumer: consumer '" << role.toString() << "'"
-            << "cannot be added, since there is not enough capacity left: '" << remainingCapacity << "'";
-        throw std::runtime_error(ss.str());
+        ss << "templ::CapacityLink::addConsumer: consumer '" << role.toString() << "'"
+            << "cannot be added, since there is not enough capacity left: '" << remainingCapacity
+            << "' of '" << mMaxCapacity << "'";
+        LOG_WARN_S << ss.str();
+       // throw std::runtime_error(ss.str());
     }
 
     mUsedCapacity[role] = capacity;
@@ -83,20 +120,20 @@ uint32_t CapacityLink::getUsedCapacity() const
     return capacity;
 }
 
-std::string CapacityLink::serializeProvider() const
+std::string CapacityLink::serializeProviders() const
 {
     std::stringstream ss;
     boost::archive::text_oarchive oarch(ss);
-    oarch << mProvider;
+    oarch << mProviders;
     return ss.str();
 }
 
-void CapacityLink::deserializeProvider(const std::string& data)
+void CapacityLink::deserializeProviders(const std::string& data)
 {
     std::stringstream ss;
     ss << data;
     boost::archive::text_iarchive iarch(ss);
-    iarch >> mProvider;
+    iarch >> mProviders;
 }
 
 std::string CapacityLink::serializeConsumers() const
@@ -135,10 +172,10 @@ void CapacityLink::registerAttributes(graph_analysis::EdgeTypeManager* eManager)
             (graph_analysis::io::AttributeSerializationCallbacks::deserialize_func_t)&CapacityLink::deserializeMaxCapacity,
             (graph_analysis::io::AttributeSerializationCallbacks::print_func_t)&CapacityLink::serializeMaxCapacity);
 
-    eManager->registerAttribute(getClassName(), "provider",
-            (graph_analysis::io::AttributeSerializationCallbacks::serialize_func_t)&CapacityLink::serializeProvider,
-            (graph_analysis::io::AttributeSerializationCallbacks::deserialize_func_t)&CapacityLink::deserializeProvider,
-            (graph_analysis::io::AttributeSerializationCallbacks::print_func_t)&CapacityLink::serializeProvider);
+    eManager->registerAttribute(getClassName(), "providers",
+            (graph_analysis::io::AttributeSerializationCallbacks::serialize_func_t)&CapacityLink::serializeProviders,
+            (graph_analysis::io::AttributeSerializationCallbacks::deserialize_func_t)&CapacityLink::deserializeProviders,
+            (graph_analysis::io::AttributeSerializationCallbacks::print_func_t)&CapacityLink::serializeProviders);
 
     eManager->registerAttribute(getClassName(), "consumers",
             (graph_analysis::io::AttributeSerializationCallbacks::serialize_func_t)&CapacityLink::serializeConsumers,

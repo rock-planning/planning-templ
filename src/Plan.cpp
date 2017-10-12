@@ -1,9 +1,10 @@
 #include "Plan.hpp"
 #include <sstream>
 #include <fstream>
-#include <templ/RoleInfoTuple.hpp>
 #include <organization_model/facets/Robot.hpp>
 #include <base-logging/Logging.hpp>
+#include "SpaceTime.hpp"
+#include "RoleInfoTuple.hpp"
 
 namespace templ {
 
@@ -72,7 +73,7 @@ std::string Plan::toString(const std::vector<Plan>& plans, uint32_t indent)
     return ss.str();
 }
 
-void Plan::save(const std::string& filename)
+void Plan::save(const std::string& filename) const
 {
     std::ofstream file(filename);
     if(!file.is_open())
@@ -81,6 +82,11 @@ void Plan::save(const std::string& filename)
     }
     file << toString();
     file.close();
+}
+
+void Plan::saveGraph(const std::string& filename) const
+{
+    graph_analysis::io::GraphIO::write(filename, mpBaseGraph);
 }
 
 std::string Plan::toString(const ActionPlan& plan, uint32_t indent)
@@ -187,6 +193,19 @@ void Plan::computeGraphAndActionPlan() const
         return;
     }
 
+    computeGraph();
+    computeActionPlan(); //ActionPlan actionPlan;
+
+    mRequiresRefresh = false;
+}
+
+void Plan::computeActionPlan() const
+{
+    ActionPlan actionPlan;
+}
+
+void Plan::computeGraph() const
+{
     mpBaseGraph = graph_analysis::BaseGraph::getInstance();
 
     if(!mpMission)
@@ -196,9 +215,8 @@ void Plan::computeGraphAndActionPlan() const
 
     organization_model::OrganizationModelAsk organizationModelAsk(mpMission->getOrganizationModel(), mpMission->getAvailableResources(), true);
 
-    ActionPlan actionPlan;
-
     // handle mobile robots first
+    // for each mobile system we add capacity links
     {
         RoleBasedPlan::const_iterator cit = mRolebasedPlan.begin();
         for(; cit != mRolebasedPlan.end(); ++cit)
@@ -221,25 +239,45 @@ void Plan::computeGraphAndActionPlan() const
             for(; pit != plan.end(); ++pit)
             {
                 graph_analysis::Vertex::Ptr currentWaypoint = *pit;
-                if(previousWaypoint)
+                if(!previousWaypoint)
+                {
+                    previousWaypoint = currentWaypoint;
+                    continue;
+                }
+
+                std::vector<graph_analysis::Edge::Ptr> edges;
+                try {
+                    edges = mpBaseGraph->getEdges(previousWaypoint, currentWaypoint);
+                } catch(const std::runtime_error& e)
+                {
+                    // not link created yet
+                }
+                if(edges.empty())
                 {
                     CapacityLink::Ptr link(new CapacityLink(role, capacity));
                     link->setSourceVertex(previousWaypoint);
                     link->setTargetVertex(currentWaypoint);
                     mpBaseGraph->addEdge(link);
-
+                    std::cout << "Adding capacity link: for " << role.toString() << " from " << previousWaypoint->toString()
+                        << " to " << currentWaypoint->toString() << std::endl;
+                    roleSpecificPlan.push_back("move-to (from: '" + previousWaypoint->toString() + "', to: "
+                        "'" + currentWaypoint->toString() + "'");
+                } else {
+                    assert(edges.size() == 1);
+                    CapacityLink::Ptr link = dynamic_pointer_cast<CapacityLink>(edges[0]);
+                    link->addProvider(role, capacity);
+                    std::cout << "Adding provider to capacity link: for " << role.toString() << " from " << previousWaypoint->toString()
+                        << " to " << currentWaypoint->toString() << std::endl;
                     roleSpecificPlan.push_back("move-to (from: '" + previousWaypoint->toString() + "', to: "
                         "'" + currentWaypoint->toString() + "'");
                 }
                 previousWaypoint = currentWaypoint;
             }
-            actionPlan[role] = roleSpecificPlan;
         }
+    } // end handling mobile roles
 
-    }
-
-    Role locationTransitionRole("local-transition",owlapi::model::IRI());
     // handle only immobile robots and map to CapacityLinks
+    Role locationTransitionRole = CapacityLink::getLocalTransitionRole();
     {
         RoleBasedPlan::const_iterator cit = mRolebasedPlan.begin();
         for(; cit != mRolebasedPlan.end(); ++cit)
@@ -252,9 +290,14 @@ void Plan::computeGraphAndActionPlan() const
             {
                 continue;
             }
-            // TODO: update on usage using facets, e.g. when taking
-            // about transport units
-            uint32_t capacityUsage = 1;
+
+            // Extract actual demand for the immobile payload
+            int32_t demand = robot.getPayloadTransportSupplyDemand();
+            if(demand >= 0)
+            {
+                throw std::invalid_argument("templ::Plan::computeGraph: expected demand (negative value for supplyDeman) for immobile role '" + role.toString() + "' but was the value was positive");
+            }
+            uint32_t capacityUsage = abs(demand);
 
             std::vector<std::string> roleSpecificPlan;
             graph_analysis::Vertex::Ptr previousWaypoint;
@@ -267,85 +310,61 @@ void Plan::computeGraphAndActionPlan() const
                 graph_analysis::Vertex::Ptr currentWaypoint = *pit;
                 if(previousWaypoint)
                 {
+                    CapacityLink::Ptr capacityLink;
                     std::vector<graph_analysis::Edge::Ptr> edges;
                     try {
                         edges = mpBaseGraph->getEdges(previousWaypoint, currentWaypoint);
                     } catch(const std::runtime_error& e)
                     {
-                        LOG_WARN_S << "Looks like the items remains: " << previousWaypoint->toString() << " -- " << currentWaypoint->toString() << " -- nothing to do since when egdes are empty we will add the local link: " << e.what();
+                        LOG_INFO_S << "Looks like the items remains: " << previousWaypoint->toString() << " -- " << currentWaypoint->toString();
                     }
 
-                    if(edges.empty())
+                    if(isLocalTransition(previousWaypoint, currentWaypoint))
                     {
-                        // Lazily creating the link of a local transition
-                        CapacityLink::Ptr localLink( new CapacityLink(locationTransitionRole, std::numeric_limits<uint32_t>::max()));
-                        localLink->addConsumer(role, capacityUsage);
-                        localLink->setSourceVertex(previousWaypoint);
-                        localLink->setTargetVertex(currentWaypoint);
-
-                        mpBaseGraph->addEdge(localLink);
-                        capacityProvider = locationTransitionRole;
-                    } else if(edges.size() == 1)
-                    {
-                        CapacityLink::Ptr link = dynamic_pointer_cast<CapacityLink>(edges[0]);
-                        link->addConsumer(role, capacityUsage);
-                        // prefer remaining with the same provider
-                        capacityProvider = link->getProvider();
-                    } else {
-                        CapacityLink::Ptr bestLink;
-                        std::vector<graph_analysis::Edge::Ptr>::const_iterator eit = edges.begin();
-                        for(; eit != edges.end(); ++eit)
+                        if(edges.empty())
                         {
-                            CapacityLink::Ptr link = dynamic_pointer_cast<CapacityLink>(*eit);
-                            uint32_t remainingCapacity = link->getRemainingCapacity();
-                            if(link->getProvider() == capacityProvider)
-                            {
-                                if(remainingCapacity >= capacityUsage)
-                                {
-                                    bestLink = link;
-                                    break;
-                                } else {
-                                    LOG_WARN_S << "Found previous capacity provider, but there is no capacity left";
-                                }
-                            }
+                                // Lazily creating the link of a local transition
+                                CapacityLink::Ptr localLink( new CapacityLink(locationTransitionRole, std::numeric_limits<uint32_t>::max()));
+                                localLink->setSourceVertex(previousWaypoint);
+                                localLink->setTargetVertex(currentWaypoint);
+                                mpBaseGraph->addEdge(localLink);
 
-                            if(bestLink)
-                            {
-                                if(remainingCapacity > bestLink->getRemainingCapacity())
-                                {
-                                    bestLink = link;
-                                }
-                            } else {
-                                bestLink = link;
-                            }
-                        }
-                        bestLink->addConsumer(role, capacityUsage);
-                        capacityProvider = bestLink->getProvider();
-                    }
-
-                    if(previousCapacityProvider != capacityProvider)
-                    {
-                        if(capacityProvider == Role())
-                        {
-                            roleSpecificPlan.push_back("join (provider: '" + capacityProvider.toString() + "' from: '" + previousWaypoint->toString() + "', to"
-                                "'" + currentWaypoint->toString() + "'");
+                                capacityLink = localLink;
                         } else {
-                            roleSpecificPlan.push_back("join (provider: '" + capacityProvider.toString() + "' from: '" + previousWaypoint->toString() + "', to"
-                                "'" + currentWaypoint->toString() + "'");
+                            try {
+                                capacityLink = dynamic_pointer_cast<CapacityLink>(edges[0]);
+                                capacityLink->addProvider(locationTransitionRole, std::numeric_limits<uint32_t>::max());
+                            } catch(const std::invalid_argument& e)
+                            {
+                                // ignore if local transition role has already
+                                // been added
+                            }
                         }
-                    } else {
-                        LOG_WARN_S << "Previous provider: '" << previousCapacityProvider.toString() << " --vs-- " << capacityProvider.toString();
-
+                    } else if(edges.empty())
+                    {
+                        throw std::runtime_error("templ::Plan::computeGraphAndActionPlan: item can not be routed, neither a transport provider is available, nor is this a local transition");
+                    }else {
+                        assert(edges.size() == 1);
+                        capacityLink = dynamic_pointer_cast<CapacityLink>(edges[0]);
                     }
+
+                    capacityLink->addConsumer(role, capacityUsage);
                 }
-                previousCapacityProvider = capacityProvider;
                 previousWaypoint = currentWaypoint;
             }
-            actionPlan[role] = roleSpecificPlan;
-        }
+        } // end role based plan
     }
+}
 
-    mRequiresRefresh = false;
+bool Plan::isLocalTransition(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1) const
+{
+    SpaceTime::SpaceTimeTuple::Ptr tuple0 = dynamic_pointer_cast<SpaceTime::SpaceTimeTuple>(v0);
+    SpaceTime::SpaceTimeTuple::Ptr tuple1 = dynamic_pointer_cast<SpaceTime::SpaceTimeTuple>(v1);
+
+    assert(tuple0);
+    assert(tuple1);
+
+    return tuple0->first() == tuple1->first();
 }
 
 } // end namespace templ
