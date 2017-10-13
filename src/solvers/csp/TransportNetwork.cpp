@@ -155,7 +155,7 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
 {
     if(msInteractive)
     {
-        std::cout << "next()" << std::endl;
+        std::cout << "BEGIN next()" << std::endl;
         std::cout << "Press ENTER to continue..." << std::endl;
         std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
     }
@@ -166,128 +166,47 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
         constrainSlave(*mi.last());
 
         // the last space is the result of the 'first' slave so this
-        // is our basic solution to start from
+        // is our basic (master) solution to start from
         mMinCostFlowFlaws = lastSpace.mMinCostFlowFlaws;
         mFlawResolution = lastSpace.mFlawResolution;
+        mRequiredResolutionOptions = lastSpace.mRequiredResolutionOptions;
     }
 
     if(msInteractive)
     {
-        std::cout << "BEGIN next():" << std::endl;
+        std::cout << "next():" << std::endl;
         std::cout << "    # flaws: " << mMinCostFlowFlaws.size() << std::endl;
         std::cout << "    # resolution options: " << mFlawResolution.remainingDraws().size() << std::endl;
+        std::cout << "    # required resolution options: " << mRequiredResolutionOptions.size() << std::endl;
         std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
     }
 
     namespace ga = graph_analysis::algorithms;
 
-    FlawResolution::ResolutionOptions resolutionOptions = mFlawResolution.current();
-    for(const FlawResolution::ResolutionOption& resolutionOption : resolutionOptions)
+    FlawResolution::EvaluationList evalList = FlawResolution::selectBestResolution(*this, lastSpace, lastSpace.cost().val(), mFlawResolution.getResolutionOptions());
+
+
+    for(const FlawResolution::Evaluation& e : evalList)
     {
-        const transshipment::Flaw& flaw = resolutionOption.first;
-        size_t alternative = resolutionOption.second;
+        std::cout << "Requiring flaw which improves with delta: " << e.second;
+        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+        mRequiredResolutionOptions.push_back( e.first );
+    //mRequiredResolutionOptions.insert(mRequiredResolutionOptions.begin(), resolutionOptions.begin(), resolutionOptions.end());
+    }
 
-        switch(flaw.violation.getType())
-        {
-            case ga::ConstraintViolation::TransFlow:
+    for(const FlawResolution::ResolutionOption& resolutionOption : mRequiredResolutionOptions)
+    {
+        FlawResolution::applyResolutionOption(*this, lastSpace, resolutionOption);
 
-                std::cout << "Transflow violation: resolver option #" << alternative << std::endl;
-                {
-                    switch(alternative)
-                    {
-                        case 0:
-                            std::cout
-                                << "    adding distiction constraint" << std::endl
-                                << "         distinction for role " << flaw.affectedRole.getModel() << std::endl
-                                << "         current space " << this << std::endl
-                                << "         last space " << &lastSpace << std::endl
-                                << std::endl;
+        // Recompute unary resource usage since constraints have changed
+        enforceUnaryResourceUsage();
 
-                            MissionConstraints::addDistinct(*this,
-                                    lastSpace.mRoleUsage,
-                                    mRoleUsage,
-                                    mRoles, mResourceRequirements,
-                                    flaw.ftr,
-                                    flaw.subsequentFtr,
-                                    flaw.affectedRole.getModel(),
-                                    1);
-                            break;
-                        default:
-                            break;
-                    }
-                break;
-                }
-
-            case ga::ConstraintViolation::MinFlow:
-                std::cout << "Minflow violation: resolver option #" << alternative << std::endl;
-                {
-                    switch(alternative)
-                    {
-                        case 0:
-                            std::cout
-                                << "    adding distiction constraint" << std::endl
-                                << "        additional distinction for: " << abs(flaw.violation.getDelta()) << " and role: " << flaw.affectedRole.toString() << std::endl
-                                << "        current space " << this << std::endl
-                                << "        last space " << &lastSpace << std::endl
-                                << std::endl;
-
-                                MissionConstraints::addDistinct(*this,
-                                        lastSpace.mRoleUsage,
-                                        mRoleUsage,
-                                        mRoles, mResourceRequirements,
-                                        flaw.previousFtr,
-                                        flaw.ftr,
-                                        flaw.affectedRole.getModel(),
-                                        abs( flaw.violation.getDelta() )
-                                        );
-                                break;
-                        case 1:
-                            std::cout << "    add model requirement: for min one transport provider" << std::endl;
-                            std::cout << "        for fluent time resource: " << std::endl
-                                    << flaw.ftr.toString(8);
-                            std::cout << "        Resulting requirements: " << std::endl;
-
-                            if(msInteractive)
-                            {
-                                std::cout << "Add function requirement: available resources are" << std::endl;
-                                std::cout << mResources << std::endl;
-                                std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-                            }
-
-                            MissionConstraints::addFunctionRequirement(
-                                    mResources,
-                                    mResourceRequirements,
-                                    flaw.ftr,
-                                    organization_model::vocabulary::OM::resolve("TransportProvider"),
-                                    mAsk);
-
-                            if(msInteractive)
-                            {
-                                std::cout << "Fluents after adding function requirement: " << std::endl;
-                                for(const FluentTimeResource& ftr : mResourceRequirements)
-                                {
-                                    std::cout << ftr.toString(12) << std::endl;
-                                }
-                                std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                break;
-                }
-            default:
-                std::cout << "Unknown violation constraint while try resolution" << std::endl;
-                break;
-        }
         if(msInteractive)
         {
             std::cout << "END next():" << std::endl;
             std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
         }
 
-        // Recompute unary resource usage since constraints have changed
-        enforceUnaryResourceUsage();
 
     }
 
@@ -317,6 +236,7 @@ void TransportNetwork::constrain(const Gecode::Space& lastSpace)
     {
         std::cout << "constrain()" << std::endl;
         std::cout << "Last state: " << std::endl;
+        std::cout << "    # cost: "<< lastTransportNetwork.mCost.val() << std::endl;
         std::cout << "    # flaws: "<< lastTransportNetwork.mMinCostFlowFlaws.size() << std::endl;
         std::cout << "    # resolution options: " << lastTransportNetwork.mFlawResolution.remainingDraws().size() << std::endl;
 
@@ -341,7 +261,7 @@ void TransportNetwork::constrainSlave(const Gecode::Space& lastSpace)
 
     if(msInteractive)
     {
-        std::cout << "constrain()" << std::endl;
+        std::cout << "constrainSlave()" << std::endl;
         std::cout << "Last state: " << std::endl;
         std::cout << "    # flaws: "<< lastTransportNetwork.mMinCostFlowFlaws.size() << std::endl;
         std::cout << "    # resolution options: " << lastTransportNetwork.mFlawResolution.remainingDraws().size() << std::endl;
@@ -352,18 +272,32 @@ void TransportNetwork::constrainSlave(const Gecode::Space& lastSpace)
 
     rel(*this, cost(), Gecode::IRT_LE, lastTransportNetwork.cost().val());
 
+    // Approach 1: BFS Style
     // Slaves have to provide optimal (zero flaw solutions)
-    rel(*this, mNumberOfFlaws, Gecode::IRT_EQ, 0);
+    // This has the effect that iteration of the slave either returns a
+    // perfect solution or none -- yet it would be beneficial to improve any
+    // 'best slave'
+    //rel(*this, mNumberOfFlaws, Gecode::IRT_EQ, 0);
+
+    // Approach 2: DFS Style
+    // improve any existing solution
+    rel(*this, mNumberOfFlaws, Gecode::IRT_LE, lastTransportNetwork.mNumberOfFlaws);
+
     // TODO:
     // check on the number of flows and the cost of the solution in order to
     // find an improved solution
 }
 
+// Gecode 9.4.4
+// The default slave() function does nothing and returns true , indicating that
+// the search in the slave space is going to be complete. This means that if the
+// search in the slave space finishes exhaustively, the meta search will also
+// finish. Returning false instead would indicate that the slave search is
+// incomplete, for example if it only explores a limited neighborhood of the
+// previous solution
 bool TransportNetwork::slave(const Gecode::MetaInfo& mi)
 {
-    bool useMasterSlave = mConfiguration.getValueAs<bool>("TransportNetwork/search/options/master-slave",false);
-
-    if(!useMasterSlave)
+    if(!mUseMasterSlave)
     {
         // using default implementation of slave, i.e. search is complete
         return true;
@@ -388,11 +322,13 @@ bool TransportNetwork::slave(const Gecode::MetaInfo& mi)
                 std::cout << "No last space available, thus slave search is complete" << std::endl;
                 std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
             }
-            // slave should only expand an existing solution, so search is
-            // complete at this stage
-            return true;
+            // slave should only expand an existing solution,
+            // but search is not complete at this stage
+            return false;
         }
 
+        // Last space the slave will improve upon
+        // this should be consistent with the master of this slave
         const TransportNetwork& lastSpace = static_cast<const TransportNetwork&>(*mi.last());
         if(!lastSpace.mFlawResolution.next(true))
         {
@@ -404,14 +340,14 @@ bool TransportNetwork::slave(const Gecode::MetaInfo& mi)
             }
             // Options are exhausted Search is complete
             mpMission->getLogger()->incrementSessionId();
-            return true;
+            return false;
         } else {
             std::cout << "Calling next with last space" << std::endl;
             next(lastSpace, mi);
             return false;
         }
     }
-    return true;
+    return false;
 }
 
 TransportNetwork::Solution TransportNetwork::getSolution() const
@@ -568,6 +504,8 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Con
     , mCost(*this,0, Gecode::Int::Limits::max)
     , mNumberOfFlaws(*this,0, Gecode::Int::Limits::max)
     , mConfiguration(configuration)
+    , mUseMasterSlave(false)
+    , mpCurrentMaster(NULL)
    // , mCapacities(*this, (mLocations.size()+1)*(mLocations.size()+1)*mTimepoints.size()*mTimepoints.size(), 0, Gecode::Int::Limits::max)
 {
     assert( mpMission->getOrganizationModel() );
@@ -977,6 +915,8 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
     , mMinCostFlowFlaws(other.mMinCostFlowFlaws)
     , mFlawResolution(other.mFlawResolution)
     , mConfiguration(other.mConfiguration)
+    , mUseMasterSlave(other.mUseMasterSlave)
+    , mpCurrentMaster(other.mpCurrentMaster)
 {
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
@@ -1025,6 +965,8 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
     TransportNetwork::msInteractive = configuration.getValueAs<bool>("TransportNetwork/search/interactive",false);
 
     TransportNetwork* distribution = new TransportNetwork(mission, configuration);
+    distribution->mUseMasterSlave = configuration.getValueAs<bool>("TransportNetwork/search/options/master-slave",false);
+
     {
         // Search options: Gecode 9.3.1
         // threads (double) number of parallel threads to use
@@ -1046,9 +988,9 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
             Gecode::Search::Options options;
             options.threads = threads;
-            Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(cutoff);
+            //Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(cutoff);
             //s*b^i, for i = 0,1,2,3,4
-            //Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::geometric(cutoff,2);
+            Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::geometric(cutoff,2);
             options.cutoff = c;
             // p 172 "the value of nogoods_limit described to which depth limit
             // no-goods should be extracted from the path of the search tree
@@ -1070,7 +1012,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             //Gecode::TemplRBS< TransportNetwork, Gecode::DFS > searchEngine(distribution, options);
 
         TransportNetwork* best = NULL;
-        try {
+        //try {
             int i = 0;
             while(TransportNetwork* current = searchEngine.next())
             {
@@ -1160,34 +1102,34 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             }
             csvLogger.commitRow();
 
-        } catch(const std::exception& e)
-        {
-            std::cout << "Solution Search (failed) stopped: " << searchEngine.stopped() << std::endl;
+        //} catch(const std::exception& e)
+        //{
+        //    std::cout << "Solution Search (failed) stopped: " << searchEngine.stopped() << std::endl;
 
-            std::cout << "Statistics: " << std::endl;
-            std::cout << std::setw(15) << "    propagate " << searchEngine.statistics().propagate << std::endl;
+        //    std::cout << "Statistics: " << std::endl;
+        //    std::cout << std::setw(15) << "    propagate " << searchEngine.statistics().propagate << std::endl;
 
-            std::cout << std::setw(15) << "    fail " << searchEngine.statistics().fail << std::endl;
-            std::cout << std::setw(15) << "    node " << searchEngine.statistics().node << std::endl;
-            std::cout << std::setw(15) << "    depth " << searchEngine.statistics().depth << std::endl;
-            std::cout << std::setw(15) << "    restart " << searchEngine.statistics().restart << std::endl;
-            std::cout << std::setw(15) << "    nogood " << searchEngine.statistics().nogood << std::endl;
-            std::cout << std::setw(15) << "    flaws " << best->mMinCostFlowFlaws.size() << std::endl;
-            std::cout << std::setw(15) << "    cost " << best->cost().val() << std::endl;
-            csvLogger.addToRow(1.0, "solution-found");
-            csvLogger.addToRow(searchEngine.stopped(), "solution-stopped");
-            csvLogger.addToRow(searchEngine.statistics().propagate, "propagate");
-            csvLogger.addToRow(searchEngine.statistics().fail, "fail");
-            csvLogger.addToRow(searchEngine.statistics().node, "node");
-            csvLogger.addToRow(searchEngine.statistics().depth, "depth");
-            csvLogger.addToRow(searchEngine.statistics().restart, "restart");
-            csvLogger.addToRow(searchEngine.statistics().nogood, "nogood");
-            csvLogger.addToRow(-1, "flaws");
-            csvLogger.addToRow(-1, "cost");
-            csvLogger.commitRow();
+        //    std::cout << std::setw(15) << "    fail " << searchEngine.statistics().fail << std::endl;
+        //    std::cout << std::setw(15) << "    node " << searchEngine.statistics().node << std::endl;
+        //    std::cout << std::setw(15) << "    depth " << searchEngine.statistics().depth << std::endl;
+        //    std::cout << std::setw(15) << "    restart " << searchEngine.statistics().restart << std::endl;
+        //    std::cout << std::setw(15) << "    nogood " << searchEngine.statistics().nogood << std::endl;
+        //    std::cout << std::setw(15) << "    flaws " << best->mMinCostFlowFlaws.size() << std::endl;
+        //    std::cout << std::setw(15) << "    cost " << best->cost().val() << std::endl;
+        //    csvLogger.addToRow(1.0, "solution-found");
+        //    csvLogger.addToRow(searchEngine.stopped(), "solution-stopped");
+        //    csvLogger.addToRow(searchEngine.statistics().propagate, "propagate");
+        //    csvLogger.addToRow(searchEngine.statistics().fail, "fail");
+        //    csvLogger.addToRow(searchEngine.statistics().node, "node");
+        //    csvLogger.addToRow(searchEngine.statistics().depth, "depth");
+        //    csvLogger.addToRow(searchEngine.statistics().restart, "restart");
+        //    csvLogger.addToRow(searchEngine.statistics().nogood, "nogood");
+        //    csvLogger.addToRow(-1, "flaws");
+        //    csvLogger.addToRow(-1, "cost");
+        //    csvLogger.commitRow();
 
-            throw;
-        }
+        //    throw;
+        //}
     }
 
     std::string filename = mission->getLogger()->filename("search-statistics.csv");
@@ -1679,6 +1621,8 @@ void TransportNetwork::postMinCostFlow()
         flowNetwork.save();
         // store all flaws
         mMinCostFlowFlaws = flaws;
+        // compute all feasible resolution that might allow
+        // to improve the solution
         mFlawResolution.prepare(mMinCostFlowFlaws);
 
         if(msInteractive)

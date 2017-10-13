@@ -5,11 +5,15 @@
 #include <random>
 #include <numeric/Combinatorics.hpp>
 #include "../transshipment/Flaw.hpp"
+#include <gecode/search.hh>
 
 namespace templ {
 namespace solvers {
 namespace csp {
 
+/**
+ * Class that computes the
+ */
 class FlawResolution
 {
 public:
@@ -19,6 +23,9 @@ public:
 
     typedef std::vector<size_t> Draw;
     typedef std::vector< Draw > DrawList;
+
+    typedef std::pair<FlawResolution::ResolutionOption, uint32_t> Evaluation;
+    typedef std::vector<Evaluation> EvaluationList;
 
     FlawResolution();
 
@@ -36,6 +43,11 @@ public:
     bool next(bool random = true) const;
 
     ResolutionOptions current() const;
+
+    /**
+     * Return the list of resolution options
+     */
+    const ResolutionOptions& getResolutionOptions() const { return mResolutionOptions; }
 
     const DrawList& remainingDraws() const { return mDraws; }
 
@@ -57,6 +69,11 @@ public:
 
     static std::string toString(const ResolutionOptions& options);
     static std::string toString(const Draw& draw);
+
+
+    static void applyResolutionOption(Gecode::Space& space, const Gecode::Space& lastSolution, const ResolutionOption& resolutionOption);
+
+    static EvaluationList selectBestResolution(Gecode::Space& space, const Gecode::Space& lastSolution, uint32_t existingCost, const ResolutionOptions& resolutionOptions);
 
 private:
     mutable std::mt19937 mGenerator;

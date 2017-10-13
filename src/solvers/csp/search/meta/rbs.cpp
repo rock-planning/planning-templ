@@ -61,8 +61,6 @@ namespace Gecode { namespace Search { namespace Meta {
   Space*
   TemplRBS::next(void) {
     using namespace templ::solvers::csp;
-    TransportNetwork* tn = dynamic_cast<TransportNetwork*>(master);
-
     if (restart) {
       restart = false;
       sslr++;
@@ -88,6 +86,12 @@ namespace Gecode { namespace Search { namespace Meta {
         Space* slave = master;
         master = master->clone(shared_data,shared_info);
         complete = slave->slave(mi);
+        TransportNetwork* slaveTn = dynamic_cast<TransportNetwork*>(slave);
+        if(slaveTn)
+        {
+            TransportNetwork* tn = dynamic_cast<TransportNetwork*>(master);
+            slaveTn->setCurrentMaster(tn);
+        }
         e->reset(slave);
         sslr = 0;
         stop->m_stat.restart++;
@@ -117,6 +121,12 @@ namespace Gecode { namespace Search { namespace Meta {
           return NULL;
         Space* slave = master;
         master = master->clone(shared_data,shared_info);
+        TransportNetwork* slaveTn = dynamic_cast<TransportNetwork*>(slave);
+        if(slaveTn)
+        {
+            TransportNetwork* tn = dynamic_cast<TransportNetwork*>(master);
+            slaveTn->setCurrentMaster(tn);
+        }
         complete = slave->slave(mi);
         e->reset(slave);
       } else {

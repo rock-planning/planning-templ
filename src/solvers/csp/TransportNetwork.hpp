@@ -31,6 +31,8 @@ namespace csp {
 class TransportNetwork : public Gecode::Space
 {
     friend class templ::MissionPlanner;
+    friend class FlawResolution;
+
 public:
     typedef std::map<FluentTimeResource, organization_model::ModelPool > ModelDistribution;
     typedef std::map<FluentTimeResource, Role::List> RoleDistribution;
@@ -199,12 +201,17 @@ private:
     SpaceTime::Network mMinCostFlowSolution;
     std::vector<transshipment::Flaw> mMinCostFlowFlaws;
     FlawResolution mFlawResolution;
+    FlawResolution::ResolutionOptions mRequiredResolutionOptions;
 
     /// Configuration object
     Configuration mConfiguration;
 
     /// Flag to control the interactive mode
     static bool msInteractive;
+
+    bool mUseMasterSlave;
+    // The current master space
+    TransportNetwork* mpCurrentMaster;
 
 private:
 
@@ -257,8 +264,6 @@ private:
 
     static void doPostTimelines(Gecode::Space& home);
     void postTimelines();
-
-    Gecode::IntVar cost(void) const { return mCost; }
 
 protected:
     // The general idea for implementing a LVNS approach
@@ -350,6 +355,10 @@ protected:
 
     Gecode::Symmetries identifySymmetries();
 
+    Gecode::IntVar cost(void) const { return mCost; }
+
+    void setUseMasterSlave(bool v) { mUseMasterSlave = v; }
+
 public:
     TransportNetwork(const templ::Mission::Ptr& mission, const Configuration& configuration = Configuration());
 
@@ -401,6 +410,7 @@ public:
      */
     Role::List getActiveRoleList() const { return mActiveRoleList; }
 
+    void setCurrentMaster(TransportNetwork* master) { mpCurrentMaster = master; }
 };
 
 std::ostream& operator<<(std::ostream& os, const TransportNetwork::Solution& solution);

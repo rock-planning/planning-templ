@@ -90,8 +90,6 @@ void MissionConstraints::addDistinct(Gecode::Space& home, Gecode::IntVarArray& r
         const FluentTimeResource& fts0, const FluentTimeResource& fts1,
         const owlapi::model::IRI& roleModel, uint32_t additional)
 {
-    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(roleUsage, /*width --> col*/ roles.size(), /*height --> row*/ requirements.size());
-
     // Adding this constraint will only work to an already once solved instance
     // of the problem
     std::set<Role> uniqueRoles = getUniqueRoles(roleUsage, roles, requirements,
