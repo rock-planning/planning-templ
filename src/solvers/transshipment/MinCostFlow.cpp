@@ -249,6 +249,7 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
             // In the case of transflow we add a triebreaker between the current
             // and the subsequent requirement
             case ConstraintViolation::TransFlow:
+            case ConstraintViolation::TotalTransFlow:
             {
                 flaw.subsequentFtr = *(fit+1);
 
@@ -270,6 +271,7 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
             // In the case of minflow we add a triebreaker between the current
             // and the previous requirement
             case ConstraintViolation::MinFlow:
+            case ConstraintViolation::TotalMinFlow:
             {
                 flaw.previousFtr = *(fit-1);
 /*
