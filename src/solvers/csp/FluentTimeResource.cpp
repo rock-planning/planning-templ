@@ -156,7 +156,6 @@ std::set<organization_model::Functionality> FluentTimeResource::getFunctionaliti
         {
             organization_model::Functionality functionality(resourceModel);
             functionalities.insert(functionality);
-            LOG_INFO_S << "Add functionality requirement: " << functionality.toString();
         }
     }
     return functionalities;

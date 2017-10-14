@@ -258,16 +258,16 @@ void Plan::computeGraph() const
                     link->setSourceVertex(previousWaypoint);
                     link->setTargetVertex(currentWaypoint);
                     mpBaseGraph->addEdge(link);
-                    std::cout << "Adding capacity link: for " << role.toString() << " from " << previousWaypoint->toString()
-                        << " to " << currentWaypoint->toString() << std::endl;
+                    LOG_DEBUG_S << "Adding capacity link: for " << role.toString() << " from " << previousWaypoint->toString()
+                        << " to " << currentWaypoint->toString();
                     roleSpecificPlan.push_back("move-to (from: '" + previousWaypoint->toString() + "', to: "
                         "'" + currentWaypoint->toString() + "'");
                 } else {
                     assert(edges.size() == 1);
                     CapacityLink::Ptr link = dynamic_pointer_cast<CapacityLink>(edges[0]);
                     link->addProvider(role, capacity);
-                    std::cout << "Adding provider to capacity link: for " << role.toString() << " from " << previousWaypoint->toString()
-                        << " to " << currentWaypoint->toString() << std::endl;
+                    LOG_DEBUG_S << "Adding provider to capacity link: for " << role.toString() << " from " << previousWaypoint->toString()
+                        << " to " << currentWaypoint->toString();
                     roleSpecificPlan.push_back("move-to (from: '" + previousWaypoint->toString() + "', to: "
                         "'" + currentWaypoint->toString() + "'");
                 }

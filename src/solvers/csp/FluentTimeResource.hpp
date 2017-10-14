@@ -22,6 +22,7 @@ struct FluentTimeResource
     Mission::Ptr mission;
     std::set<uint32_t> resources;
     uint32_t time;
+    // e.g. space/location
     uint32_t fluent;
 
     //ObjectVariable::Ptr objectVariable;
@@ -99,6 +100,7 @@ struct FluentTimeResource
      * Increment additional resource requirement
      */
     void incrementResourceRequirement(const owlapi::model::IRI& model, size_t number);
+
 };
 
 } // end namespace csp

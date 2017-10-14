@@ -184,6 +184,14 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
     namespace ga = graph_analysis::algorithms;
 
     FlawResolution::EvaluationList evalList = FlawResolution::selectBestResolution(*this, lastSpace, lastSpace.cost().val(), mFlawResolution.getResolutionOptions());
+    if(evalList.empty())
+    {
+        std::cout << "    # no applicable resolvers -- failing search" << std::endl;
+        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+
+        this->fail();
+        return;
+    }
 
 
     for(const FlawResolution::Evaluation& e : evalList)
@@ -1299,8 +1307,8 @@ std::vector<uint32_t> TransportNetwork::computeActiveRoles() const
             }
         }
     }
-    LOG_WARN_S << "Model usage: " << modelUsageToString();
-    LOG_WARN_S << "Role usage: " << roleUsageToString();
+    LOG_INFO_S << "Model usage: " << modelUsageToString();
+    LOG_INFO_S << "Role usage: " << roleUsageToString();
 
     return activeRoles;
 }
@@ -1500,9 +1508,9 @@ void TransportNetwork::postRoleAssignments()
 
     mActiveRoleList = activeRoles;
     assert(!mActiveRoleList.empty());
-    LOG_WARN_S << "Using active roles: " << Role::toString(activeRoles);
+    LOG_INFO_S << "Using active roles: " << Role::toString(activeRoles);
 
-    LOG_WARN_S << "Timelines after first propagation of requirements: " << std::endl
+    LOG_INFO_S << "Timelines after first propagation of requirements: " << std::endl
         << Formatter::toString(mTimelines, numberOfFluents);
 
     // Construct the basic timeline
@@ -1601,7 +1609,7 @@ void TransportNetwork::postMinCostFlow()
 
     std::map<Role, csp::RoleTimeline> minimalTimelines =  RoleTimeline::computeTimelines(*mpMission.get(), getRoleDistribution());
 
-    std::cout << "RoleTimelines: " << std::endl
+    LOG_DEBUG_S << "RoleTimelines: " << std::endl
         << RoleTimeline::toString(minimalTimelines, 4);
 
     //assert(!timelines.empty());
