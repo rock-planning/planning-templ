@@ -15,7 +15,7 @@ namespace transshipment {
 struct Flaw
 {
     graph_analysis::algorithms::ConstraintViolation violation;
-    Role affectedRole;
+    Role::List affectedRoles;
     csp::RoleTimeline roleTimeline;
 
     csp::FluentTimeResource previousFtr;
@@ -24,11 +24,13 @@ struct Flaw
 
     std::string description;
 
+    const Role& affectedRole() const;
+
     Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
-        const Role& role)
-        : violation(violation)
-        , affectedRole(role)
-    {}
+        const Role& role);
+
+    Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
+        const Role::List& roles);
 
     std::string toString(size_t indent = 0) const;
 };

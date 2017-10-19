@@ -218,8 +218,6 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
     for(; vit != violations.end(); ++vit)
     {
         const ConstraintViolation& violation = *vit;
-        // Role that is involved into this violation
-        const Role& affectedRole = mCommoditiesRoles[violation.getCommodity()];
         // Map violation from multicommodity vertex back to SpaceTime::Network tuple
         Vertex::Ptr spaceTimePartnerVertex = mBipartiteGraph.getUniquePartner(violation.getVertex());
         SpaceTime::Network::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(spaceTimePartnerVertex);
@@ -227,21 +225,31 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
         SpaceTime::Network::value_t location = dynamic_pointer_cast<SpaceTime::Network::value_t::element_type>(tuple->first());
 
         LOG_INFO_S << "Commodity flow violation: " << violation.toString();
-        LOG_INFO_S << "Violation for " << affectedRole.toString() << " -- at: "
-            << spaceTimePartnerVertex->toString();
 
-        std::map<Role, csp::RoleTimeline>::const_iterator rit = mTimelines.find(affectedRole);
+        // Role that is involved into this violation
+        // (for TotalTransFlow and TotalMinFlow) this is only
+        std::set<uint32_t> commodities = violation.getCommodities();
+        Role::List affectedRoles;
+        for(uint32_t commodity : commodities)
+        {
+            const Role& affectedRole = mCommoditiesRoles[commodity];
+            affectedRoles.push_back(affectedRole);
+        }
+        LOG_INFO_S << "Violation for " << Role::toString(affectedRoles) << " -- at: "
+                << spaceTimePartnerVertex->toString();
+
+        // Try to identify fluent
+        std::map<Role, csp::RoleTimeline>::const_iterator rit = mTimelines.find(affectedRoles.front());
         if(rit == mTimelines.end())
         {
             throw std::runtime_error("templ::solvers::transshipment::MinCostFlow::computeFlaws: "
-                    " failed to find role timeline for affectedRole: " + affectedRole.toString());
+                    " failed to find role timeline for affectedRole: " + affectedRoles.front().toString());
         }
         const csp::RoleTimeline& roleTimeline = rit->second;
 
-
+        // Identify the relevant fluent
         std::vector<csp::FluentTimeResource>::const_iterator fit = getFluent(roleTimeline, tuple);
-
-        Flaw flaw(violation, affectedRole);
+        Flaw flaw(violation, affectedRoles);
         flaw.ftr = *fit;
 
         switch(violation.getType())
@@ -252,20 +260,6 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
             case ConstraintViolation::TotalTransFlow:
             {
                 flaw.subsequentFtr = *(fit+1);
-
-                ////organization_model::facets::Robot robot(affectedRole.getModel(), mpMission->getOrganizationModelAsk());
-                ////if(!robot.isMobile())
-                ////{
-                ////    // More transport availability needed
-                ////    // TODO: quantify request, e.g. for 1 more Payload
-                ////    Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mission), vocabulary::OM::resolve("FlowProvider")));
-                ////    state->addResolver(functionalityRequest);
-                ////}
-
-                //// // delta needs to be: missing count of resource type
-                //// assert(-violation.getDelta() > 0);
-                //// Resolver::Ptr roleAddDistinction(new RoleAddDistinction(ftr, ftr_subsequent, affectedRole.getModel(), abs( violation.getDelta() ), state->getRoleDistributionSolution()));
-                //// state->addResolver(roleAddDistinction);
                 break;
             }
             // In the case of minflow we add a triebreaker between the current
@@ -274,22 +268,6 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
             case ConstraintViolation::TotalMinFlow:
             {
                 flaw.previousFtr = *(fit-1);
-/*
-                organization_model::facets::Robot robot(affectedRole.getModel(), mOrganizationModelAsk);
-                if(!robot.isMobile())
-                {
-                    std::cout << "Robot is not mobile thus requesting a FlowProvider" << std::endl;
-                   // More transport availability needed
-                   // TODO: quantify request, e.g. for 1 more Payload
-                   Resolver::Ptr functionalityRequest(new FunctionalityRequest(location, ftr.getInterval(mission), vocabulary::OM::resolve("FlowProvider")));
-                   state->addResolver(functionalityRequest);
-                }
-
-                // delta needs to be: missing count of resource type
-                assert(-violation.getDelta() > 0);
-                Resolver::Ptr roleAddDistinction(new RoleAddDistinction(ftr_previous, ftr, affectedRole.getModel(), abs( violation.getDelta() ), state->getRoleDistributionSolution()));
-                state->addResolver(roleAddDistinction);
-    */
             }
             break;
         }

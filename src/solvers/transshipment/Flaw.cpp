@@ -6,6 +6,32 @@ namespace templ {
 namespace solvers {
 namespace transshipment {
 
+Flaw::Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
+    const Role& role)
+    : violation(violation)
+{
+    affectedRoles.push_back(role);
+}
+
+Flaw::Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
+    const Role::List& roles)
+    : violation(violation)
+    , affectedRoles(roles)
+{}
+
+const Role& Flaw::affectedRole() const
+{
+    if(affectedRoles.empty())
+    {
+        throw std::runtime_error("templ::solvers::transshipment::Flaw::affectedRole: no affected roles availabled");
+    } else if(affectedRoles.size() == 1)
+    {
+        return affectedRoles.front();
+    } else {
+        throw std::runtime_error("templ::solvers::transshipment::Flaw::affectedRole: multiple affected roles available");
+    }
+}
+
 std::string Flaw::toString(size_t indent) const
 {
     std::stringstream ss;
