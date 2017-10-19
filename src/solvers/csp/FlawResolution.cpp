@@ -2,6 +2,7 @@
 #include "TransportNetwork.hpp"
 #include "../../SharedPtr.hpp"
 #include "MissionConstraints.hpp"
+#include <organization_model/PropertyConstraint.hpp>
 
 namespace templ {
 namespace solvers {
@@ -42,6 +43,11 @@ void FlawResolution::prepare(const std::vector<transshipment::Flaw>& flaws)
             case ga::ConstraintViolation::MinFlow:
                 mResolutionOptions.push_back( ResolutionOption(flaw,0) );
                 mResolutionOptions.push_back( ResolutionOption(flaw,1) );
+                break;
+            case ga::ConstraintViolation::TotalTransFlow:
+                break;
+            case ga::ConstraintViolation::TotalMinFlow:
+                mResolutionOptions.push_back(ResolutionOption(flaw,0) );
                 break;
             default:
                 LOG_WARN_S << "Unknown flaw type";
@@ -142,7 +148,7 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                     case 0:
                         std::cout
                             << "    adding distiction constraint" << std::endl
-                            << "         distinction for role " << flaw.affectedRole.getModel() << std::endl
+                            << "         distinction for role " << flaw.affectedRole().getModel() << std::endl
                             << "         current space " << &currentSpace << std::endl
                             << "         last space " << &lastSpace << std::endl
                             << std::endl;
@@ -154,7 +160,7 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                                 currentSpace.mResourceRequirements,
                                 flaw.ftr,
                                 flaw.subsequentFtr,
-                                flaw.affectedRole.getModel(),
+                                flaw.affectedRole().getModel(),
                                 1);
                         break;
                     default:
@@ -171,7 +177,7 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                     case 0:
                         std::cout
                             << "    adding distiction constraint" << std::endl
-                            << "        additional distinction for: " << abs(flaw.violation.getDelta()) << " and role: " << flaw.affectedRole.toString() << std::endl
+                            << "        additional distinction for: " << abs(flaw.violation.getDelta()) << " and role: " << flaw.affectedRole().toString() << std::endl
                             << "        current space " << &currentSpace << std::endl
                             << "        last space " << &lastSpace << std::endl
                             << std::endl;
@@ -182,7 +188,7 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                                     currentSpace.mRoles, currentSpace.mResourceRequirements,
                                     flaw.previousFtr,
                                     flaw.ftr,
-                                    flaw.affectedRole.getModel(),
+                                    flaw.affectedRole().getModel(),
                                     abs( flaw.violation.getDelta() )
                                     );
                             break;
@@ -221,6 +227,53 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                 }
             break;
             }
+        case ga::ConstraintViolation::TotalTransFlow:
+            break;
+        case ga::ConstraintViolation::TotalMinFlow:
+            switch(alternative)
+            {
+                case 0:
+                    std::cout << "    add model requirement: for transport provider" << std::endl;
+                    std::cout << "        for min items: " << flaw.violation.getDelta() << std::endl;
+                    std::cout << "        for fluent time resource: " << std::endl
+                            << flaw.ftr.toString(8);
+                    std::cout << "        Resulting requirements: " << std::endl;
+
+                    if(TransportNetwork::msInteractive)
+                    {
+                        std::cout << "Add function requirement: available resources are" << std::endl;
+                        std::cout << currentSpace.mResources << std::endl;
+                        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+                    }
+
+                    using namespace organization_model;
+                    Functionality functionality( vocabulary::OM::resolve("TransportProvider") );
+                    PropertyConstraint::Set constraints;
+                    PropertyConstraint constraint( vocabulary::OM::resolve("payloadTransportCapacity"),PropertyConstraint::GREATER_EQUAL, abs(flaw.violation.getDelta()) );
+
+                    FunctionalityRequirement functionalityRequirement(functionality, constraints);
+                    FunctionalityRequirement::Map functionalityRequirements;
+                    functionalityRequirements[functionality] = functionalityRequirement;
+
+                    MissionConstraints::addFunctionalitiesRequirement(
+                            currentSpace.mResources,
+                            currentSpace.mResourceRequirements,
+                            flaw.ftr,
+                            functionalityRequirements,
+                            currentSpace.mAsk);
+
+                    if(TransportNetwork::msInteractive)
+                    {
+                        std::cout << "Fluents after adding function requirement: " << std::endl;
+                        for(const FluentTimeResource& ftr : currentSpace.mResourceRequirements)
+                        {
+                            std::cout << ftr.toString(12) << std::endl;
+                        }
+                        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+                    }
+                    break;
+            }
+            break;
         default:
             std::cout << "Unknown violation constraint while try resolution" << std::endl;
             break;
