@@ -161,6 +161,11 @@ std::set<organization_model::Functionality> FluentTimeResource::getFunctionaliti
     return functionalities;
 }
 
+void FluentTimeResource::addFunctionalityConstraints(const organization_model::FunctionalityRequirement& constraint)
+{
+    functionalitiesConstraints[ constraint.getFunctionality() ].addPropertyConstraints( constraint.getPropertyConstraints() );
+}
+
 void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements, const organization_model::OrganizationModelAsk& organizationModelAsk)
 {
     std::vector<FluentTimeResource>::iterator it = requirements.begin();
@@ -184,19 +189,7 @@ void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements, 
 
                 // Use the functional saturation bound on all functionalities
                 // after compacting the resource list
-                std::set<organization_model::Functionality> functionalities;
-                std::set<uint32_t>::const_iterator cit = fts.resources.begin();
-                for(; cit != fts.resources.end(); ++cit)
-                {
-                    assert(fts.mission);
-                    const owlapi::model::IRI& resourceModel = fts.mission->getRequestedResources()[*cit];
-                    using namespace owlapi;
-                    if(organizationModelAsk.ontology().isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
-                    {
-                        organization_model::Functionality functionality(resourceModel);
-                        functionalities.insert(functionality);
-                    }
-                }
+                std::set<organization_model::Functionality> functionalities = fts.getFunctionalities();
                 fts.maxCardinalities = organizationModelAsk.getFunctionalSaturationBound(functionalities);
 
                 // MaxMin --> min cardinalities are a lower bound specified explicitely
@@ -224,6 +217,7 @@ void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements, 
 organization_model::ModelPool::Set FluentTimeResource::getDomain() const
 {
     assert(mission);
+    using namespace organization_model;
 
     // The domain definition accounts for service requirements as well as explicitly stated
     // resource model requirements
@@ -233,22 +227,27 @@ organization_model::ModelPool::Set FluentTimeResource::getDomain() const
     //
     // Collect functionality requirements
     std::set<organization_model::Functionality> functionalities = getFunctionalities();
+
     // When retrieving combinations for requested functionality, then this is not the
     // complete set since this might conflict with the minCardinalities
     // constraint -- thus we need to first derive the functionalBound and then
     // apply the minCardinalities by expanding the set of model if required
-    organization_model::ModelPool::Set combinations = mission->getOrganizationModelAsk().getResourceSupport(functionalities);
+    organization_model::ModelPool::Set combinations = mission->getOrganizationModelAsk().getResourceSupport(functionalities, functionalitiesConstraints);
+
     LOG_INFO_S << "Resources: " << organization_model::ModelPool::toString(combinations);
     LOG_INFO_S << "    max cardinalities: " << maxCardinalities.toString(8);
-    combinations = mission->getOrganizationModelAsk().applyUpperBound(combinations, maxCardinalities);
-    LOG_INFO_S << "Bounded resources (upper bound): " << organization_model::ModelPool::toString(combinations);
+
+    // Enforce the upper bound (defined e.g. by the missions general resource
+    // constraints TBC)
+    combinations = ModelPool::applyUpperBound(combinations, maxCardinalities);
+    LOG_INFO_S << "Bounded resources (upper bound): " << ModelPool::toString(combinations);
 
     // The minimum resource requirements are accounted here by enforcing the
     // lower bound -- the given combinations are guaranteed to support the
     // services due upperBound which is derived from the functionalSaturationBound
     LOG_INFO_S << "    min cardinalities: " << minCardinalities.toString(8);
-    combinations = mission->getOrganizationModelAsk().expandToLowerBound(combinations, minCardinalities);
-    LOG_INFO_S << "Expanded resource (lower bound enforced): " << organization_model::ModelPool::toString(combinations);
+    combinations = ModelPool::expandToLowerBound(combinations, minCardinalities);
+    LOG_INFO_S << "Expanded resource (lower bound enforced): " << ModelPool::toString(combinations);
 
     return combinations;
 }
@@ -298,6 +297,20 @@ void FluentTimeResource::incrementResourceRequirement(const owlapi::model::IRI& 
         }
     }
     throw std::invalid_argument("FluentTimeResource::incrementResourceRequirement: failed to increment model '" + model.toString() + "'");
+}
+
+void FluentTimeResource::updateMaxCardinalities()
+{
+    using namespace organization_model;
+    std::set<Functionality> functionalities = getFunctionalities();
+
+    ModelPool saturation = mission->getOrganizationModelAsk().getFunctionalSaturationBound(functionalities, functionalitiesConstraints);
+    ModelPool maxCardinalities = Algebra::min(mission->getAvailableResources(), saturation);
+
+    // Resource constraints might enforce a minimum cardinality that is higher than the functional saturation bound
+    // thus update the max cardinalities
+    maxCardinalities = organization_model::Algebra::max(minCardinalities, maxCardinalities);
+
 }
 
 } // end namespace csp

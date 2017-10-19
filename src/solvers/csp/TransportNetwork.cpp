@@ -728,6 +728,12 @@ void TransportNetwork::addExtensionalConstraints()
         // Prepare the extensional constraints, i.e. specifying the allowed
         // combinations for each requirement
         organization_model::ModelPool::Set allowedCombinations = ftr.getDomain();
+        if(allowedCombinations.empty())
+        {
+            LOG_WARN_S << "No allowed combinations available with the given constraints: failing this space";
+            this->failed();
+            return;
+        }
         LOG_DEBUG_S << "ExtensionalConstraints: add ftr: " << ftr.toString();
         appendToTupleSet(extensionalConstraints[requirementIndex], allowedCombinations);
    }

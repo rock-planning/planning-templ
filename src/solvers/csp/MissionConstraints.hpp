@@ -90,6 +90,17 @@ public:
             const owlapi::model::IRI& function,
             organization_model::OrganizationModelAsk ask);
 
+    /**
+     * Add functionalities requirements (functionalities with particular property constraints)
+     * with respect to a FluentTimeResource instance
+     * \throws std::invalid_argument when fluent time resource could not be
+     * found
+     */
+    static void addFunctionalitiesRequirement(const owlapi::model::IRIList& allAvailableResources,
+            std::vector<FluentTimeResource>& resourceRequirements,
+            const FluentTimeResource& fts,
+            const organization_model::FunctionalityRequirement::Map& functionalitiesRequirements,
+            organization_model::OrganizationModelAsk ask);
 
 };
 

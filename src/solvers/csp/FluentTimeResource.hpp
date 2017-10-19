@@ -20,12 +20,17 @@ namespace csp {
 struct FluentTimeResource
 {
     Mission::Ptr mission;
+    /// add involved resource types
     std::set<uint32_t> resources;
     uint32_t time;
     // e.g. space/location
     uint32_t fluent;
 
-    //ObjectVariable::Ptr objectVariable;
+    // Todo: embed the functionality requirements into the the planner,
+    // i.e.
+    // allow to call
+    // ModelPool::Set organization_model::OrganizationModelAsk::getResourceSupport(requirement)
+    organization_model::FunctionalityRequirement::Map functionalitiesConstraints;
 
     // Set the min cardinality
     // of the available models
@@ -72,6 +77,14 @@ struct FluentTimeResource
     std::set<organization_model::Functionality> getFunctionalities() const;
 
     /**
+     * Get the set of requirement for the set of functionalities associated
+     * witht this fluent-time-resource
+     */
+    organization_model::FunctionalityRequirement::Map getFunctionalitiesConstraints() const { return functionalitiesConstraints; }
+
+    void addFunctionalityConstraints(const organization_model::FunctionalityRequirement& constraint);
+
+    /**
      * Create a compact representation for all requirement that
      * refer to the same fluent and time
      */
@@ -100,6 +113,8 @@ struct FluentTimeResource
      * Increment additional resource requirement
      */
     void incrementResourceRequirement(const owlapi::model::IRI& model, size_t number);
+
+    void updateMaxCardinalities();
 
 };
 

@@ -208,6 +208,44 @@ void MissionConstraints::addFunctionRequirement(const owlapi::model::IRIList& al
     LOG_DEBUG_S << "Fluent after adding function requirement: " << ftr.toString();
 }
 
+void MissionConstraints::addFunctionalitiesRequirement(const owlapi::model::IRIList& allAvailableResources,
+            std::vector<FluentTimeResource>& resourceRequirements,
+            const FluentTimeResource& fts,
+            const organization_model::FunctionalityRequirement::Map& functionalitiesRequirements,
+            organization_model::OrganizationModelAsk ask)
+{
+    // identify the fluent time resource
+    size_t idx = FluentTimeResource::getIndex(resourceRequirements, fts);
+    FluentTimeResource& ftr = resourceRequirements[idx];
+    LOG_DEBUG_S << "Fluent before adding function requirement: " << ftr.toString();
+
+    using namespace organization_model;
+    for(const FunctionalityRequirement::Map::value_type& pair : functionalitiesRequirements)
+    {
+        const owlapi::model::IRI& function = pair.first.getModel();
+
+        // Find the function requirement index
+        owlapi::model::IRIList::const_iterator cit = std::find(allAvailableResources.begin(), allAvailableResources.end(), function);
+        if(cit == allAvailableResources.end())
+        {
+            throw std::invalid_argument("templ::solvers::csp::MissionConstraints: could not find the resource index for: '" + function.toString() + "' -- which is not a service class");
+        }
+        size_t resourceIndex = std::distance(allAvailableResources.begin(), cit);
+        LOG_DEBUG_S << "Using resource index: " << resourceIndex;
+
+        // insert the function requirement
+        ftr.resources.insert(resourceIndex);
+
+        FunctionalityRequirement r = pair.second;
+        r.addPropertyConstraints( pair.second.getPropertyConstraints() );
+        ftr.functionalitiesConstraints[pair.first] = r;
+        ftr.updateMaxCardinalities();
+    }
+
+    // Add tuple
+    LOG_DEBUG_S << "Fluent after adding function requirement: " << ftr.toString();
+}
+
 } // end namespace csp
 } // end namespace solvers
 } // end namespace templ
