@@ -386,12 +386,12 @@ BOOST_AUTO_TEST_CASE(flaw_resolution)
 
     std::vector<transshipment::Flaw> flaws;
     graph_analysis::algorithms::ConstraintViolation violation0(MultiCommodityVertex::Ptr(),
-            0,0,ConstraintViolation::MinFlow);
+            0,0,1,1,ConstraintViolation::MinFlow);
     transshipment::Flaw flaw0(violation0, Role());
     flaws.push_back(flaw0);
 
     graph_analysis::algorithms::ConstraintViolation violation1(MultiCommodityVertex::Ptr(),
-            0,0,ConstraintViolation::TransFlow);
+            0,0,1,1,ConstraintViolation::TransFlow);
     transshipment::Flaw flaw1(violation1, Role());
     flaws.push_back(flaw1);
 
