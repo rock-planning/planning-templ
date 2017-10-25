@@ -19,6 +19,29 @@ Interval::Interval(const point_algebra::TimePoint::Ptr& from,
     , mTimePointComparator(comparator)
 {}
 
+bool Interval::operator<(const Interval& other) const
+{
+    if(*this == other)
+    {
+        return false;
+    }
+
+    if( mTimePointComparator.lessThan(mpFrom, other.mpFrom) )
+    {
+        return true;
+    } else if(mTimePointComparator.equals(mpFrom, other.mpFrom))
+    {
+        if(mTimePointComparator.lessThan(mpTo, other.mpTo))
+        {
+            return true;
+        } else if(mTimePointComparator.equals(mpTo, other.mpTo))
+        {
+            return false;
+        }
+    }
+    return false;
+}
+
 void Interval::validate() const
 {
     if(!mpFrom || !mpTo)

@@ -45,6 +45,10 @@ public:
     const point_algebra::TimePointComparator& getTimePointComparator() const { return mTimePointComparator; }
 
     bool operator==(const Interval& other) const { return equals(other); }
+    /**
+     * Implement less operator for general use in set etc.
+     */
+    bool operator<(const Interval& other) const;
 
     /**
      * Check if interval [s,t) contains a particular timepoint t, i.e
