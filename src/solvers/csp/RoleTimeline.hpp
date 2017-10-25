@@ -29,6 +29,8 @@ public:
     symbols::constants::Location::Ptr getLocation(const solvers::csp::FluentTimeResource& fts) const;
     solvers::temporal::Interval getInterval(const solvers::csp::FluentTimeResource& fts) const;
 
+    bool operator<(const RoleTimeline& other) const;
+
     /**
      * Sort this timeline using the set of intervals
      * to map the time indices in the FluentTimeResource to actual intervals

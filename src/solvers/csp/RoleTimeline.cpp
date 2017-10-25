@@ -17,6 +17,36 @@ solvers::temporal::Interval RoleTimeline::getInterval(const solvers::csp::Fluent
     return mIntervals.at(fts.time);
 }
 
+bool RoleTimeline::operator<(const RoleTimeline& other) const
+{
+    if(mFluents < other.mFluents)
+    {
+        return true;
+    } else if(mFluents == other.mFluents)
+    {
+        if(mLocations < other.mLocations)
+        {
+            return true;
+        } else if(mLocations == other.mLocations)
+        {
+            if(mIntervals < other.mIntervals)
+            {
+                return true;
+            } else if(mIntervals == other.mIntervals)
+            {
+                if(mRole < other.mRole)
+                {
+                    return true;
+                } else if(mRole == other.mRole)
+                {
+                    return false;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 void RoleTimeline::sortByTime()
 {
     using namespace solvers::csp;
