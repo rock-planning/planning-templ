@@ -236,14 +236,12 @@ void MissionConstraints::addFunctionalitiesRequirement(const owlapi::model::IRIL
         // insert the function requirement
         ftr.resources.insert(resourceIndex);
 
-        FunctionalityRequirement r = pair.second;
-        r.addPropertyConstraints( pair.second.getPropertyConstraints() );
-        ftr.functionalitiesConstraints[pair.first] = r;
+        ftr.addFunctionalityConstraints(pair.second);
         ftr.updateMaxCardinalities();
     }
 
     // Add tuple
-    LOG_DEBUG_S << "Fluent after adding function requirement: " << ftr.toString();
+    LOG_DEBUG_S << " Fluent after adding function requirement: " << ftr.toString();
 }
 
 } // end namespace csp

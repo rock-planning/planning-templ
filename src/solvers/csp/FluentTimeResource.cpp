@@ -163,7 +163,13 @@ std::set<organization_model::Functionality> FluentTimeResource::getFunctionaliti
 
 void FluentTimeResource::addFunctionalityConstraints(const organization_model::FunctionalityRequirement& constraint)
 {
-    functionalitiesConstraints[ constraint.getFunctionality() ].addPropertyConstraints( constraint.getPropertyConstraints() );
+    organization_model::FunctionalityRequirement::Map::iterator it = functionalitiesConstraints.find(constraint.getFunctionality());
+    if(it != functionalitiesConstraints.end())
+    {
+        it->second.addPropertyConstraints( constraint.getPropertyConstraints() );
+    } else {
+        functionalitiesConstraints[constraint.getFunctionality()] = constraint;
+    }
 }
 
 void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements, const organization_model::OrganizationModelAsk& organizationModelAsk)
@@ -305,12 +311,11 @@ void FluentTimeResource::updateMaxCardinalities()
     std::set<Functionality> functionalities = getFunctionalities();
 
     ModelPool saturation = mission->getOrganizationModelAsk().getFunctionalSaturationBound(functionalities, functionalitiesConstraints);
-    ModelPool maxCardinalities = Algebra::min(mission->getAvailableResources(), saturation);
 
+    ModelPool maxSaturationCardinalities = Algebra::min(mission->getAvailableResources(), saturation);
     // Resource constraints might enforce a minimum cardinality that is higher than the functional saturation bound
     // thus update the max cardinalities
-    maxCardinalities = organization_model::Algebra::max(minCardinalities, maxCardinalities);
-
+    maxCardinalities = organization_model::Algebra::max(minCardinalities, maxSaturationCardinalities);
 }
 
 } // end namespace csp
