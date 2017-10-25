@@ -72,6 +72,7 @@ private slots:
     void importRecentFile();
     void clearView();
     void customizeGridLayout();
+    void saveImage();
 
 
     /*Connected to QBaseGraph*/
