@@ -1011,11 +1011,9 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             // maintained by the search engine
             options.nogoods_limit = nogoods_limit;
             // recomputation distance
-            // options.c_d =
+            options.c_d = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/computation_distance", options.c_d);
             // adaptive recomputation distance
-            // options.a_d =
-            // default node cutoff
-            // options.node =
+            options.a_d = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/adaptive_computation_distance", options.a_d);
             // default failure cutoff
             // options.fail
             options.stop = Gecode::Search::Stop::time(stoptimeInMs);
