@@ -81,7 +81,7 @@ void TimelineBrancher::initialize(Gecode::Space& space)
     mNumberOfRoles = network.getActiveRoleList().size();
 
     // Upper bound on choice
-    // An edge can mStart from any fluent at timepoint t and
+    // An edge can start from any fluent at timepoint t and
     // end at any fluent at timepoint t+1
     mChoiceSize = mNumberOfFluents*mNumberOfFluents* mNumberOfRoles ;
 }
