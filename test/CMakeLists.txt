@@ -11,6 +11,7 @@ rock_testsuite(test_suite suite.cpp
     test_CartographicMapping.cpp
     test_Configuration.cpp
     test_IO.cpp
+    test_IntervalConstraint.cpp
     test_LoosePathConsistency.cpp
     test_Mission.cpp
     test_Planning.cpp

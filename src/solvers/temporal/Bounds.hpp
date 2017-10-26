@@ -20,7 +20,7 @@ class Bounds
 public:
     typedef std::vector<Bounds> List;
 
-    Bounds() {}
+    Bounds();
 
     Bounds(double lowerBound, double upperBound);
 

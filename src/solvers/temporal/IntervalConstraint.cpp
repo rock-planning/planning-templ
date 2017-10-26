@@ -1,6 +1,7 @@
 #include "IntervalConstraint.hpp"
 #include <sstream>
 #include <graph_analysis/EdgeTypeManager.hpp>
+#include <base-logging/Logging.hpp>
 
 using namespace graph_analysis;
 
@@ -81,14 +82,13 @@ void IntervalConstraint::deserializeBounds(const std::string& blob)
     std::stringstream ss(blob);
     ss >> numberOfIntervals;
     double lowerBound, upperBound;
-    std::string filler;
+    char filler;
     for(size_t i = 0; i < numberOfIntervals; ++i)
     {
         ss >> filler;
         ss >> lowerBound;
         ss >> filler;
         ss >> upperBound;
-        ss >> filler;
         addInterval( Bounds(lowerBound, upperBound) );
     }
 }

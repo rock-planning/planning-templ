@@ -1,9 +1,15 @@
 #include "Bounds.hpp"
 #include <sstream>
+#include <limits>
 
 namespace templ {
 namespace solvers {
 namespace temporal {
+
+Bounds::Bounds()
+    : mLowerBound(std::numeric_limits<double>::min())
+    , mUpperBound(std::numeric_limits<double>::max())
+{}
 
 Bounds::Bounds(double lowerBound, double upperBound)
     : mLowerBound(lowerBound)
