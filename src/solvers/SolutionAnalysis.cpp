@@ -13,10 +13,11 @@ using namespace graph_analysis;
 namespace templ {
 namespace solvers {
 
-SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission, const SpaceTime::Network& solution)
+SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission, const SpaceTime::Network& solution, organization_model::metrics::Type metricType)
     : mpMission(mission)
     , mSolutionNetwork(solution)
     , mTimepointComparator(mission->getTemporalConstraintNetwork())
+    , mpMetric( organization_model::Metric::getInstance(metricType, mpMission->getOrganizationModelAsk() ) )
 {
     mResourceRequirements = Mission::getResourceRequirements(mpMission);
 }
@@ -52,7 +53,22 @@ std::set<Role> SolutionAnalysis::getRequiredRoles(size_t minRequirement) const
     return requiredRoles;
 }
 
+double SolutionAnalysis::getMetricValue(const csp::FluentTimeResource& ftr) const
+{
+    using namespace organization_model;
+    ModelPool minRequired = getMinResourceRequirements(ftr);
+    ModelPool minAvailable = getMinAvailableResources(ftr);
 
+    //try {
+    LOG_WARN_S << "Min required: " << minRequired.toString(4);
+    LOG_WARN_S << "Min minAvailable " << minAvailable.toString(4);
+
+        return mpMetric->computeSharedUse(minRequired, minAvailable);
+    //} catch(const std::runtime_error& e)
+    //{
+    //    return 0;
+    //}
+}
 
 organization_model::ModelPool SolutionAnalysis::getMinAvailableResources(const csp::FluentTimeResource& ftr) const
 {
@@ -62,7 +78,8 @@ organization_model::ModelPool SolutionAnalysis::getMinAvailableResources(const c
     std::vector<organization_model::ModelPool> availableResources = getAvailableResources(location, ftr.getInterval());
 
     using namespace organization_model;
-    // return the minimum available resources of the
+    // return the minimum available resources
+    // ( min(M_0), min(M_1), ...)
     ModelPool minAvailableResources = organization_model::Algebra::min( availableResources );
 
     // Infer functionality from this set of resources
@@ -221,6 +238,16 @@ organization_model::ModelPool SolutionAnalysis::getMaxResourceRequirements(const
     return getRequiredResources(ftr).second.front();
 }
 
+SpaceTime::Network::tuple_t::Ptr SolutionAnalysis::getFromTuple(const csp::FluentTimeResource& ftr) const
+{
+    return mSolutionNetwork.tupleByKeys(ftr.getLocation(), ftr.getInterval().getFrom());
+}
+
+SpaceTime::Network::tuple_t::Ptr SolutionAnalysis::getToTuple(const csp::FluentTimeResource& ftr) const
+{
+    return mSolutionNetwork.tupleByKeys(ftr.getLocation(), ftr.getInterval().getTo());
+}
+
 organization_model::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequirements(const solvers::csp::FluentTimeResource& ftr) const
 {
     using namespace organization_model;
@@ -363,6 +390,8 @@ void SolutionAnalysis::quantifyTime() const
         symbols::constants::Location::Ptr targetLocation = targetTuple->first();
 
         double minTravelTime = cost.estimateTravelTime(sourceLocation, targetLocation, roles);
+        LOG_WARN_S << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
+            << " from: " << sourceTuple->toString() << " to: " << targetTuple->toString();
 
         point_algebra::TimePoint::Ptr sourceTimepoint = sourceTuple->second();
         point_algebra::TimePoint::Ptr targetTimepoint = targetTuple->second();
@@ -382,6 +411,20 @@ void SolutionAnalysis::quantifyTime() const
 
     mpTimeDistanceGraph = tcn.getDistanceGraph();
 }
+
+void SolutionAnalysis::quantifyMetric() const
+{
+    for(const csp::FluentTimeResource& ftr : mResourceRequirements)
+    {
+        double value = getMetricValue(ftr);
+        std::cout << "Metric: " << value << std::endl
+            << "    at: " << ftr.getLocation()->toString() << std::endl
+            << "    over: " <<  std::endl
+            << ftr.getInterval().toString(8);
+    }
+}
+
+
 
 Plan SolutionAnalysis::computePlan() const
 {

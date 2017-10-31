@@ -6,6 +6,8 @@
 #include "Solution.hpp"
 #include "csp/FluentTimeResource.hpp"
 #include "../Plan.hpp"
+#include "temporal/TemporalConstraintNetwork.hpp"
+#include <organization_model/Metric.hpp>
 
 namespace templ {
 namespace solvers {
@@ -34,7 +36,8 @@ public:
      *
      * \see SpaceTime::Network
      */
-    SolutionAnalysis(const Mission::Ptr& mission, const SpaceTime::Network& solution);
+    SolutionAnalysis(const Mission::Ptr& mission, const SpaceTime::Network& solution,
+            organization_model::metrics::Type metricType = organization_model::metrics::REDUNDANCY);
 
     void analyse();
 
@@ -42,7 +45,14 @@ public:
 
     double getQuality() const { return mQuality; }
     double getCost() const { return mCost; }
-    double getRedundancy() const { return mRedundancy; }
+    double getMetricValue() const { return mMetricValue; }
+
+    organization_model::Metric::Ptr getMetric() const { return mpMetric; }
+
+    /**
+     * Get the metrics, e.g., redundancy of the fluent time resource
+     */
+    double getMetricValue(const csp::FluentTimeResource& ftr) const;
 
     /**
      * Retrieve the list of required roles / all roles that are involved in this
@@ -64,6 +74,18 @@ public:
      * \return model pool of the maximum required resources
      */
     organization_model::ModelPool getMaxResourceRequirements(const csp::FluentTimeResource& ftr) const;
+
+    /**
+     * Get the corresponding space time tuple for source time of a fluent time resource
+     * definition
+     */
+    SpaceTime::Network::tuple_t::Ptr getFromTuple(const csp::FluentTimeResource& ftr) const;
+
+    /**
+     * Get the corresponding space time tuple for the target time of a fluent time resource
+     * definition
+     */
+    SpaceTime::Network::tuple_t::Ptr getToTuple(const csp::FluentTimeResource& ftr) const;
 
     /**
      * Get the maximum number of missing resource requirements, i.e.
@@ -138,20 +160,6 @@ public:
      */
     std::vector<organization_model::ModelPool> getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::Interval& interval) const;
 
-
-//
-//    ModelPool getAvailableFunctionalities(const symbols::constants::Location::Ptr& location, const solvers::temporal::Interval& interval) const;
-//
-//    std::vector< SpaceTime::Point > getTimeline(const IRI& role);
-
-//    bool hasAvailableFunctionality(const SpaceTime::Point& spaceTimePoint, const IRI& functionality) const;
-//    bool hasAvailableResource(const SpaceTime::Point& spaceTimePoint, const IRI& resource) const;
-//
-//    double getFunctionalityRedundancy(const SpaceTime::Point& spaceTimePoint, const IRI& functionality) const;
-//    double getResourceRedundancy(const SpaceTime::Point& spaceTimePoint, const IRI& resource) const;
-
-    // getTransfer
-
     /**
      * Compute a hypergraph
      * The hypergaph contains a number of RoleInfoVertex (as HyperEdge)
@@ -159,10 +167,16 @@ public:
      */
     graph_analysis::BaseGraph::Ptr toHyperGraph();
 
+    // Annotation functions
     /**
      * Provide a quantification on the transition times for this planner
+     * this update the Time Distance Graph
      */
     void quantifyTime() const;
+
+    void quantifyMetric() const;
+
+    // End annotiation functions
 
     /**
      * Get the set of available resources
@@ -175,6 +189,8 @@ public:
      * Compute a plan for all robot systems
      */
     Plan computePlan() const;
+
+    graph_analysis::BaseGraph::Ptr getTimeDistanceGraph() const { return mpTimeDistanceGraph; }
 
 private:
     /**
@@ -196,7 +212,9 @@ private:
 
     double mQuality;
     double mCost;
-    double mRedundancy;
+    double mMetricValue;
+
+    organization_model::Metric::Ptr mpMetric;
 
 };
 
