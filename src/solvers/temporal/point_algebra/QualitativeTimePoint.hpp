@@ -2,6 +2,7 @@
 #define TEMPL_SOLVERS_TEMPORAL_POINT_ALGEBRA_QUALITATIVE_TIME_POINT_HPP
 
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
+#include <graph_analysis/VertexRegistration.hpp>
 
 namespace templ {
 namespace solvers {
@@ -25,11 +26,13 @@ class QualitativeTimePoint : public TimePoint
 public:
     typedef shared_ptr<QualitativeTimePoint> Ptr;
 
+    static const graph_analysis::VertexRegistration< QualitativeTimePoint > msQualitativeTimePoint;
+
     /**
      * Default constructor
      * \param label (main) label for this Timepoint
      */
-    QualitativeTimePoint(const TimePoint::Label& label);
+    QualitativeTimePoint(const TimePoint::Label& label = "");
 
     /**
      * Create instance of QualitativeTimePoint
