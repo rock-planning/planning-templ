@@ -74,6 +74,20 @@ std::string FluentTimeResource::toString(uint32_t indent) const
     {
         ss << dit->toString(indent + 8) << std::endl;
     }
+    ss << hspace << "    constraints: " << std::endl;
+    ss << organization_model::FunctionalityRequirement::toString(functionalitiesConstraints, indent + 8) << std::endl;
+    return ss.str();
+}
+
+std::string FluentTimeResource::toString(const List& list, uint32_t indent)
+{
+    std::stringstream ss;
+    std::string hspace(indent,' ');
+    ss << hspace << "FluentTimeResource List:" << std::endl;
+    for(FluentTimeResource ftr : list)
+    {
+        ss << ftr.toString(indent + 4);
+    }
     return ss.str();
 }
 
@@ -274,20 +288,14 @@ size_t FluentTimeResource::getIndex(const List& list, const FluentTimeResource& 
             if(intersect == fluent.resources)
             {
                 return index;
-            } else {
-                std::cout << "no match, with intersect" << std::endl;
-                for(uint32_t a : intersect)
-                {
-                    std::cout << a << " " << std::endl;
-                }
             }
         }
 
         ++index;
     }
-    }
 
-    throw std::runtime_error("templ::solvers::csp::FluentTimeResource::getIndex: could not find fluent index for '" + fluent.toString() + "'");
+    throw std::runtime_error("templ::solvers::csp::FluentTimeResource::getIndex: could not find fluent index for '" + fluent.toString() + "' in list of existing:\n'"
+            + FluentTimeResource::toString(list,4) +"'");
 }
 
 void FluentTimeResource::incrementResourceRequirement(const owlapi::model::IRI& model, size_t number)
@@ -311,8 +319,8 @@ void FluentTimeResource::updateMaxCardinalities()
     std::set<Functionality> functionalities = getFunctionalities();
 
     ModelPool saturation = mission->getOrganizationModelAsk().getFunctionalSaturationBound(functionalities, functionalitiesConstraints);
-
     ModelPool maxSaturationCardinalities = Algebra::min(mission->getAvailableResources(), saturation);
+
     // Resource constraints might enforce a minimum cardinality that is higher than the functional saturation bound
     // thus update the max cardinalities
     maxCardinalities = organization_model::Algebra::max(minCardinalities, maxSaturationCardinalities);

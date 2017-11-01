@@ -52,7 +52,9 @@ struct FluentTimeResource
 
     bool operator==(const FluentTimeResource& other) const;
     bool operator<(const FluentTimeResource& other) const;
+
     std::string toString(uint32_t indent = 0) const;
+    static std::string toString(const List& list, uint32_t indent = 0) const;
 
     /**
      * Get the overlapping/concurrent FluentTimeResources
