@@ -18,7 +18,7 @@ Logger::Logger(const base::Time& time, const std::string& baseDirectory, bool us
 std::string Logger::filename(const std::string& filename) const
 {
     std::stringstream ss;
-    ss << mBaseDirectory << "/" << mTime.toString(base::Time::Seconds) << "-templ/";
+    ss << mBaseDirectory << "/" << mTime.toString(base::Time::Seconds, "%Y%m%d_%H%M%S") << "-templ/";
     if(mUseSessions)
     {
         ss << "/" << mSessionId;
@@ -35,7 +35,7 @@ std::string Logger::filename(const std::string& filename) const
 std::string Logger::getBasePath() const
 {
     std::stringstream ss;
-    ss << mBaseDirectory << "/" << mTime.toString(base::Time::Seconds) << "-templ/";
+    ss << mBaseDirectory << "/" << mTime.toString(base::Time::Seconds, "%Y%m%d_%H%M%S") << "-templ/";
     return ss.str();
 }
 
