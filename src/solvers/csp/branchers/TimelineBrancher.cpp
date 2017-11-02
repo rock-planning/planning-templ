@@ -44,7 +44,7 @@ TimelineBrancher::TimelineBrancher(Gecode::Home home, MultiTimelineView& x0,
     , mCurrentTimepoint(-1)
     , mAssignedRoles(x0.size(), -1)
 {
-    mRandom.time();
+    mRandom.hw();
 
     initialize(home);
 }
@@ -118,7 +118,7 @@ Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
     updateChoices(choices, view);
 
     // if view is assigned, then it is either a single value or an empty set
-    // Allow to pass an empty set for mSupplyDemand to neglect this constraint
+    // Allow to pass an empty set for mSupplyDemand to neglect the supply demand constraints
     if(view.assigned() || mSupplyDemand.empty())
     {
         if(mSupplyDemand.empty())
@@ -139,8 +139,9 @@ Gecode::Choice* TimelineBrancher::choice(Gecode::Space& home)
             return new PosVal(*this, mCurrentRole, i, choices, 1 /*includeEmptySet*/);
         }
     }
-    std::map<int, int> targetSupply;
 
+    // Only active when supply demand information is provided
+    std::map<int, int> targetSupply;
     size_t fluents = static_cast<const TransportNetwork&>(home).getNumberOfFluents();
 
     int roleDemand = mSupplyDemand[mCurrentRole];
@@ -320,13 +321,14 @@ bool TimelineBrancher::status(const Gecode::Space& home) const
                     }
                 }
             }
+
+            // cache timepoint with respect to fewest unassigned views
             if(unassigned > 0 && unassigned < numberOfUnassignedViews)
             {
                 preferredWaypointByUnassignedViews = t;
                 numberOfUnassignedViews = unassigned;
-
             }
-
+            // cache timepoint with respect to fewest assigned views
             if(assignedWaypoints > 0 && assignedWaypoints < numberOfAssignedWaypoints)
             {
                 preferredWaypointByAssignedWaypoints = t;
@@ -336,6 +338,9 @@ bool TimelineBrancher::status(const Gecode::Space& home) const
                 << "    " << unassigned << " unassigned views"
                 << "    " << assignedWaypoints << " assigned waypoints";
         }
+
+        // Select the timepoint with fewest assigned waypoints first,
+        // then the timepoint with fewest unassigned views
         if(preferredWaypointByAssignedWaypoints != mNumberOfTimepoints)
         {
             mCurrentTimepoint = preferredWaypointByAssignedWaypoints;
