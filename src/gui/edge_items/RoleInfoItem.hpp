@@ -30,13 +30,10 @@ protected:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                QWidget* widget = 0);
     QRectF boundingRect() const;
-    QPainterPath shape() const;
 
     int mArrowSize;
     QGraphicsTextItem* mpLabel;
     QGraphicsTextItem* mpClassName;
-    QGraphicsPolygonItem* mpMultiLine;
-    QGraphicsPolygonItem* mpArrowHead;
 
     EdgeItemBase* createNewItem(graph_analysis::gui::GraphWidget* graphWidget,
                 const graph_analysis::Edge::Ptr& edge,

@@ -1,5 +1,6 @@
 #include "CapacityLinkItem.hpp"
 #include <graph_analysis/gui/GraphWidget.hpp>
+#include <graph_analysis/WeightedEdge.hpp>
 #include <base-logging/Logging.hpp>
 #include <cmath>
 #include <iostream>
@@ -25,7 +26,12 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
     mpFillBar->setPen( QPen(Qt::black) );
     mpFillBar->setBrush(QBrush(Qt::white));
 
-    double consumptionInPercent = dynamic_pointer_cast<CapacityLink>( getEdge() )->getConsumptionLevel();
+    double consumptionInPercent = 0;
+    CapacityLink::Ptr capacityLink = dynamic_pointer_cast<CapacityLink>( getEdge() );
+    if(capacityLink)
+    {
+       consumptionInPercent = capacityLink->getConsumptionLevel();
+    }
 
     mpFillStatus = new QGraphicsRectItem(getEdgePath()->pos().x(), getEdgePath()->pos().y(), consumptionInPercent*100 , 10, this);
     mpFillStatus->setPen( QPen(Qt::black) );
