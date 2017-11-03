@@ -42,7 +42,7 @@ void FlawResolution::prepare(const std::vector<transshipment::Flaw>& flaws)
                 break;
             case ga::ConstraintViolation::MinFlow:
                 mResolutionOptions.push_back( ResolutionOption(flaw,0) );
-                mResolutionOptions.push_back( ResolutionOption(flaw,1) );
+                //mResolutionOptions.push_back( ResolutionOption(flaw,1) );
                 break;
             case ga::ConstraintViolation::TotalTransFlow:
                 break;
@@ -230,6 +230,8 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
         case ga::ConstraintViolation::TotalTransFlow:
             break;
         case ga::ConstraintViolation::TotalMinFlow:
+            std::cout << "TotalMinFlow violation: resolver option #" << alternative << std::endl;
+            std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
             switch(alternative)
             {
                 case 0:
@@ -237,7 +239,6 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                     std::cout << "        for min items: " << flaw.violation.getDelta() << std::endl;
                     std::cout << "        for fluent time resource: " << std::endl
                             << flaw.ftr.toString(8);
-                    std::cout << "        Resulting requirements: " << std::endl;
 
                     if(TransportNetwork::msInteractive)
                     {
@@ -248,6 +249,7 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
 
                     using namespace organization_model;
                     Functionality functionality( vocabulary::OM::resolve("TransportProvider") );
+
                     // Add the constraint to increase the transport capacity to
                     // cover for the existing delta
                     PropertyConstraint::Set constraints;
@@ -267,6 +269,8 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
 
                     if(TransportNetwork::msInteractive)
                     {
+                        std::cout << "Add functionality requirement: " << FunctionalityRequirement::toString(functionalityRequirements, 8) << std::endl;
+                        std::cout << "Added constraint: " << constraint.toString() << std::endl;
                         std::cout << "Fluents after adding function requirement: " << std::endl;
                         for(const FluentTimeResource& ftr : currentSpace.mResourceRequirements)
                         {
@@ -288,13 +292,22 @@ std::vector< std::pair<FlawResolution::ResolutionOption, uint32_t> > FlawResolut
 {
     Gecode::Space* master = space.clone(true);
 
-    std::cout << "FlawResolution: try finding best resolver: resolution options size " << resolutionOptions.size() << std::endl;
-    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+    if(TransportNetwork::msInteractive)
+    {
+        std::cout << "FlawResolution: try finding best resolver: resolution options size " << resolutionOptions.size() << std::endl;
+        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+    }
 
     EvaluationList improvingFlaws;
 
     for(ResolutionOption option : resolutionOptions)
     {
+        if(TransportNetwork::msInteractive)
+        {
+            std::cout << "FlawResolution: try resolution options, existing cost" << existingCost << std::endl;
+            std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+        }
+
         Gecode::Space* slave = master->clone(false);
         TransportNetwork* transportNetwork = dynamic_cast<TransportNetwork*>(slave);
 
@@ -302,21 +315,23 @@ std::vector< std::pair<FlawResolution::ResolutionOption, uint32_t> > FlawResolut
 
         Gecode::Search::Options options;
         options.threads = 1;
+        Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(1);
+        options.cutoff = c;
         // p 172 "the value of nogoods_limit described to which depth limit
         // no-goods should be extracted from the path of the search tree
         // maintained by the search engine
-        options.nogoods_limit = 1024;
+        options.nogoods_limit = 128;
         // recomputation distance
-        // options.c_d =
+        //options.c_d = 30;
         // adaptive recomputation distance
         // options.a_d =
         // default node cutoff
         // options.node =
         // default failure cutoff
         // options.fail
-        options.stop = Gecode::Search::Stop::time(120000);
+        options.stop = Gecode::Search::Stop::time(30000);
         transportNetwork->setUseMasterSlave(false);
-        Gecode::BAB<TransportNetwork> searchEngine(transportNetwork, options);
+        Gecode::RBS<TransportNetwork, Gecode::DFS> searchEngine(transportNetwork, options);
         TransportNetwork* best = NULL;
         while(TransportNetwork* current = searchEngine.next())
         {
@@ -329,16 +344,37 @@ std::vector< std::pair<FlawResolution::ResolutionOption, uint32_t> > FlawResolut
             std::cout << "FlawResolution: found improving flaw resolver" << std::endl;
             std::cout << "    cost: " << best->cost() << std::endl;
             std::cout << "    existing cost: " << existingCost << std::endl;
-            std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+            std::cout << "    remaining flaws: " << best->mNumberOfFlaws.val() << std::endl;
+            if(TransportNetwork::msInteractive)
+            {
+                std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+            }
 
             uint32_t delta = existingCost - (uint32_t) best->cost().val();
-            improvingFlaws.push_back( Evaluation(option, delta) );
+            Evaluation evaluation(option, delta);
+            improvingFlaws.push_back(evaluation);
+            if(best->mNumberOfFlaws.val() == 0)
+            {
+                improvingFlaws.clear();
+                improvingFlaws.push_back(evaluation);
+            }
+        } else {
+            std::cout << "FlawResolution: no improving flaw resolver" << std::endl;
+            std::cout << "    cost: n/a" << std::endl;
+            std::cout << "    existing cost: " << existingCost << std::endl;
+            if(TransportNetwork::msInteractive)
+            {
+                std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+            }
         }
         delete best;
     }
     delete master;
-    std::cout << "FlawResolution: done finding best resolver" << std::endl;
-    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+    if(TransportNetwork::msInteractive)
+    {
+        std::cout << "FlawResolution: done finding best resolver" << std::endl;
+        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+    }
 
     return improvingFlaws;
 }

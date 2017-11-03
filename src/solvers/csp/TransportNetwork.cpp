@@ -37,6 +37,7 @@ namespace solvers {
 namespace csp {
 
 bool TransportNetwork::msInteractive = false;
+TransportNetwork::FlowSolutions TransportNetwork::msMinCostFlowSolutions;
 
 std::string TransportNetwork::Solution::toString(uint32_t indent) const
 {
@@ -193,6 +194,16 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
         return;
     }
 
+    //FlawResolution::ResolutionOptions resolutionOptions = mFlawResolution.current();
+    // Update the existing set of resolution options
+    // this set will be propagated to any clones (and thus slaves that will
+    // improve any solution of this)
+    //
+    // Now assuming we only improve an existing solution, but not to a perfect
+    // solution then what?
+    //
+    // Goal: we want to record the benefit of fixing a flaw for a 'master'
+    // solution
 
     for(const FlawResolution::Evaluation& e : evalList)
     {
@@ -285,7 +296,7 @@ void TransportNetwork::constrainSlave(const Gecode::Space& lastSpace)
     // This has the effect that iteration of the slave either returns a
     // perfect solution or none -- yet it would be beneficial to improve any
     // 'best slave'
-    //rel(*this, mNumberOfFlaws, Gecode::IRT_EQ, 0);
+    rel(*this, mNumberOfFlaws, Gecode::IRT_EQ, 0);
 
     // Approach 2: DFS Style
     // improve any existing solution
@@ -487,7 +498,7 @@ SpaceTime::Timelines TransportNetwork::getTimelines() const
 {
     for(size_t i = 0; i < mActiveRoleList.size(); ++i)
     {
-        LOG_WARN_S << mActiveRoleList[i].toString() << std::endl
+        LOG_WARN_S << "Active role: " << i << " of " << mActiveRoleList.size() << " " << mActiveRoleList[i].toString() << std::endl
             << Formatter::toString(mTimelines[i], mLocations.size());
     }
 
@@ -529,38 +540,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Con
     << "    intervals: " << mIntervals.size() << std::endl
     << "    # requirements: " << mResourceRequirements.size() << std::endl;
 
-    //Gecode::IntArgs x = Gecode::IntArgs::create(3,2,0);
-    //Gecode::IntArgs y = Gecode::IntArgs::create(2,2,0);
-    //Gecode::IntArgs z = Gecode::IntArgs::create(2,2,0);
-    //LOG_DEBUG_S << "Intargs: " << x;
-    //LOG_DEBUG_S << "Intargs: " << Gecode::IntSet( x );
-
-    ////rel(*this, x + y, Gecode::SRT_SUB, z)
-
     Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mpMission->getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
-    // Example usage
-    //
-    //Gecode::IntVar v = resourceDistribution(0,0);
-    //
-    // Maximum upper bound
-    //Gecode::IntVar v0 = resourceDistribution(0,1);
-    //Gecode::IntVarArgs a;
-    //a << v;
-    //a << v0;
-
-    // Bounding individual model count
-    //rel(*this, v, Gecode::IRT_GQ, 0);
-    //rel(*this, v, Gecode::IRT_LQ, 1);
-    //rel(*this, sum(a) < 1);
-
-    // Add explit constraints, i.e. set of model combinations can be added this
-    // way
-    // Gecode::TupleSet tupleSet;
-    // tupleSet.add( Gecode::IntArgs::create( mission.getAvailableResources().size(), 1, 0) );
-    // tupleSet.finalize();
-    //
-    // extensional(*this, resourceDistribution.row(0), tupleSet);
-
 
     // General resource constraints
     //  - identify overlapping fts, limit resources for these (TODO: better
@@ -594,7 +574,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Con
     //Gecode::Gist::stopBranch(*this);
 
     Gecode::Rnd modelUsageRnd;
-    modelUsageRnd.time();
+    modelUsageRnd.hw();
     branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_RND(modelUsageRnd));
     //Gecode::Gist::stopBranch(*this);
 
@@ -615,11 +595,11 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Con
     //branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
 
     Gecode::Rnd roleUsageRnd;
-    roleUsageRnd.time();
+    roleUsageRnd.hw();
     branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_RND(roleUsageRnd), symmetries);
 
     Gecode::Rnd roleUsageVarRnd;
-    roleUsageVarRnd.time();
+    roleUsageVarRnd.hw();
     branch(*this, mRoleUsage, Gecode::INT_VAR_RND(roleUsageVarRnd), Gecode::INT_VAL_RND(roleUsageVarRnd), symmetries);
 
     //Gecode::Gist::stopBranch(*this);
@@ -629,7 +609,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Con
     //Gecode::Gist::Print<TransportNetwork> p("Print solution");
     //Gecode::Gist::Options options;
     //options.threads = 1;
-    //Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(10);
+    //Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(2);
     //options.cutoff = c;
     //options.inspect.click(&p);
     ////Gecode::Gist::bab(this, o);
@@ -1059,7 +1039,18 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
                 Solution solution = current->getSolution();
 
-                solvers::SolutionAnalysis sa(mission, solution.getMinCostFlowSolution());
+                try {
+                    solvers::SolutionAnalysis sa(mission, solution.getMinCostFlowSolution());
+                    sa.computePlan();
+                    sa.quantifyTime();
+                    sa.quantifyMetric();
+
+                    std::string tcnFilename = mission->getLogger()->filename("temporal-constraint-network.gexf");
+                    graph_analysis::io::GraphIO::write(tcnFilename, sa.getTimeDistanceGraph());
+                } catch(const std::exception& e)
+                {
+                    LOG_WARN_S << e.what();
+                }
                 //sa.remainingFlaws();
 
                 solutions.push_back(solution);
@@ -1618,25 +1609,55 @@ void TransportNetwork::postMinCostFlow()
 
     //assert(!timelines.empty());
     try {
-        transshipment::MinCostFlow minCostFlow(mpMission, minimalTimelines, getTimelines());
-        std::vector<transshipment::Flaw> flaws = minCostFlow.run();
+        if(msInteractive)
+        {
+            std::cout << "Remaining flaws computation: " << mMinCostFlowFlaws.size() << std::endl;
+            std::cout << "     cost: " << mCost << std::endl;
+            std::cout << "     flaws: " << mNumberOfFlaws << std::endl;
+            std::cout << "Press ENTER to continue..." << std::endl;
+            std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+        }
 
-        //std::cout << "Found " << flaws.size() << " flaws";
-        //LOG_INFO_S << "Found " << flaws.size() << " flaws";
-        //for(const transshipment::Flaw& flaw: flaws)
-        //{
-        //    LOG_INFO_S << "Flaw: " << flaw.toString();
-        //}
+        SpaceTime::Timelines spaceTimeTimelines = getTimelines();
+        std::pair<SpaceTime::Timelines, std::map<Role, csp::RoleTimeline> > key(spaceTimeTimelines, minimalTimelines);
+        transshipment::MinCostFlow minCostFlow(mpMission, minimalTimelines, spaceTimeTimelines);
 
-        transshipment::FlowNetwork flowNetwork = minCostFlow.getFlowNetwork();
-        mMinCostFlowSolution = flowNetwork.getSpaceTimeNetwork();
-        flowNetwork.save();
-        // store all flaws
-        mMinCostFlowFlaws = flaws;
+        FlowSolutions::iterator it = msMinCostFlowSolutions.find(key);
+        if(it == msMinCostFlowSolutions.end())
+        {
+            std::vector<transshipment::Flaw> flaws = minCostFlow.run();
+
+            //std::cout << "Found " << flaws.size() << " flaws";
+            //LOG_INFO_S << "Found " << flaws.size() << " flaws";
+            //for(const transshipment::Flaw& flaw: flaws)
+            //{
+            //    LOG_INFO_S << "Flaw: " << flaw.toString();
+            //}
+
+            transshipment::FlowNetwork flowNetwork = minCostFlow.getFlowNetwork();
+            mMinCostFlowSolution = flowNetwork.getSpaceTimeNetwork();
+            flowNetwork.save();
+
+            // store all flaws
+            mMinCostFlowFlaws = flaws;
+
+            msMinCostFlowSolutions[key] = FlowSolutionValue(flaws, mMinCostFlowSolution);
+        } else {
+            if(msInteractive)
+            {
+                std::cout << "Found existing solution .. (skipping recomputation and taking from cache)" << std::endl;
+                std::cout << "Press ENTER to continue..." << std::endl;
+                std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+            }
+
+            mMinCostFlowFlaws = it->second.first;
+            mMinCostFlowSolution = it->second.second;
+        }
         // compute all feasible resolution that might allow
         // to improve the solution
         mFlawResolution.prepare(mMinCostFlowFlaws);
 
+        std::cout << "Remaining flaws: " << mMinCostFlowFlaws.size() << std::endl;
         if(msInteractive)
         {
             std::cout << "Remaining flaws: " << mMinCostFlowFlaws.size() << std::endl;

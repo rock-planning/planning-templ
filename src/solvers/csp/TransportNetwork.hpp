@@ -213,6 +213,12 @@ private:
     // The current master space
     TransportNetwork* mpCurrentMaster;
 
+    typedef std::pair< std::vector<transshipment::Flaw>, SpaceTime::Network> FlowSolutionValue;
+    typedef std::pair<SpaceTime::Timelines, std::map<Role, csp::RoleTimeline> > FlowSolutionKey;
+    typedef std::map< FlowSolutionKey, FlowSolutionValue > FlowSolutions;
+
+    static FlowSolutions msMinCostFlowSolutions;
+
 private:
 
     std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelPool::Set& set) const;
@@ -317,6 +323,10 @@ protected:
 
     ModelDistribution getModelDistribution() const;
     RoleDistribution getRoleDistribution() const;
+
+    /**
+     * Use the list of active role in order to compute a list of timelines
+     */
     SpaceTime::Timelines getTimelines() const;
 
     /**
