@@ -20,6 +20,9 @@
                 </role-usage>
                 <master-slave>true</master-slave><!-- allow to improve solution using a master-slave approach applying flaw resolvers -->
                 <hill-climbing>true</hill-climbing><!-- allow only increasingly better solutions -->
+                <timeline-brancher>
+                    <supply-demand>true</supply-demand>
+                </timeline-brancher>
             </options>
             <interactive>true</interactive>
         </search>

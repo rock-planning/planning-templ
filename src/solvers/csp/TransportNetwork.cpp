@@ -1523,22 +1523,27 @@ void TransportNetwork::postRoleAssignments()
     // Compute a network with proper activation
     //branch(*this, &TransportNetwork::postRoleTimelines);
     std::vector<int32_t> supplyDemand;
-    for(uint32_t roleIdx = 0; roleIdx < mActiveRoles.size(); ++roleIdx)
+    if( mConfiguration.getValueAs<bool>("TransportNetwork/search/options/timeline-brancher/supply-demand",false) )
     {
-        const Role& role = mRoles[ mActiveRoles[roleIdx] ];
-        organization_model::facets::Robot robot(role.getModel(), mAsk);
-        int32_t transportSupplyDemand = robot.getPayloadTransportSupplyDemand();
-        if(transportSupplyDemand == 0)
+        for(uint32_t roleIdx = 0; roleIdx < mActiveRoles.size(); ++roleIdx)
         {
-            throw std::invalid_argument("templ::solvers::csp::TransportNetwork: " +  role.getModel().toString() + " has"
-                    " a transportSupplyDemand of 0 -- must be either positive of negative integer");
+            const Role& role = mRoles[ mActiveRoles[roleIdx] ];
+            organization_model::facets::Robot robot(role.getModel(), mAsk);
+            int32_t transportSupplyDemand = robot.getPayloadTransportSupplyDemand();
+            if(transportSupplyDemand == 0)
+            {
+                throw std::invalid_argument("templ::solvers::csp::TransportNetwork: " +  role.getModel().toString() + " has"
+                        " a transportSupplyDemand of 0 -- must be either positive of negative integer");
+            }
+            supplyDemand.push_back(transportSupplyDemand);
         }
-        supplyDemand.push_back(transportSupplyDemand);
+        mSupplyDemand = supplyDemand;
+        assert(!supplyDemand.empty());
     }
-    mSupplyDemand = supplyDemand;
-    assert(!supplyDemand.empty());
 
 
+    std::cout << "Supply list is: " << supplyDemand.size() << std::endl;
+    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
         propagators::isPath(*this, mTimelines[i], mActiveRoleList[i].toString(), numberOfTimepoints, mLocations.size());
