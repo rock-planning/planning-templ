@@ -232,6 +232,12 @@ public:
      */
     static std::vector<solvers::csp::FluentTimeResource> getResourceRequirements(const Mission::Ptr& mission);
 
+    /**
+     * Get a fluent time resource from a Persistence
+     * condition (using LocationCardinality)
+     * \param p PersistenceCondition
+     * \param mission The mission
+     */
     static solvers::csp::FluentTimeResource fromLocationCardinality(const solvers::temporal::PersistenceCondition::Ptr& p, const Mission::Ptr& mission);
 
 protected:
