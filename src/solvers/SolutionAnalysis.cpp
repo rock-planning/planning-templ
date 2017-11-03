@@ -416,11 +416,19 @@ void SolutionAnalysis::quantifyMetric() const
 {
     for(const csp::FluentTimeResource& ftr : mResourceRequirements)
     {
-        double value = getMetricValue(ftr);
-        std::cout << "Metric: " << value << std::endl
-            << "    at: " << ftr.getLocation()->toString() << std::endl
-            << "    over: " <<  std::endl
-            << ftr.getInterval().toString(8);
+        try {
+            double value = getMetricValue(ftr);
+            std::cout << "Metric: " << value << std::endl
+                << "    at: " << ftr.getLocation()->toString() << std::endl
+                << "    over: " <<  std::endl
+                << ftr.getInterval().toString(8);
+        } catch(...)
+        {
+            std::cout << "Metric: requirements not fulfilled" << std::endl
+                << "    at: " << ftr.getLocation()->toString() << std::endl
+                << "    over: " <<  std::endl
+                << ftr.getInterval().toString(8);
+        }
     }
 }
 
