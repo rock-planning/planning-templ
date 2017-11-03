@@ -1538,40 +1538,6 @@ void TransportNetwork::postRoleAssignments()
     mSupplyDemand = supplyDemand;
     assert(!supplyDemand.empty());
 
-//    for(size_t t = 0; t < numberOfTimepoints; ++t)
-//    {
-//
-//        Gecode::SetVarArray sameTime(*this, numberOfFluents*mActiveRoles.size());
-//        for(size_t f = 0; f < numberOfFluents; ++f)
-//        {
-//            Gecode::SetVarArray multiEdge(*this, mActiveRoles.size());
-//            for(size_t i = 0; i < mActiveRoles.size(); ++i)
-//            {
-//                multiEdge[i] = mTimelines[i][t*numberOfFluents + f];
-//                sameTime[i*numberOfFluents + f] = multiEdge[i];
-//            }
-//            propagators::isValidTransportEdge(*this, multiEdge, supplyDemand, t, f, numberOfFluents);
-//            //trace(*this, multiEdge, 1);
-//
-//        }
-//        //Gecode::Rnd timelineRnd(t);
-//        //assign(*this, sameTime, Gecode::SET_ASSIGN_RND_INC(timelineRnd));
-//        //Gecode::Gist::stopBranch(*this);
-//
-//        Gecode::SetAFC afc(*this, sameTime, 0.99);
-//        afc.decay(*this, 0.95);
-//        // http://www.gecode.org/doc-latest/reference/group__TaskModelSetBranchVar.html
-//        //branch(*this, sameTime, Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_MIN_INC());
-//     //   Gecode::Gist::stopBranch(*this);
-//
-//        //Gecode::Rnd timelineRnd(1U);
-//        //branch(*this, sameTime, Gecode::SET_VAR_AFC_MIN(afc), Gecode::SET_VAL_RND_INC(timelineRnd));
-//        //Gecode::Gist::stopBranch(*this);
-//
-//        //Gecode::Action action;
-//        //branch(*this, sameTime, Gecode::SET_VAR_ACTION_MIN(action), Gecode::SET_VAL_RND_INC(timelineRnd));
-//        //Gecode::Gist::stopBranch(*this);
-//    }
 
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
