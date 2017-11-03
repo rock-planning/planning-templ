@@ -13,7 +13,9 @@ namespace templ {
 
 std::map<RoleInfo::Tag, std::string> RoleInfo::TagTxt =
 {{ RoleInfo::UNKNOWN, "UNKNOWN"},
- { RoleInfo::ASSIGNED, "assigned"}
+ { RoleInfo::ASSIGNED, "assigned"},
+ { RoleInfo::REQUIRED, "required"},
+ { RoleInfo::AVAILABLE, "available" }
 }
  ;
 

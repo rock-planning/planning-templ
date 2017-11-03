@@ -59,8 +59,9 @@ void FlowNetwork::initialize()
 {
     if(mExpandedTimelines.empty())
     {
-        initializeMinimalTimelines();
+        initializeMinimalTimelines(false);
     } else {
+        initializeMinimalTimelines(true);
         initializeExpandedTimelines();
     }
 }
@@ -104,6 +105,7 @@ void FlowNetwork::initializeExpandedTimelines()
         // Iterator over all role-specific timelines and annotate vertices and
         // edges with the information of the role that is assigned to it
         SpaceTime::Timeline::const_iterator cit = roleTimeline.begin();
+        RoleInfo::Tag tag = RoleInfo::AVAILABLE;
         for(; cit != roleTimeline.end(); ++cit)
         {
             const SpaceTime::Point& spaceTimePoint = *cit;
@@ -112,18 +114,18 @@ void FlowNetwork::initializeExpandedTimelines()
 
             // create tuple if it does not exist?
             endTuple = mSpaceTimeNetwork.tupleByKeys(location, timepoint);
-            endTuple->addRole(role, RoleInfo::ASSIGNED);
+            endTuple->addRole(role, tag);
 
             if(prevIntervalEnd)
             {
                 startTuple = mSpaceTimeNetwork.tupleByKeys(prevLocation, prevIntervalEnd);
-                startTuple->addRole(role, RoleInfo::ASSIGNED);
+                startTuple->addRole(role, tag);
 
                 std::vector< RoleInfoWeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<RoleInfoWeightedEdge>(startTuple, endTuple);
                 if(edges.empty())
                 {
                     RoleInfoWeightedEdge::Ptr weightedEdge(new RoleInfoWeightedEdge(startTuple, endTuple, capacity));
-                    weightedEdge->addRole(role, RoleInfo::ASSIGNED);
+                    weightedEdge->addRole(role, tag);
                     mSpaceTimeNetwork.getGraph()->addEdge(weightedEdge);
                 } else if(edges.size() > 1)
                 {
@@ -131,7 +133,7 @@ void FlowNetwork::initializeExpandedTimelines()
                 } else { // one edge -- sum up capacities of mobile systems
                     RoleInfoWeightedEdge::Ptr& existingEdge = edges[0];
                     double existingCapacity = existingEdge->getWeight();
-                    existingEdge->addRole(role, RoleInfo::ASSIGNED);
+                    existingEdge->addRole(role, tag);
 
                     if(existingCapacity < std::numeric_limits<RoleInfoWeightedEdge::value_t>::max())
                     {
@@ -139,6 +141,8 @@ void FlowNetwork::initializeExpandedTimelines()
                         existingEdge->setWeight(capacity, 0 /*index of 'overall capacity'*/);
                     }
                 }
+            } else {
+                tag = RoleInfo::ASSIGNED;
             }
 
             prevIntervalEnd = timepoint;
@@ -147,7 +151,7 @@ void FlowNetwork::initializeExpandedTimelines()
     }
 }
 
-void FlowNetwork::initializeMinimalTimelines()
+void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
 {
     // -----------------------------------------
     // Add capacity-weighted edges to the graph
@@ -186,6 +190,7 @@ void FlowNetwork::initializeMinimalTimelines()
         LOG_INFO_S << "Process (time-sorted) timeline: " << roleTimeline.toString();
         const std::vector<csp::FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
         std::vector<csp::FluentTimeResource>::const_iterator fit = ftrs.begin();
+        RoleInfo::Tag tag = RoleInfo::AVAILABLE;
         for(; fit != ftrs.end(); ++fit)
         {
             symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
@@ -195,13 +200,18 @@ void FlowNetwork::initializeMinimalTimelines()
 
             // create tuple if it does not exist?
             endTuple = mSpaceTimeNetwork.tupleByKeys(location, interval.getFrom());
-            endTuple->addRole(role);
+            endTuple->addRole(role, tag);
 
             // Find start node: Tuple of location and interval.getFrom()
             if(prevIntervalEnd)
             {
                 startTuple = mSpaceTimeNetwork.tupleByKeys(prevLocation, prevIntervalEnd);
-                startTuple->addRole(role);
+                startTuple->addRole(role, tag);
+
+                if(updateRolesOnly)
+                {
+                    continue;
+                }
 
                 std::vector< RoleInfoWeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<RoleInfoWeightedEdge>(startTuple, endTuple);
                 if(edges.empty())
@@ -220,6 +230,8 @@ void FlowNetwork::initializeMinimalTimelines()
                         existingEdge->setWeight(capacity, 0 /*index of 'overall capacity'*/);
                     }
                 }
+            } else {
+                tag = RoleInfo::REQUIRED;
             }
 
             prevIntervalEnd = interval.getTo();

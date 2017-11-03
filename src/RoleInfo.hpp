@@ -15,7 +15,7 @@ class RoleInfo
 public:
     typedef shared_ptr<RoleInfo> Ptr;
 
-    enum Tag { UNKNOWN, ASSIGNED = 1 };
+    enum Tag { UNKNOWN, ASSIGNED = 1, REQUIRED, AVAILABLE};
     static std::map<Tag, std::string> TagTxt;
 
     RoleInfo();

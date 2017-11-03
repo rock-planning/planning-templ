@@ -121,7 +121,6 @@ void MinCostFlow::setCommoditySupplyAndDemand()
                 // Get the tuple in the graph and augment with role
                 // information
                 SpaceTime::Network::tuple_t::Ptr currentTuple = mSpaceTimeNetwork.tupleByKeys(location, interval.getFrom());
-                currentTuple->addRole(role);
 
                 Vertex::Ptr vertex = mBipartiteGraph.getUniquePartner(currentTuple);
                 assert(vertex);
@@ -131,8 +130,10 @@ void MinCostFlow::setCommoditySupplyAndDemand()
                 // - first entry (start point): can be interpreted as source
                 // - intermediate entries (transflow) as lower flow bound
                 // - final entry as demand
+                RoleInfo::Tag tag = RoleInfo::REQUIRED;
                 if(fit == ftrs.begin())
                 {
+                    tag = RoleInfo::AVAILABLE;
                     multicommodityVertex->setCommoditySupply(commodityId, 1);
                 } else if(fit+1 == ftrs.end())
                 {
@@ -142,6 +143,7 @@ void MinCostFlow::setCommoditySupplyAndDemand()
                     // for this commodity (i.e. can be either 0 or 1)
                     multicommodityVertex->setCommodityMinTransFlow(commodityId, 1);
                 }
+                currentTuple->addRole(role, tag);
                 previous = vertex;
             }
         }
@@ -160,11 +162,18 @@ std::vector<Flaw> MinCostFlow::run(bool doThrow)
     MultiCommodityMinCostFlow minCostFlow(flowGraph, numberOfCommodities, LPSolver::GLPK_SOLVER);
     // LOGGING
     {
-        std::string filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow-init.dot");
+        std::string filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow-init.gexf");
         graph_analysis::io::GraphIO::write(filename, flowGraph);
     }
 
     std::string prefixPath = mpMission->getLogger()->filename("multicommodity-min-cost-flow");
+
+    //{
+    //    MultiCommodityMinCostFlow scipSolution(flowGraph, numberOfCommodities, LPSolver::SCIP_SOLVER);
+    //    algorithms::LPSolver::Status scipStatus = scipSolution.solve(prefixPath);
+    //    std::cout << "Scip based verification returned: " << algorithms::LPSolver::StatusTxt[scipStatus] << std::endl;
+
+    //}
 
     algorithms::LPSolver::Status status = minCostFlow.solve(prefixPath);
     switch(status)
@@ -309,6 +318,7 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
                     << "    target: " << targetLocation->toString() << multicommodityEdge->getTargetVertex()->toString() << std::endl
                 ;
 
+                std::cout << "Adding role: " << role.toString() << " assigned to" << sourceLocation->toString() << std::endl;
                 dynamic_pointer_cast<SpaceTime::Network::tuple_t>(sourceLocation)->addRole(role, RoleInfo::ASSIGNED);
                 dynamic_pointer_cast<SpaceTime::Network::tuple_t>(targetLocation)->addRole(role, RoleInfo::ASSIGNED);
             }

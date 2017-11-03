@@ -68,8 +68,10 @@ protected:
 
     /**
      * Initialize network (from a vector of FluentTimeResource)
+     *
+     * This initialize the minimal required elements of a timeline
      */
-    void initializeMinimalTimelines();
+    void initializeMinimalTimelines(bool updateRolesOnly = false);
 
     /**
      * Initialize network (from a
