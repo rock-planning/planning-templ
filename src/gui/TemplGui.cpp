@@ -19,6 +19,8 @@
 #include <QPixmap>
 #include <QFileDialog>
 #include <QPrinter>
+#include <QPrintDialog>
+#include <QSvgGenerator>
 
 #include <base-logging/Logging.hpp>
 
@@ -99,7 +101,7 @@ TemplGui::TemplGui()
     QAction *actionImport = comm.addAction("Import", SLOT(importGraph()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open ), tr("Import graph from file"));
     QAction *actionExport = comm.addAction("Export", SLOT(exportGraph()), style->standardIcon(QStyle::SP_DialogSaveButton), QKeySequence( QKeySequence::SaveAs), tr("Export graph to file"));
     QAction *selectLayout = comm.addAction("Layout", SLOT(selectLayout()), style->standardIcon(QStyle::SP_FileDialogListView), QKeySequence( Qt::ControlModifier & Qt::Key_L), tr("Export graph to file"));
-    QAction *saveGraphics = comm.addAction("Save image", SLOT(saveImage()), style->standardIcon(QStyle::SP_DialogSaveButton), QKeySequence(Qt::ControlModifier & Qt::Key_I), tr("Export graph to image"));
+    QAction *saveGraphics = comm.addAction("Export Scene", SLOT(exportScene()), style->standardIcon(QStyle::SP_DialogSaveButton), QKeySequence(Qt::ControlModifier & Qt::Key_I), tr("Export scene"));
 
     fileMenu->addAction(actionImport);
     fileMenu->addAction(actionExport);
@@ -373,30 +375,9 @@ void TemplGui::sortRowLabel(const graph_analysis::BaseGraph::Ptr& graph, graph_a
             });
 }
 
-void TemplGui::saveImage()
+void TemplGui::exportScene()
 {
-    QString filename = QFileDialog::getSaveFileName(this, "Save image", QCoreApplication::applicationDirPath(), "BMP Files (*.bmp);;JPEG (*.JPEG);;PNG (*.png)");
-    if(!filename.isNull())
-    {
-        //QPixmap pixMap = QPixmap::grabWidget(this->mpBaseGraphView);
-        //pixMap.save(filename,0,100);
-
-        //QImage image(filename);
-        //QPainter painter(&image);
-        //painter.setRenderHint(QPainter::Antialiasing);
-        //this->mpBaseGraphView->render(&painter);
-
-        //image.save("file_name.png");
-
-        QPrinter printer(QPrinter::HighResolution);
-        printer.setPaperSize(QPrinter::A4);
-        printer.setOutputFormat(QPrinter::PdfFormat);
-        printer.setOutputFileName(filename);
-
-        QPainter painter(&printer);
-        this->mpBaseGraphView->render(&painter);
-
-    }
+    graph_analysis::gui::dialogs::IODialog::exportScene(this->mpBaseGraphView->scene(), this);
 }
 
 } // end namespace gui
