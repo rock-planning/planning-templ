@@ -57,6 +57,9 @@ public:
     void setName(const std::string& name) { mName = name; }
     const std::string& getName() const { return mName; }
 
+    void setDescription(const std::string& description) { mDescription = description; }
+    const std::string& getDescription() const { return mDescription; }
+
     graph_analysis::BaseGraph::Ptr getRelations() const { return mpRelations; }
 
     /**
@@ -267,6 +270,7 @@ private:
     organization_model::OrganizationModel::Ptr mpOrganizationModel;
     organization_model::OrganizationModelAsk mOrganizationModelAsk;
     std::string mName;
+    std::string mDescription;
     // The set of available resources
     organization_model::ModelPool mModelPool;
     // Set of roles that exists within this mission

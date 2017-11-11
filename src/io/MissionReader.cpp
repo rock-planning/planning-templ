@@ -150,6 +150,11 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                 std::string name = XMLUtils::getContent(doc, firstLevelChild);
                 LOG_DEBUG_S << "Found first level node: 'name' " << name;
                 mission.setName(name);
+            } else if(XMLUtils::nameMatches(firstLevelChild, "description"))
+            {
+                LOG_DEBUG_S << "Found first level node: 'description' ";
+                std::string description = XMLUtils::getContent(doc, firstLevelChild);
+                mission.setDescription(description);
             } else if(XMLUtils::nameMatches(firstLevelChild, "resources"))
             {
                 LOG_DEBUG_S << "Found first level node: 'resources' ";
