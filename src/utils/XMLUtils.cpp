@@ -243,6 +243,116 @@ templ::solvers::temporal::TemporalConstraintNetwork::Ptr XMLUtils::readTemporalC
     return tcn;
 }
 
+void XMLUtils::writeComment(xmlTextWriterPtr writer, const std::string& comment, const std::string& encoding)
+{
+    xmlChar* xmlComment = convertInput(comment.c_str(), encoding.c_str());
+    int rc = xmlTextWriterWriteComment(writer, xmlComment);
+    if(rc < 0)
+    {
+        throw std::runtime_error("templ::utils::XMLUtils::write: failed to"
+                " write comment: '" + comment + "'");
+    }
+    if(xmlComment != NULL)
+    {
+        xmlFree(xmlComment);
+    }
+}
+
+void XMLUtils::writeCDATA(xmlTextWriterPtr writer, const std::string& cdata, const std::string& encoding)
+{
+    TEMPL_XML_RESULT_CHECK( xmlTextWriterWriteCDATA(writer, convertInput( cdata.c_str(), encoding.c_str() ) ) , writeCDATA);
+}
+
+void XMLUtils::writeString(xmlTextWriterPtr writer, const std::string& cdata, const std::string& encoding)
+{
+    TEMPL_XML_RESULT_CHECK( xmlTextWriterWriteString(writer, convertInput( cdata.c_str(), encoding.c_str() ) ), writeString );
+}
+
+void XMLUtils::startElement(xmlTextWriterPtr writer, const std::string& element)
+{
+    int rc = xmlTextWriterStartElement(writer, BAD_CAST element.c_str());
+    if (rc < 0)
+    {
+        throw std::runtime_error("templ::solvers::utils::XMLUtils::startElement failed"
+                " for element '" + element + "'");
+    }
+}
+
+void XMLUtils::endElement(xmlTextWriterPtr writer)
+{
+    int rc = xmlTextWriterEndElement(writer);
+    if (rc < 0)
+    {
+        throw std::runtime_error("templ::solvers::utils::XMLUtils::endElement failed");
+    }
+}
+
+
+xmlChar* XMLUtils::convertInput(const char *in, const char *encoding)
+{
+    xmlChar* out;
+    int ret;
+    int size;
+    int out_size;
+    int temp;
+    xmlCharEncodingHandlerPtr handler;
+
+    if (in == 0)
+    {
+        return NULL;
+    }
+
+    handler = xmlFindCharEncodingHandler(encoding);
+
+    if (!handler)
+    {
+        throw std::runtime_error("templ::utils::XMLUtils: no encoding handler found for" + std::string(encoding));
+    }
+
+    size = (int) strlen(in) + 1;
+    out_size = size * 2 - 1;
+    out = (unsigned char *) xmlMalloc((size_t) out_size);
+
+    if (out != 0) {
+        temp = size - 1;
+        ret = handler->input(out, &out_size, (const xmlChar *) in, &temp);
+        if ((ret < 0) || (temp - size + 1)) {
+            if (ret < 0)
+            {
+                LOG_WARN_S << "conversion wasn't successful";
+            }
+            xmlFree(out);
+            out = 0;
+        } else {
+            out = (unsigned char *) xmlRealloc(out, out_size + 1);
+            out[out_size] = 0;  /*null terminating out */
+        }
+    } else {
+        LOG_WARN_S << "no memory";
+    }
+
+    return out;
+}
+
+void XMLUtils::lint(const std::string& path)
+{
+    // the formatting stage
+    std::string formattedFile = path + ".formatted";
+    std::string command = "`which xmllint` --encode UTF-8 --format " + path + " > " + formattedFile;
+
+    LOG_INFO("Trying to format using xmllint: '%s'", command.c_str());
+    if( system(command.c_str()) == 0 )
+    {
+        command = "mv " + formattedFile + " " + path;
+        if( system(command.c_str()) )
+        {
+            throw std::runtime_error("templ::utils::XMLUtils::lint: Failed to rename file after performing xmllint");
+        }
+    } else {
+        LOG_WARN("XML file '%s' written, but proper formatting failed -- make sure that xmllint is installed", path.c_str());
+    }
+}
+
 
 } // end namespace utils
 } // end namespace templ

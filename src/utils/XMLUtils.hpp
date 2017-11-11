@@ -2,11 +2,20 @@
 #define TEMPL_UTILS_XML_UTILS_HPP
 
 #include <string>
+#include <sstream>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
+#include <libxml/xmlwriter.h>
 #include <boost/lexical_cast.hpp>
 #include "../io/MissionRequirements.hpp"
 #include "../solvers/temporal/TemporalConstraintNetwork.hpp"
+
+#define TEMPL_XML_RESULT_CHECK(x, msg) \
+    if(x < 0) \
+    {\
+        throw std::runtime_error("templ::utils::XMLUtils:" \
+            " xml operation failed: " #msg ); \
+    };
 
 namespace templ {
 namespace utils {
@@ -72,6 +81,29 @@ public:
     static templ::io::Constraints parseConstraints(xmlDocPtr doc, xmlNodePtr current);
 
     static templ::solvers::temporal::TemporalConstraintNetwork::Ptr readTemporalConstraintNetwork(xmlDocPtr doc, xmlNodePtr current);
+
+
+    static xmlChar* convertInput(const char* in, const char* encoding);
+
+    static void writeComment(xmlTextWriterPtr writer, const std::string& comment, const std::string& encoding = "UTF-8");
+    static void writeCDATA(xmlTextWriterPtr writer, const std::string& cdata, const std::string& encoding = "UTF-8");
+    static void writeString(xmlTextWriterPtr writer, const std::string& string, const std::string& encoding = "UTF-8");
+
+    static void startElement(xmlTextWriterPtr writer, const std::string& element);
+    static void endElement(xmlTextWriterPtr writer);
+
+    template<typename T>
+    static void writeAttribute(xmlTextWriterPtr writer, const std::string& key, T value)
+    {
+        std::stringstream ss;
+        ss << value;
+        TEMPL_XML_RESULT_CHECK( xmlTextWriterWriteAttribute(writer, BAD_CAST key.c_str(), BAD_CAST ss.str().c_str()), writeAttribute );
+    }
+
+    /**
+     * Perform linting of given xml file
+     */
+    static void lint(const std::string& path);
 };
 
 } // end namespace utils

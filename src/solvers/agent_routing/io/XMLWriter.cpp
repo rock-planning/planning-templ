@@ -2,7 +2,9 @@
 #include <libxml/encoding.h>
 #include <base-logging/Logging.hpp>
 #include <sstream>
+#include "../../../utils/XMLUtils.hpp"
 
+using namespace templ::utils;
 
 namespace templ {
 namespace solvers {
@@ -45,28 +47,28 @@ void XMLWriter::write(const std::string& path, const AgentRoutingProblem& arp)
         throw std::runtime_error("templ::agent_routing::io::XMLWriter::write: failed to"
                 " start document:  '" + path + "'");
     }
-    startElement(writer, "agent-routing-problem");
-    writeComment(writer, "The general description of an agent vehicle routing problem");
+    XMLUtils::startElement(writer, "agent-routing-problem");
+    XMLUtils::writeComment(writer, "The general description of an agent vehicle routing problem", mEncoding);
 
-    startElement(writer, "agent-attributes");
-    writeComment(writer, "The commonly available attributes on the set of agents");
+    XMLUtils::startElement(writer, "agent-attributes");
+    XMLUtils::writeComment(writer, "The commonly available attributes on the set of agents", mEncoding);
     {
         const std::vector<AgentIntegerAttribute>& attributes = arp.getAgentIntegerAttributes();
         std::vector<AgentIntegerAttribute>::const_iterator ait = attributes.begin();
         for(; ait != attributes.end(); ++ait)
         {
             const AgentIntegerAttribute& attribute = *ait;
-            startElement(writer, "integer-attribute");
-            writeAttribute(writer, "id", attribute.getId());
-            writeAttribute(writer, "label", attribute.getLabel());
-            writeAttribute(writer, "min", attribute.getMinValue());
-            writeAttribute(writer, "max", attribute.getMaxValue());
-            endElement(writer);
+            XMLUtils::startElement(writer, "integer-attribute");
+            XMLUtils::writeAttribute(writer, "id", attribute.getId());
+            XMLUtils::writeAttribute(writer, "label", attribute.getLabel());
+            XMLUtils::writeAttribute(writer, "min", attribute.getMinValue());
+            XMLUtils::writeAttribute(writer, "max", attribute.getMaxValue());
+            XMLUtils::endElement(writer);
         }
     }
-    endElement(writer);
+    XMLUtils::endElement(writer);
 
-    startElement(writer, "agent-types");
+    XMLUtils::startElement(writer, "agent-types");
     const std::vector<AgentType>& types = arp.getAgentTypes();
     std::vector<AgentType>::const_iterator typesIt = types.begin();
     for(; typesIt != types.end(); ++typesIt)
@@ -74,196 +76,89 @@ void XMLWriter::write(const std::string& path, const AgentRoutingProblem& arp)
         const AgentType& type = *typesIt;
         const std::vector<AgentIntegerAttribute>& typeAttributes = type.getIntegerAttributes();
         std::vector<AgentIntegerAttribute>::const_iterator ait = typeAttributes.begin();
-        startElement(writer, "agent-type");
-        writeAttribute(writer, "id", type.getTypeId());
+        XMLUtils::startElement(writer, "agent-type");
+        XMLUtils::writeAttribute(writer, "id", type.getTypeId());
 
         for(; ait != typeAttributes.end(); ++ait)
         {
             const AgentIntegerAttribute& attribute = *ait;
-            startElement(writer, "attribute");
-            writeAttribute(writer, "id", attribute.getId());
+            XMLUtils::startElement(writer, "attribute");
+            XMLUtils::writeAttribute(writer, "id", attribute.getId());
             std::stringstream ss;
             ss << attribute.getValue();
-            writeString(writer, ss.str());
-            endElement(writer);
+            XMLUtils::writeString(writer, ss.str(), mEncoding);
+            XMLUtils::endElement(writer);
         }
-        endElement(writer);
+        XMLUtils::endElement(writer);
     }
 
-    writeComment(writer, "Available agent types");
+    XMLUtils::writeComment(writer, "Available agent types", mEncoding);
     //xmlTextWriterWriteFormatElement(writer, BAD_CAST "X_ORDER_ID", "%010d", 53535);
-    endElement(writer);
+    XMLUtils::endElement(writer);
 
-    startElement(writer, "agents");
-    writeComment(writer, "This is the description of all agent instance requirements");
+    XMLUtils::startElement(writer, "agents");
+    XMLUtils::writeComment(writer, "This is the description of all agent instance requirements", mEncoding);
     {
         const std::vector<Agent>& requirements = arp.getAgents();
         std::vector<Agent>::const_iterator cit = requirements.begin();
         for(; cit != requirements.end(); ++cit)
         {
-            startElement(writer, "agent");
-            writeAttribute(writer, "id", cit->getAgentId());
-            writeAttribute(writer, "type", cit->getAgentType());
+            XMLUtils::startElement(writer, "agent");
+            XMLUtils::writeAttribute(writer, "id", cit->getAgentId());
+            XMLUtils::writeAttribute(writer, "type", cit->getAgentType());
 
-            startElement(writer, "tasks");
+            XMLUtils::startElement(writer, "tasks");
             const std::vector<AgentTask>& tasks = cit->getAgentTasks();
             std::vector<AgentTask>::const_iterator tit = tasks.begin();
             for(; tit != tasks.end(); ++tit)
             {
                 const AgentTask& task = *tit;
-                startElement(writer, "task");
-                writeAttribute(writer, "priority", task.getTaskPriority());
-                writeAttribute(writer, "duration", task.getTaskDuration());
+                XMLUtils::startElement(writer, "task");
+                XMLUtils::writeAttribute(writer, "priority", task.getTaskPriority());
+                XMLUtils::writeAttribute(writer, "duration", task.getTaskDuration());
                 {
-                    startElement(writer, "location");
-                    writeAttribute(writer, "x", task.getLocation().getPosition().x());
-                    writeAttribute(writer, "y", task.getLocation().getPosition().y());
-                    writeString(writer, task.getLocation().getInstanceName());
-                    endElement(writer);
+                    XMLUtils::startElement(writer, "location");
+                    XMLUtils::writeAttribute(writer, "x", task.getLocation().getPosition().x());
+                    XMLUtils::writeAttribute(writer, "y", task.getLocation().getPosition().y());
+                    XMLUtils::writeString(writer, task.getLocation().getInstanceName(), mEncoding);
+                    XMLUtils::endElement(writer);
                 }
                 {
-                    startElement(writer, "arrival");
+                    XMLUtils::startElement(writer, "arrival");
                     std::stringstream ss;
                     ss << task.getArrival()->getLabel();
-                    writeString(writer, ss.str());
-                    endElement(writer);
+                    XMLUtils::writeString(writer, ss.str(), mEncoding);
+                    XMLUtils::endElement(writer);
                 }
                 {
-                    startElement(writer, "departure");
+                    XMLUtils::startElement(writer, "departure");
                     std::stringstream ss;
                     ss << task.getDeparture()->getLabel();
-                    writeString(writer, ss.str());
-                    endElement(writer);
+                    XMLUtils::writeString(writer, ss.str(), mEncoding);
+                    XMLUtils::endElement(writer);
                 }
 
 
-                endElement(writer);
+                XMLUtils::endElement(writer);
             }
-            endElement(writer);
+            XMLUtils::endElement(writer);
 
-            endElement(writer);
+            XMLUtils::endElement(writer);
         }
     }
 
-    endElement(writer);
+    XMLUtils::endElement(writer);
 
-    endElement(writer); // end agent-types
+    XMLUtils::endElement(writer); // end agent-types
     xmlTextWriterEndDocument(writer);
 
     xmlFreeTextWriter(writer);
     xmlSaveFileEnc(path.c_str(), doc, mEncoding.c_str());
-
-    // the formatting stage
-    std::string formattedFile = path + ".formatted";
-    std::string command = "`which xmllint` --encode UTF-8 --format " + path + " > " + formattedFile;
-
-    LOG_INFO("Trying to format using xmllint: '%s'", command.c_str());
-    if( system(command.c_str()) == 0 )
-    {
-        command = "mv " + formattedFile + " " + path;
-        if( system(command.c_str()) )
-        {
-            throw std::runtime_error("templ::solvers::agent_routing::io::XMLWriter::write Failed to rename file after performing xmlling");
-        }
-    } else {
-        LOG_INFO("ARP XML file '%s' written, but proper formatting failed -- make sure that xmllint is installed", path.c_str());
-    }
-
-
     xmlFreeDoc(doc);
+
+    XMLUtils::lint(path);
 }
 
-
-void XMLWriter::writeComment(xmlTextWriterPtr writer, const std::string& comment)
-{
-    xmlChar* xmlComment = convertInput(comment.c_str(), mEncoding.c_str());
-    int rc = xmlTextWriterWriteComment(writer, xmlComment);
-    if(rc < 0)
-    {
-        throw std::runtime_error("templ::agent_routing::io::XMLWriter::write: failed to"
-                " write comment: '" + comment + "'");
-    }
-    if(xmlComment != NULL)
-    {
-        xmlFree(xmlComment);
-    }
-}
-
-void XMLWriter::writeCDATA(xmlTextWriterPtr writer, const std::string& cdata)
-{
-    ARP_XML_RESULT_CHECK( xmlTextWriterWriteCDATA(writer, convertInput( cdata.c_str(), mEncoding.c_str() ) ) , writeCDATA);
-}
-
-void XMLWriter::writeString(xmlTextWriterPtr writer, const std::string& cdata)
-{
-    ARP_XML_RESULT_CHECK( xmlTextWriterWriteString(writer, convertInput( cdata.c_str(), mEncoding.c_str() ) ), writeString );
-}
-
-void XMLWriter::startElement(xmlTextWriterPtr writer, const std::string& element)
-{
-    int rc = xmlTextWriterStartElement(writer, BAD_CAST element.c_str());
-    if (rc < 0)
-    {
-        throw std::runtime_error("templ::solvers::agent_routing::io::XMLWriter::startElement failed"
-                " for element '" + element + "'");
-    }
-}
-
-void XMLWriter::endElement(xmlTextWriterPtr writer)
-{
-    int rc = xmlTextWriterEndElement(writer);
-    if (rc < 0)
-    {
-        throw std::runtime_error("templ::solvers::agent_routing::io::XMLWriter::endElement failed");
-    }
-}
-
-
-xmlChar* XMLWriter::convertInput(const char *in, const char *encoding)
-{
-    xmlChar* out;
-    int ret;
-    int size;
-    int out_size;
-    int temp;
-    xmlCharEncodingHandlerPtr handler;
-
-    if (in == 0)
-    {
-        return NULL;
-    }
-
-    handler = xmlFindCharEncodingHandler(encoding);
-
-    if (!handler)
-    {
-        throw std::runtime_error("templ::agent_routing::io::XMLWriter: no encoding handler found for" + std::string(encoding));
-    }
-
-    size = (int) strlen(in) + 1;
-    out_size = size * 2 - 1;
-    out = (unsigned char *) xmlMalloc((size_t) out_size);
-
-    if (out != 0) {
-        temp = size - 1;
-        ret = handler->input(out, &out_size, (const xmlChar *) in, &temp);
-        if ((ret < 0) || (temp - size + 1)) {
-            if (ret < 0)
-            {
-                LOG_WARN_S << "conversion wasn't successful";
-            }
-            xmlFree(out);
-            out = 0;
-        } else {
-            out = (unsigned char *) xmlRealloc(out, out_size + 1);
-            out[out_size] = 0;  /*null terminating out */
-        }
-    } else {
-        LOG_WARN_S << "no memory";
-    }
-
-    return out;
-}
 
 } // end namespace io
 } // end namespace agent_routing
