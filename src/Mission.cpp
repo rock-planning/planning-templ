@@ -285,21 +285,24 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addTemporalAssertion(const sy
 
 solvers::Constraint::Ptr Mission::addTemporalConstraint(const pa::TimePoint::Ptr& t1,
         const pa::TimePoint::Ptr& t2,
-        pa::QualitativeTimePointConstraint::Type constraint)
+        pa::QualitativeTimePointConstraint::Type constraintType)
 {
-    LOG_DEBUG_S << "Adding temporal constraint: " << t1->toString() << " --> " << t2->toString() << pa::QualitativeTimePointConstraint::TypeTxt[constraint];
-    return mpTemporalConstraintNetwork->addQualitativeConstraint(t1, t2, constraint);
+    LOG_DEBUG_S << "Adding temporal constraint: " << t1->toString() << " --> " << t2->toString() << pa::QualitativeTimePointConstraint::TypeTxt[constraintType];
+    solvers::Constraint::Ptr constraint = mpTemporalConstraintNetwork->addQualitativeConstraint(t1, t2, constraintType);
+
+    mConstraints.push_back(constraint);
+    return constraint;
 }
 
 void Mission::addConstraint(const solvers::Constraint::Ptr& constraint)
 {
     using namespace solvers::temporal::point_algebra;
     QualitativeTimePointConstraint::Ptr timeConstraint = dynamic_pointer_cast<QualitativeTimePointConstraint>(constraint);
+    mConstraints.push_back(constraint);
+
     if(timeConstraint)
     {
         mpTemporalConstraintNetwork->addConstraint(dynamic_pointer_cast<solvers::Constraint>(timeConstraint));
-    } else {
-        mConstraints.push_back(constraint);
     }
 }
 

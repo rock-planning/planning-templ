@@ -109,6 +109,7 @@ rock_library(templ
         RoleInfoTuple.cpp
         SpaceTime.cpp
         io/MissionReader.cpp
+        io/MissionWriter.cpp
         io/MissionRequirements.cpp
         solvers/agent_routing/Agent.cpp
         solvers/agent_routing/AgentIntegerAttribute.cpp
@@ -159,6 +160,7 @@ rock_library(templ
         SpaceTime.hpp
         TemporallyExpandedNetwork.hpp
         io/MissionReader.hpp
+        io/MissionWriter.hpp
         io/MissionRequirements.hpp
         solvers/agent_routing/Agent.hpp
         solvers/agent_routing/AgentIntegerAttribute.hpp
