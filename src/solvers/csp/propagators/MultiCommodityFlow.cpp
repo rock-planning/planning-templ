@@ -78,7 +78,7 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
         {
             const Role& role = mRoles[roleIdx];
             organization_model::facets::Robot robot(role.getModel(), mAsk);
-            int32_t supplyDemand = robot.getPayloadTransportSupplyDemand();
+            int32_t supplyDemand = robot.getTransportSupplyDemand();
             if(supplyDemand == 0)
             {
                 throw std::invalid_argument("templ::propagators::MultiCommodityFlow: " +  role.getModel().toString() + " has"

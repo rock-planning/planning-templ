@@ -93,7 +93,7 @@ void FlowNetwork::initializeExpandedTimelines()
         }
 
         LOG_DEBUG_S << "Add capacity for mobile system: " << role.getModel();
-        uint32_t capacity = robot.getPayloadTransportCapacity();
+        uint32_t capacity = robot.getTransportCapacity();
         LOG_DEBUG_S << "Role: " << role.toString() << std::endl
             << "    transport capacity: " << capacity << std::endl;
 
@@ -178,7 +178,7 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
         }
 
         LOG_DEBUG_S << "Add capacity for mobile system: " << role.getModel();
-        uint32_t capacity = robot.getPayloadTransportCapacity();
+        uint32_t capacity = robot.getTransportCapacity();
         LOG_DEBUG_S << "Role: " << role.toString() << std::endl
             << "    transport capacity: " << capacity << std::endl;
 

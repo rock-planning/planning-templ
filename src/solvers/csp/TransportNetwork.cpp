@@ -1529,13 +1529,19 @@ void TransportNetwork::postRoleAssignments()
         {
             const Role& role = mRoles[ mActiveRoles[roleIdx] ];
             organization_model::facets::Robot robot(role.getModel(), mAsk);
-            int32_t transportSupplyDemand = robot.getPayloadTransportSupplyDemand();
-            if(transportSupplyDemand == 0)
+            if(robot.isMobile())
             {
-                throw std::invalid_argument("templ::solvers::csp::TransportNetwork: " +  role.getModel().toString() + " has"
-                        " a transportSupplyDemand of 0 -- must be either positive of negative integer");
+                uint32_t transportCapacity = robot.getTransportCapacity();
+                supplyDemand.push_back(transportCapacity);
+            } else {
+                uint32_t transportDemand = robot.getTransportDemand();
+                if(transportDemand == 0)
+                {
+                    throw std::invalid_argument("templ::solvers::csp::TransportNetwork: " +  role.getModel().toString() + " has"
+                            " a transportSupplyDemand of 0 -- must be either positive of negative integer");
+                }
+                supplyDemand.push_back(-transportDemand);
             }
-            supplyDemand.push_back(transportSupplyDemand);
         }
         mSupplyDemand = supplyDemand;
         assert(!supplyDemand.empty());

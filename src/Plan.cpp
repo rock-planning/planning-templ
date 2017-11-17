@@ -231,7 +231,7 @@ void Plan::computeGraph() const
             }
 
             std::vector<std::string> roleSpecificPlan;
-            uint32_t capacity = robot.getPayloadTransportCapacity();
+            uint32_t capacity = robot.getTransportCapacity();
 
             const RoleBasedPlan::mapped_type& plan = cit->second;
             RoleBasedPlan::mapped_type::const_iterator pit = plan.begin();
@@ -292,10 +292,10 @@ void Plan::computeGraph() const
             }
 
             // Extract actual demand for the immobile payload
-            int32_t demand = robot.getPayloadTransportSupplyDemand();
-            if(demand >= 0)
+            int32_t demand = robot.getTransportDemand();
+            if(demand == 0)
             {
-                throw std::invalid_argument("templ::Plan::computeGraph: expected demand (negative value for supplyDeman) for immobile role '" + role.toString() + "' but was the value was positive");
+                throw std::invalid_argument("templ::Plan::computeGraph: expected demand for immobile role '" + role.toString() + "' but was the value was 0");
             }
             uint32_t capacityUsage = abs(demand);
 
