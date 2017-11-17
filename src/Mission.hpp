@@ -60,6 +60,7 @@ public:
     void setDescription(const std::string& description) { mDescription = description; }
     const std::string& getDescription() const { return mDescription; }
 
+
     graph_analysis::BaseGraph::Ptr getRelations() const { return mpRelations; }
 
     /**
@@ -273,7 +274,7 @@ private:
     std::string mDescription;
     // The set of available resources
     organization_model::ModelPool mModelPool;
-    // Set of roles that exists within this mission
+    // Set of available roles that exists within this mission
     Role::List mRoles;
     // The list of involved models
     owlapi::model::IRIList mModels;
