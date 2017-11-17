@@ -47,7 +47,7 @@ public:
 
     static std::string resolveNamespacePrefix(xmlDocPtr doc, xmlNodePtr node, const std::string& prefix);
 
-    static std::string getContent(xmlDocPtr doc, xmlNodePtr node, size_t count = 1);
+    static std::string getContent(xmlDocPtr doc, xmlNodePtr node, size_t count = 1, bool plainTxt = false);
 
     static bool hasContent(xmlDocPtr doc, xmlNodePtr node, size_t count = 1);
 

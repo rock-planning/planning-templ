@@ -33,7 +33,7 @@ bool XMLUtils::hasContent(xmlDocPtr doc, xmlNodePtr node, size_t count)
     return false;
 }
 
-std::string XMLUtils::getContent(xmlDocPtr doc, xmlNodePtr node, size_t count)
+std::string XMLUtils::getContent(xmlDocPtr doc, xmlNodePtr node, size_t count, bool plainText)
 {
     xmlChar* key = xmlNodeListGetString(doc, node->xmlChildrenNode, count);
     if(key)
@@ -41,17 +41,21 @@ std::string XMLUtils::getContent(xmlDocPtr doc, xmlNodePtr node, size_t count)
         std::string content((const char*) key);
         xmlFree(key);
 
-        std::string http = "http://";
-        std::string prefix = content.substr(0,http.size());
-        if(prefix != http)
+        std::cout << "GET CONTENT with: " << plainText << std::endl;
+        if(!plainText)
         {
-            size_t found = content.find_first_of(':');
-            if(found != std::string::npos)
+            std::string http = "http://";
+            std::string prefix = content.substr(0,http.size());
+            if(prefix != http)
             {
-                std::string prefix = content.substr(0,found);
-                std::string ns = resolveNamespacePrefix(doc, node, prefix);
-                std::string core = content.substr(found+1);
-                content = ns + core;
+                size_t found = content.find_first_of(':');
+                if(found != std::string::npos)
+                {
+                    std::string prefix = content.substr(0,found);
+                    std::string ns = resolveNamespacePrefix(doc, node, prefix);
+                    std::string core = content.substr(found+1);
+                    content = ns + core;
+                }
             }
         }
         return content;
