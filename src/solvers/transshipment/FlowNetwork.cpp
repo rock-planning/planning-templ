@@ -83,8 +83,8 @@ void FlowNetwork::initializeExpandedTimelines()
         const Role& role = rit->first;
         SpaceTime::Timeline roleTimeline = rit->second;
 
-        // Check if this item is mobile, i.e. change change the location
-        // WARNING: this is domain specific based on using the dataProperty payloadTransportCapacity
+        // Check if this item is mobile, i.e. change the location
+        // WARNING: this is currently domain specific based on using the dataProperty payloadTransportCapacity
         //
         organization_model::facets::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
         if(!robot.isMobile())
@@ -190,7 +190,7 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
         LOG_INFO_S << "Process (time-sorted) timeline: " << roleTimeline.toString();
         const std::vector<csp::FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
         std::vector<csp::FluentTimeResource>::const_iterator fit = ftrs.begin();
-        RoleInfo::Tag tag = RoleInfo::AVAILABLE;
+        RoleInfo::Tag tag = RoleInfo::REQUIRED;
         for(; fit != ftrs.end(); ++fit)
         {
             symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
