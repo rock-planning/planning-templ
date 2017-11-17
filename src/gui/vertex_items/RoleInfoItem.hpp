@@ -59,6 +59,9 @@ private:
     QGraphicsTextItem* mpInfoBox;
     QGraphicsRectItem* mpRect;
 
+    QGraphicsEllipseItem* mpEllipse;
+    QGraphicsTextItem* mpEllipseText;
+
     /** convert the current scenePos of the item to smth like "(23, -14)" */
     QString getScenePosAsString() const;
 };

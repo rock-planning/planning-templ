@@ -23,6 +23,8 @@ RoleInfoItem::RoleInfoItem()
     , mpClassName(0)
     , mpInfoBox(0)
     , mpRect(0)
+    , mpEllipse(0)
+    , mpEllipseText(0)
 {}
 
 /**
@@ -38,6 +40,8 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     , mpClassName(0)
     , mpInfoBox(0)
     , mpRect(0)
+    , mpEllipse(0)
+    , mpEllipseText(0)
 {
 
     // at the lowest (so in the background) the rectangle
@@ -68,6 +72,18 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     mpInfoBox->setPos(mpRect->rect().topRight()-
                          QPointF(mpInfoBox->boundingRect().width(), 0));
 
+
+    // Add extra visualization
+    mpEllipse = new QGraphicsEllipseItem(-45,-45,40,40, this);
+    mpEllipse->setPos(mpRect->rect().bottomRight());
+    mpEllipse->setPen(QPen(Qt::gray));
+    //mpEllipse->setBrush(QBrush(Qt::darkGray, Qt::NoBrush) );
+
+    mpEllipseText = new QGraphicsTextItem("0.95", this);
+    mpEllipseText->setPos(mpEllipse->pos() + (mpEllipse->boundingRect().center() - mpEllipseText->boundingRect().center()) );
+    mpEllipseText->setPlainText("0.95");
+    mpEllipseText->setDefaultTextColor(Qt::gray);
+
     // for this "Simple" type we want to have it movable. this graphical
     // "object" will not be contained inside other items, so thats ok
     setFlag(ItemIsMovable);
@@ -84,7 +100,7 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
 
     QPen pen = mpRect->pen();
     std::stringstream ss;
-    Role::List missing = tuple->getRelativeComplement("", RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]);
+    Role::List missing = tuple->getRelativeComplement(RoleInfo::TagTxt[ RoleInfo::REQUIRED ], RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]);
     if(!missing.empty())
     {
         ss << "Missing roles:" << std::endl;
@@ -95,7 +111,7 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
         pen.setColor(Qt::red);
         mpRect->setPen(pen);
     }
-    Role::List superfluous = tuple->getRelativeComplement(RoleInfo::TagTxt[ RoleInfo::ASSIGNED ], "");
+    Role::List superfluous = tuple->getRelativeComplement(RoleInfo::TagTxt[ RoleInfo::ASSIGNED ], RoleInfo::TagTxt[ RoleInfo::REQUIRED ]);
     if(!superfluous.empty())
     {
         ss << "Superfluous roles:" << std::endl;
