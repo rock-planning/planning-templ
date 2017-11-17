@@ -595,13 +595,10 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Con
     roleUsageAfc.decay(*this, roleAfcDecay);
     //branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
 
-    Gecode::Rnd roleUsageRnd;
-    roleUsageRnd.hw();
-    branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_RND(roleUsageRnd), symmetries);
-
-    Gecode::Rnd roleUsageVarRnd;
-    roleUsageVarRnd.hw();
-    branch(*this, mRoleUsage, Gecode::INT_VAR_RND(roleUsageVarRnd), Gecode::INT_VAL_RND(roleUsageVarRnd), symmetries);
+    Gecode::Rnd rnd;
+    rnd.hw();
+    branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_RND(rnd), symmetries);
+    branch(*this, mRoleUsage, Gecode::INT_VAR_RND(rnd), Gecode::INT_VAL_RND(rnd), symmetries);
 
     //Gecode::Gist::stopBranch(*this);
     // see 8.14 Executing code between branchers
