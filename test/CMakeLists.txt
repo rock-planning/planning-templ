@@ -8,6 +8,7 @@ rock_testsuite(test_suite suite.cpp
     solvers/test_TransportNetwork.cpp
     solvers/test_TemporalCSP.cpp
     solvers/test_TemporallyExpandedGraph.cpp
+    test_Benchmarks.cpp
     test_CartographicMapping.cpp
     test_Configuration.cpp
     test_IO.cpp
@@ -25,4 +26,7 @@ rock_testsuite(test_suite suite.cpp
     test_TimePoint.cpp
     test_Timeline.cpp
     test_Utils.cpp
-    DEPS templ)
+    DEPS
+        templ
+        templ_benchmark
+    )

@@ -1,5 +1,14 @@
 find_package(Boost REQUIRED system filesystem serialization program_options)
 
+rock_library(templ_benchmark
+    SOURCES
+        benchmark/VRPProblem.cpp
+        benchmark/io/GoldenReader.cpp
+    HEADERS
+        benchmark/VRPProblem.hpp
+        benchmark/io/GoldenReader.hpp
+)
+
 rock_library(templ_core
     SOURCES
         Role.cpp
