@@ -502,7 +502,8 @@ SpaceTime::Timelines TransportNetwork::getTimelines() const
             << Formatter::toString(mTimelines[i], mLocations.size());
     }
 
-    return TypeConversion::toTimelines(mActiveRoleList, mTimelines, mLocations, mTimepoints);
+    bool doThrow = false;
+    return TypeConversion::toTimelines(mActiveRoleList, mTimelines, mLocations, mTimepoints, doThrow);
 }
 
 TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Configuration& configuration)

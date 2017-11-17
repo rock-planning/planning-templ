@@ -26,11 +26,13 @@ public:
     /**
      * Convert an adjacency list to the SpaceTime timeline representation using
      * the known locations and timepoints
+     * \param doThrow set to true to throw when an unassigned view is encountered
      * \return Timeline
      */
     static SpaceTime::Timeline toTimeline(const AdjacencyList& list,
             const std::vector<symbols::constants::Location::Ptr>& locations,
-            const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints
+            const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints,
+            bool doThrow = true
             );
 
     /**
@@ -42,7 +44,9 @@ public:
      */
     static SpaceTime::Timelines toTimelines(const Role::List& roles, const ListOfAdjacencyLists& lists,
             const std::vector<symbols::constants::Location::Ptr>& locations,
-            const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints);
+            const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints,
+            bool doThrow = true
+            );
 };
 
 } // end namespace csp

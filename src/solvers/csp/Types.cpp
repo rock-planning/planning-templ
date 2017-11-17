@@ -8,7 +8,8 @@ namespace csp {
 
 SpaceTime::Timeline TypeConversion::toTimeline(const AdjacencyList& list,
             const std::vector<symbols::constants::Location::Ptr>& locations,
-            const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints)
+            const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints,
+            bool doThrow)
 {
     SpaceTime::Timeline timeline;
     for(size_t t = 0; t < timepoints.size();++t)
@@ -20,8 +21,12 @@ SpaceTime::Timeline TypeConversion::toTimeline(const AdjacencyList& list,
             const Gecode::SetVar& var = list[idx];
             if(!var.assigned())
             {
-                SpaceTime::Point stp();
-                throw std::invalid_argument("templ::solvers::csp::TypeConversion::toTimeline: cannot compute timeline, value is not assigned");
+                if(doThrow)
+                {
+                    throw std::invalid_argument("templ::solvers::csp::TypeConversion::toTimeline: cannot compute timeline, value is not assigned");
+                }
+                SpaceTime::Point stp(locations[0],timepoints[t]);
+                timeline.push_back(stp);
             }
 
             if(var.lubSize() == 1)
@@ -42,7 +47,8 @@ SpaceTime::Timeline TypeConversion::toTimeline(const AdjacencyList& list,
 
 SpaceTime::Timelines TypeConversion::toTimelines(const Role::List& roles, const ListOfAdjacencyLists& lists,
             const std::vector<symbols::constants::Location::Ptr>& locations,
-            const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints)
+            const std::vector<solvers::temporal::point_algebra::TimePoint::Ptr>& timepoints,
+            bool doThrow)
 {
     if(roles.empty())
     {
@@ -60,7 +66,7 @@ SpaceTime::Timelines TypeConversion::toTimelines(const Role::List& roles, const 
 
     for(size_t i = 0; i < roles.size(); ++i)
     {
-        timelines[ roles[i] ] = toTimeline(lists[i], locations, timepoints);
+        timelines[ roles[i] ] = toTimeline(lists[i], locations, timepoints, doThrow);
     }
     return timelines;
 }
