@@ -1,5 +1,7 @@
 #include "MissionRequirements.hpp"
 
+namespace pa = templ::solvers::temporal::point_algebra;
+
 namespace templ {
 namespace io {
 
@@ -97,7 +99,7 @@ std::string SpatioTemporalRequirement::toString(uint32_t indent) const
     return ss.str();
 }
 
-templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type TemporalConstraint::getTemporalConstraintType(const std::string& name)
+pa::QualitativeTimePointConstraint::Type TemporalConstraint::getTemporalConstraintType(const std::string& name)
 {
     using namespace templ::solvers::temporal::point_algebra;
     //return Empty, Greater, Less, Equal, Distinct, GreaterOrEqual, LessOrEqual, Universal,
@@ -122,6 +124,33 @@ templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type Te
     }
 
     throw std::invalid_argument("templ::io::MissionReader::getTemporalConstraintType: unknown temporal constraint type: '" + name + "'");
+}
+
+std::string TemporalConstraint::toXML(pa::QualitativeTimePointConstraint::Type type)
+{
+    using namespace templ::solvers::temporal::point_algebra;
+    switch(type)
+    {
+        case QualitativeTimePointConstraint::Greater:
+            return "greaterThan";
+        case QualitativeTimePointConstraint::Less:
+            return "lessThan";
+        case QualitativeTimePointConstraint::Equal:
+            return "equals";
+        case QualitativeTimePointConstraint::Distinct:
+            return "distinct";
+        case QualitativeTimePointConstraint::GreaterOrEqual:
+            return "greaterOrEqual";
+        case QualitativeTimePointConstraint::LessOrEqual:
+            return "lessOrEqual";
+        default:
+            break;
+        //case QualitativeTimePointConstraint::Universal:
+        //    return "universal";
+        //case QualitativeTimePointConstraint::Empty:
+        //    return "empty";
+    }
+    throw std::invalid_argument("templ::io::MissionReader::toXML: unknown xml conversion for temporal constraint type: '" + pa::QualitativeTimePointConstraint::TypeTxt[type] + "'");
 }
 
 std::string TemporalConstraint::toString(uint32_t indent) const
