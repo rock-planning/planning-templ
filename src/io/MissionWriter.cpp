@@ -57,10 +57,54 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
     XMLUtils::endElement(writer); // end organization_model
 
     XMLUtils::startElement(writer, "resources");
+    for(const organization_model::ModelPool::value_type& r : mission.getAvailableResources())
+    {
+        XMLUtils::startElement(writer, "resource");
+        XMLUtils::startElement(writer, "model");
+        XMLUtils::writeString(writer, r.first.toString());
+        XMLUtils::endElement(writer); // end model
+        XMLUtils::startElement(writer, "maxCardinality");
+        std::stringstream ss;
+        ss << r.second;
+        XMLUtils::writeString(writer, ss.str());
+        XMLUtils::endElement(writer); // end maxCardinality
+        XMLUtils::endElement(writer); // end resource
+    }
     XMLUtils::endElement(writer); // end resources;
 
     XMLUtils::startElement(writer, "constants");
+    for(symbols::Constant::Ptr c : mission.getConstants())
+    {
+        symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(c);
+        XMLUtils::startElement(writer, "location");
     // location(id,radius,latitude,longitude) || location(id,x,y,z)
+        XMLUtils::startElement(writer, "id");
+        XMLUtils::writeString(writer, location->getInstanceName());
+        XMLUtils::endElement(writer); // end id
+        XMLUtils::startElement(writer, "x");
+        {
+            std::stringstream ss;
+            ss << location->getPosition().x();
+            XMLUtils::writeString(writer, ss.str());
+        }
+        XMLUtils::endElement(writer);
+        XMLUtils::startElement(writer, "y");
+        {
+            std::stringstream ss;
+            ss << location->getPosition().y();
+            XMLUtils::writeString(writer, ss.str());
+        }
+        XMLUtils::endElement(writer);
+        XMLUtils::startElement(writer, "z");
+        {
+            std::stringstream ss;
+            ss << location->getPosition().z();
+            XMLUtils::writeString(writer, ss.str());
+        }
+        XMLUtils::endElement(writer);
+        XMLUtils::endElement(writer); // end location
+
+    }
     XMLUtils::endElement(writer); // end constants
 
     XMLUtils::startElement(writer, "requirements");
@@ -76,7 +120,7 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
         XMLUtils::startElement(writer, "spatial-requirement");
         XMLUtils::startElement(writer, "location");
         XMLUtils::startElement(writer, "id");
-        XMLUtils::writeString(writer, ftr.getLocation()->getInstanceName().c_str());
+        XMLUtils::writeString(writer, ftr.getLocation()->getInstanceName());
         XMLUtils::endElement(writer); // end location id
         XMLUtils::endElement(writer); // end location
         XMLUtils::endElement(writer); // end spatial requirement
@@ -84,10 +128,10 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
         XMLUtils::startElement(writer, "temporal-requirement");
         XMLUtils::startElement(writer, "from");
         XMLUtils::writeString(writer, ftr.getInterval().getFrom()->getLabel());
-        XMLUtils::endElement(writer);
+        XMLUtils::endElement(writer); // end from
         XMLUtils::startElement(writer, "to");
         XMLUtils::writeString(writer, ftr.getInterval().getTo()->getLabel());
-        XMLUtils::endElement(writer);
+        XMLUtils::endElement(writer); // end to
         XMLUtils::endElement(writer); // end temporal requirement
 
         XMLUtils::startElement(writer, "resource-requirement");
@@ -137,6 +181,7 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
 
             XMLUtils::endElement(writer); // end resource
         }
+        XMLUtils::endElement(writer); // end resource-requirement
         XMLUtils::endElement(writer); // end requirement
     }
     // each do
