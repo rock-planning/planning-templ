@@ -10,19 +10,18 @@ namespace solvers {
 namespace transshipment {
 
 /**
- * Graph-based representation of mobile systems
- *
+ * Graph-based representation of mobile system requirements
  *
  */
 class FlowNetwork
 {
 public:
     /**
-     * TODO: currently using timelines and expandedTimelines
-     * was intended to deal with different timeline definition
+     * \param minimalTimelines The set of minimal requirement per role
+     * \param expandedTimelines The set of additional requirements for roles
      */
     FlowNetwork(const Mission::Ptr& mission,
-        const std::map<Role, csp::RoleTimeline>& timelines,
+        const std::map<Role, csp::RoleTimeline>& minimalTimelines,
         const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines());
 
     const Mission::Ptr& getMission() const { return mpMission; }
@@ -30,7 +29,7 @@ public:
     /**
      * Get the graph representation of the transport network, i.e. as a space time network
      *
-     * The transport netowkr will contain RoleInfo tuples which are augmented
+     * The transport network will contain RoleInfo tuples which are augmented
      * with the roles that are assigned to it under the key 'assigned'
      */
     const SpaceTime::Network& getSpaceTimeNetwork() const { return mSpaceTimeNetwork; }
