@@ -3,6 +3,7 @@
 
 #include <graph_analysis/BaseGraph.hpp>
 #include <gqr/libgqr.h>
+#include "temporal/QualitativeTemporalConstraintNetwork.hpp"
 
 namespace templ {
 namespace solvers {
@@ -67,9 +68,12 @@ public:
     GQReasoner(const std::string& calculus, const graph_analysis::BaseGraph::Ptr& graph, const graph_analysis::Edge::Ptr& defaultEdge);
     virtual ~GQReasoner();
 
+    static bool isConsistent(const temporal::QualitativeTemporalConstraintNetwork& qtcn);
+
     /**
      * Get the primary (here: first) solution for the gq reasoner
-     * \return A graph instance that shares the vertices with the graph that has
+     * \return If no solution exists a graph_analysis::BaseGraph::Ptr() will be
+     * returned, otherwise a graph instance that shares the vertices with the graph that has
      * been used for initialization
      */
     graph_analysis::BaseGraph::Ptr getPrimarySolution();
@@ -125,7 +129,8 @@ private:
     void relabel(int i, int j, const std::string& label);
 
     graph_analysis::BaseGraph::Ptr mpGraph;
-    static std::string msDataPath;
+    static std::string mDataPath;
+    std::string mCalculusName;
     Calculus* mpCalculus;
     gqrtl::CalculusOperations<gqrtl::Relation8>* mpCalculus8r;
     gqrtl::CalculusOperations<gqrtl::Relation16>* mpCalculus16r;

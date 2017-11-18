@@ -7,7 +7,7 @@ using namespace graph_analysis;
 namespace templ {
 namespace solvers {
 
-std::string GQReasoner::msDataPath = "";
+std::string GQReasoner::mDataPath = "";
 
 GQReasoner::GQReasoner(const std::string& calculus, const graph_analysis::BaseGraph::Ptr& graph, const Edge::Ptr& edge)
     : mpGraph(graph->cloneEdges())
@@ -26,11 +26,7 @@ GQReasoner::GQReasoner(const std::string& calculus, const graph_analysis::BaseGr
     , mpSearch32r(0)
     , mpDefaultConstraintType(edge)
 {
-    if(msDataPath.empty())
-    {
-        init(calculus);
-    }
-
+    init(calculus);
     translateGraph();
 }
 
@@ -51,6 +47,18 @@ GQReasoner::~GQReasoner()
     delete mpCalculus8r;
     delete mpCalculus16r;
     delete mpCalculus32r;
+
+    delete mpCalculus;
+}
+
+bool GQReasoner::isConsistent(const temporal::QualitativeTemporalConstraintNetwork& qtcn)
+{
+    GQReasoner paReasoner("point", qtcn.getGraph(), temporal::point_algebra::QualitativeTimePointConstraint::Ptr(new temporal::point_algebra::QualitativeTimePointConstraint()));
+    if(paReasoner.getPrimarySolution() != graph_analysis::BaseGraph::Ptr())
+    {
+        return true;
+    }
+    return false;
 }
 
 void GQReasoner::init(const std::string& calculus)
@@ -59,16 +67,16 @@ void GQReasoner::init(const std::string& calculus)
 
     try {
         utilmm::pkgconfig pkg("gqr");
-        msDataPath = pkg.get("sharedir") + "/data";
+        mDataPath = pkg.get("sharedir") + "/data";
     } catch(...)
     {
         throw std::runtime_error("templ::solvers::GQReasoner::init: GQR is not properly installed or your PKG_CONFIG_PATH is not properly set -- check 'pkg-config gqr'");
     }
 
-    std::string calculusPath = msDataPath + "/" + calculus  + ".spec";
+    std::string calculusPath = mDataPath + "/" + calculus  + ".spec";
     std::ifstream stream;
     stream.open(calculusPath.c_str());
-    CalculusReader calculusReader(calculus, msDataPath.c_str(), &stream);
+    CalculusReader calculusReader(calculus, mDataPath.c_str(), &stream);
     mpCalculus = calculusReader.makeCalculus();
 
     groundCalculus();
@@ -111,9 +119,13 @@ void GQReasoner::translateGraph()
             continue;
         }
 
-        LOG_WARN_S << "Encode relation for constraint: '" << constraint->toString() << "'";
+        LOG_DEBUG_S << "Encode relation for constraint: '" << constraint->toString() << "'";
 
         assert(mpCalculus);
+        if(!mpCalculus)
+        {
+            throw std::runtime_error("templ::solvers::GQReasoner::translateGraph: calculus is not initialized");
+        }
         Relation relation = mpCalculus->encodeRelation(constraintLabel.c_str());
 
         if(mpCalculus8r)
@@ -324,7 +336,7 @@ Edge::Ptr GQReasoner::getOrCreateEdge(int i, int j) const
 {
     Vertex::Ptr vertex_i = mpGraph->getVertex(i);
     Vertex::Ptr vertex_j = mpGraph->getVertex(j);
-    
+
     std::vector<Edge::Ptr> edges = mpGraph->getEdges(vertex_i, vertex_j);
     if(edges.empty())
     {
