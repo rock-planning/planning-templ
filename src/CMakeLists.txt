@@ -1,14 +1,5 @@
 find_package(Boost REQUIRED system filesystem serialization program_options)
 
-rock_library(templ_benchmark
-    SOURCES
-        benchmark/VRPProblem.cpp
-        benchmark/io/GoldenReader.cpp
-    HEADERS
-        benchmark/VRPProblem.hpp
-        benchmark/io/GoldenReader.hpp
-)
-
 rock_library(templ_core
     SOURCES
         Role.cpp
@@ -215,6 +206,20 @@ rock_library(templ
         templ_moft
 )
 
+rock_library(templ_benchmark
+    SOURCES
+        benchmark/MissionGenerator.cpp
+        benchmark/VRPProblem.cpp
+        benchmark/io/GoldenReader.cpp
+    HEADERS
+        benchmark/MissionGenerator.hpp
+        benchmark/VRPProblem.hpp
+        benchmark/io/GoldenReader.hpp
+    DEPS
+        templ
+)
+
+
 set(GECODE_LIBRARIES
         gecodeflatzinc
         gecodedriver
@@ -263,6 +268,11 @@ rock_executable(templ-tcn_reader
 rock_executable(templ-solution_analysis
     utils/SolutionAnalyserMain.cpp
     DEPS templ
+)
+
+rock_executable(templ-mission_generator
+    utils/MissionGeneratorMain.cpp
+    DEPS templ_benchmark
 )
 
 rock_library(templ_gui

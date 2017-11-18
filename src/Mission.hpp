@@ -27,6 +27,10 @@ namespace io {
     class MissionReader;
 }
 
+namespace benchmark {
+    class MissionGenerator;
+}
+
 namespace solvers {
 namespace csp {
     struct FluentTimeResource;
@@ -38,6 +42,7 @@ class Mission
     friend class MissionPlanner;
     friend class io::MissionReader;
     friend class PlanningState;
+    friend class benchmark::MissionGenerator;
 
     solvers::temporal::TemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
     graph_analysis::BaseGraph::Ptr mpRelations;

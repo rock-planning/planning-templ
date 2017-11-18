@@ -9,7 +9,8 @@ namespace benchmark {
 std::map<VRPProblem::Type, std::string> VRPProblem::TypeTxt = { { VRPProblem::CVRP, "CVRP" } };
 
 std::map<VRPProblem::EdgeWeightType, std::string> VRPProblem::EdgeWeightTypeTxt = {
-    { VRPProblem::FUNCTION, "FUNCTION"}
+    { VRPProblem::FUNCTION, "FUNCTION"},
+    { VRPProblem::W_EUC_2D, "EUC_2D"}
 };
 
 std::map<VRPProblem::EdgeWeightFormat, std::string> VRPProblem::EdgeWeightFormatTxt = {
@@ -91,12 +92,14 @@ std::string VRPProblem::toString(size_t indent) const
     size_t idx = 0;
     for(const Coord2D& c : mNodeCoordinates)
     {
+        ++idx;
         ss << hspace << idx << " " << c.x << " " << c.y << std::endl;
     }
     ss << hspace << "DEMAND_SECTION" << std::endl;
     idx = 0;
     for(size_t d : mDemands)
     {
+        ++idx;
         ss << hspace << idx << " " << d << std::endl;
     }
     ss << hspace << "DEPOT_SECTION" << std::endl;
@@ -104,6 +107,16 @@ std::string VRPProblem::toString(size_t indent) const
     ss << hspace << "-1" << std::endl;
     ss << hspace << "EOF" << std::endl;
     return ss.str();
+}
+
+uint32_t VRPProblem::getTotalDemand() const
+{
+    uint32_t demand = 0;
+    for(Demands::value_type d : mDemands)
+    {
+        demand += d;
+    }
+    return demand;
 }
 
 } // end namespace benchmark

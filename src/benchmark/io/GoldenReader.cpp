@@ -2,8 +2,10 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <regex>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/trim_all.hpp>
 
 namespace templ {
 namespace benchmark {
@@ -23,9 +25,18 @@ VRPProblem GoldenReader::read(const std::string& file)
     while(std::getline(infile, line))
     {
 
+        std::regex spaces("\\s+");
+        line = std::regex_replace(line, spaces, " ");
+
         line.erase(line.find_last_not_of("\n\r\t")+1);
-        std::string keyword = line.substr(0, line.find(delimiter));
-        std::string value = line.substr(line.find(" ") + 1);
+        std::string keyword = line.substr(0,line.find(delimiter));
+        boost::trim_all(keyword);
+
+        std::string value = line.erase(0,line.find(delimiter)+1);
+        boost::trim_all(value);
+
+        std::cout << "Kw: '" << keyword << "' value '" << value << "'" << std::endl;
+
         if(keyword == "NAME")
         {
             vrp.setName(value);
@@ -64,8 +75,19 @@ VRPProblem GoldenReader::read(const std::string& file)
             loadDemands(infile, vrp);
         } else if(keyword == "DEPOT_SECTION")
         {
-            loadDepots(infile, vrp);
+            try {
+                loadDepots(infile, vrp);
+            } catch(...)
+            {
+            }
         }
+    }
+
+    if( vrp.getDepots().empty())
+    {
+        VRPProblem::Depots depots;
+        depots.push_back(vrp.getNodeCoordinates().front());
+        vrp.setDepots(depots);
     }
 
     return vrp;
@@ -80,6 +102,9 @@ void GoldenReader::loadNodeCoordinates(std::ifstream& infile, VRPProblem& vrp)
         int streampos = infile.tellg();
         std::getline(infile, line);
         line.erase(line.find_last_not_of("\n\r\t")+1);
+
+        std::regex spaces("\\s+");
+        line = std::regex_replace(line, spaces, " ");
 
         std::vector<std::string> tokens;
         boost::split(tokens, line, boost::is_any_of(" "));
@@ -106,9 +131,12 @@ void GoldenReader::loadDepots(std::ifstream& infile, VRPProblem& vrp)
         std::getline(infile, line);
         line.erase(line.find_last_not_of("\n\r\t")+1);
 
+        std::regex spaces("\\s+");
+        line = std::regex_replace(line, spaces, " ");
+
         std::vector<std::string> tokens;
         boost::split(tokens, line, boost::is_any_of(" "));
-        if(tokens.size() == 1)
+        if(tokens.size() != 2)
         {
             infile.seekg(streampos);
             break;
@@ -130,6 +158,9 @@ void GoldenReader::loadDemands(std::ifstream& infile, VRPProblem& vrp)
         int streampos = infile.tellg();
         std::getline(infile, line);
         line.erase(line.find_last_not_of("\n\r\t")+1);
+
+        std::regex spaces("\\s+");
+        line = std::regex_replace(line, spaces, " ");
 
         std::vector<std::string> tokens;
         boost::split(tokens, line, boost::is_any_of(" "));

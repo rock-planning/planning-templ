@@ -19,6 +19,10 @@ struct Coord2D
     double y;
 };
 
+/**
+ *
+ * \see http://vrp.atd-lab.inf.puc-rio.br/index.php/en/
+ */
 class VRPProblem
 {
 public:
@@ -27,7 +31,7 @@ public:
     typedef std::vector<Coord2D> Depots;
 
     enum Type { CVRP };
-    enum EdgeWeightType { FUNCTION };
+    enum EdgeWeightType { FUNCTION, W_EUC_2D };
     enum EdgeWeightFormat { EUC_2D };
     enum NodeCoordType { TWOD_COORDS };
 
@@ -72,9 +76,10 @@ public:
     void setNodeCoordType(NodeCoordType t) { mNodeCoordType = t; }
     void setNodeCoordType(const std::string&);
 
-    const NodeCoordinates& getNodeCoordinates() { return mNodeCoordinates; }
-    const Demands& getDemands() { return mDemands; }
-    const Depots& getDepots() { return mDepots; }
+    const NodeCoordinates& getNodeCoordinates() const { return mNodeCoordinates; }
+    const Demands& getDemands() const { return mDemands; }
+    uint32_t getTotalDemand() const;
+    const Depots& getDepots() const { return mDepots; }
 
     void setNodeCoordinates(const NodeCoordinates& c) { mNodeCoordinates = c; }
     void setDemands(const Demands& d) { mDemands = d; }
