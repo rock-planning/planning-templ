@@ -97,6 +97,11 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
     for(symbols::Constant::Ptr c : mission.getConstants())
     {
         symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(c);
+        if(location->getInstanceName() == mission_p->getTransferLocation()->getInstanceName())
+        {
+            // skip internally generated type
+            continue;
+        }
         XMLUtils::startElement(writer, "location");
     // location(id,radius,latitude,longitude) || location(id,x,y,z)
         XMLUtils::startElement(writer, "id");
