@@ -17,6 +17,15 @@ struct Coord2D
 
     double x;
     double y;
+
+    bool operator<(const Coord2D& other) const
+    {
+        if(x == other.x)
+        {
+            return y < other.y;
+        }
+        return x < other.x;
+    }
 };
 
 /**
