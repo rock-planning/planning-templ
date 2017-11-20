@@ -1,6 +1,7 @@
 #include <boost/test/unit_test.hpp>
 #include <templ/solvers/csp/TemporalCSP.hpp>
 #include "../test_utils.hpp"
+#include <base/Time.hpp>
 
 #include <gqr/gqr_wrap.h>
 #include <gqr/libgqr.h>
@@ -8,6 +9,7 @@
 #include <gqr/gqrtl/RestartingDFS.h>
 
 #include <templ/solvers/GQReasoner.hpp>
+#include <templ/solvers/csp/TemporalConstraintNetwork.hpp>
 
 #include <utilmm/configfile/pkgconfig.hh>
 #include <templ/solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp>
@@ -418,7 +420,7 @@ BOOST_AUTO_TEST_CASE(gqr_c_api)
 
 }
 
-BOOST_AUTO_TEST_CASE(start)
+BOOST_AUTO_TEST_CASE(gecode_v0)
 {
 
     QualitativeTemporalConstraintNetwork::Ptr tcn(new QualitativeTemporalConstraintNetwork());
@@ -441,6 +443,71 @@ BOOST_AUTO_TEST_CASE(start)
 
     TemporalCSP tcsp(tcn);
     BOOST_REQUIRE_MESSAGE(tcsp.nextSolution(), "TCSP has a solution");
+}
+
+BOOST_AUTO_TEST_CASE(gecode_v1)
+{
+
+    QualitativeTemporalConstraintNetwork::Ptr tcn(new QualitativeTemporalConstraintNetwork());
+
+    QualitativeTimePoint::Ptr lastTp;
+    int a = 10;
+    for(; a < 2000; a += 100)
+    {
+        BOOST_TEST_MESSAGE("Computation time for a: " << a);
+        base::Time startTime = base::Time::now();
+        for(int i = 0; i < a; ++i)
+        {
+            std::stringstream ss;
+            ss << "t" << i;
+            QualitativeTimePoint::Ptr tp(new QualitativeTimePoint(ss.str()));
+            if(lastTp)
+            {
+                tcn->addQualitativeConstraint(lastTp, tp, QTPC::Greater);
+                tcn->addQualitativeConstraint(tp, lastTp, QTPC::Less);
+            }
+
+            lastTp = tp;
+        }
+        bool test = solvers::csp::TemporalConstraintNetwork::isConsistent(*tcn);
+        BOOST_REQUIRE_MESSAGE(test, "TCSP has a solution");
+        double computationTimeInS = (base::Time::now() - startTime).toSeconds();
+        BOOST_TEST_MESSAGE("Computation time: " << computationTimeInS);
+    }
+}
+
+BOOST_AUTO_TEST_CASE(gecode_v1_inconsistent)
+{
+
+    QualitativeTemporalConstraintNetwork::Ptr tcn(new QualitativeTemporalConstraintNetwork());
+
+    QualitativeTimePoint::Ptr lastTp;
+    int a = 10;
+    for(; a < 2000; a += 100)
+    {
+        BOOST_TEST_MESSAGE("Computation time for a: " << a);
+        base::Time startTime = base::Time::now();
+        for(int i = 0; i < a; ++i)
+        {
+            std::stringstream ss;
+            ss << "t" << i;
+            QualitativeTimePoint::Ptr tp(new QualitativeTimePoint(ss.str()));
+            if(lastTp)
+            {
+                tcn->addQualitativeConstraint(lastTp, tp, QTPC::Greater);
+                tcn->addQualitativeConstraint(tp, lastTp, QTPC::Less);
+
+                tcn->addQualitativeConstraint(lastTp, tp, QTPC::Less);
+                tcn->addQualitativeConstraint(tp, lastTp, QTPC::Greater);
+            }
+
+            lastTp = tp;
+        }
+        bool test = solvers::csp::TemporalConstraintNetwork::isConsistent(*tcn);
+        BOOST_REQUIRE_MESSAGE(!test, "TCSP has no solution");
+        double computationTimeInS = (base::Time::now() - startTime).toSeconds();
+        BOOST_TEST_MESSAGE("Computation time: " << computationTimeInS);
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
