@@ -564,9 +564,9 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
             base::Point position;
             bool metricDefinition = false;
             try {
-                position.x() = ::boost::lexical_cast<int32_t>( XMLUtils::getSubNodeContent(doc, current, "x") );
-                position.y() = ::boost::lexical_cast<int32_t>( XMLUtils::getSubNodeContent(doc, current, "y") );
-                position.z() = ::boost::lexical_cast<int32_t>( XMLUtils::getSubNodeContent(doc, current, "z") );
+                position.x() = ::boost::lexical_cast<double>( XMLUtils::getSubNodeContent(doc, current, "x") );
+                position.y() = ::boost::lexical_cast<double>( XMLUtils::getSubNodeContent(doc, current, "y") );
+                position.z() = ::boost::lexical_cast<double>( XMLUtils::getSubNodeContent(doc, current, "z") );
                 metricDefinition = true;
             } catch(const std::exception& e)
             {
