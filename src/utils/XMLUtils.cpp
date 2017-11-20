@@ -41,7 +41,6 @@ std::string XMLUtils::getContent(xmlDocPtr doc, xmlNodePtr node, size_t count, b
         std::string content((const char*) key);
         xmlFree(key);
 
-        std::cout << "GET CONTENT with: " << plainText << std::endl;
         if(!plainText)
         {
             std::string http = "http://";
