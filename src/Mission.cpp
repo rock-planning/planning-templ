@@ -1,5 +1,6 @@
 #include "Mission.hpp"
 #include <boost/lexical_cast.hpp>
+#include <iterator>
 
 #include <owlapi/Vocabulary.hpp>
 #include <organization_model/Algebra.hpp>
@@ -64,7 +65,7 @@ Mission::Mission(const Mission& other)
     }
 }
 
-void Mission::setOrganizationModel(organization_model::OrganizationModel::Ptr organizationModel)
+void Mission::setOrganizationModel(const organization_model::OrganizationModel::Ptr& organizationModel)
 {
     mpOrganizationModel = organizationModel;
     mOrganizationModelAsk = organization_model::OrganizationModelAsk(organizationModel);
@@ -527,11 +528,12 @@ solvers::csp::FluentTimeResource Mission::fromLocationCardinality(const solvers:
 
     // Map objects to numeric indices -- the indices can be mapped
     // backed using the mission they were created from
-    uint32_t timeIndex = iit - mission->mTimeIntervals.begin();
+    uint32_t timeIndex = std::distance(mission->mTimeIntervals.cbegin(), iit);
     FluentTimeResource ftr(mission,
-            (int) (sit - mission->mRequestedResources.begin())
+            (int) std::distance(mission->mRequestedResources.cbegin(), sit)
             , timeIndex
-            , (int) (lit - locations.begin()));
+            , (int) std::distance(locations.cbegin(), lit)
+    );
 
     owlapi::model::OWLOntologyAsk ask = mission->getOrganizationModelAsk().ontology();
     if(ask.isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))

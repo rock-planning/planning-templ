@@ -6,15 +6,16 @@
 #include <organization_model/OrganizationModel.hpp>
 #include <organization_model/OrganizationModelAsk.hpp>
 #include <organization_model/ModelPool.hpp>
-#include <templ/solvers/Constraint.hpp>
-#include <templ/solvers/temporal/Interval.hpp>
-#include <templ/solvers/temporal/PersistenceCondition.hpp>
-#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
-#include <templ/Role.hpp>
-#include <templ/symbols/ObjectVariable.hpp>
-#include <templ/symbols/constants/Location.hpp>
-#include <templ/solvers/GQReasoner.hpp>
-#include <templ/utils/Logger.hpp>
+
+#include "solvers/Constraint.hpp"
+#include "solvers/temporal/Interval.hpp"
+#include "solvers/temporal/PersistenceCondition.hpp"
+#include "solvers/temporal/point_algebra/TimePoint.hpp"
+#include "Role.hpp"
+#include "symbols/ObjectVariable.hpp"
+#include "symbols/constants/Location.hpp"
+#include "solvers/GQReasoner.hpp"
+#include "utils/Logger.hpp"
 #include "DataPropertyAssignment.hpp"
 
 namespace templ {
@@ -55,7 +56,12 @@ public:
 
     Mission(const Mission& other);
 
-    void setOrganizationModel(organization_model::OrganizationModel::Ptr organizationModel);
+    /**
+     * Set the organization model in use -- property values assigned through the
+     * organization model, can be overriden using the data property assignment
+     */
+    void setOrganizationModel(const organization_model::OrganizationModel::Ptr& organizationModel);
+
     /**
      * Set data property assignments to allow overrides, e.g., to facilitate handling of VRP related
      * problem instances in the context of benchmarking
@@ -84,6 +90,7 @@ public:
     const std::string& getDescription() const { return mDescription; }
 
 
+    ///
     graph_analysis::BaseGraph::Ptr getRelations() const { return mpRelations; }
 
     /**
