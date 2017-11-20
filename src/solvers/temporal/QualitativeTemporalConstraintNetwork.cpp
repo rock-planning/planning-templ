@@ -4,7 +4,9 @@
 #include <numeric/Combinatorics.hpp>
 #include <graph_analysis/VertexTypeManager.hpp>
 #include <graph_analysis/EdgeTypeManager.hpp>
-#include <templ/SharedPtr.hpp>
+
+#include "../../SharedPtr.hpp"
+#include "../csp/TemporalConstraintNetwork.hpp"
 
 using namespace templ::solvers::temporal::point_algebra;
 using namespace graph_analysis;
@@ -93,13 +95,15 @@ void QualitativeTemporalConstraintNetwork::removeQualitativeConstraint(const poi
 
 bool QualitativeTemporalConstraintNetwork::isConsistent()
 {
-    try {
-        return incrementalPathConsistency();
-        //return pathConsistency_BeekManak();
-    } catch(const std::runtime_error& e)
-    {
-        return false;
-    }
+    return csp::TemporalConstraintNetwork::isConsistent(*this);
+
+    //try {
+    //    return incrementalPathConsistency();
+    //    //return pathConsistency_BeekManak();
+    //} catch(const std::runtime_error& e)
+    //{
+    //    return false;
+    //}
 }
 
 bool QualitativeTemporalConstraintNetwork::pathConsistency_BeekManak()

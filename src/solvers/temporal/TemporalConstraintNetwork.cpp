@@ -7,6 +7,9 @@
 #include <boost/lexical_cast.hpp>
 #include <numeric/Combinatorics.hpp>
 
+#include "../csp/TemporalConstraintNetwork.hpp"
+#include "QualitativeTemporalConstraintNetwork.hpp"
+
 using namespace templ::solvers::temporal::point_algebra;
 using namespace graph_analysis;
 
@@ -358,11 +361,17 @@ void TemporalConstraintNetwork::save(const std::string& filename) const
 
 void TemporalConstraintNetwork::sort(std::vector<point_algebra::TimePoint::Ptr>& timepoints) const
 {
-    // allow using of shared pointer like normal pointers, when auto-deleting is not
-    // desirable
-    TemporalConstraintNetwork::Ptr tcn(const_cast<TemporalConstraintNetwork*>(this), [](TemporalConstraintNetwork*){});
-    TimePointComparator comparator(tcn);
-    comparator.sort(timepoints);
+    const QualitativeTemporalConstraintNetwork* qtcn = dynamic_cast<const QualitativeTemporalConstraintNetwork*>(this);
+    if(qtcn)
+    {
+        solvers::csp::TemporalConstraintNetwork::sort(*qtcn, timepoints);
+    } else {
+        // allow using of shared pointer like normal pointers, when auto-deleting is not
+        // desirable
+        TemporalConstraintNetwork::Ptr tcn(const_cast<TemporalConstraintNetwork*>(this), [](TemporalConstraintNetwork*){});
+        TimePointComparator comparator(tcn);
+        comparator.sort(timepoints);
+    }
 }
 
 void TemporalConstraintNetwork::setConsistentNetwork(const graph_analysis::BaseGraph::Ptr& baseGraph)
