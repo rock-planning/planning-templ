@@ -103,6 +103,7 @@ rock_library(templ
     SOURCES
         CapacityLink.cpp
         Configuration.cpp
+        DataPropertyAssignment.cpp
         Mission.cpp
         MissionPlanner.cpp
         Plan.cpp
@@ -154,6 +155,7 @@ rock_library(templ
     HEADERS
         CapacityLink.hpp
         Configuration.hpp
+        DataPropertyAssignment.hpp
         Mission.hpp
         MissionPlanner.hpp
         Plan.hpp
