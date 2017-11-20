@@ -49,6 +49,7 @@ Mission::Mission(const Mission& other)
     , mpTransferLocation(other.mpTransferLocation)
     , mScenarioFile(other.mScenarioFile)
     , mpLogger(other.mpLogger)
+    , mDataPropertyAssignments(other.mDataPropertyAssignments)
 {
 
     if(other.mpRelations)
@@ -67,6 +68,11 @@ void Mission::setOrganizationModel(organization_model::OrganizationModel::Ptr or
 {
     mpOrganizationModel = organizationModel;
     mOrganizationModelAsk = organization_model::OrganizationModelAsk(organizationModel);
+}
+
+void Mission::applyOrganizationModelOverrides()
+{
+    DataPropertyAssignment::apply(mpOrganizationModel, mDataPropertyAssignments);
 }
 
 void Mission::setAvailableResources(const organization_model::ModelPool& modelPool)

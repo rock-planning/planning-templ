@@ -15,6 +15,7 @@
 #include <templ/symbols/constants/Location.hpp>
 #include <templ/solvers/GQReasoner.hpp>
 #include <templ/utils/Logger.hpp>
+#include "DataPropertyAssignment.hpp"
 
 namespace templ {
 
@@ -55,6 +56,23 @@ public:
     Mission(const Mission& other);
 
     void setOrganizationModel(organization_model::OrganizationModel::Ptr organizationModel);
+    /**
+     * Set data property assignments to allow overrides, e.g., to facilitate handling of VRP related
+     * problem instances in the context of benchmarking
+     */
+    void addDataPropertyAssignment(const DataPropertyAssignment& da) { mDataPropertyAssignments.push_back(da); }
+
+    void setDataPropertyAssignments(const DataPropertyAssignment::List& a) { mDataPropertyAssignments = a; }
+
+    /**
+     * Get the data property assignments
+     */
+    const DataPropertyAssignment::List& getDataPropertyAssignments() const { return mDataPropertyAssignments; }
+
+    /**
+     * Apply any overrides to the organization model
+     */
+    void applyOrganizationModelOverrides();
 
     /**
      * Set name for this mission
@@ -302,6 +320,8 @@ private:
 
     std::string mScenarioFile;
     Logger::Ptr mpLogger;
+
+    DataPropertyAssignment::List mDataPropertyAssignments;
 };
 
 } // end namespace templ

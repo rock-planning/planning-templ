@@ -72,6 +72,27 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
     }
     XMLUtils::endElement(writer); // end resources;
 
+    XMLUtils::startElement(writer, "overrides");
+    for(const DataPropertyAssignment& assignment : mission.getDataPropertyAssignments())
+    {
+        XMLUtils::startElement(writer, "override");
+            XMLUtils::startElement(writer, "subject");
+            XMLUtils::writeString(writer, assignment.getSubject().toString());
+            XMLUtils::endElement(writer); // end subject
+
+            XMLUtils::startElement(writer, "property");
+            XMLUtils::writeString(writer, assignment.getPredicate().toString());
+            XMLUtils::endElement(writer); // end property
+
+            XMLUtils::startElement(writer, "value");
+            std::stringstream ss;
+            ss << assignment.getValue();
+            XMLUtils::writeString(writer, ss.str());
+            XMLUtils::endElement(writer); // end value
+        XMLUtils::endElement(writer); // end override
+    }
+    XMLUtils::endElement(writer); // end overrides
+
     XMLUtils::startElement(writer, "constants");
     for(symbols::Constant::Ptr c : mission.getConstants())
     {

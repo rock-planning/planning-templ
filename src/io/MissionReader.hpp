@@ -60,6 +60,21 @@ private:
      */
     static std::vector<ResourceRequirement> parseResourceRequirements(xmlDocPtr doc, xmlNodePtr current);
 
+    /**
+     * Override the data property value for all instances of a particular
+     * subject
+     *\verbatim
+          <overrides>
+            <override>
+              <subject>http://www.rock-robotics.org/2014/01/om-schema#Agent</subject>
+              <property>http://www.rock-robotics.org/2014/01/om-schema#transportCapacity</property>
+              <value>550</value>
+            </override>
+          </overrides>
+     \endverbatim
+     */
+    static DataPropertyAssignment::List parseOverrides(xmlDocPtr doc, xmlNodePtr current);
+
     static ResourceReificationRequirement parseResourceReificationRequirement(xmlDocPtr doc, xmlNodePtr current);
 
     static NumericAttributeRequirements parseAttributes(xmlDocPtr doc, xmlNodePtr current);

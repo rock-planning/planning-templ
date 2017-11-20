@@ -124,6 +124,9 @@ Mission::Ptr MissionGenerator::convert(const VRPProblem& vrp)
                 owlapi::model::OWLCardinalityRestriction::MAX);
     }
 
+    DataPropertyAssignment da(vocabulary::VRP::Vehicle(), vocabulary::OM::transportCapacity(), vrp.getCapacity());
+    mission->addDataPropertyAssignment(da);
+
     for(point_algebra::TimePoint::Ptr t : timepoints)
     {
         try {

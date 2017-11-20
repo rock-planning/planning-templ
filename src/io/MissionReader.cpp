@@ -160,6 +160,11 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                 LOG_DEBUG_S << "Found first level node: 'resources' ";
                 organization_model::ModelPool modelPool = parseResources(doc, firstLevelChild);
                 mission.setAvailableResources(modelPool);
+            } else if(XMLUtils::nameMatches(firstLevelChild, "overrides"))
+            {
+                LOG_DEBUG_S << "Found first level node: 'overrides'";
+                DataPropertyAssignment::List assignments = parseOverrides(doc, firstLevelChild);
+                mission.setDataPropertyAssignments(assignments);
             } else if(XMLUtils::nameMatches(firstLevelChild, "requirements"))
             {
                 LOG_DEBUG_S << "Found first level node: 'requirements' ";
@@ -246,6 +251,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                     TemporalConstraint temporalConstraint = *cit;
 
                     using namespace solvers::temporal::point_algebra;
+                    // account only for the relevant ones
                     solvers::temporal::TemporalConstraintNetwork::Ptr tcn = mission.getTemporalConstraintNetwork();
                     TimePoint::Ptr t0 = tcn->getOrCreateTimePoint(temporalConstraint.lval);
                     TimePoint::Ptr t1 = tcn->getOrCreateTimePoint(temporalConstraint.rval);
@@ -381,6 +387,34 @@ std::vector<ResourceRequirement> MissionReader::parseResourceRequirements(xmlDoc
 
             resourceRequirement.numericAttributeRequirements = parseAttributes(doc, current);
             requirements.push_back(resourceRequirement);
+        }
+        current = current->next;
+    }
+    return requirements;
+}
+
+DataPropertyAssignment::List MissionReader::parseOverrides(xmlDocPtr doc, xmlNodePtr current)
+{
+    DataPropertyAssignment::List requirements;
+    current = current->xmlChildrenNode;
+    while(current != NULL)
+    {
+        if(XMLUtils::nameMatches(current, "override"))
+        {
+            owlapi::model::IRI subject = XMLUtils::getSubNodeContent(doc, current, "subject");
+            owlapi::model::IRI property = XMLUtils::getSubNodeContent(doc, current, "property");
+            std::string valueTxt = XMLUtils::getSubNodeContent(doc, current, "value");
+            double value = 0.0;
+            try {
+                value = ::boost::lexical_cast<double>(valueTxt);
+            } catch(...)
+            {
+                std::stringstream ss;
+                ss <<  "templ::io::MissionReader::parseOverrides: ";
+                ss << "value cannot be cast to double: check at line: " << xmlGetLineNo(current);
+                throw std::invalid_argument(ss.str());
+            }
+            requirements.push_back( DataPropertyAssignment(subject, property, value) );
         }
         current = current->next;
     }
