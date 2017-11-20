@@ -422,7 +422,15 @@ std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> Mission::getTimepo
     }
 
     timepoints.insert(timepoints.begin(), uniqueTimepoints.begin(), uniqueTimepoints.end());
-    mpTemporalConstraintNetwork->sort(timepoints);
+    solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr qtcn = dynamic_pointer_cast<solvers::temporal::QualitativeTemporalConstraintNetwork>(mpTemporalConstraintNetwork);
+
+    if(qtcn)
+    {
+        std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> tps = solvers::csp::TemporalConstraintNetwork::getSortedList(*qtcn);
+        return tps;
+    } else {
+        mpTemporalConstraintNetwork->sort(timepoints);
+    }
     return timepoints;
 }
 
