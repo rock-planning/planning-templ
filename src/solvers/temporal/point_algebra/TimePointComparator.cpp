@@ -36,6 +36,14 @@ bool TimePointComparator::equals(const TimePoint::Ptr& t0, const TimePoint::Ptr&
 
 bool TimePointComparator::greaterThan(const TimePoint::Ptr& t0, const TimePoint::Ptr& t1) const
 {
+    if(!t0)
+    {
+        throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: timepoint t0 is NULL");
+    } else if(!t1)
+    {
+        throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: timepoint t1 is NULL");
+    }
+
     if(t0->getType() != t1->getType())
     {
         throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: cannot compare different types of TimePoints");
