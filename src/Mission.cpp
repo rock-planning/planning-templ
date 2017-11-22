@@ -9,6 +9,7 @@
 #include "solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
 #include "symbols/object_variables/LocationCardinality.hpp"
 #include "symbols/object_variables/LocationNumericAttribute.hpp"
+#include "solvers/csp/TemporalConstraintNetwork.hpp"
 
 namespace templ {
 
