@@ -495,8 +495,6 @@ graph_analysis::Edge::Ptr Mission::addRelation(const graph_analysis::Vertex::Ptr
     using namespace graph_analysis;
     Edge::Ptr edge(new Edge(source, target, label));
     mpRelations->addEdge(edge);
-
-    std::cout << "Adding relation from: " << source->toString() << " to " << target->toString() << std::endl;
     return edge;
 }
 
