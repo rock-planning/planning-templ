@@ -1594,15 +1594,27 @@ void TransportNetwork::postRoleAssignments()
         assert(!supplyDemand.empty());
     }
 
-
-    std::cout << "Supply list is: " << supplyDemand.size() << std::endl;
-    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+    Gecode::Rnd rnd;
+    rnd.hw();
+    double timelineAfcDecay = mConfiguration.getValueAs<double>("TransportNetwork/search/options/timeline-brancher/afc-decay");
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
         propagators::isPath(*this, mTimelines[i], mActiveRoleList[i].toString(), numberOfTimepoints, mLocations.size());
+
+        // Only branch on the mobile systems
+        organization_model::facets::Robot robot(mActiveRoleList[i].getModel(), mAsk);
+        if(robot.isMobile())
+        {
+            Gecode::SetAFC timelineUsageAfc(*this, mTimelines[i], timelineAfcDecay);
+            // SET_VAR_MERIT MIN
+            branch(*this, mTimelines[i],Gecode::SET_VAR_AFC_MIN(timelineAfcDecay), Gecode::SET_VAL_RND_EXC(rnd));
+            //branch(*this, mTimelines[i],Gecode::SET_VAR_RND(rnd),Gecode::SET_VAL_RND_EXC(rnd));
+        }
     }
 
-    branchTimelines(*this, mTimelines, mSupplyDemand);
+    // Only the check whether a feasible approach is to use a heuristic
+    // to draw system by supply demand
+    //branchTimelines(*this, mTimelines, mSupplyDemand);
     Gecode::branch(*this, &TransportNetwork::doPostMinCostFlow);
 
 //    Gecode::Gist::stopBranch(*this);
