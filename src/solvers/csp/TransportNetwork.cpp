@@ -772,17 +772,27 @@ void TransportNetwork::setUpperBoundForConcurrentRequirements()
 void TransportNetwork::initializeRoleDistributionConstraints()
 {
     bool forceMinimumRoleUsage = mConfiguration.getValueAs<bool>("TransportNetwork/search/options/role-usage/force-min",false);
-    bool boundedRoleUsage = mConfiguration.getValueAs<bool>("TransportNetwork/search/options/role-usage/bounded",false);
-    int roleUsageBoundOffset = mConfiguration.getValueAs<int>("TransportNetwork/search/options/role-usage/bound-offset",false);
+    bool mobileBoundedRoleUsage = mConfiguration.getValueAs<bool>("TransportNetwork/search/options/role-usage/mobile/bounded",false);
+    int mobileRoleUsageBoundOffset = mConfiguration.getValueAs<int>("TransportNetwork/search/options/role-usage/mobile/bound-offset",false);
+    bool immobileBoundedRoleUsage = mConfiguration.getValueAs<bool>("TransportNetwork/search/options/role-usage/immobile/bounded",false);
+    int immobileRoleUsageBoundOffset = mConfiguration.getValueAs<int>("TransportNetwork/search/options/role-usage/immobile/bound-offset",false);
 
     // Role distribution
     Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mpMission->getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
 
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
     {
+        Gecode::IntVarArgs mobileModelBounds;
+        Gecode::IntVarArgs immobileModelBounds;
         // Sum of all models instances (role) has to correspond to the model count
         for(size_t modelIndex = 0; modelIndex < mAvailableModels.size(); ++modelIndex)
         {
+
+            Gecode::IntVar mobileModelBound(*this,0, mobileRoleUsageBoundOffset);
+            mobileModelBounds << mobileModelBound;
+            Gecode::IntVar immobileModelBound(*this,0, immobileRoleUsageBoundOffset);
+            immobileModelBounds << immobileModelBound;
+
             for(uint32_t requirementIndex = 0; requirementIndex < mResourceRequirements.size(); ++requirementIndex)
             {
                 Gecode::IntVar modelCount = resourceDistribution(modelIndex,requirementIndex);
@@ -795,31 +805,70 @@ void TransportNetwork::initializeRoleDistributionConstraints()
                         args << roleActivation;
                     }
                 }
+                uint32_t maxCardinality = mModelPool[ mAvailableModels[modelIndex] ];
+                Gecode::IntVar z(*this, 0, maxCardinality);
+                rel(*this, z == sum(args) );
 
+                // The following constraint allow to relax the least commitment
+                // and allows to relax the number of immobile / mobile agent
+                // assigned
                 if(forceMinimumRoleUsage)
                 {
                     // This tries to solve the problem with the fewest instances
                     // possible
-                    rel(*this, sum(args) == modelCount);
-                } else if(boundedRoleUsage)
+                    rel(*this, z == modelCount);
+                } else
                 {
                     // This tries to bound the problem using the number of
                     // available instances
-                    rel(*this, sum(args) >= modelCount);
-
-                    LOG_DEBUG_S << "Constraint general role usage: " << std::endl
-                        << "     " << mAvailableModels[modelIndex].toString() << "# <= " << modelCount << "+ " << roleUsageBoundOffset;
-                    rel(*this, sum(args) <= modelCount + roleUsageBoundOffset);
-                } else {
-                    // This tries to bound the problem using the number of
-                    // available instances
-                    rel(*this, sum(args) >= modelCount);
-
-                    uint32_t maxCardinality = mModelPool[ mAvailableModels[modelIndex] ];
                     LOG_DEBUG_S << "Constraint general role usage: " << std::endl
                         << "     " << mAvailableModels[modelIndex].toString() << "# <= " << maxCardinality;
-                    rel(*this, sum(args) <= maxCardinality);
+                    // Limit mobile / immobile systems
+                    organization_model::facets::Robot robot(mAvailableModels[modelIndex], mAsk);
+                    if(robot.isMobile())
+                    {
+
+                        if(mobileBoundedRoleUsage)
+                        {
+                            // This tries to bound the problem using the number of
+                            // available instances
+                            rel(*this, z >= modelCount);
+
+                            LOG_DEBUG_S << "Constraint mobile role usage: " << std::endl
+                                << "     " << mAvailableModels[modelIndex].toString() << "# <= " << modelCount << "+ " << mobileRoleUsageBoundOffset;
+                            rel(*this, z <= (modelCount + mobileModelBound) );
+                        } else {
+                            rel(*this, z == modelCount);
+                        }
+                    }
+
+                    if(!robot.isMobile())
+                    {
+                        if(immobileBoundedRoleUsage)
+                        {
+                            // This tries to bound the problem using the number of
+                            // available instances
+                            rel(*this, z >= modelCount);
+
+                            LOG_DEBUG_S << "Constraint immobile role usage: " << std::endl
+                                << "     " << mAvailableModels[modelIndex].toString() << "# <= " << modelCount << "+ " << immobileRoleUsageBoundOffset;
+                            rel(*this, z <= (modelCount + immobileModelBound) );
+                        } else {
+                            rel(*this, z == modelCount);
+                        }
+                    }
                 }
+            }
+        }
+        if(!forceMinimumRoleUsage)
+        {
+            if(mobileBoundedRoleUsage)
+            {
+                rel(*this, sum(mobileModelBounds) <= mobileRoleUsageBoundOffset);
+            }
+            if(immobileBoundedRoleUsage)
+            {
+                rel(*this, sum(immobileModelBounds) <= immobileRoleUsageBoundOffset);
             }
         }
     }
