@@ -345,12 +345,6 @@ std::vector<solvers::csp::FluentTimeResource> Mission::getResourceRequirements(c
 {
     using namespace solvers::csp;
 
-    if(mission->mTimeIntervals.empty())
-    {
-        throw std::runtime_error("Mission::getResourceRequirements: no time intervals available"
-                " -- make sure you called prepareTimeIntervals() on the mission instance");
-    }
-
     std::vector<FluentTimeResource> requirements;
 
     // Iterate over all existing persistence conditions
@@ -375,14 +369,6 @@ std::vector<solvers::csp::FluentTimeResource> Mission::getResourceRequirements(c
     // If multiple requirement exists that have the same interval
     // they can be compacted into one requirement
     FluentTimeResource::compact(requirements, mission->mOrganizationModelAsk);
-
-    // Sort the requirements based on the start timepoint, i.e. the from
-    using namespace templ::solvers::temporal;
-    point_algebra::TimePointComparator timepointComparator(mission->getTemporalConstraintNetwork());
-    std::sort(requirements.begin(), requirements.end(), [&timepointComparator](const FluentTimeResource& a,const FluentTimeResource& b) -> bool
-            {
-                return timepointComparator.lessThan(a.getInterval().getFrom(), b.getInterval().getFrom());
-            });
     return requirements;
 }
 
