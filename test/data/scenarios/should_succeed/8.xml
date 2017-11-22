@@ -5,18 +5,17 @@
 >
 <name>Immobile and mobile system deployment</name>
 <description>    
-    Immobile system needs a transport, but the mobile system is not dedicated to transport the 
-    device
+    Use of two mobile units required to deliver immobile units to the same target
 </description>
 <organization_model>http://www.rock-robotics.org/2015/12/projects/TransTerrA</organization_model>
 <resources>
     <resource>
-        <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
-        <maxCardinality>2</maxCardinality>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+        <maxCardinality>10</maxCardinality>
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-        <maxCardinality>1</maxCardinality>
+        <maxCardinality>20</maxCardinality>
     </resource>
 </resources>
 <constants>
@@ -52,14 +51,14 @@
         </temporal-requirement>
         <resource-requirement>
             <resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
-                <minCardinality>2</minCardinality>
-                <maxCardinality>2</maxCardinality>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+                <minCardinality>10</minCardinality>
+                <maxCardinality>10</maxCardinality>
             </resource>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-                <minCardinality>1</minCardinality>
-                <maxCardinality>1</maxCardinality>
+                <minCardinality>20</minCardinality>
+                <maxCardinality>20</maxCardinality>
             </resource>
         </resource-requirement>
     </requirement>
@@ -76,11 +75,11 @@
         <resource-requirement>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-                <minCardinality>1</minCardinality>
+                <minCardinality>6</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement id='2'>
+    <requirement id='1'>
         <spatial-requirement>
             <location>
                 <id>base2</id>
@@ -92,8 +91,8 @@
         </temporal-requirement>
         <resource-requirement>
             <resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
-                <minCardinality>1</minCardinality>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>7</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>
@@ -105,6 +104,24 @@
         <greaterThan lval="t4" rval="t3" />
         <greaterThan lval="t5" rval="t4" />
     </temporal-constraints>
+    <!--<planning-constraints>
+        <alldistinct r0='0' r1='1'/>
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+        </distinct>
+        <mindistinct r0='0' r1='1'/>
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <value>10</value>
+        </mindistinct>
+        <minadditional r0='0'>
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <value>2</value>
+        </minadditional>
+        <minfunctionality r0='0'>
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <dataproperty>payloadDemandSupply</datapropert>
+            <value operator="min">10</value>
+        </minadditional>
+    </planning-constraints>-->
 </constraints>
 </mission>
 
