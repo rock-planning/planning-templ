@@ -45,6 +45,7 @@ void FlawResolution::prepare(const std::vector<transshipment::Flaw>& flaws)
                 //mResolutionOptions.push_back( ResolutionOption(flaw,1) );
                 break;
             case ga::ConstraintViolation::TotalTransFlow:
+                mResolutionOptions.push_back(ResolutionOption(flaw,0) );
                 break;
             case ga::ConstraintViolation::TotalMinFlow:
                 mResolutionOptions.push_back(ResolutionOption(flaw,0) );
@@ -253,7 +254,7 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                     // Add the constraint to increase the transport capacity to
                     // cover for the existing delta
                     PropertyConstraint::Set constraints;
-                    PropertyConstraint constraint( vocabulary::OM::resolve("payloadTransportCapacity"), PropertyConstraint::GREATER_EQUAL, flaw.violation.getInFlow() + abs(flaw.violation.getDelta()) );
+                    PropertyConstraint constraint( vocabulary::OM::resolve("transportCapacity"), PropertyConstraint::GREATER_EQUAL, flaw.violation.getInFlow() + abs(flaw.violation.getDelta()) );
                     constraints.insert(constraint);
 
                     FunctionalityRequirement functionalityRequirement(functionality, constraints);
