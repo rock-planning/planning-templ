@@ -12,6 +12,7 @@
 #include "symbols/object_variables/LocationCardinality.hpp"
 #include "symbols/object_variables/LocationNumericAttribute.hpp"
 #include "solvers/csp/TemporalConstraintNetwork.hpp"
+#include "io/MissionWriter.hpp"
 
 namespace templ {
 
@@ -88,6 +89,9 @@ void Mission::setAvailableResources(const organization_model::ModelPool& modelPo
 
 void Mission::refresh()
 {
+    mRoles.clear();
+    mModels.clear();
+
     mModels = mModelPool.getModels();
     mRoles = Role::createRoles(mModelPool);
 
@@ -320,6 +324,11 @@ std::string Mission::toString() const
     }
 
     return ss.str();
+}
+
+void Mission::save(const std::string& filename) const
+{
+    io::MissionWriter::write(filename, *this);
 }
 
 void Mission::validateAvailableResources() const
