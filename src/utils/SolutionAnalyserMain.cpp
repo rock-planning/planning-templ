@@ -22,7 +22,7 @@ int main(int argc, char** argv)
     Mission::Ptr mission( new Mission(baseMission));
 
     std::string solutionFilename = argv[3];
-    SpaceTime::Network solution = SpaceTime::Network::fromFile(solutionFilename, mission);
+    SpaceTime::Network solution = SpaceTime::Network::fromFile(solutionFilename, mission->getLocations(), mission->getTimepoints());
 
     solvers::SolutionAnalysis solutionAnalysis(mission, solution);
     solutionAnalysis.analyse();

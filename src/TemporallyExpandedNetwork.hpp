@@ -12,7 +12,6 @@
 #include <graph_analysis/WeightedEdge.hpp>
 #include "solvers/temporal/point_algebra/TimePoint.hpp"
 #include "Tuple.hpp"
-#include "Mission.hpp"
 
 namespace templ {
 
@@ -204,13 +203,13 @@ public:
         }
     }
 
-    static TemporallyExpandedNetwork<D0,D1,TUPLE, EDGE_TYPE> fromFile(const std::string& filename, const Mission::Ptr& mission)
+    static TemporallyExpandedNetwork<D0,D1,TUPLE, EDGE_TYPE> fromFile(const std::string& filename, const std::vector<D0>& values, const std::vector<D1>& timepoints)
     {
         TemporallyExpandedNetwork network;
         graph_analysis::io::GraphIO::read(filename, network.mpGraph);
 
-        network.mValues = mission->getLocations();
-        network.mTimepoints = mission->getTimepoints();
+        network.mValues = values;
+        network.mTimepoints = timepoints;
         network.reconstructTupleMap();
 
         return network;
