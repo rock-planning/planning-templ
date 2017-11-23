@@ -56,6 +56,12 @@ public:
         ar & mName;
         ar & mModel;
     }
+
+    /**
+     * Creates the list of roles, that can be created from a given model pool,
+     * assuming that it contains only types as keys
+     */
+    static List createRoles(const organization_model::ModelPool& modelPool);
 };
 
 } // end namespace templ

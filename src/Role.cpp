@@ -96,4 +96,25 @@ bool Role::operator<(const Role& other) const
     return mModel < other.mModel;
 }
 
+Role::List Role::createRoles(const organization_model::ModelPool& modelPool)
+{
+    List roles;
+    organization_model::ModelPool::const_iterator cit = modelPool.cbegin();
+    for(;cit != modelPool.cend(); ++cit)
+    {
+        const owlapi::model::IRI& model = cit->first;
+        size_t count = cit->second;
+
+        // Update roles
+        for(size_t i = 0; i < count; ++i)
+        {
+            std::stringstream ss;
+            ss << model.getFragment() << "_" << i;
+            Role role(ss.str(), model);
+            roles.push_back(role);
+        }
+    }
+    return roles;
+}
+
 } // end namespace templ
