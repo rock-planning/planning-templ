@@ -88,31 +88,15 @@ void Mission::setAvailableResources(const organization_model::ModelPool& modelPo
 
 void Mission::refresh()
 {
-    mRoles.clear();
-    mModels.clear();
-
-    organization_model::ModelPool::const_iterator cit = mModelPool.begin();
-    for(;cit != mModelPool.end(); ++cit)
-    {
-        const owlapi::model::IRI& model = cit->first;
-        size_t count = cit->second;
-
-        // Update models
-        mModels.push_back(model);
-
-        // Update roles
-        for(size_t i = 0; i < count; ++i)
-        {
-            std::stringstream ss;
-            ss << model.getFragment() << "_" << i;
-            Role role(ss.str(), model);
-            mRoles.push_back(role);
-        }
-    }
+    mModels = mModelPool.getModels();
+    mRoles = Role::createRoles(mModelPool);
 
     // Update the ask object based on the model pool and applying the functional
     // saturation bound
-    assert(mpOrganizationModel);
+    if(!mpOrganizationModel)
+    {
+        throw std::invalid_argument("templ::Mission::refresh: organization model is not set, so cannot refresh");
+    }
     mOrganizationModelAsk = organization_model::OrganizationModelAsk(mpOrganizationModel, mModelPool, true /*functional saturation bound*/);
 }
 
