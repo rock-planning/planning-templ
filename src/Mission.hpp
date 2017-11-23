@@ -274,6 +274,11 @@ public:
      */
     static solvers::csp::FluentTimeResource fromLocationCardinality(const solvers::temporal::PersistenceCondition::Ptr& p, const Mission::Ptr& mission);
 
+    /**
+     * Save the mission and the organization model files
+     */
+    void saveInputData(const std::string& path) const;
+
 protected:
     void requireConstant(const symbols::Constant::Ptr& constant);
 

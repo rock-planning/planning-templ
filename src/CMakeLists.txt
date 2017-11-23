@@ -2,6 +2,7 @@ find_package(Boost REQUIRED system filesystem serialization program_options)
 
 rock_library(templ_core
     SOURCES
+        Configuration.cpp
         Role.cpp
         RoleInfo.cpp
         RoleInfoWeightedEdge.cpp
@@ -20,7 +21,10 @@ rock_library(templ_core
         symbols/object_variables/LocationCardinality.cpp
         symbols/object_variables/LocationNumericAttribute.cpp
         utils/CartographicMapping.cpp
+        utils/CSVLogger.cpp
+        utils/Logger.cpp
     HEADERS
+        Configuration.hpp
         Role.hpp
         RoleInfo.hpp
         RoleInfoTuple.hpp
@@ -42,6 +46,8 @@ rock_library(templ_core
         symbols/object_variables/LocationNumericAttribute.hpp
         symbols/values/Int.hpp
         utils/CartographicMapping.hpp
+        utils/CSVLogger.hpp
+        utils/Logger.hpp
     LIBS ${Boost_LIBRARIES}
         proj
     DEPS_PKGCONFIG graph_analysis
@@ -102,7 +108,6 @@ rock_library(templ_moft
 rock_library(templ
     SOURCES
         CapacityLink.cpp
-        Configuration.cpp
         DataPropertyAssignment.cpp
         Mission.cpp
         MissionPlanner.cpp
@@ -148,8 +153,6 @@ rock_library(templ
         solvers/transshipment/MinCostFlow.cpp
         solvers/transshipment/FlowNetwork.cpp
         solvers/SolutionAnalysis.cpp
-        utils/CSVLogger.cpp
-        utils/Logger.cpp
         utils/PathConstructor.cpp
         utils/XMLUtils.cpp
     HEADERS
@@ -203,8 +206,6 @@ rock_library(templ
         solvers/transshipment/FlowNetwork.hpp
         solvers/SolutionAnalysis.hpp
         utils/PathConstructor.hpp
-        utils/CSVLogger.hpp
-        utils/Logger.hpp
         utils/XMLUtils.hpp
     DEPS
         templ_moft

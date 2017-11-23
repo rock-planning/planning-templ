@@ -52,11 +52,6 @@ public:
 
     std::string getBasePath() const;
 
-    /**
-     * Save the mission and the organization model files
-     */
-    void saveInputData(const Mission& mission) const;
-
 private:
     base::Time mTime;
     std::string mBaseDirectory;
