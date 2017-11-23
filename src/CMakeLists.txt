@@ -6,6 +6,7 @@ rock_library(templ_core
         Role.cpp
         RoleInfo.cpp
         RoleInfoWeightedEdge.cpp
+        RoleInfoTuple.cpp
         Symbol.cpp
         io/FluentTypes.cpp
         problems/Scheduling.cpp
@@ -21,6 +22,7 @@ rock_library(templ_core
         symbols/object_variables/LocationCardinality.cpp
         symbols/object_variables/LocationNumericAttribute.cpp
         utils/CartographicMapping.cpp
+        utils/XMLUtils.cpp
         utils/CSVLogger.cpp
         utils/Logger.cpp
     HEADERS
@@ -46,6 +48,7 @@ rock_library(templ_core
         symbols/object_variables/LocationNumericAttribute.hpp
         symbols/values/Int.hpp
         utils/CartographicMapping.hpp
+        utils/XMLUtils.hpp
         utils/CSVLogger.hpp
         utils/Logger.hpp
     LIBS ${Boost_LIBRARIES}
@@ -59,10 +62,14 @@ rock_library(templ_core
         eigen3
 )
 
+# Master of time
 rock_library(templ_moft
     SOURCES
+        SpaceTime.cpp
         solvers/GQReasoner.cpp
+        io/TemporalConstraint.cpp
         solvers/csp/TemporalConstraintNetwork.cpp
+        solvers/csp/TemporalCSP.cpp
         solvers/temporal/Bounds.cpp
         solvers/temporal/Chronicle.cpp
         solvers/temporal/Event.cpp
@@ -79,9 +86,14 @@ rock_library(templ_moft
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.cpp
         solvers/temporal/point_algebra/TimePoint.cpp
         solvers/temporal/point_algebra/TimePointComparator.cpp
+        utils/XMLTCNUtils.cpp
     HEADERS
+        SpaceTime.hpp
+        TemporallyExpandedNetwork.hpp
+        io/TemporalConstraint.hpp
         solvers/GQReasoner.hpp
         solvers/csp/TemporalConstraintNetwork.hpp
+        solvers/csp/TemporalCSP.hpp
         solvers/temporal/Bounds.hpp
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
@@ -99,6 +111,7 @@ rock_library(templ_moft
         solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp
         solvers/temporal/point_algebra/TimePoint.hpp
         solvers/temporal/point_algebra/TimePointComparator.hpp
+        utils/XMLTCNUtils.hpp
     DEPS
         templ_core
     DEPS_PKGCONFIG
@@ -110,12 +123,11 @@ rock_library(templ
         CapacityLink.cpp
         DataPropertyAssignment.cpp
         Mission.cpp
+        MissionConstraint.cpp
         MissionPlanner.cpp
         Plan.cpp
         PlanSpaceVisitor.cpp
         PlanningState.cpp
-        RoleInfoTuple.cpp
-        SpaceTime.cpp
         io/MissionReader.cpp
         io/MissionWriter.cpp
         io/MissionRequirements.cpp
@@ -136,7 +148,6 @@ rock_library(templ
         solvers/csp/Resolver.cpp
         solvers/csp/RoleDistribution.cpp
         solvers/csp/RoleTimeline.cpp
-        solvers/csp/TemporalCSP.cpp
         solvers/csp/TransportNetwork.cpp
         solvers/csp/Types.cpp
         solvers/csp/branchers/TimelineBrancher.cpp
@@ -154,18 +165,15 @@ rock_library(templ
         solvers/transshipment/FlowNetwork.cpp
         solvers/SolutionAnalysis.cpp
         utils/PathConstructor.cpp
-        utils/XMLUtils.cpp
     HEADERS
         CapacityLink.hpp
-        Configuration.hpp
         DataPropertyAssignment.hpp
         Mission.hpp
+        MissionConstraint.hpp
         MissionPlanner.hpp
         Plan.hpp
         PlanSpaceVisitor.hpp
         PlanningState.hpp
-        SpaceTime.hpp
-        TemporallyExpandedNetwork.hpp
         io/MissionReader.hpp
         io/MissionWriter.hpp
         io/MissionRequirements.hpp
@@ -186,7 +194,6 @@ rock_library(templ
         solvers/csp/Resolver.hpp
         solvers/csp/RoleDistribution.hpp
         solvers/csp/RoleTimeline.hpp
-        solvers/csp/TemporalCSP.hpp
         solvers/csp/TransportNetwork.hpp
         solvers/csp/Types.hpp
         solvers/csp/branchers/TimelineBrancher.hpp
@@ -206,7 +213,6 @@ rock_library(templ
         solvers/transshipment/FlowNetwork.hpp
         solvers/SolutionAnalysis.hpp
         utils/PathConstructor.hpp
-        utils/XMLUtils.hpp
     DEPS
         templ_moft
 )
