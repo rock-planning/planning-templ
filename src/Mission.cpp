@@ -45,6 +45,7 @@ Mission::Mission(const Mission& other)
     , mModels(other.mModels)
     , mPersistenceConditions(other.mPersistenceConditions)
     , mConstraints(other.mConstraints)
+    , mMissionConstraints(other.mMissionConstraints)
     , mRequestedResources(other.mRequestedResources)
     , mTimeIntervals(other.mTimeIntervals)
     , mObjectVariables(other.mObjectVariables)
@@ -327,6 +328,11 @@ std::string Mission::toString() const
     for(; pit != mPersistenceConditions.end(); ++pit)
     {
         ss << (*pit)->toString(8) << std::endl;
+    }
+    ss << "    MissionConstraints " << std::endl;
+    for(const MissionConstraint& m : mMissionConstraints)
+    {
+        ss << m.toString(8) << std::endl;
     }
 
     return ss.str();

@@ -17,6 +17,7 @@
 #include "solvers/GQReasoner.hpp"
 #include "utils/Logger.hpp"
 #include "DataPropertyAssignment.hpp"
+#include "MissionConstraint.hpp"
 
 namespace templ {
 
@@ -101,8 +102,15 @@ public:
      /**
       * Add general constraint
       * \param constraint
+      * TODO: this is current limited to constraint edges -- better would be a
+      * hyperedge
       */
     void addConstraint(const solvers::Constraint::Ptr& constraint);
+
+    /**
+     * Set the general mission constraints
+     */
+    void setMissionConstraints(const MissionConstraint::List& constraints) { mMissionConstraints = constraints; }
 
     /**
      * \param stateVariable
@@ -316,6 +324,8 @@ private:
 
     std::vector<solvers::temporal::PersistenceCondition::Ptr> mPersistenceConditions;
     std::vector<solvers::Constraint::Ptr> mConstraints;
+    /// General mission constraints
+    MissionConstraint::List mMissionConstraints;
 
     // Structures to facilitate CSP definition
     owlapi::model::IRIList mRequestedResources;

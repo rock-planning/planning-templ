@@ -5,6 +5,7 @@
 #include <templ/symbols/constants/Location.hpp>
 #include <templ/RoleInfoTuple.hpp>
 #include <templ/RoleInfoWeightedEdge.hpp>
+#include <templ/solvers/temporal/Interval.hpp>
 
 namespace templ
 {
@@ -20,6 +21,9 @@ public:
 
     typedef Tuple<templ::symbols::constants::Location::Ptr,
         templ::solvers::temporal::point_algebra::TimePoint::Ptr> SpaceTimeTuple;
+
+    typedef Tuple<templ::symbols::constants::Location::Ptr,
+        templ::solvers::temporal::Interval> SpaceIntervalTuple;
 
     typedef RoleInfoTuple<templ::symbols::constants::Location::Ptr,
         templ::solvers::temporal::point_algebra::TimePoint::Ptr> RoleInfoSpaceTimeTuple;

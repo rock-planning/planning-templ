@@ -1,6 +1,7 @@
 #include <templ/io/MissionReader.hpp>
 
 #include <sstream>
+#include <regex>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <libxml/parser.h>
@@ -8,7 +9,7 @@
 #include <base-logging/Logging.hpp>
 #include <templ/SharedPtr.hpp>
 #include <templ/symbols/constants/Location.hpp>
-#include <templ/utils/XMLUtils.hpp>
+#include <templ/utils/XMLTCNUtils.hpp>
 #include <templ/utils/CartographicMapping.hpp>
 #include <owlapi/vocabularies/XSD.hpp>
 
@@ -142,6 +143,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
         }
         LOG_INFO_S << "Found root node: " << rootNode->name;
 
+        std::map<uint32_t, SpaceTime::SpaceIntervalTuple> requirementIntervalMap;
         xmlNodePtr firstLevelChild = rootNode->xmlChildrenNode;
         while(firstLevelChild != NULL)
         {
@@ -198,6 +200,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                     std::vector<ResourceRequirement>::const_iterator cit = requirement.resources.begin();
                     for(; cit != requirement.resources.end(); ++cit)
                     {
+                        requirementIntervalMap[requirement.id] = SpaceTime::SpaceIntervalTuple(location, solvers::temporal::Interval(from, to, tcn));
                         const ResourceRequirement& resource = *cit;
                         {
                             // setting the min cardinality by default
@@ -243,7 +246,8 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
             } else if(XMLUtils::nameMatches(firstLevelChild, "constraints"))
             {
                 LOG_DEBUG_S << "Found first level node: 'constraints' ";
-                Constraints constraints = XMLUtils::parseConstraints(doc, firstLevelChild);
+                Constraints constraints = parseConstraints(doc, firstLevelChild, requirementIntervalMap);
+                mission.setMissionConstraints(constraints.planning);
 
                 std::vector<TemporalConstraint>::const_iterator cit = constraints.temporal.begin();
                 for(; cit != constraints.temporal.end(); ++cit)
@@ -544,7 +548,7 @@ SpatioTemporalRequirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNode
             } else if(XMLUtils::nameMatches(requirementNode, "temporal-requirement"))
             {
                 LOG_DEBUG_S << "Parse temporal requirement";
-                requirement.temporal = XMLUtils::parseTemporalRequirement(doc, requirementNode);
+                requirement.temporal = XMLTCNUtils::parseTemporalRequirement(doc, requirementNode);
                 LOG_DEBUG_S << "Parsed temporal requirement: " << requirement.temporal.toString();
             } else if(XMLUtils::nameMatches(requirementNode, "resource-requirement"))
             {
@@ -641,6 +645,101 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
     }
     return constants;
 }
+
+templ::io::Constraints MissionReader::parseConstraints(xmlDocPtr doc,
+        xmlNodePtr current,
+        const std::map<uint32_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap)
+{
+    LOG_DEBUG_S << "Parsing: " << current->name;
+    templ::io::Constraints constraints;
+    current = current->xmlChildrenNode;
+    while(current != NULL)
+    {
+        if(XMLUtils::nameMatches(current, "temporal-constraints"))
+        {
+            LOG_DEBUG_S << "Parsing: " << current->name;
+            constraints.temporal = XMLTCNUtils::parseTemporalConstraints(doc, current);
+        } else if(XMLUtils::nameMatches(current, "planning-constraints"))
+        {
+            constraints.planning = parsePlanningConstraints(doc, current, requirementIntervalMap);
+        }
+        current = current->next;
+    }
+    return constraints;
+}
+
+MissionConstraint::List MissionReader::parsePlanningConstraints(xmlDocPtr doc, xmlNodePtr current,const std::map<uint32_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap)
+{
+    MissionConstraint::List constraints;
+    current = current->xmlChildrenNode;
+    while(current != NULL)
+    {
+        if(! (XMLUtils::nameMatches(current,"text") || XMLUtils::nameMatches(current, "comment")))
+        {
+            // identify
+            MissionConstraint::Type type = MissionConstraint::getTypeFromTxt( std::string((const char*) current->name) );
+            owlapi::model::IRI model;
+            owlapi::model::IRI property;
+            uint32_t value;
+            std::string requirementsTxt;
+            std::vector<SpaceTime::SpaceIntervalTuple> intervals;
+            switch(type)
+            {
+                case MissionConstraint::MIN_FUNCTION:
+                case MissionConstraint::MAX_FUNCTION:
+                    property = XMLUtils::getProperty(current, "property");
+                case MissionConstraint::MIN_EQUAL:
+                case MissionConstraint::MAX_EQUAL:
+                case MissionConstraint::MIN_DISTINCT:
+                case MissionConstraint::MAX_DISTINCT:
+                    value = boost::lexical_cast<uint32_t>( XMLUtils::getProperty(current, "value") );
+                case MissionConstraint::ALL_DISTINCT:
+                    model = XMLUtils::getSubNodeContent(doc, current, "model");
+                    requirementsTxt = XMLUtils::getSubNodeContent(doc, current, "requirements");
+                    break;
+                default:
+                    break;
+            }
+            // remove spaces
+            std::regex spaces("\\s+");
+            requirementsTxt = std::regex_replace(requirementsTxt, spaces, "");
+
+            std::vector<std::string> requirementsTxtTokens;
+            boost::split(requirementsTxtTokens, requirementsTxt, boost::is_any_of(",;"));
+
+            for(const std::string& requirementIdTxt : requirementsTxtTokens)
+            {
+                int32_t requirementId = 0;
+                try {
+                    requirementId = boost::lexical_cast<uint32_t>(requirementIdTxt);
+                    std::map<uint32_t, SpaceTime::SpaceIntervalTuple>::const_iterator cit = requirementIntervalMap.find(requirementId);
+                    if(cit != requirementIntervalMap.end())
+                    {
+                        intervals.push_back(cit->second);
+                    } else {
+                        std::stringstream ss;
+                        ss << requirementId;
+                        throw std::invalid_argument("No requirement with id '" + ss.str() + "' available");
+                    }
+                } catch(const std::exception& e)
+                {
+                    std::stringstream ss;
+                    ss << "templ::io::MissionReader::parsePlanningConstraints: requirements list could not be read in line";
+                    ss << " -- check line: " << xmlGetLineNo(current) << std::endl;
+                    ss << "    error: " << e.what();
+                    throw std::invalid_argument(ss.str());
+                }
+            }
+
+            MissionConstraint constraint(type, model, intervals, value, property);
+            constraints.push_back(constraint);
+        }
+
+        current = current->next;
+    }
+    return constraints;
+}
+
 
 } // end namespace io
 } // end namespace templ

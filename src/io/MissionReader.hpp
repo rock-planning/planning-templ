@@ -98,6 +98,15 @@ private:
      */
     static std::set<templ::symbols::Constant::Ptr> parseConstants(xmlDocPtr doc, xmlNodePtr current);
 
+
+    static templ::io::Constraints parseConstraints(xmlDocPtr doc,
+            xmlNodePtr current,
+            const std::map<uint32_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap);
+
+    static MissionConstraint::List parsePlanningConstraints(xmlDocPtr doc,
+            xmlNodePtr current,
+            const std::map<uint32_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap);
+
     /**
      * If the mission specification file contains a node organization model,
      * then the provided IRI will be taken to initialize load the organization

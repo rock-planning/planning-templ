@@ -2,9 +2,10 @@
 #define TEMPL_IO_MISSION_REQUIREMENTS_HPP
 
 #include <owlapi/OWLApi.hpp>
-#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
 #include "FluentTypes.hpp"
 #include <graph_analysis/Vertex.hpp>
+#include "../MissionConstraint.hpp"
+#include "TemporalConstraint.hpp"
 
 namespace templ {
 namespace io {
@@ -106,26 +107,12 @@ protected:
     virtual graph_analysis::Vertex* getClone() const { return new SpatioTemporalRequirement(*this); }
 };
 
-struct TemporalConstraint
-{
-    templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type type;
-
-    std::string rval;
-    std::string lval;
-
-    // Convert from an XML label to the corresponding xml type
-    static templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type getTemporalConstraintType(const std::string& name);
-    // Convert the constraint type to an XML label
-    static std::string toXML(templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type type);
-
-    std::string toString(uint32_t indent = 0) const;
-};
-
 struct Constraints
 {
     std::vector<TemporalConstraint> temporal;
+    MissionConstraint::List planning;
 
-    std::string toString() const;
+    std::string toString(size_t indent = 0) const;
 };
 
 } // end namespace io
