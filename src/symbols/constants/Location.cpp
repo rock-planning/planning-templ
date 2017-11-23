@@ -30,6 +30,14 @@ std::string Location::toString() const
     return ss.str();
 }
 
+std::string Location::toString(size_t indent) const
+{
+    std::string hspace(indent,' ');
+    std::stringstream ss;
+    ss << hspace << getInstanceName();
+    return ss.str();
+}
+
 std::string Location::toString(const Location::List& l, size_t indent)
 {
     std::stringstream ss;

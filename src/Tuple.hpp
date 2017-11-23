@@ -49,18 +49,18 @@ public:
     {
         std::string hspace (indent,' ');
         std::stringstream ss;
-        ss << hspace;
+        ss << hspace << "Tuple:" << std::endl;
+        ss << hspace << "    a:" << std::endl;
         if( tuple_get_pointer(mA) )
         {
-            ss << tuple_get_pointer(mA)->toString();
+            ss << tuple_get_pointer(mA)->toString(indent + 8);
         } else {
             ss << "<NULL>";
         }
-        ss << "-";
-
+        ss << hspace << "    b:" << std::endl;
         if(tuple_get_pointer(mB))
         {
-            ss << tuple_get_pointer(mB)->toString();
+            ss << tuple_get_pointer(mB)->toString( indent + 8);
         } else {
             ss << "<NULL>";
         }

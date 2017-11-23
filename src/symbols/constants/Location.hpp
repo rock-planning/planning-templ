@@ -41,6 +41,7 @@ public:
     const base::Point& getPosition() const { return mPosition; }
 
     virtual std::string toString() const;
+    virtual std::string toString(size_t indent) const;
 
     static std::string toString(const List& l, size_t indent = 0);
 

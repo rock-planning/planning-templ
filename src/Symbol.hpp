@@ -9,6 +9,11 @@
 
 namespace templ {
 
+/**
+ * \class (Typed) Symbol
+ * \brief represent a general symbol with a given type
+ *
+ */
 class Symbol : public std::pair<std::string, std::string>
 {
 public:
@@ -18,13 +23,29 @@ public:
     enum Type { UNKNOWN, STATE_VARIABLE, OBJECT_VARIABLE, CONSTANT, TEMPORAL_VARIABLE, VALUE };
     static std::map<Type, std::string> TypeTxt;
 
+    /**
+     * \param name Name of the symbol
+     * \param type_name Type name of the symbol
+     * \param type Classtype of the symbol
+     */
     Symbol(const std::string& name, const std::string& type_name, Type type);
 
     virtual ~Symbol() {}
 
+    /**
+     * Get the instance name of the symbool
+     * \return instance name
+     */
     const std::string& getInstanceName() const { return first; }
+
+    /**
+     * Get the typename of the symobl
+     */
     const std::string& getTypeName() const { return second; }
 
+    /**
+     * Get the actual type of the symbol
+     */
     Type getType() const { return mType; }
 
     virtual bool equals(const Symbol::Ptr& other) const { return first == other->first && second == other->second && mType == other->mType; }
