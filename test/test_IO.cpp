@@ -13,6 +13,10 @@
 #include <graph_analysis/GraphIO.hpp>
 #include <graph_analysis/EdgeTypeManager.hpp>
 
+#include <templ/io/MissionReader.hpp>
+#include <templ/io/MissionWriter.hpp>
+#include "test_utils.hpp"
+
 using namespace templ;
 
 BOOST_AUTO_TEST_SUITE(io)
@@ -169,6 +173,17 @@ BOOST_AUTO_TEST_CASE(role_info_weighted_edge_serialization_2)
 
     //deserialized.deserializeTaggedRoles(e.serializeTaggedRoles());
     //BOOST_REQUIRE_MESSAGE(deserialized.getAllRoles() == e.getAllRoles(), "TaggedRole are the same");
+}
+
+BOOST_AUTO_TEST_CASE(mission_read_write)
+{
+    Mission mission = templ::io::MissionReader::fromFile( getRootDir() + "/test/data/scenarios/should_succeed/9-constraints.xml","");
+
+    BOOST_TEST_MESSAGE(mission.toString());
+    std::string outfile = "/tmp/test-mission.xml";
+
+    templ::io::MissionWriter::write(outfile,mission);
+    BOOST_TEST_MESSAGE("Written to " << outfile);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
