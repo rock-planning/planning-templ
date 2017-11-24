@@ -13,6 +13,8 @@
 #include "../symbols/constants/Location.hpp"
 #include "../utils/XMLTCNUtils.hpp"
 #include "../utils/CartographicMapping.hpp"
+#include "../solvers/temporal/IntervalConstraint.hpp"
+
 using namespace templ::utils;
 
 namespace templ {
@@ -259,13 +261,26 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                 for(const TemporalConstraint& temporalConstraint : constraints.temporal)
                 {
                     using namespace solvers::temporal::point_algebra;
+                    using namespace solvers::temporal;
+                    /// qualitative or quantitive constraint
+                    if(temporalConstraint.minDuration == 0 && temporalConstraint.maxDuration == 0)
+                    {
                         // account only for the relevant ones
                         TimePoint::Ptr t0 = tcn->getOrCreateTimePoint(temporalConstraint.lval);
                         TimePoint::Ptr t1 = tcn->getOrCreateTimePoint(temporalConstraint.rval);
                         QualitativeTimePointConstraint::Ptr qtcp(new QualitativeTimePointConstraint(t0,t1, temporalConstraint.type));
                         mission.addConstraint(qtcp);
+                    } else {
+                        /// min/max duration
+                        TimePoint::Ptr t0 = tcn->getOrCreateTimePoint(temporalConstraint.lval);
+                        TimePoint::Ptr t1 = tcn->getOrCreateTimePoint(temporalConstraint.rval);
+                        IntervalConstraint::Ptr intervalConstraint(new IntervalConstraint(t0,t1));
+                        Bounds bounds(temporalConstraint.minDuration, temporalConstraint.maxDuration);
+                        intervalConstraint->addInterval(bounds);
+                        mission.addConstraint(intervalConstraint);
                     }
                 }
+
             } else if(XMLUtils::nameMatches(firstLevelChild, "constants"))
             {
                 LOG_DEBUG_S << "Found first level node: 'constants' ";

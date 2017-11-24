@@ -6,6 +6,11 @@ namespace pa = templ::solvers::temporal::point_algebra;
 namespace templ {
 namespace io {
 
+TemporalConstraint::TemporalConstraint()
+    : minDuration(0)
+    , maxDuration(std::numeric_limits<double>::max())
+{}
+
 pa::QualitativeTimePointConstraint::Type TemporalConstraint::getTemporalConstraintType(const std::string& name)
 {
     using namespace templ::solvers::temporal::point_algebra;

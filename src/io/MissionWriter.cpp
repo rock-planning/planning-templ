@@ -2,6 +2,7 @@
 #include "../utils/XMLUtils.hpp"
 #include "../solvers/csp/FluentTimeResource.hpp"
 #include "../solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp"
+#include "../solvers/temporal/IntervalConstraint.hpp"
 #include "../io/MissionRequirements.hpp"
 #include "../constraints/ModelConstraint.hpp"
 
@@ -234,7 +235,34 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
             XMLUtils::writeAttribute(writer, "lval", qtpc->getSourceVariable()->getLabel());
             XMLUtils::writeAttribute(writer, "rval", qtpc->getTargetVariable()->getLabel());
             XMLUtils::endElement(writer);
+        } else if(c->getType() == Constraint::TEMPORAL_QUANTIATIVE)
+        {
+            using namespace solvers::temporal;
+            IntervalConstraint::Ptr ic = dynamic_pointer_cast<IntervalConstraint>(c);
+            for(Bounds b : ic->getIntervals())
+            {
+                XMLUtils::startElement(writer, "duration");
 
+                std::stringstream min;
+                min << b.getLowerBound();
+                XMLUtils::writeAttribute(writer, "min", min.str());
+
+                if( b.getUpperBound() != std::numeric_limits<double>::max())
+                {
+                    std::stringstream max;
+                    max << b.getUpperBound();
+                    XMLUtils::writeAttribute(writer, "max", max.str());
+                }
+
+                XMLUtils::startElement(writer, "from");
+                XMLUtils::writeString(writer, ic->getSourceTimePoint()->getLabel());
+                XMLUtils::endElement(writer); // end from
+
+                XMLUtils::startElement(writer, "to");
+                XMLUtils::writeString(writer, ic->getTargetTimePoint()->getLabel());
+                XMLUtils::endElement(writer); // end to
+
+                XMLUtils::endElement(writer); // end duration
             }
         }
     }

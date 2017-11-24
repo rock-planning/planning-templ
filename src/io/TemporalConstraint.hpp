@@ -7,8 +7,15 @@ struct TemporalConstraint
 {
     templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type type;
 
+    /// Use for rval and to
     std::string rval;
+    /// Use for lval and from
     std::string lval;
+
+    double minDuration;
+    double maxDuration;
+
+    TemporalConstraint();
 
     // Convert from an XML label to the corresponding xml type
     static templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type getTemporalConstraintType(const std::string& name);

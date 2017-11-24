@@ -1,5 +1,6 @@
 #include "XMLTCNUtils.hpp"
 #include <base-logging/Logging.hpp>
+#include <boost/lexical_cast.hpp>
 
 namespace templ {
 namespace utils {
@@ -12,7 +13,29 @@ std::vector<templ::io::TemporalConstraint> XMLTCNUtils::parseTemporalConstraints
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
-        if(! (XMLUtils::nameMatches(current,"text") || XMLUtils::nameMatches(current, "comment")))
+        if(XMLUtils::nameMatches(current, "duration"))
+        {
+            TemporalConstraint constraint;
+            try {
+                constraint.minDuration = boost::lexical_cast<double>( XMLUtils::getProperty(current, "min") );
+            } catch(...)
+            {
+                LOG_INFO_S << "Min property set to 0:" << xmlGetLineNo(current);
+                constraint.minDuration = 0;
+            }
+            try {
+                constraint.maxDuration = boost::lexical_cast<double>( XMLUtils::getProperty(current, "max") );
+            } catch(...)
+            {
+                LOG_INFO_S << "Max property set to +inf:" << xmlGetLineNo(current);
+                constraint.maxDuration = std::numeric_limits<double>::max();
+            }
+
+            constraint.lval = XMLUtils::getSubNodeContent(doc, current, "from");
+            constraint.rval = XMLUtils::getSubNodeContent(doc, current, "to");
+
+            constraints.push_back(constraint);
+        } else if(! (XMLUtils::nameMatches(current,"text") || XMLUtils::nameMatches(current, "comment")))
         {
             TemporalConstraint constraint;
             constraint.type = TemporalConstraint::getTemporalConstraintType( std::string((const char*) current->name) );
