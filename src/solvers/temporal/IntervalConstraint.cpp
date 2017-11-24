@@ -61,15 +61,15 @@ void IntervalConstraint::registerAttributes(graph_analysis::EdgeTypeManager* eMa
 
 std::string IntervalConstraint::serializeBounds() const
 {
-    size_t numberOfIntervals = getIntervalsNumber();
     std::stringstream ss;
-    ss << numberOfIntervals;
-    for(size_t i = 0; i < numberOfIntervals; ++i)
+    ss << mIntervals.size();
+    for(const Bounds& bound : mIntervals)
     {
         ss << "[";
-        ss << mIntervals[i].getLowerBound();
+        ss << 0;
+        ss << bound.getLowerBound();
         ss << ",";
-        ss << mIntervals[i].getUpperBound();
+        ss << bound.getUpperBound();
         ss << "]";
     }
     return ss.str();
