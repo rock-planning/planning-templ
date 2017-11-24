@@ -19,7 +19,7 @@ BOOST_AUTO_TEST_SUITE(temporal_constraint_network)
 
 BOOST_AUTO_TEST_CASE(ult)
 {
-// Input (a * near a vertex means that it is a target vertex):    
+// Input (a * near a vertex means that it is a target vertex):
 // .-------------------------------------------------------
 // .                                                      .
 // v0 -------[10,20] [30,40]---> v1                       .
@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(ult)
 //
 //Expected result:
 // .-------------------------------------------------------
-// .                                                      .   
+// .                                                      .
 // v0 ------[10,20] [30,40]--> v1                         .
 // .                          .  .                        .
 // .                       .      .                       .
@@ -51,10 +51,10 @@ BOOST_AUTO_TEST_CASE(ult)
 
     TemporalConstraintNetwork tcn,expected;
 
-    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
-    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
-    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
-    point_algebra::TimePoint::Ptr v3(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<double>::max()));
+    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<double>::max()));
+    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<double>::max()));
+    point_algebra::TimePoint::Ptr v3(new point_algebra::TimePoint(0,std::numeric_limits<double>::max()));
 
     IntervalConstraint::Ptr i0(new IntervalConstraint(v0,v1));
     i0->addInterval(Bounds(10,20));
@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(ult)
     BOOST_REQUIRE_MESSAGE(tcn.getEdgeNumber() == 6,"Expected: 6, Actual: "<<tcn.getEdgeNumber());
 
     tcn.upperLowerTightening();
-    BaseGraph::Ptr graph = tcn.getDistanceGraph();   
+    BaseGraph::Ptr graph = tcn.getDistanceGraph();
 
     IntervalConstraint::Ptr e0(new IntervalConstraint(v0,v1));
     e0->addInterval(Bounds(10,20));
@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE(ult)
     expected.addIntervalConstraint(e1);
     expected.addIntervalConstraint(e2);
     expected.addIntervalConstraint(e3);
-    expected.addIntervalConstraint(e4); 
+    expected.addIntervalConstraint(e4);
     expected.addIntervalConstraint(e5);
 
 //  check if the expected result and the actual result are the same
