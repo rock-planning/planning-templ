@@ -285,10 +285,9 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
             uint32_t value = modelConstraint->getValue();
             std::stringstream valueTxt;
             valueTxt << value;
-            XMLUtils::writeAttribute(writer, "value", valueTxt.str());
-            if(type == ModelConstraint::MIN_PROPERTY || type == ModelConstraint::MAX_PROPERTY)
+            if(type != ModelConstraint::ALL_DISTINCT)
             {
-                XMLUtils::writeAttribute(writer, "property", modelConstraint->getProperty().toString());
+                XMLUtils::writeAttribute(writer, "value", valueTxt.str());
             }
             XMLUtils::startElement(writer, "model");
             XMLUtils::writeString(writer, modelConstraint->getModel().toString());
@@ -304,6 +303,12 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
                 }
                 ss << cit->second << ",";
             }
+            if(type == ModelConstraint::MIN_PROPERTY || type == ModelConstraint::MAX_PROPERTY)
+            {
+                XMLUtils::startElement(writer, "property");
+                XMLUtils::writeString(writer, modelConstraint->getProperty().toString());
+                XMLUtils::endElement(writer);
+            }
             std::string requirementIdsTxt = ss.str();
             XMLUtils::writeString(writer, requirementIdsTxt.substr(0, requirementIdsTxt.length()-1) );
             XMLUtils::endElement(writer); // end requirements
@@ -312,6 +317,8 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
     }
 
     XMLUtils::endElement(writer); // end model-constraints
+
+
     XMLUtils::endElement(writer); // end constraints
 
     XMLUtils::endElement(writer);  // end mission
