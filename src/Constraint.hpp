@@ -19,7 +19,7 @@ public:
 
     enum Category { UNKNOWN,
         TEMPORAL_QUALITATIVE,
-        TEMPORAL_QUANTIATIVE,
+        TEMPORAL_QUANTITATIVE,
         MODEL
     };
 

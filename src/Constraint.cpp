@@ -18,7 +18,7 @@ Constraint::~Constraint()
 std::map<Constraint::Category, std::string> Constraint::CategoryTxt = {
     { Constraint::UNKNOWN,  "UNKNOWN" },
     { Constraint::TEMPORAL_QUALITATIVE, "TEMPORAL_QUALITATIVE" },
-    { Constraint::TEMPORAL_QUANTIATIVE, "TEMPORAL_QUANTIATIVE" },
+    { Constraint::TEMPORAL_QUANTITATIVE, "TEMPORAL_QUANTITATIVE" },
     { Constraint::MODEL,    "MODEL" }
 };
 

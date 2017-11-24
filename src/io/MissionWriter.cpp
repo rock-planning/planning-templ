@@ -235,7 +235,7 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
             XMLUtils::writeAttribute(writer, "lval", qtpc->getSourceVariable()->getLabel());
             XMLUtils::writeAttribute(writer, "rval", qtpc->getTargetVariable()->getLabel());
             XMLUtils::endElement(writer);
-        } else if(c->getCategory() == Constraint::TEMPORAL_QUANTIATIVE)
+        } else if(c->getCategory() == Constraint::TEMPORAL_QUANTITATIVE)
         {
             using namespace solvers::temporal;
             IntervalConstraint::Ptr ic = dynamic_pointer_cast<IntervalConstraint>(c);
