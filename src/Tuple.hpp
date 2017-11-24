@@ -57,6 +57,7 @@ public:
         } else {
             ss << "<NULL>";
         }
+        ss << std::endl;
         ss << hspace << "    b:" << std::endl;
         if(tuple_get_pointer(mB))
         {
