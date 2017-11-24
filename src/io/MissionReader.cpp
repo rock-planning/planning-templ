@@ -263,7 +263,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                     using namespace solvers::temporal::point_algebra;
                     using namespace solvers::temporal;
                     /// qualitative or quantitive constraint
-                    if(temporalConstraint.minDuration == 0 && temporalConstraint.maxDuration == 0)
+                    if(temporalConstraint.minDuration == 0 && temporalConstraint.maxDuration == std::numeric_limits<double>::max())
                     {
                         // account only for the relevant ones
                         TimePoint::Ptr t0 = tcn->getOrCreateTimePoint(temporalConstraint.lval);
@@ -551,9 +551,10 @@ SpatioTemporalRequirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNode
     SpatioTemporalRequirement requirement;
     if(XMLUtils::nameMatches(current, "requirement"))
     {
-        LOG_INFO_S << "Parsing: " << current->name;
         std::string id = XMLUtils::getProperty(current, "id");
+        LOG_INFO_S << "Parsing: " << current->name << " id:" << id;
         requirement.id = boost::lexical_cast<uint32_t>(id);
+
 
         xmlNodePtr requirementNode = current->xmlChildrenNode;
         while(requirementNode != NULL)
@@ -588,12 +589,25 @@ std::vector<SpatioTemporalRequirement> MissionReader::parseRequirements(xmlDocPt
     LOG_INFO_S << "Parsing: " << current->name;
     std::vector<SpatioTemporalRequirement> requirements;
     current = current->xmlChildrenNode;
+    std::set<uint32_t> ids;
     while(current != NULL)
     {
         if(XMLUtils::nameMatches(current, "requirement"))
         {
+
             SpatioTemporalRequirement requirement = parseRequirement(doc, current);
             LOG_INFO_S << "Parsed requirement: " << requirement.toString();
+            std::set<uint32_t>::const_iterator cit = ids.find(requirement.id);
+            if(cit != ids.end())
+            {
+                std::stringstream ss;
+                ss << "templ::io::MissionReader::parseRequirements: a requirement with"
+                        " id '" << requirement.id << "' already exists ";
+                ss << " -- check line: " << xmlGetLineNo(current) << std::endl;
+                throw std::invalid_argument(ss.str());
+            } else {
+                ids.insert(requirement.id);
+            }
             requirements.push_back(requirement);
         }
         current = current->next;
@@ -700,14 +714,14 @@ constraints::ModelConstraint::List MissionReader::parseModelConstraints(xmlDocPt
             ModelConstraint::Type type = ModelConstraint::getTypeFromTxt( std::string((const char*) current->name) );
             owlapi::model::IRI model;
             owlapi::model::IRI property;
-            uint32_t value;
+            uint32_t value = 0;
             std::string requirementsTxt;
             std::vector<SpaceTime::SpaceIntervalTuple> intervals;
             switch(type)
             {
                 case ModelConstraint::MIN_PROPERTY:
                 case ModelConstraint::MAX_PROPERTY:
-                    property = XMLUtils::getProperty(current, "property");
+                    property = XMLUtils::getSubNodeContent(doc, current, "property");
                 case ModelConstraint::MIN_FUNCTION:
                 case ModelConstraint::MAX_FUNCTION:
                 case ModelConstraint::MIN_EQUAL:

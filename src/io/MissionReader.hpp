@@ -22,7 +22,7 @@ public:
      * Construct a mission from given specification and url to an organization
      * model
      */
-    static Mission fromFile(const std::string& url, const std::string& organizationModelUrl = "");
+    static Mission fromFile(const std::string& url, const std::string& organizationModelUrl);
 
     /**
      * Construct a mission from given specification and organization model
