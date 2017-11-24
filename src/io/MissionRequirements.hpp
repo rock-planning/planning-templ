@@ -4,7 +4,7 @@
 #include <owlapi/OWLApi.hpp>
 #include "FluentTypes.hpp"
 #include <graph_analysis/Vertex.hpp>
-#include "../MissionConstraint.hpp"
+#include "../constraints/ModelConstraint.hpp"
 #include "TemporalConstraint.hpp"
 
 namespace templ {
@@ -110,7 +110,7 @@ protected:
 struct Constraints
 {
     std::vector<TemporalConstraint> temporal;
-    MissionConstraint::List planning;
+    constraints::ModelConstraint::List model;
 
     std::string toString(size_t indent = 0) const;
 };

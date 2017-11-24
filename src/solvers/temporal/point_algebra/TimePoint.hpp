@@ -2,7 +2,7 @@
 #define TEMPL_SOLVERS_TEMPORAL_POINT_ALGEBRA_TIME_POINT_HPP
 
 #include <map>
-#include <templ/solvers/Variable.hpp>
+#include <templ/Variable.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/shared_ptr.hpp>

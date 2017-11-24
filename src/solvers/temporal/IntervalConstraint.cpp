@@ -13,12 +13,12 @@ namespace temporal {
 const graph_analysis::EdgeRegistration<IntervalConstraint> IntervalConstraint::msRegistration;
 
 IntervalConstraint::IntervalConstraint()
-    : Edge()
+    : constraints::SimpleConstraint(Constraint::TEMPORAL_QUANTIATIVE)
 {}
 
 IntervalConstraint::IntervalConstraint(const point_algebra::TimePoint::Ptr& source,
         const point_algebra::TimePoint::Ptr& target)
-    : Edge(source, target)
+    : constraints::SimpleConstraint(Constraint::TEMPORAL_QUANTIATIVE, source, target)
 {
 }
 

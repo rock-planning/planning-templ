@@ -131,7 +131,7 @@ Mission::Ptr MissionGenerator::convert(const VRPProblem& vrp)
     {
         try {
             // making sure that depot is the first to be considered
-            solvers::Constraint::Ptr constraint0 = tcn->addQualitativeConstraint(startTo, t, QualitativeTimePointConstraint::Less);
+            Constraint::Ptr constraint0 = tcn->addQualitativeConstraint(startTo, t, QualitativeTimePointConstraint::Less);
             mission->addConstraint(constraint0);
         } catch(...)
         {}

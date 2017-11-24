@@ -1,7 +1,7 @@
 #ifndef TEMPL_SOLVERS_TEMPORAL_TEMPORAL_CONSTRAINT_NETWORK
 #define TEMPL_SOLVERS_TEMPORAL_TEMPORAL_CONSTRAINT_NETWORK
 
-#include <templ/solvers/ConstraintNetwork.hpp>
+#include <templ/ConstraintNetwork.hpp>
 #include <templ/solvers/temporal/Bounds.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
 #include <templ/solvers/temporal/IntervalConstraint.hpp>

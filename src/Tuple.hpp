@@ -67,6 +67,18 @@ public:
         return ss.str();
     }
 
+    bool operator<(const Tuple<A,B>& other) const
+    {
+        if(mA < other.mA)
+        {
+            return true;
+        } else if(mA == other.mA)
+        {
+            return mB < other.mB;
+        }
+        return false;
+    }
+
 protected:
     graph_analysis::Vertex* getClone() const { return new Tuple(*this); }
 

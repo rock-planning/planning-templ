@@ -46,7 +46,6 @@ Mission::Mission(const Mission& other)
     , mModels(other.mModels)
     , mPersistenceConditions(other.mPersistenceConditions)
     , mConstraints(other.mConstraints)
-    , mMissionConstraints(other.mMissionConstraints)
     , mRequestedResources(other.mRequestedResources)
     , mTimeIntervals(other.mTimeIntervals)
     , mObjectVariables(other.mObjectVariables)
@@ -65,7 +64,7 @@ Mission::Mission(const Mission& other)
 
     if(other.mpTemporalConstraintNetwork)
     {
-        solvers::ConstraintNetwork::Ptr constraintNetwork = other.mpTemporalConstraintNetwork->clone();
+        ConstraintNetwork::Ptr constraintNetwork = other.mpTemporalConstraintNetwork->clone();
         mpTemporalConstraintNetwork = dynamic_pointer_cast<solvers::temporal::QualitativeTemporalConstraintNetwork>(constraintNetwork);
     }
 }
@@ -282,26 +281,14 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addTemporalAssertion(const sy
     return persistenceCondition;
 }
 
-solvers::Constraint::Ptr Mission::addTemporalConstraint(const pa::TimePoint::Ptr& t1,
-        const pa::TimePoint::Ptr& t2,
-        pa::QualitativeTimePointConstraint::Type constraintType)
-{
-    LOG_DEBUG_S << "Adding temporal constraint: " << t1->toString() << " --> " << t2->toString() << pa::QualitativeTimePointConstraint::TypeTxt[constraintType];
-    solvers::Constraint::Ptr constraint = mpTemporalConstraintNetwork->addQualitativeConstraint(t1, t2, constraintType);
-
-    mConstraints.push_back(constraint);
-    return constraint;
-}
-
-void Mission::addConstraint(const solvers::Constraint::Ptr& constraint)
+void Mission::addConstraint(const Constraint::Ptr& constraint)
 {
     using namespace solvers::temporal::point_algebra;
-    QualitativeTimePointConstraint::Ptr timeConstraint = dynamic_pointer_cast<QualitativeTimePointConstraint>(constraint);
     mConstraints.push_back(constraint);
 
-    if(timeConstraint)
+    if(constraint->getType() == Constraint::TEMPORAL_QUALITATIVE)
     {
-        mpTemporalConstraintNetwork->addConstraint(dynamic_pointer_cast<solvers::Constraint>(timeConstraint));
+        mpTemporalConstraintNetwork->addConstraint(constraint);
     }
 }
 
@@ -317,10 +304,10 @@ std::string Mission::toString() const
     {
         ss << (*pit)->toString(8) << std::endl;
     }
-    ss << "    MissionConstraints " << std::endl;
-    for(const MissionConstraint& m : mMissionConstraints)
+    ss << "    Constraints " << std::endl;
+    for(const Constraint::Ptr& c : mConstraints)
     {
-        ss << m.toString(8) << std::endl;
+        ss << c->toString(8) << std::endl;
     }
 
     return ss.str();

@@ -8,6 +8,7 @@
 
 using namespace templ;
 using namespace organization_model;
+namespace pa = templ::solvers::temporal::point_algebra;
 
 BOOST_AUTO_TEST_SUITE(csp_transport_network)
 
@@ -41,7 +42,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
     baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
     baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
 
-    baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t1,t2, point_algebra::QualitativeTimePointConstraint::Less));
     baseMission.prepareTimeIntervals();
 
     {
@@ -125,10 +126,10 @@ BOOST_AUTO_TEST_CASE(mission_1)
     baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
 
     // Overlapping intervals at two locations
-    baseMission.addTemporalConstraint(te,ts, point_algebra::QualitativeTimePointConstraint::Greater);
-    baseMission.addTemporalConstraint(t0,te, point_algebra::QualitativeTimePointConstraint::Greater);
-    baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Greater);
-    baseMission.addTemporalConstraint(t0,t3, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(te,ts, point_algebra::QualitativeTimePointConstraint::Greater));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t0,te, point_algebra::QualitativeTimePointConstraint::Greater));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t1,t2, point_algebra::QualitativeTimePointConstraint::Greater));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t0,t3, point_algebra::QualitativeTimePointConstraint::Less));
     baseMission.prepareTimeIntervals();
 
     {
@@ -279,13 +280,13 @@ BOOST_AUTO_TEST_CASE(mission_2)
     baseMission.addResourceLocationCardinalityConstraint(loc1, t6, t7, location_image_provider);
     baseMission.addResourceLocationCardinalityConstraint(loc1, t6, t7, vocabulary::OM::resolve("Payload") );
 
-    baseMission.addTemporalConstraint(t0,t1, point_algebra::QualitativeTimePointConstraint::Less);
-    baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
-    baseMission.addTemporalConstraint(t2,t3, point_algebra::QualitativeTimePointConstraint::Less);
-    baseMission.addTemporalConstraint(t3,t4, point_algebra::QualitativeTimePointConstraint::Less);
-    baseMission.addTemporalConstraint(t4,t5, point_algebra::QualitativeTimePointConstraint::Less);
-    baseMission.addTemporalConstraint(t5,t6, point_algebra::QualitativeTimePointConstraint::Less);
-    baseMission.addTemporalConstraint(t6,t7, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t0,t1, point_algebra::QualitativeTimePointConstraint::Less));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t1,t2, point_algebra::QualitativeTimePointConstraint::Less));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t2,t3, point_algebra::QualitativeTimePointConstraint::Less));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t3,t4, point_algebra::QualitativeTimePointConstraint::Less));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t4,t5, point_algebra::QualitativeTimePointConstraint::Less));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t5,t6, point_algebra::QualitativeTimePointConstraint::Less));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t6,t7, point_algebra::QualitativeTimePointConstraint::Less));
 
     baseMission.prepareTimeIntervals();
 
@@ -350,7 +351,7 @@ BOOST_AUTO_TEST_CASE(mission_tt)
     baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
     baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
 
-    baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t1,t2, point_algebra::QualitativeTimePointConstraint::Less));
     baseMission.prepareTimeIntervals();
 
     {
@@ -409,8 +410,8 @@ BOOST_AUTO_TEST_CASE(symmetry_breaking)
     baseMission.addResourceLocationCardinalityConstraint(loc2, t4, t5, payloadModel);
 
     // Overlapping intervals at two locations
-    baseMission.addTemporalConstraint(t2,t1, point_algebra::QualitativeTimePointConstraint::Greater);
-    baseMission.addTemporalConstraint(t4,t3, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t2,t1, point_algebra::QualitativeTimePointConstraint::Greater));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t4,t3, point_algebra::QualitativeTimePointConstraint::Less));
     baseMission.prepareTimeIntervals();
 
     using namespace solvers;
@@ -458,11 +459,11 @@ BOOST_AUTO_TEST_CASE(mission_3)
     //baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, sherpa);
     baseMission.addResourceLocationCardinalityConstraint(loc2, t4, t5, sherpa);
 
-    baseMission.addTemporalConstraint(t0,t1, point_algebra::QualitativeTimePointConstraint::Less);
-    baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
-    baseMission.addTemporalConstraint(t2,t3, point_algebra::QualitativeTimePointConstraint::Less);
-    baseMission.addTemporalConstraint(t3,t4, point_algebra::QualitativeTimePointConstraint::Less);
-    baseMission.addTemporalConstraint(t4,t5, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t0,t1, point_algebra::QualitativeTimePointConstraint::Less));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t1,t2, point_algebra::QualitativeTimePointConstraint::Less));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t2,t3, point_algebra::QualitativeTimePointConstraint::Less));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t3,t4, point_algebra::QualitativeTimePointConstraint::Less));
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t4,t5, point_algebra::QualitativeTimePointConstraint::Less));
 
     baseMission.prepareTimeIntervals();
 
@@ -504,7 +505,7 @@ BOOST_AUTO_TEST_CASE(mission_4)
         timepoints.push_back(tp);
         if(t > 0)
         {
-            baseMission.addTemporalConstraint(timepoints[t-1],tp, point_algebra::QualitativeTimePointConstraint::Less);
+            baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(timepoints[t-1],tp, point_algebra::QualitativeTimePointConstraint::Less));
         }
     }
 

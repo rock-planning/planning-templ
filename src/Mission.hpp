@@ -7,17 +7,15 @@
 #include <organization_model/OrganizationModelAsk.hpp>
 #include <organization_model/ModelPool.hpp>
 
-#include "solvers/Constraint.hpp"
+#include "Constraint.hpp"
 #include "solvers/temporal/Interval.hpp"
 #include "solvers/temporal/PersistenceCondition.hpp"
 #include "solvers/temporal/point_algebra/TimePoint.hpp"
 #include "Role.hpp"
 #include "symbols/ObjectVariable.hpp"
 #include "symbols/constants/Location.hpp"
-#include "solvers/GQReasoner.hpp"
 #include "utils/Logger.hpp"
 #include "DataPropertyAssignment.hpp"
-#include "MissionConstraint.hpp"
 
 namespace templ {
 
@@ -126,13 +124,6 @@ public:
      * Get the model pool of available resources
      */
     const organization_model::ModelPool& getAvailableResources() const { return mModelPool; }
-
-    /**
-     * Set the general mission constraints
-     */
-    void setMissionConstraints(const MissionConstraint::List& constraints) { mMissionConstraints = constraints; }
-
-    const MissionConstraint::List& getMissionConstraints() const { return mMissionConstraints; }
 
     /**
      * Get special sets of constants
@@ -244,7 +235,7 @@ public:
     /**
      * Get the list of constraints
      */
-    std::vector<solvers::Constraint::Ptr> getConstraints() const { return mConstraints; }
+    std::vector<Constraint::Ptr> getConstraints() const { return mConstraints; }
 
     /**
      * Add relation
@@ -272,7 +263,7 @@ public:
       * TODO: this is current limited to constraint edges -- better would be a
       * hyperedge
       */
-    void addConstraint(const solvers::Constraint::Ptr& constraint);
+    void addConstraint(const Constraint::Ptr& constraint);
 
     /**
      * Adds a temporal assertion, i.e. the assertion of a state variable to a
@@ -321,10 +312,6 @@ public:
             int32_t minInclusive,
             int32_t maxInclusive
             );
-
-    solvers::Constraint::Ptr addTemporalConstraint(const solvers::temporal::point_algebra::TimePoint::Ptr& t1,
-            const solvers::temporal::point_algebra::TimePoint::Ptr& t2,
-            solvers::temporal::point_algebra::QualitativeTimePointConstraint::Type constraint);
 
     /**
      * Refresh internal datastructures, e.g. after updating the list of
@@ -411,9 +398,9 @@ private:
 
     /// The persistance conditions defining the mission
     std::vector<solvers::temporal::PersistenceCondition::Ptr> mPersistenceConditions;
-    std::vector<solvers::Constraint::Ptr> mConstraints;
-    /// Any mission constraints such as: min-distinct
-    MissionConstraint::List mMissionConstraints;
+    /// Any mission constraints such as: model constraints and temporal
+    /// constraints
+    Constraint::PtrList mConstraints;
 
     /// The list of resources that are defining the domain for
     /// the CSP

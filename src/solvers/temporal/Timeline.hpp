@@ -3,7 +3,7 @@
 
 #include <templ/symbols/Constant.hpp>
 #include <templ/symbols/ObjectVariable.hpp>
-#include <templ/solvers/Constraint.hpp>
+#include <templ/Constraint.hpp>
 #include <templ/solvers/temporal/Event.hpp>
 #include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/TemporalAssertion.hpp>

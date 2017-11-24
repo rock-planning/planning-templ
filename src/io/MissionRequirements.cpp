@@ -108,7 +108,7 @@ std::string Constraints::toString(size_t indent) const
     {
         ss << t.toString(indent + 4);
     }
-    for(const MissionConstraint& m : planning)
+    for(const constraints::ModelConstraint& m : model)
     {
         ss << m.toString(indent + 4);
     }

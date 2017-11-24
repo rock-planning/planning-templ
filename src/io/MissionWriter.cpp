@@ -3,6 +3,7 @@
 #include "../solvers/csp/FluentTimeResource.hpp"
 #include "../solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp"
 #include "../io/MissionRequirements.hpp"
+#include "../constraints/ModelConstraint.hpp"
 
 using namespace templ::utils;
 using namespace templ::solvers::csp;
@@ -133,11 +134,17 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
     }
     XMLUtils::endElement(writer); // end constants
 
+    /// Record to allow proper referencing in constraints
+    std::map<SpaceTime::SpaceIntervalTuple, uint32_t> intervalRequirementIdMap;
     XMLUtils::startElement(writer, "requirements");
     std::vector<FluentTimeResource> resources = Mission::getResourceRequirements(mission_p);
     int requirementId = 0;
     for(const FluentTimeResource& ftr : resources)
     {
+        SpaceTime::SpaceIntervalTuple tuple(ftr.getLocation(),
+                ftr.getInterval());
+        intervalRequirementIdMap[tuple] = requirementId;
+
         XMLUtils::startElement(writer, "requirement");
         std::stringstream ss;
         ss << requirementId++;
@@ -214,20 +221,65 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
     XMLUtils::endElement(writer); // end requirements
 
 
-    std::vector<solvers::Constraint::Ptr> constraints = mission.getConstraints();
+    std::vector<Constraint::Ptr> constraints = mission.getConstraints();
     XMLUtils::startElement(writer, "constraints");
     XMLUtils::startElement(writer, "temporal-constraints");
-    for(const solvers::Constraint::Ptr& c : constraints)
+    for(const Constraint::Ptr& c : constraints)
     {
-        pa::QualitativeTimePointConstraint::Ptr qtpc = dynamic_pointer_cast<pa::QualitativeTimePointConstraint>(c);
-        std::string tag = io::TemporalConstraint::toXML(qtpc->getType());
-        XMLUtils::startElement(writer, tag);
-        XMLUtils::writeAttribute(writer, "lval", qtpc->getSourceVariable()->getLabel());
-        XMLUtils::writeAttribute(writer, "rval", qtpc->getTargetVariable()->getLabel());
-        XMLUtils::endElement(writer);
+        if(c->getType() == Constraint::TEMPORAL_QUALITATIVE)
+        {
+            pa::QualitativeTimePointConstraint::Ptr qtpc = dynamic_pointer_cast<pa::QualitativeTimePointConstraint>(c);
+            std::string tag = io::TemporalConstraint::toXML(qtpc->getType());
+            XMLUtils::startElement(writer, tag);
+            XMLUtils::writeAttribute(writer, "lval", qtpc->getSourceVariable()->getLabel());
+            XMLUtils::writeAttribute(writer, "rval", qtpc->getTargetVariable()->getLabel());
+            XMLUtils::endElement(writer);
+
+            }
+        }
+    }
+    XMLUtils::endElement(writer); // end temporal-constraints
+    XMLUtils::startElement(writer, "model-constraints");
+    for(const Constraint::Ptr& c : constraints)
+    {
+        using namespace templ::constraints;
+        if(c->getType() == Constraint::MODEL)
+        {
+            ModelConstraint::Ptr modelConstraint = dynamic_pointer_cast<ModelConstraint>(c);
+            ModelConstraint::Type type = modelConstraint->getModelConstraintType();
+            std::string tag = ModelConstraint::TypeTxt[type];
+
+            XMLUtils::startElement(writer, tag);
+            uint32_t value = modelConstraint->getValue();
+            std::stringstream valueTxt;
+            valueTxt << value;
+            XMLUtils::writeAttribute(writer, "value", valueTxt.str());
+            if(type == ModelConstraint::MIN_PROPERTY || type == ModelConstraint::MAX_PROPERTY)
+            {
+                XMLUtils::writeAttribute(writer, "property", modelConstraint->getProperty().toString());
+            }
+            XMLUtils::startElement(writer, "model");
+            XMLUtils::writeString(writer, modelConstraint->getModel().toString());
+            XMLUtils::endElement(writer); // end model
+            XMLUtils::startElement(writer, "requirements");
+            std::stringstream ss;
+            for(const SpaceTime::SpaceIntervalTuple& t : modelConstraint->getSpaceIntervalTuples())
+            {
+                std::map<SpaceTime::SpaceIntervalTuple,uint32_t>::const_iterator cit =  intervalRequirementIdMap.find(t);
+                if(cit == intervalRequirementIdMap.end())
+                {
+                    std::runtime_error("templ::io::MissionWriter::write: failed to identify the requirements that are associated with a model constraint");
+                }
+                ss << cit->second << ",";
+            }
+            std::string requirementIdsTxt = ss.str();
+            XMLUtils::writeString(writer, requirementIdsTxt.substr(0, requirementIdsTxt.length()-1) );
+            XMLUtils::endElement(writer); // end requirements
+            XMLUtils::endElement(writer); // end 'tag'
+        }
     }
 
-    XMLUtils::endElement(writer); // end temporal-constraints
+    XMLUtils::endElement(writer); // end model-constraints
     XMLUtils::endElement(writer); // end constraints
 
     XMLUtils::endElement(writer);  // end mission

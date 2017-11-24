@@ -3,17 +3,18 @@ find_package(Boost REQUIRED system filesystem serialization program_options)
 rock_library(templ_core
     SOURCES
         Configuration.cpp
+        Constraint.cpp
+        ConstraintNetwork.cpp
         Role.cpp
         RoleInfo.cpp
         RoleInfoWeightedEdge.cpp
-        RoleInfoTuple.cpp
         Symbol.cpp
+        Variable.cpp
+        constraints/HyperConstraint.cpp
+        constraints/SimpleConstraint.cpp
         io/FluentTypes.cpp
         problems/Scheduling.cpp
-        solvers/Constraint.cpp
         solvers/Cost.cpp
-        solvers/ConstraintNetwork.cpp
-        solvers/Variable.cpp
         symbols/Constant.cpp
         symbols/ObjectVariable.cpp
         symbols/StateVariable.cpp
@@ -21,12 +22,14 @@ rock_library(templ_core
         symbols/constants/Location.cpp
         symbols/object_variables/LocationCardinality.cpp
         symbols/object_variables/LocationNumericAttribute.cpp
-        utils/CartographicMapping.cpp
-        utils/XMLUtils.cpp
         utils/CSVLogger.cpp
+        utils/CartographicMapping.cpp
         utils/Logger.cpp
+        utils/XMLUtils.cpp
     HEADERS
         Configuration.hpp
+        Constraint.hpp
+        ConstraintNetwork.hpp
         Role.hpp
         RoleInfo.hpp
         RoleInfoTuple.hpp
@@ -34,11 +37,11 @@ rock_library(templ_core
         Symbol.hpp
         Tuple.hpp
         Variable.hpp
+        Variable.hpp
+        constraints/HyperConstraint.hpp
+        constraints/SimpleConstraint.hpp
         io/FluentTypes.hpp
-        solvers/Constraint.hpp
-        solvers/ConstraintNetwork.hpp
         solvers/Cost.hpp
-        solvers/Variable.hpp
         symbols/Constant.hpp
         symbols/ObjectVariable.hpp
         symbols/StateVariable.hpp
@@ -47,10 +50,10 @@ rock_library(templ_core
         symbols/object_variables/LocationCardinality.hpp
         symbols/object_variables/LocationNumericAttribute.hpp
         symbols/values/Int.hpp
-        utils/CartographicMapping.hpp
-        utils/XMLUtils.hpp
         utils/CSVLogger.hpp
+        utils/CartographicMapping.hpp
         utils/Logger.hpp
+        utils/XMLUtils.hpp
     LIBS ${Boost_LIBRARIES}
         proj
     DEPS_PKGCONFIG graph_analysis
@@ -65,6 +68,7 @@ rock_library(templ_core
 # Master of time
 rock_library(templ_moft
     SOURCES
+        RoleInfoTuple.cpp
         SpaceTime.cpp
         solvers/GQReasoner.cpp
         io/TemporalConstraint.cpp
@@ -123,7 +127,7 @@ rock_library(templ
         CapacityLink.cpp
         DataPropertyAssignment.cpp
         Mission.cpp
-        MissionConstraint.cpp
+        constraints/ModelConstraint.cpp
         MissionPlanner.cpp
         Plan.cpp
         PlanSpaceVisitor.cpp
@@ -169,7 +173,7 @@ rock_library(templ
         CapacityLink.hpp
         DataPropertyAssignment.hpp
         Mission.hpp
-        MissionConstraint.hpp
+        constraints/ModelConstraint.hpp
         MissionPlanner.hpp
         Plan.hpp
         PlanSpaceVisitor.hpp

@@ -5,6 +5,7 @@
 #include "test_utils.hpp"
 
 using namespace templ;
+namespace pa = templ::solvers::temporal::point_algebra;
 
 BOOST_AUTO_TEST_SUITE(mission)
 
@@ -22,7 +23,7 @@ BOOST_AUTO_TEST_CASE(copy_construct)
     using namespace templ::solvers::temporal;
     point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
     point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
-    mission.addTemporalConstraint(tp0, tp1, point_algebra::QualitativeTimePointConstraint::Greater);
+    mission.addConstraint( make_shared<pa::QualitativeTimePointConstraint>(tp0, tp1, point_algebra::QualitativeTimePointConstraint::Greater));
 
     Mission missionCopy = mission;
     solvers::temporal::TemporalConstraintNetwork* tcn = mission.getTemporalConstraintNetwork().get();

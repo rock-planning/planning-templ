@@ -1,9 +1,9 @@
 #include "ConstraintNetwork.hpp"
+#include <graph_analysis/DirectedHyperEdge.hpp>
 
 using namespace graph_analysis;
 
 namespace templ {
-namespace solvers {
 
 ConstraintNetwork::ConstraintNetwork(graph_analysis::BaseGraph::ImplementationType type)
     : mGraph(BaseGraph::getInstance(type))
@@ -28,12 +28,36 @@ void ConstraintNetwork::addVariable(const Variable::Ptr& variable)
 
 void ConstraintNetwork::addConstraint(const Constraint::Ptr& constraint)
 {
-    mGraph->addEdge(constraint);
+    Edge::Ptr edge = dynamic_pointer_cast<Edge>(constraint);
+    if(edge)
+    {
+        mGraph->addEdge(edge);
+        return;
+    }
+
+    DirectedHyperEdge::Ptr hyperEdge = dynamic_pointer_cast<DirectedHyperEdge>(constraint);
+    if(hyperEdge)
+    {
+        mGraph->addHyperEdge(hyperEdge);
+        return;
+    }
 }
 
 void ConstraintNetwork::removeConstraint(const Constraint::Ptr& constraint)
 {
-    mGraph->removeEdge(constraint);
+    Edge::Ptr edge = dynamic_pointer_cast<Edge>(constraint);
+    if(edge)
+    {
+        mGraph->removeEdge(edge);
+        return;
+    }
+
+    DirectedHyperEdge::Ptr hyperEdge = dynamic_pointer_cast<DirectedHyperEdge>(constraint);
+    if(hyperEdge)
+    {
+        mGraph->removeHyperEdge(hyperEdge);
+        return;
+    }
 }
 
 graph_analysis::VertexIterator::Ptr ConstraintNetwork::getVariableIterator() const
@@ -46,5 +70,4 @@ graph_analysis::EdgeIterator::Ptr ConstraintNetwork::getConstraintIterator() con
     return mGraph->getEdgeIterator();
 }
 
-} // end namespace solvers
 } // end namespace templ

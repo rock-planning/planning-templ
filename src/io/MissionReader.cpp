@@ -7,12 +7,12 @@
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include <base-logging/Logging.hpp>
-#include <templ/SharedPtr.hpp>
-#include <templ/symbols/constants/Location.hpp>
-#include <templ/utils/XMLTCNUtils.hpp>
-#include <templ/utils/CartographicMapping.hpp>
 #include <owlapi/vocabularies/XSD.hpp>
 
+#include "../SharedPtr.hpp"
+#include "../symbols/constants/Location.hpp"
+#include "../utils/XMLTCNUtils.hpp"
+#include "../utils/CartographicMapping.hpp"
 using namespace templ::utils;
 
 namespace templ {
@@ -247,20 +247,24 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
             {
                 LOG_DEBUG_S << "Found first level node: 'constraints' ";
                 Constraints constraints = parseConstraints(doc, firstLevelChild, requirementIntervalMap);
-                mission.setMissionConstraints(constraints.planning);
 
-                std::vector<TemporalConstraint>::const_iterator cit = constraints.temporal.begin();
-                for(; cit != constraints.temporal.end(); ++cit)
+                for(const constraints::ModelConstraint& modelConstraint : constraints.model)
                 {
-                    TemporalConstraint temporalConstraint = *cit;
+                    using namespace templ::constraints;
+                    ModelConstraint::Ptr m(new ModelConstraint(modelConstraint));
+                    mission.addConstraint(m);
+                }
 
+                solvers::temporal::TemporalConstraintNetwork::Ptr tcn = mission.getTemporalConstraintNetwork();
+                for(const TemporalConstraint& temporalConstraint : constraints.temporal)
+                {
                     using namespace solvers::temporal::point_algebra;
-                    // account only for the relevant ones
-                    solvers::temporal::TemporalConstraintNetwork::Ptr tcn = mission.getTemporalConstraintNetwork();
-                    TimePoint::Ptr t0 = tcn->getOrCreateTimePoint(temporalConstraint.lval);
-                    TimePoint::Ptr t1 = tcn->getOrCreateTimePoint(temporalConstraint.rval);
-
-                    mission.addTemporalConstraint(t0, t1, temporalConstraint.type);
+                        // account only for the relevant ones
+                        TimePoint::Ptr t0 = tcn->getOrCreateTimePoint(temporalConstraint.lval);
+                        TimePoint::Ptr t1 = tcn->getOrCreateTimePoint(temporalConstraint.rval);
+                        QualitativeTimePointConstraint::Ptr qtcp(new QualitativeTimePointConstraint(t0,t1, temporalConstraint.type));
+                        mission.addConstraint(qtcp);
+                    }
                 }
             } else if(XMLUtils::nameMatches(firstLevelChild, "constants"))
             {
@@ -659,25 +663,26 @@ templ::io::Constraints MissionReader::parseConstraints(xmlDocPtr doc,
         {
             LOG_DEBUG_S << "Parsing: " << current->name;
             constraints.temporal = XMLTCNUtils::parseTemporalConstraints(doc, current);
-        } else if(XMLUtils::nameMatches(current, "planning-constraints"))
+        } else if(XMLUtils::nameMatches(current, "model-constraints"))
         {
-            constraints.planning = parsePlanningConstraints(doc, current, requirementIntervalMap);
+            constraints.model = parseModelConstraints(doc, current, requirementIntervalMap);
         }
         current = current->next;
     }
     return constraints;
 }
 
-MissionConstraint::List MissionReader::parsePlanningConstraints(xmlDocPtr doc, xmlNodePtr current,const std::map<uint32_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap)
+constraints::ModelConstraint::List MissionReader::parseModelConstraints(xmlDocPtr doc, xmlNodePtr current,const std::map<uint32_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap)
 {
-    MissionConstraint::List constraints;
+    using namespace constraints;
+    ModelConstraint::List constraints;
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
         if(! (XMLUtils::nameMatches(current,"text") || XMLUtils::nameMatches(current, "comment")))
         {
             // identify
-            MissionConstraint::Type type = MissionConstraint::getTypeFromTxt( std::string((const char*) current->name) );
+            ModelConstraint::Type type = ModelConstraint::getTypeFromTxt( std::string((const char*) current->name) );
             owlapi::model::IRI model;
             owlapi::model::IRI property;
             uint32_t value;
@@ -685,15 +690,17 @@ MissionConstraint::List MissionReader::parsePlanningConstraints(xmlDocPtr doc, x
             std::vector<SpaceTime::SpaceIntervalTuple> intervals;
             switch(type)
             {
-                case MissionConstraint::MIN_FUNCTION:
-                case MissionConstraint::MAX_FUNCTION:
+                case ModelConstraint::MIN_PROPERTY:
+                case ModelConstraint::MAX_PROPERTY:
                     property = XMLUtils::getProperty(current, "property");
-                case MissionConstraint::MIN_EQUAL:
-                case MissionConstraint::MAX_EQUAL:
-                case MissionConstraint::MIN_DISTINCT:
-                case MissionConstraint::MAX_DISTINCT:
+                case ModelConstraint::MIN_FUNCTION:
+                case ModelConstraint::MAX_FUNCTION:
+                case ModelConstraint::MIN_EQUAL:
+                case ModelConstraint::MAX_EQUAL:
+                case ModelConstraint::MIN_DISTINCT:
+                case ModelConstraint::MAX_DISTINCT:
                     value = boost::lexical_cast<uint32_t>( XMLUtils::getProperty(current, "value") );
-                case MissionConstraint::ALL_DISTINCT:
+                case ModelConstraint::ALL_DISTINCT:
                     model = XMLUtils::getSubNodeContent(doc, current, "model");
                     requirementsTxt = XMLUtils::getSubNodeContent(doc, current, "requirements");
                     break;
@@ -724,14 +731,14 @@ MissionConstraint::List MissionReader::parsePlanningConstraints(xmlDocPtr doc, x
                 } catch(const std::exception& e)
                 {
                     std::stringstream ss;
-                    ss << "templ::io::MissionReader::parsePlanningConstraints: requirements list could not be read in line";
+                    ss << "templ::io::MissionReader::parseModelConstraints: requirements list could not be read in line";
                     ss << " -- check line: " << xmlGetLineNo(current) << std::endl;
                     ss << "    error: " << e.what();
                     throw std::invalid_argument(ss.str());
                 }
             }
 
-            MissionConstraint constraint(type, model, intervals, value, property);
+            ModelConstraint constraint(type, model, intervals, value, property);
             constraints.push_back(constraint);
         }
 

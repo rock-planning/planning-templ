@@ -98,17 +98,17 @@ std::map< std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointCo
     ;
 
 QualitativeTimePointConstraint::QualitativeTimePointConstraint()
-    : Constraint()
+    : SimpleConstraint(Constraint::TEMPORAL_QUALITATIVE)
     , mConstraintType(Empty)
 {
-    Constraint::setLabel(TypeTxt[mConstraintType]);
+    SimpleConstraint::setLabel(TypeTxt[mConstraintType]);
 }
 
 QualitativeTimePointConstraint::QualitativeTimePointConstraint(Variable::Ptr source, Variable::Ptr target, point_algebra::QualitativeTimePointConstraint::Type constraintType)
-    : Constraint(source, target)
+    : SimpleConstraint(Constraint::TEMPORAL_QUALITATIVE, source, target)
     , mConstraintType(constraintType)
 {
-    Constraint::setLabel(TypeTxt[constraintType]);
+    SimpleConstraint::setLabel(TypeTxt[constraintType]);
 }
 
 void QualitativeTimePointConstraint::setLabel(const std::string& label)
@@ -119,7 +119,7 @@ void QualitativeTimePointConstraint::setLabel(const std::string& label)
         if(cit->second == label)
         {
             mConstraintType = cit->first;
-            Constraint::setLabel(label);
+            SimpleConstraint::setLabel(label);
             return;
         }
     }
@@ -129,7 +129,7 @@ void QualitativeTimePointConstraint::setLabel(const std::string& label)
 void QualitativeTimePointConstraint::setType(QualitativeTimePointConstraint::Type type)
 {
     mConstraintType = type;
-    Constraint::setLabel(QualitativeTimePointConstraint::TypeTxt[type]);
+    SimpleConstraint::setLabel(QualitativeTimePointConstraint::TypeTxt[type]);
 }
 
 
@@ -371,7 +371,7 @@ std::vector<QualitativeTimePointConstraint::Type> QualitativeTimePointConstraint
 
 std::string QualitativeTimePointConstraint::toString() const
 {
-    return Constraint::toString() + ": " + TypeTxt[getType()];
+    return SimpleConstraint::toString() + ": " + TypeTxt[getType()];
 }
 
 } // end namespace point_algebra

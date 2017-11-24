@@ -1,7 +1,7 @@
 #ifndef TEMPL_SOLVERS_TEMPORAL_QUALITATIVE_TIMEPOINT_CONSTRAINT_HPP
 #define TEMPL_SOLVERS_TEMPORAL_QUALITATIVE_TIMEPOINT_CONSTRAINT_HPP
 
-#include <templ/solvers/Constraint.hpp>
+#include <templ/constraints/SimpleConstraint.hpp>
 #include <templ/solvers/temporal/point_algebra/QualitativeTimePoint.hpp>
 
 namespace templ {
@@ -11,13 +11,13 @@ namespace point_algebra {
 
 /**
  * A qualitative timepoint constraint does not take into account bounds of any
- * timepoint. 
+ * timepoint.
  * Thus one should use instances of QualitativeTimePoint when working with this
  * kind of constraint
  *
  * Automated Planning p 290 Chap 13.3.1 Point Algebra
  */
-class QualitativeTimePointConstraint : public Constraint
+class QualitativeTimePointConstraint : public constraints::SimpleConstraint
 {
 public:
     /// Primitive relations are P = {<,=,>} and timepoints can be related in only

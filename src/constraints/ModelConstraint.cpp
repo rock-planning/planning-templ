@@ -1,24 +1,27 @@
-#include "MissionConstraint.hpp"
+#include "ModelConstraint.hpp"
 #include <sstream>
 
 namespace templ {
+namespace constraints {
 
-std::map<MissionConstraint::Type, std::string> MissionConstraint::TypeTxt =  {
-    { MissionConstraint::MIN_DISTINCT, "min-distinct"},
-    { MissionConstraint::MAX_DISTINCT, "max-distinct"},
-    { MissionConstraint::ALL_DISTINCT, "all-distinct"},
-    { MissionConstraint::MIN_EQUAL,    "min-equal"},
-    { MissionConstraint::MAX_EQUAL,    "max-equal"},
-    { MissionConstraint::MIN_FUNCTION, "min-function"},
-    { MissionConstraint::MAX_FUNCTION, "max-function"}
+std::map<ModelConstraint::Type, std::string> ModelConstraint::TypeTxt =  {
+    { ModelConstraint::MIN_DISTINCT, "min-distinct"},
+    { ModelConstraint::MAX_DISTINCT, "max-distinct"},
+    { ModelConstraint::ALL_DISTINCT, "all-distinct"},
+    { ModelConstraint::MIN_EQUAL,    "min-equal"},
+    { ModelConstraint::MAX_EQUAL,    "max-equal"},
+    { ModelConstraint::MIN_FUNCTION, "min-function"},
+    { ModelConstraint::MAX_FUNCTION, "max-function"},
+    { ModelConstraint::MIN_PROPERTY, "min-property"},
+    { ModelConstraint::MAX_PROPERTY, "max-property"}
 };
 
-MissionConstraint::MissionConstraint()
+ModelConstraint::ModelConstraint()
     : mType(UNKNOWN)
     , mValue(0)
 {}
 
-MissionConstraint::MissionConstraint(Type type,
+ModelConstraint::ModelConstraint(Type type,
             const owlapi::model::IRI& model,
             const std::vector<SpaceTime::SpaceIntervalTuple>& affectedSpaceIntervals,
             uint32_t value,
@@ -31,7 +34,7 @@ MissionConstraint::MissionConstraint(Type type,
 {
 }
 
-std::string MissionConstraint::toString(size_t indent) const
+std::string ModelConstraint::toString(uint32_t indent) const
 {
     std::string hspace(indent,' ');
     std::stringstream ss;
@@ -40,7 +43,7 @@ std::string MissionConstraint::toString(size_t indent) const
     if(mType != ALL_DISTINCT)
     {
         ss << hspace << "    value: " << mValue << std::endl;
-        if(mType == MIN_FUNCTION || mType == MAX_FUNCTION)
+        if(mType == MIN_PROPERTY || mType == MAX_PROPERTY)
         {
             ss << hspace << "    property: " << mValue << std::endl;
         }
@@ -53,7 +56,7 @@ std::string MissionConstraint::toString(size_t indent) const
     return ss.str();
 }
 
-MissionConstraint::Type MissionConstraint::getTypeFromTxt(const std::string& txt)
+ModelConstraint::Type ModelConstraint::getTypeFromTxt(const std::string& txt)
 {
     std::map<Type, std::string>::const_iterator cit = std::find_if(TypeTxt.cbegin(), TypeTxt.cend(),
             [txt](const std::pair<Type, std::string>& other)
@@ -65,7 +68,8 @@ MissionConstraint::Type MissionConstraint::getTypeFromTxt(const std::string& txt
         return cit->first;
     }
 
-    throw std::invalid_argument("templ::MissionConstraint::getTypeFromTxt: could not find type for '" + txt + "'");
+    throw std::invalid_argument("templ::constraints::ModelConstraint::getTypeFromTxt: could not find type for '" + txt + "'");
 }
 
+} // end namespace constraints
 } // end namespace templ

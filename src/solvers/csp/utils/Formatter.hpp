@@ -3,7 +3,7 @@
 #include <gecode/minimodel.hh>
 #include <gecode/set.hh>
 
-#include <templ/solvers/Variable.hpp>
+#include <templ/Variable.hpp>
 #include <templ/Symbol.hpp>
 #include <templ/Role.hpp>
 

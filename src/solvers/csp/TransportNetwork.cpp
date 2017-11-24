@@ -8,6 +8,7 @@
 #include <gecode/search/meta/rbs.hh>
 
 #include <iomanip>
+#include <fstream>
 #include <Eigen/Dense>
 
 #include <organization_model/Algebra.hpp>

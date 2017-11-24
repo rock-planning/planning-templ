@@ -1,10 +1,10 @@
 #ifndef TEMPL_SOLVERS_INTERVAL_CONSTRAINT_HPP
 #define TEMPL_SOLVERS_INTERVAL_CONSTRAINT_HPP
 
-#include <graph_analysis/Edge.hpp>
 #include <graph_analysis/EdgeRegistration.hpp>
-#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
-#include <templ/solvers/temporal/Bounds.hpp>
+#include "../../constraints/SimpleConstraint.hpp"
+#include "point_algebra/TimePoint.hpp"
+#include "Bounds.hpp"
 
 #define T_INTERVALCONSTRAINT(x) dynamic_pointer_cast<templ::solvers::IntervalConstraint>(x)
 
@@ -16,7 +16,7 @@ namespace temporal {
  * An Interval Constraint represents an edge in the constraint network identified by a set of intervals
  * \ which represents the constraints between two TimePoints
  */
-class IntervalConstraint : public graph_analysis::Edge
+class IntervalConstraint : public constraints::SimpleConstraint
 {
 private:
     std::vector<Bounds> mIntervals;

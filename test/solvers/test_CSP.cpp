@@ -10,6 +10,8 @@
 using namespace templ;
 using namespace organization_model;
 
+namespace pa = templ::solvers::temporal::point_algebra;
+
 BOOST_AUTO_TEST_SUITE(csp)
 
 BOOST_AUTO_TEST_CASE(mission_0)
@@ -42,7 +44,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
     baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
     baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
 
-    baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addConstraint( make_shared<pa::QualitativeTimePointConstraint>(t1,t2, point_algebra::QualitativeTimePointConstraint::Less));
     baseMission.prepareTimeIntervals();
 
     {
@@ -124,8 +126,8 @@ BOOST_AUTO_TEST_CASE(mission_1)
     baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
 
     // Overlapping intervals at two locations
-    baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Greater);
-    baseMission.addTemporalConstraint(t0,t3, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addConstraint( make_shared<pa::QualitativeTimePointConstraint>(t1,t2, point_algebra::QualitativeTimePointConstraint::Greater));
+    baseMission.addConstraint( make_shared<pa::QualitativeTimePointConstraint>(t0,t3, point_algebra::QualitativeTimePointConstraint::Less));
     baseMission.prepareTimeIntervals();
 
     {
@@ -297,7 +299,7 @@ BOOST_AUTO_TEST_CASE(mission_tt)
     baseMission.addResourceLocationCardinalityConstraint(loc0, t0, t1, location_image_provider);
     baseMission.addResourceLocationCardinalityConstraint(loc1, t2, t3, location_image_provider);
 
-    baseMission.addTemporalConstraint(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addConstraint( make_shared<pa::QualitativeTimePointConstraint>(t1,t2, point_algebra::QualitativeTimePointConstraint::Less));
     baseMission.prepareTimeIntervals();
 
     {
@@ -356,8 +358,8 @@ BOOST_AUTO_TEST_CASE(symmetry_breaking)
     baseMission.addResourceLocationCardinalityConstraint(loc2, t4, t5, payloadModel);
 
     // Overlapping intervals at two locations
-    baseMission.addTemporalConstraint(t2,t1, point_algebra::QualitativeTimePointConstraint::Greater);
-    baseMission.addTemporalConstraint(t4,t3, point_algebra::QualitativeTimePointConstraint::Less);
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t2,t1, pa::QualitativeTimePointConstraint::Greater) );
+    baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t4,t3, pa::QualitativeTimePointConstraint::Less) );
     baseMission.prepareTimeIntervals();
 
     using namespace solvers;

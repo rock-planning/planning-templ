@@ -9,6 +9,7 @@
 #include <templ/Mission.hpp>
 
 #include "MissionRequirements.hpp"
+#include "../constraints/ModelConstraint.hpp"
 
 
 namespace templ {
@@ -103,7 +104,7 @@ private:
             xmlNodePtr current,
             const std::map<uint32_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap);
 
-    static MissionConstraint::List parsePlanningConstraints(xmlDocPtr doc,
+    static constraints::ModelConstraint::List parseModelConstraints(xmlDocPtr doc,
             xmlNodePtr current,
             const std::map<uint32_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap);
 

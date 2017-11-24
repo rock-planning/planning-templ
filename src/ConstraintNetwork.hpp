@@ -1,12 +1,11 @@
-#ifndef TEMPL_SOLVERS_CONSTRAINT_NETWORK_HPP
-#define TEMPL_SOLVERS_CONSTRAINT_NETWORK_HPP
+#ifndef TEMPL_CONSTRAINT_NETWORK_HPP
+#define TEMPL_CONSTRAINT_NETWORK_HPP
 
 #include <graph_analysis/BaseGraph.hpp>
-#include <templ/solvers/Constraint.hpp>
-#include <templ/solvers/Variable.hpp>
+#include "Constraint.hpp"
+#include "Variable.hpp"
 
 namespace templ {
-namespace solvers {
 
 /**
  * The constraint network represent a generic network of constraints, i.e.
@@ -85,7 +84,5 @@ protected:
 
 };
 
-
-} // end namespace solvers
 } // end namespace templ
-#endif // TEMPL_SOLVERS_CONSTRAINT_NETWORK_HPP
+#endif // TEMPL_CONSTRAINT_NETWORK_HPP
