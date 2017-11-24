@@ -1,23 +1,27 @@
 #include "SimpleConstraint.hpp"
 #include <sstream>
+#include <iostream>
 
 namespace templ {
 namespace constraints {
 
-SimpleConstraint::SimpleConstraint(Type type)
-    : Constraint(type)
+SimpleConstraint::SimpleConstraint()
+    : Constraint()
     , Edge()
+{}
+
+SimpleConstraint::SimpleConstraint(Category category)
+    : Constraint(category)
+    , Edge()
+{}
+
+SimpleConstraint::SimpleConstraint(Category category, const Variable::Ptr& source, const Variable::Ptr& target)
+    : Constraint(category)
+    , Edge(source, target)
 {}
 
 SimpleConstraint::~SimpleConstraint()
 {}
-
-
-SimpleConstraint::SimpleConstraint(Type type, const Variable::Ptr& source, const Variable::Ptr& target)
-    : Constraint(type)
-    , Edge(source, target)
-{}
-
 
 std::string SimpleConstraint::toString() const
 {

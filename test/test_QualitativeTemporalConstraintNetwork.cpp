@@ -1,11 +1,22 @@
 #include <boost/test/unit_test.hpp>
 #include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
 #include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
+#include <templ/Constraint.hpp>
 
+using namespace templ;
 using namespace templ::solvers;
 using namespace templ::solvers::temporal;
 
 BOOST_AUTO_TEST_SUITE(qualitative_temporal_constraint_network)
+
+BOOST_AUTO_TEST_CASE(constraint)
+{
+    point_algebra::TimePoint::Ptr tp0(new point_algebra::QualitativeTimePoint("tp0"));
+    point_algebra::TimePoint::Ptr tp1(new point_algebra::QualitativeTimePoint("tp1"));
+    point_algebra::QualitativeTimePointConstraint qtcn(tp0, tp1, point_algebra::QualitativeTimePointConstraint::GreaterOrEqual);
+    templ::Constraint::Category category = qtcn.getCategory();
+    BOOST_REQUIRE_MESSAGE( category == templ::Constraint::TEMPORAL_QUALITATIVE, "Qual: QualitativeType expected, but got: " << templ::Constraint::CategoryTxt[category]);
+}
 
 BOOST_AUTO_TEST_CASE(timepoint_comparison)
 {

@@ -286,7 +286,7 @@ void Mission::addConstraint(const Constraint::Ptr& constraint)
     using namespace solvers::temporal::point_algebra;
     mConstraints.push_back(constraint);
 
-    if(constraint->getType() == Constraint::TEMPORAL_QUALITATIVE)
+    if(constraint->getCategory() == Constraint::TEMPORAL_QUALITATIVE)
     {
         mpTemporalConstraintNetwork->addConstraint(constraint);
     }

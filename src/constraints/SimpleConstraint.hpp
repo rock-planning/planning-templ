@@ -7,19 +7,21 @@
 namespace templ {
 namespace constraints {
 
-class SimpleConstraint :  public virtual Constraint, public graph_analysis::Edge
+class SimpleConstraint :  public Constraint, public graph_analysis::Edge
 {
 public:
     typedef shared_ptr<Constraint> Ptr;
 
+    SimpleConstraint();
+
     /* Default constructor for a constraint
      */
-    SimpleConstraint(Type type = UNKNOWN);
+    SimpleConstraint(Category category);
 
     /**
      * Constructor for a constraint using source and target
      */
-    SimpleConstraint(Type type, const Variable::Ptr& source, const Variable::Ptr& target);
+    SimpleConstraint(Category category, const Variable::Ptr& source, const Variable::Ptr& target);
 
     /**
      * Deconstructor

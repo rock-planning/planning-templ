@@ -227,7 +227,7 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
     XMLUtils::startElement(writer, "temporal-constraints");
     for(const Constraint::Ptr& c : constraints)
     {
-        if(c->getType() == Constraint::TEMPORAL_QUALITATIVE)
+        if(c->getCategory() == Constraint::TEMPORAL_QUALITATIVE)
         {
             pa::QualitativeTimePointConstraint::Ptr qtpc = dynamic_pointer_cast<pa::QualitativeTimePointConstraint>(c);
             std::string tag = io::TemporalConstraint::toXML(qtpc->getType());
@@ -235,7 +235,7 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
             XMLUtils::writeAttribute(writer, "lval", qtpc->getSourceVariable()->getLabel());
             XMLUtils::writeAttribute(writer, "rval", qtpc->getTargetVariable()->getLabel());
             XMLUtils::endElement(writer);
-        } else if(c->getType() == Constraint::TEMPORAL_QUANTIATIVE)
+        } else if(c->getCategory() == Constraint::TEMPORAL_QUANTIATIVE)
         {
             using namespace solvers::temporal;
             IntervalConstraint::Ptr ic = dynamic_pointer_cast<IntervalConstraint>(c);
@@ -264,6 +264,10 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
 
                 XMLUtils::endElement(writer); // end duration
             }
+        } else if(c->getCategory() == Constraint::UNKNOWN)
+        {
+            throw std::invalid_argument("templ::io::MissionWriter::write: cannot write constraint"
+                    " of type 'UNKNOWN'");
         }
     }
     XMLUtils::endElement(writer); // end temporal-constraints
@@ -271,7 +275,7 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
     for(const Constraint::Ptr& c : constraints)
     {
         using namespace templ::constraints;
-        if(c->getType() == Constraint::MODEL)
+        if(c->getCategory() == Constraint::MODEL)
         {
             ModelConstraint::Ptr modelConstraint = dynamic_pointer_cast<ModelConstraint>(c);
             ModelConstraint::Type type = modelConstraint->getModelConstraintType();

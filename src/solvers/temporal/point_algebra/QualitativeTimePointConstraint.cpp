@@ -135,12 +135,12 @@ void QualitativeTimePointConstraint::setType(QualitativeTimePointConstraint::Typ
 
 QualitativeTimePointConstraint::Ptr QualitativeTimePointConstraint::create(Variable::Ptr source, Variable::Ptr target, point_algebra::QualitativeTimePointConstraint::Type constraintType)
 {
-    return QualitativeTimePointConstraint::Ptr( new QualitativeTimePointConstraint(source, target, constraintType) );
+    return make_shared<QualitativeTimePointConstraint>(source, target, constraintType);
 }
 
 QualitativeTimePointConstraint::Ptr QualitativeTimePointConstraint::getSymmetric(QualitativeTimePointConstraint::Ptr constraint)
 {
-    return QualitativeTimePointConstraint::Ptr( new QualitativeTimePointConstraint(constraint->getTargetVariable(), constraint->getSourceVariable(), getSymmetric(constraint->getType())) );
+    return make_shared<QualitativeTimePointConstraint>(constraint->getTargetVariable(), constraint->getSourceVariable(), getSymmetric(constraint->getType()));
 }
 
 QualitativeTimePointConstraint::Type QualitativeTimePointConstraint::getSymmetric(QualitativeTimePointConstraint::Type type)

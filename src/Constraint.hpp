@@ -17,18 +17,20 @@ public:
     typedef shared_ptr<Constraint> Ptr;
     typedef std::vector<Ptr> PtrList;
 
-    enum Type { UNKNOWN,
+    enum Category { UNKNOWN,
         TEMPORAL_QUALITATIVE,
         TEMPORAL_QUANTIATIVE,
         MODEL
     };
 
-    static std::map<Type, std::string> TypeTxt;
+    static std::map<Category, std::string> CategoryTxt;
+
+    Constraint();
 
     /**
      * Default constructor for a constraint
      */
-    Constraint(Type type = UNKNOWN);
+    Constraint(Category category);
 
     /**
      * Deconstructor
@@ -38,7 +40,7 @@ public:
     /**
      * Get the type of this constraint
      */
-    Type getType() const { return mType; }
+    Category getCategory() const { return mCategory; }
 
     /**
      * Get the class name of this constraint
@@ -54,8 +56,8 @@ public:
 
     virtual std::string toString(uint32_t indent) const = 0;
 
-protected:
-    Type mType;
+private:
+    Category mCategory;
 };
 
 typedef std::vector<Constraint::Ptr> ConstraintList;

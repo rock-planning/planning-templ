@@ -4,13 +4,14 @@
 namespace templ {
 namespace constraints {
 
-HyperConstraint::HyperConstraint(Type type)
-    : Constraint(type)
+HyperConstraint::HyperConstraint(Category category)
+    : Constraint(category)
 {}
 
-HyperConstraint::HyperConstraint(Type type, const Variable::PtrList& sources,
+HyperConstraint::HyperConstraint(Category category,
+        const Variable::PtrList& sources,
         const Variable::PtrList& targets)
-    : Constraint(type)
+    : Constraint(category)
     , DirectedHyperEdge(sources, targets)
 {}
 

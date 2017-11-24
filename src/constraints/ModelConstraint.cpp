@@ -17,7 +17,8 @@ std::map<ModelConstraint::Type, std::string> ModelConstraint::TypeTxt =  {
 };
 
 ModelConstraint::ModelConstraint()
-    : mType(UNKNOWN)
+    : HyperConstraint(MODEL)
+    , mType(UNKNOWN)
     , mValue(0)
 {}
 
@@ -26,7 +27,8 @@ ModelConstraint::ModelConstraint(Type type,
             const std::vector<SpaceTime::SpaceIntervalTuple>& affectedSpaceIntervals,
             uint32_t value,
             const owlapi::model::IRI& property)
-    : mType(type)
+    : HyperConstraint(MODEL)
+    , mType(type)
     , mModel(model)
     , mSpaceIntervalTuples(affectedSpaceIntervals)
     , mValue(value)

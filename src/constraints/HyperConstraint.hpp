@@ -12,9 +12,9 @@ class HyperConstraint : public Constraint, public graph_analysis::DirectedHyperE
 public:
     typedef shared_ptr<Constraint> Ptr;
 
-    HyperConstraint(Type type = UNKNOWN);
+    HyperConstraint(Category category = UNKNOWN);
 
-    HyperConstraint(Type type, const Variable::PtrList& sources, const Variable::PtrList& targets);
+    HyperConstraint(Category category, const Variable::PtrList& sources, const Variable::PtrList& targets);
 
     virtual ~HyperConstraint();
 
