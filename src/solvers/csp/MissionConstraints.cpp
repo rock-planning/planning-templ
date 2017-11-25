@@ -237,7 +237,7 @@ void MissionConstraints::addFunctionalitiesRequirement(const owlapi::model::IRIL
         ftr.resources.insert(resourceIndex);
 
         ftr.addFunctionalityConstraints(pair.second);
-        ftr.updateMaxCardinalities();
+        ftr.updateSatisficingCardinalities();
     }
 
     // Add tuple

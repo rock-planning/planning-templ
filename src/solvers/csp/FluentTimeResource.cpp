@@ -67,7 +67,9 @@ std::string FluentTimeResource::toString(uint32_t indent) const
         << maxCardinalities.toString(indent + 8) << std::endl;
     ss << hspace << "    min cardinalities: " << std::endl
         << minCardinalities.toString(indent + 8) << std::endl;
-    ss << hspace << "    model pool set: " << std::endl;
+    ss << hspace << "    sat cardinalities: " << std::endl
+        << satisficingCardinalities.toString(indent + 8) << std::endl;
+    ss << hspace << "    resulting domain: " << std::endl;
     organization_model::ModelPool::Set domain = getDomain();
     organization_model::ModelPool::Set::const_iterator dit = domain.begin();
     for(;dit != domain.end(); ++dit)
@@ -186,7 +188,7 @@ void FluentTimeResource::addFunctionalityConstraints(const organization_model::F
     }
 }
 
-void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements, const organization_model::OrganizationModelAsk& organizationModelAsk)
+void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements)
 {
     std::vector<FluentTimeResource>::iterator it = requirements.begin();
     for(; it != requirements.end(); ++it)
@@ -206,25 +208,11 @@ void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements, 
 
                 // Compacting the resource list
                 fts.resources.insert(otherFts.resources.begin(), otherFts.resources.end());
-
-                // Use the functional saturation bound on all functionalities
-                // after compacting the resource list
-                std::set<organization_model::Functionality> functionalities = fts.getFunctionalities();
-                fts.maxCardinalities = organizationModelAsk.getFunctionalSaturationBound(functionalities);
-
-                // MaxMin --> min cardinalities are a lower bound specified explicitely
-                LOG_DEBUG_S << "Update Requirements: min: " << fts.minCardinalities.toString();
-                LOG_DEBUG_S << "Update Requirements: otherMin: " << otherFts.minCardinalities.toString();
-
                 fts.minCardinalities = organization_model::Algebra::max(fts.minCardinalities, otherFts.minCardinalities);
-                LOG_DEBUG_S << "Result min: " << fts.minCardinalities.toString();
+                fts.maxCardinalities = organization_model::Algebra::min(fts.maxCardinalities, otherFts.maxCardinalities);
+                fts.satisficingCardinalities = organization_model::Algebra::max(fts.satisficingCardinalities, otherFts.satisficingCardinalities);
 
-                // Resource constraints might enforce a minimum cardinality that is higher than the functional saturation bound
-                // thus update the max cardinalities
-                fts.maxCardinalities = organization_model::Algebra::max(fts.minCardinalities, fts.maxCardinalities);
-
-                LOG_DEBUG_S << "Update requirement: " << fts.toString();
-
+                LOG_DEBUG_S << "Result:" << fts.toString(8);
                 requirements.erase(compareIt);
             } else {
                 ++compareIt;
@@ -252,6 +240,9 @@ organization_model::ModelPool::Set FluentTimeResource::getDomain() const
     // complete set since this might conflict with the minCardinalities
     // constraint -- thus we need to first derive the functionalBound and then
     // apply the minCardinalities by expanding the set of model if required
+    //
+    // The functional saturation bound has already been applied to the
+    // organization model at initialization
     organization_model::ModelPool::Set combinations = mission->getOrganizationModelAsk().getResourceSupport(functionalities, functionalitiesConstraints);
 
     LOG_INFO_S << "Resources: " << organization_model::ModelPool::toString(combinations);
@@ -313,17 +304,17 @@ void FluentTimeResource::incrementResourceRequirement(const owlapi::model::IRI& 
     throw std::invalid_argument("FluentTimeResource::incrementResourceRequirement: failed to increment model '" + model.toString() + "'");
 }
 
-void FluentTimeResource::updateMaxCardinalities()
+void FluentTimeResource::updateSatisficingCardinalities()
 {
     using namespace organization_model;
     std::set<Functionality> functionalities = getFunctionalities();
 
     ModelPool saturation = mission->getOrganizationModelAsk().getFunctionalSaturationBound(functionalities, functionalitiesConstraints);
-    ModelPool maxSaturationCardinalities = Algebra::min(mission->getAvailableResources(), saturation);
+    ModelPool satisficingCardinalities = Algebra::min(mission->getAvailableResources(), saturation);
 
     // Resource constraints might enforce a minimum cardinality that is higher than the functional saturation bound
     // thus update the max cardinalities
-    maxCardinalities = organization_model::Algebra::max(minCardinalities, maxSaturationCardinalities);
+    satisficingCardinalities = organization_model::Algebra::max(minCardinalities, satisficingCardinalities);
 }
 
 } // end namespace csp

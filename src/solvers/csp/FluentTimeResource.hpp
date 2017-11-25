@@ -36,6 +36,8 @@ struct FluentTimeResource
     // of the available models
     organization_model::ModelPool minCardinalities;
     organization_model::ModelPool maxCardinalities;
+    /// Set the statisficing cardinalities
+    organization_model::ModelPool satisficingCardinalities;
 
     typedef std::vector<FluentTimeResource> List;
 
@@ -90,7 +92,7 @@ struct FluentTimeResource
      * Create a compact representation for all requirement that
      * refer to the same fluent and time
      */
-    static void compact(std::vector<FluentTimeResource>& requirements, const organization_model::OrganizationModelAsk& ask);
+    static void compact(std::vector<FluentTimeResource>& requirements);
 
     /**
      * Get the domain in terms of model pool that are allowed
@@ -116,8 +118,10 @@ struct FluentTimeResource
      */
     void incrementResourceRequirement(const owlapi::model::IRI& model, size_t number);
 
-    void updateMaxCardinalities();
-
+    /**
+     * Update the set of satisficing cardinalities
+     */
+    void updateSatisficingCardinalities();
 };
 
 } // end namespace csp
