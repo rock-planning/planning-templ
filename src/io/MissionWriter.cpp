@@ -136,7 +136,7 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
     XMLUtils::endElement(writer); // end constants
 
     /// Record to allow proper referencing in constraints
-    std::map<SpaceTime::SpaceIntervalTuple, uint32_t> intervalRequirementIdMap;
+    std::map<SpaceTime::SpaceIntervalTuple, size_t> intervalRequirementIdMap;
     XMLUtils::startElement(writer, "requirements");
     std::vector<FluentTimeResource> resources = Mission::getResourceRequirements(mission_p);
     int requirementId = 0;
@@ -206,11 +206,14 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
             organization_model::ModelPool::const_iterator maxIt =  ftr.maxCardinalities.find(model);
             if(maxIt != ftr.maxCardinalities.end())
             {
-                std::stringstream sm;
-                sm << maxIt->second;
-                XMLUtils::startElement(writer, "maxCardinality");
-                XMLUtils::writeString(writer, sm.str());
-                XMLUtils::endElement(writer); // end maxCardinality
+                if(maxIt->second != std::numeric_limits<size_t>::max())
+                {
+                    std::stringstream sm;
+                    sm << maxIt->second;
+                    XMLUtils::startElement(writer, "maxCardinality");
+                    XMLUtils::writeString(writer, sm.str());
+                    XMLUtils::endElement(writer); // end maxCardinality
+                }
             }
 
             XMLUtils::endElement(writer); // end resource
@@ -282,7 +285,7 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
             std::string tag = ModelConstraint::TypeTxt[type];
 
             XMLUtils::startElement(writer, tag);
-            uint32_t value = modelConstraint->getValue();
+            size_t value = modelConstraint->getValue();
             std::stringstream valueTxt;
             valueTxt << value;
             if(type != ModelConstraint::ALL_DISTINCT)
@@ -296,7 +299,7 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
             std::stringstream ss;
             for(const SpaceTime::SpaceIntervalTuple& t : modelConstraint->getSpaceIntervalTuples())
             {
-                std::map<SpaceTime::SpaceIntervalTuple,uint32_t>::const_iterator cit =  intervalRequirementIdMap.find(t);
+                std::map<SpaceTime::SpaceIntervalTuple,size_t>::const_iterator cit =  intervalRequirementIdMap.find(t);
                 if(cit == intervalRequirementIdMap.end())
                 {
                     std::runtime_error("templ::io::MissionWriter::write: failed to identify the requirements that are associated with a model constraint");

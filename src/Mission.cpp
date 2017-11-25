@@ -183,7 +183,7 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addResourceLocationCardinalit
             const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
             const solvers::temporal::point_algebra::TimePoint::Ptr& toTp,
             const owlapi::model::IRI& resourceModel,
-            uint32_t cardinality,
+            size_t cardinality,
             owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType type
 )
 {
@@ -347,7 +347,6 @@ std::vector<solvers::csp::FluentTimeResource> Mission::getResourceRequirements(c
             try {
                 FluentTimeResource ftr = fromLocationCardinality( p, mission );
                 requirements.push_back(ftr);
-                LOG_DEBUG_S << ftr.toString();
             } catch(const std::invalid_argument& e)
             {
                 LOG_WARN_S << e.what();
@@ -357,7 +356,7 @@ std::vector<solvers::csp::FluentTimeResource> Mission::getResourceRequirements(c
 
     // If multiple requirement exists that have the same interval
     // they can be compacted into one requirement
-    FluentTimeResource::compact(requirements, mission->mOrganizationModelAsk);
+    FluentTimeResource::compact(requirements);
     return requirements;
 }
 
@@ -530,12 +529,14 @@ solvers::csp::FluentTimeResource Mission::fromLocationCardinality(const solvers:
             {
                 size_t min = ftr.minCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::min());
                 ftr.minCardinalities[ resourceModel ] = std::max(min, (size_t) locationCardinality->getCardinality());
+                ftr.maxCardinalities[ resourceModel ] = std::numeric_limits<size_t>::max();
                 break;
             }
             case owlapi::model::OWLCardinalityRestriction::MAX :
             {
                 size_t max = ftr.maxCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::max());
                 ftr.maxCardinalities[ resourceModel ] = std::min(max, (size_t) locationCardinality->getCardinality());
+                ftr.minCardinalities[ resourceModel ] = 0;
                 break;
             }
             default:
@@ -544,8 +545,6 @@ solvers::csp::FluentTimeResource Mission::fromLocationCardinality(const solvers:
     } else {
         throw std::invalid_argument("templ::Mission::fromLocationCardinality: Unsupported state variable: " + resourceModel.toString());
     }
-
-    ftr.maxCardinalities = organization_model::Algebra::max(ftr.maxCardinalities, ftr.minCardinalities);
     return ftr;
 }
 

@@ -116,6 +116,8 @@ public:
 
     /**
      * Sets the available resources and triggers a refresh of the mission
+     * This also reinitializes the organization model query, which accounts for
+     * the functional saturation bound
      * \param modelPool List of resources and cardinalities
      */
     void setAvailableResources(const organization_model::ModelPool& modelPool);
@@ -299,7 +301,7 @@ public:
             const solvers::temporal::point_algebra::TimePoint::Ptr& fromTp,
             const solvers::temporal::point_algebra::TimePoint::Ptr& toTp,
             const owlapi::model::IRI& resourceModel,
-            uint32_t cardinality = 1,
+            size_t cardinality = 1,
             owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType type = owlapi::model::OWLCardinalityRestriction::MIN
             );
 

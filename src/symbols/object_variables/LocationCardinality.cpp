@@ -6,7 +6,7 @@ namespace symbols {
 namespace object_variables {
 
 LocationCardinality::LocationCardinality(const constants::Location::Ptr& location,
-        uint32_t cardinality,
+        size_t cardinality,
         owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType type
 )
     : ObjectVariable("unknown", LOCATION_CARDINALITY)

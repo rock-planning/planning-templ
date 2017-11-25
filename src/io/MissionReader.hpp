@@ -102,11 +102,11 @@ private:
 
     static templ::io::Constraints parseConstraints(xmlDocPtr doc,
             xmlNodePtr current,
-            const std::map<uint32_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap);
+            const std::map<size_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap);
 
     static constraints::ModelConstraint::List parseModelConstraints(xmlDocPtr doc,
             xmlNodePtr current,
-            const std::map<uint32_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap);
+            const std::map<size_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap);
 
     /**
      * If the mission specification file contains a node organization model,

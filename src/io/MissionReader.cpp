@@ -145,7 +145,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
         }
         LOG_INFO_S << "Found root node: " << rootNode->name;
 
-        std::map<uint32_t, SpaceTime::SpaceIntervalTuple> requirementIntervalMap;
+        std::map<size_t, SpaceTime::SpaceIntervalTuple> requirementIntervalMap;
         xmlNodePtr firstLevelChild = rootNode->xmlChildrenNode;
         while(firstLevelChild != NULL)
         {
@@ -331,7 +331,7 @@ std::pair<owlapi::model::IRI, size_t> MissionReader::parseResource(xmlDocPtr doc
                     " maxCardinality for '" + model + "' was '" + maxCardinalityTxt + "' but expected a value >= 0");
         }
 
-        uint32_t maxCardinality = ::boost::lexical_cast<uint32_t>(maxCardinalityTxt);
+        size_t maxCardinality = ::boost::lexical_cast<size_t>(maxCardinalityTxt);
         return std::pair<owlapi::model::IRI, size_t>(modelIRI, maxCardinality);
     }
     throw std::invalid_argument("templ::io::MissionReader::parseResource: expected tag 'resource' found '" + std::string((const char*) current->name) + "'");
@@ -390,7 +390,7 @@ std::vector<ResourceRequirement> MissionReader::parseResourceRequirements(xmlDoc
 
             try {
                 std::string minCardinalityTxt = XMLUtils::getSubNodeContent(doc, current, "minCardinality");
-                resourceRequirement.minCardinality = ::boost::lexical_cast<uint32_t>(minCardinalityTxt);
+                resourceRequirement.minCardinality = ::boost::lexical_cast<size_t>(minCardinalityTxt);
             } catch(...)
             {
                 std::stringstream ss;
@@ -401,11 +401,11 @@ std::vector<ResourceRequirement> MissionReader::parseResourceRequirements(xmlDoc
 
             try {
                 std::string maxCardinalityTxt = XMLUtils::getSubNodeContent(doc, current, "maxCardinality");
-                resourceRequirement.maxCardinality = ::boost::lexical_cast<uint32_t>(maxCardinalityTxt);
+                resourceRequirement.maxCardinality = ::boost::lexical_cast<size_t>(maxCardinalityTxt);
             } catch(...)
             {
                 // no maxCardinality requirement available
-                resourceRequirement.maxCardinality = std::numeric_limits<uint32_t>::max();
+                resourceRequirement.maxCardinality = std::numeric_limits<size_t>::max();
             }
 
             resourceRequirement.numericAttributeRequirements = parseAttributes(doc, current);
@@ -520,7 +520,7 @@ ResourceReificationRequirement MissionReader::parseResourceReificationRequiremen
                 ::boost::split(listOfIds, ids, boost::is_any_of(",;"));
 
                 std::string minCardinalityTxt = XMLUtils::getSubNodeContent(doc, current, "minCardinality");
-                uint32_t minCardinality = ::boost::lexical_cast<uint32_t>(minCardinalityTxt);
+                size_t minCardinality = ::boost::lexical_cast<size_t>(minCardinalityTxt);
                 if(minCardinality < listOfIds.size())
                 {
                     throw std::invalid_argument("templ::io::MissionReader: invalid specification of reificiation constraint "
@@ -530,7 +530,7 @@ ResourceReificationRequirement MissionReader::parseResourceReificationRequiremen
                 std::vector<std::string>::const_iterator cit = listOfIds.begin();
                 for(; cit != listOfIds.end(); ++cit)
                 {
-                    uint32_t id = ::boost::lexical_cast<uint32_t>(*cit);
+                    size_t id = ::boost::lexical_cast<size_t>(*cit);
 
                     ResourceReification reification(model,id);
                     requirement.reifications.push_back(reification);
@@ -553,7 +553,7 @@ SpatioTemporalRequirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNode
     {
         std::string id = XMLUtils::getProperty(current, "id");
         LOG_INFO_S << "Parsing: " << current->name << " id:" << id;
-        requirement.id = boost::lexical_cast<uint32_t>(id);
+        requirement.id = boost::lexical_cast<size_t>(id);
 
 
         xmlNodePtr requirementNode = current->xmlChildrenNode;
@@ -589,7 +589,7 @@ std::vector<SpatioTemporalRequirement> MissionReader::parseRequirements(xmlDocPt
     LOG_INFO_S << "Parsing: " << current->name;
     std::vector<SpatioTemporalRequirement> requirements;
     current = current->xmlChildrenNode;
-    std::set<uint32_t> ids;
+    std::set<size_t> ids;
     while(current != NULL)
     {
         if(XMLUtils::nameMatches(current, "requirement"))
@@ -597,7 +597,7 @@ std::vector<SpatioTemporalRequirement> MissionReader::parseRequirements(xmlDocPt
 
             SpatioTemporalRequirement requirement = parseRequirement(doc, current);
             LOG_INFO_S << "Parsed requirement: " << requirement.toString();
-            std::set<uint32_t>::const_iterator cit = ids.find(requirement.id);
+            std::set<size_t>::const_iterator cit = ids.find(requirement.id);
             if(cit != ids.end())
             {
                 std::stringstream ss;
@@ -681,7 +681,7 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
 
 templ::io::Constraints MissionReader::parseConstraints(xmlDocPtr doc,
         xmlNodePtr current,
-        const std::map<uint32_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap)
+        const std::map<size_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap)
 {
     LOG_DEBUG_S << "Parsing: " << current->name;
     templ::io::Constraints constraints;
@@ -701,7 +701,7 @@ templ::io::Constraints MissionReader::parseConstraints(xmlDocPtr doc,
     return constraints;
 }
 
-constraints::ModelConstraint::List MissionReader::parseModelConstraints(xmlDocPtr doc, xmlNodePtr current,const std::map<uint32_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap)
+constraints::ModelConstraint::List MissionReader::parseModelConstraints(xmlDocPtr doc, xmlNodePtr current,const std::map<size_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap)
 {
     using namespace constraints;
     ModelConstraint::List constraints;
@@ -714,7 +714,7 @@ constraints::ModelConstraint::List MissionReader::parseModelConstraints(xmlDocPt
             ModelConstraint::Type type = ModelConstraint::getTypeFromTxt( std::string((const char*) current->name) );
             owlapi::model::IRI model;
             owlapi::model::IRI property;
-            uint32_t value = 0;
+            size_t value = 0;
             std::string requirementsTxt;
             std::vector<SpaceTime::SpaceIntervalTuple> intervals;
             switch(type)
@@ -728,7 +728,7 @@ constraints::ModelConstraint::List MissionReader::parseModelConstraints(xmlDocPt
                 case ModelConstraint::MAX_EQUAL:
                 case ModelConstraint::MIN_DISTINCT:
                 case ModelConstraint::MAX_DISTINCT:
-                    value = boost::lexical_cast<uint32_t>( XMLUtils::getProperty(current, "value") );
+                    value = boost::lexical_cast<size_t>( XMLUtils::getProperty(current, "value") );
                 case ModelConstraint::ALL_DISTINCT:
                     model = XMLUtils::getSubNodeContent(doc, current, "model");
                     requirementsTxt = XMLUtils::getSubNodeContent(doc, current, "requirements");
@@ -747,8 +747,8 @@ constraints::ModelConstraint::List MissionReader::parseModelConstraints(xmlDocPt
             {
                 int32_t requirementId = 0;
                 try {
-                    requirementId = boost::lexical_cast<uint32_t>(requirementIdTxt);
-                    std::map<uint32_t, SpaceTime::SpaceIntervalTuple>::const_iterator cit = requirementIntervalMap.find(requirementId);
+                    requirementId = boost::lexical_cast<size_t>(requirementIdTxt);
+                    std::map<size_t, SpaceTime::SpaceIntervalTuple>::const_iterator cit = requirementIntervalMap.find(requirementId);
                     if(cit != requirementIntervalMap.end())
                     {
                         intervals.push_back(cit->second);

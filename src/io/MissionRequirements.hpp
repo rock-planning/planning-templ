@@ -53,8 +53,8 @@ typedef std::vector<NumericAttributeRequirement> NumericAttributeRequirements;
 struct ResourceRequirement
 {
     owlapi::model::IRI model;
-    uint32_t minCardinality;
-    uint32_t maxCardinality;
+    size_t minCardinality;
+    size_t maxCardinality;
 
     NumericAttributeRequirements numericAttributeRequirements;
 

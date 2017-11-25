@@ -12,21 +12,21 @@ namespace object_variables {
 class LocationCardinality : public ObjectVariable
 {
     constants::Location::Ptr mLocation;
-    uint32_t mCardinality;
+    size_t mCardinality;
     owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType mCardinalityRestrictionType;
 
 public:
     typedef shared_ptr<LocationCardinality> Ptr;
 
     LocationCardinality(const constants::Location::Ptr& location,
-            uint32_t cardinality = 1,
+            size_t cardinality = 1,
             owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType type = owlapi::model::OWLCardinalityRestriction::MIN
     );
 
     virtual ~LocationCardinality();
 
     constants::Location::Ptr getLocation() const  { return mLocation; }
-    uint32_t getCardinality() const { return mCardinality; }
+    size_t getCardinality() const { return mCardinality; }
     owlapi::model::OWLCardinalityRestriction::CardinalityRestrictionType getCardinalityRestrictionType() const { return mCardinalityRestrictionType; }
 
     virtual bool equals(const Symbol::Ptr& symbol) const;
