@@ -68,6 +68,9 @@ TemporalConstraintNetwork::TemporalConstraintNetwork(bool shared, TemporalConstr
     mTimepoints.update(*this, shared, other.mTimepoints);
 }
 
+TemporalConstraintNetwork::~TemporalConstraintNetwork()
+{}
+
 TemporalConstraintNetwork* TemporalConstraintNetwork::nextSolution()
 {
     Gecode::DFS<TemporalConstraintNetwork> searchEngine(this);
@@ -119,16 +122,35 @@ void TemporalConstraintNetwork::sort(const temporal::QualitativeTemporalConstrai
         throw std::invalid_argument("templ::solvers::csp::TemporalConstraintNetwork::getSortedList: cannot perform sorting. Network is inconsistent");
     }
 
-    std::sort(timepoints.begin(), timepoints.end(), [tcnSolution](const temporal::point_algebra::TimePoint::Ptr& a, const temporal::point_algebra::TimePoint::Ptr& b){
-            return tcnSolution->getValue(a) < tcnSolution->getValue(b);
-            });
+    sort(tcnSolution, timepoints);
 
     delete tcnSolution;
 }
-
-uint32_t TemporalConstraintNetwork::getValue(const graph_analysis::Vertex::Ptr& v)
+void TemporalConstraintNetwork::sort(const TemporalConstraintNetwork* tcnSolution, std::vector<temporal::point_algebra::TimePoint::Ptr>& timepoints)
 {
-    return mTimepoints[ getVertexIdx(v) ].val();
+    if(!tcnSolution)
+    {
+        throw std::invalid_argument("templ::solvers::csp::TemporalConstraintNetwork::sort: cannot perform sorting. Network is NULL");
+    }
+
+    if(!tcnSolution->mTimepoints.assigned())
+    {
+        throw std::invalid_argument("templ::solvers::csp::TemporalConstraintNetwork::sort: cannot perform sorting. Network is not fully assigned");
+    }
+
+    std::sort(timepoints.begin(), timepoints.end(), [tcnSolution](const temporal::point_algebra::TimePoint::Ptr& a, const temporal::point_algebra::TimePoint::Ptr& b){
+            return tcnSolution->getValue(a) < tcnSolution->getValue(b);
+            });
+}
+
+uint32_t TemporalConstraintNetwork::getValue(const graph_analysis::Vertex::Ptr& v) const
+{
+    const Gecode::IntVar& var = mTimepoints[ getVertexIdx(v) ];
+    if(var.assigned())
+    {
+        return var.val();
+    }
+    throw std::invalid_argument("templ::solvers::csp::TemporalConstraintNetwork::getValue: constraint variable corresponding to the given vertex has not yet been assigned");
 }
 
 size_t TemporalConstraintNetwork::getVertexIdx(const graph_analysis::Vertex::Ptr& vertex) const
