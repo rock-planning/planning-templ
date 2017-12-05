@@ -507,8 +507,15 @@ SpaceTime::Timelines TransportNetwork::getTimelines() const
     return TypeConversion::toTimelines(mActiveRoleList, mTimelines, mLocations, mTimepoints, doThrow);
 }
 
+TransportNetwork::TransportNetwork()
+    : Gecode::Space()
+    , Solver(Solver::CSP_TRANSPORT_NETWORK)
+    , mAsk()
+{}
+
 TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Configuration& configuration)
     : Gecode::Space()
+    , Solver(Solver::CSP_TRANSPORT_NETWORK)
     , mpMission(mission)
     , mModelPool(mpMission->getAvailableResources())
     , mAsk(mpMission->getOrganizationModel(), mpMission->getAvailableResources(), true)
@@ -1093,8 +1100,8 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
                     sa.quantifyTime();
                     sa.quantifyMetric();
 
-                    std::string tcnFilename = mission->getLogger()->filename("temporal-constraint-network.gexf");
-                    graph_analysis::io::GraphIO::write(tcnFilename, sa.getTimeDistanceGraph());
+                    //std::string tcnFilename = mission->getLogger()->filename("temporal-constraint-network.gexf");
+                    //graph_analysis::io::GraphIO::write(tcnFilename, sa.getTimeDistanceGraph());
                 } catch(const std::exception& e)
                 {
                     LOG_WARN_S << e.what();
@@ -1189,6 +1196,16 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
     delete distribution;
     return solutions;
+}
+
+solvers::Session::Ptr TransportNetwork::run(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const Configuration& configuration)
+{
+    Session::Ptr session = make_shared<Session>(mission);
+    SolutionList solutionList = TransportNetwork::solve(mission, minNumberOfSolutions, configuration);
+
+    solvers::Solution::List solutions;
+    session->setSolutions(solutions);
+    return session;
 }
 
 void TransportNetwork::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPool::Set& combinations) const

@@ -17,6 +17,8 @@
 #include "../transshipment/MinCostFlow.hpp"
 #include "FlawResolution.hpp"
 
+#include "../Solver.hpp"
+
 namespace templ {
 namespace solvers {
 namespace csp {
@@ -28,9 +30,10 @@ namespace csp {
  *
  *
  */
-class TransportNetwork : public Gecode::Space
+class TransportNetwork : public Gecode::Space, public Solver
 {
     friend class templ::MissionPlanner;
+    friend class templ::solvers::Solver;
     friend class FlawResolution;
 
 public:
@@ -370,6 +373,8 @@ protected:
     void setUseMasterSlave(bool v) { mUseMasterSlave = v; }
 
 public:
+    TransportNetwork();
+
     TransportNetwork(const templ::Mission::Ptr& mission, const Configuration& configuration = Configuration());
 
     /**
@@ -392,6 +397,8 @@ public:
      * \param configuration Configuration for this planning instance
      */
     static SolutionList solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions = 0, const Configuration& configuration = Configuration());
+
+    solvers::Session::Ptr run(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const Configuration& configuration);
 
     std::string toString() const;
 

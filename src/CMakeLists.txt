@@ -132,6 +132,8 @@ rock_library(templ
         Plan.cpp
         PlanSpaceVisitor.cpp
         PlanningState.cpp
+        solvers/Solver.cpp
+        solvers/Session.cpp
         io/MissionReader.cpp
         io/MissionWriter.cpp
         io/MissionRequirements.cpp
@@ -181,6 +183,8 @@ rock_library(templ
         io/MissionReader.hpp
         io/MissionWriter.hpp
         io/MissionRequirements.hpp
+        solvers/Solver.hpp
+        solvers/Session.hpp
         solvers/agent_routing/Agent.hpp
         solvers/agent_routing/AgentIntegerAttribute.hpp
         solvers/agent_routing/AgentRoutingGraph.hpp
@@ -282,6 +286,11 @@ rock_executable(templ-tcn_reader
 
 rock_executable(templ-solution_analysis
     utils/SolutionAnalyserMain.cpp
+    DEPS templ
+)
+
+rock_executable(templ-solver
+    utils/SolverMain.cpp
     DEPS templ
 )
 
