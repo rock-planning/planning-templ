@@ -1,11 +1,11 @@
 #ifndef TEMPL_SOLVERS_CSP_MISSION_CONSTRAINTS_HPP
 #define TEMPL_SOLVERS_CSP_MISSION_CONSTRAINTS_HPP
 
-#include "FluentTimeResource.hpp"
 #include <gecode/int.hh>
 #include <set>
-#include "../../Mission.hpp"
 #include <organization_model/OrganizationModelAsk.hpp>
+#include "../../Mission.hpp"
+#include "../FluentTimeResource.hpp"
 
 namespace templ {
 namespace solvers {

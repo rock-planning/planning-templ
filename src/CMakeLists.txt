@@ -134,6 +134,7 @@ rock_library(templ
         PlanningState.cpp
         solvers/Solver.cpp
         solvers/Session.cpp
+        solvers/FluentTimeResource.cpp
         io/MissionReader.cpp
         io/MissionWriter.cpp
         io/MissionRequirements.cpp
@@ -147,7 +148,6 @@ rock_library(templ
         solvers/agent_routing/io/XMLReader.cpp
         solvers/agent_routing/io/XMLWriter.cpp
         solvers/csp/ConstraintMatrix.cpp
-        solvers/csp/FluentTimeResource.cpp
         solvers/csp/FlawResolution.cpp
         solvers/csp/MissionConstraints.cpp
         solvers/csp/ModelDistribution.cpp
@@ -185,6 +185,7 @@ rock_library(templ
         io/MissionRequirements.hpp
         solvers/Solver.hpp
         solvers/Session.hpp
+        solvers/FluentTimeResource.hpp
         solvers/agent_routing/Agent.hpp
         solvers/agent_routing/AgentIntegerAttribute.hpp
         solvers/agent_routing/AgentRoutingGraph.hpp
@@ -195,7 +196,6 @@ rock_library(templ
         solvers/agent_routing/io/XMLReader.hpp
         solvers/agent_routing/io/XMLWriter.hpp
         solvers/csp/ConstraintMatrix.hpp
-        solvers/csp/FluentTimeResource.hpp
         solvers/csp/FlawResolution.hpp
         solvers/csp/MissionConstraints.hpp
         solvers/csp/ModelDistribution.hpp

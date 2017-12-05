@@ -272,37 +272,6 @@ std::string RoleDistribution::toString() const
     return ss.str();
 }
 
-std::ostream& operator<<(std::ostream& os, const RoleDistribution::Solution& solution)
-{
-    RoleDistribution::Solution::const_iterator cit = solution.begin();
-    size_t count = 0;
-    os << "Solution" << std::endl;
-    for(; cit != solution.end(); ++cit)
-    {
-        const FluentTimeResource& fts = cit->first;
-        os << "--- requirement #" << count++ << std::endl;
-        os << fts.toString() << std::endl;
-
-        const Role::List& roles = cit->second;
-        os << Role::toString(roles) << std::endl;
-    }
-    return os;
-}
-
-std::ostream& operator<<(std::ostream& os, const RoleDistribution::SolutionList& solutions)
-{
-    RoleDistribution::SolutionList::const_iterator cit = solutions.begin();
-    os << std::endl << "BEGIN SolutionList (#" << solutions.size() << " solutions)" << std::endl;
-    size_t count = 0;
-    for(; cit != solutions.end(); ++cit)
-    {
-        os << "#" << count++ << " ";
-        os << *cit;
-    }
-    os << "END SolutionList" << std::endl;
-    return os;
-}
-
 void RoleDistribution::allDistinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& roleModel)
 {
     MissionConstraints::allDistinct(*this, mRoleUsage, mRoles, mRequirements,
@@ -374,3 +343,42 @@ void RoleDistribution::addDistinct(const FluentTimeResource& fts0, const FluentT
 } // end namespace csp
 } // end namespace solvers
 } // end namespace templ
+
+namespace std {
+
+std::ostream& operator<<(std::ostream& os, const templ::solvers::csp::RoleDistribution::Solution& solution)
+{
+    using namespace templ;
+    using namespace templ::solvers;
+    using namespace templ::solvers::csp;
+
+    RoleDistribution::Solution::const_iterator cit = solution.begin();
+    size_t count = 0;
+    os << "Solution" << std::endl;
+    for(; cit != solution.end(); ++cit)
+    {
+        const FluentTimeResource& fts = cit->first;
+        os << "--- requirement #" << count++ << std::endl;
+        os << fts.toString() << std::endl;
+
+        const Role::List& roles = cit->second;
+        os << Role::toString(roles) << std::endl;
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const templ::solvers::csp::RoleDistribution::SolutionList& solutions)
+{
+    templ::solvers::csp::RoleDistribution::SolutionList::const_iterator cit = solutions.begin();
+    os << std::endl << "BEGIN SolutionList (#" << solutions.size() << " solutions)" << std::endl;
+    size_t count = 0;
+    for(; cit != solutions.end(); ++cit)
+    {
+        os << "#" << count++ << " ";
+        os << *cit;
+    }
+    os << "END SolutionList" << std::endl;
+    return os;
+}
+
+} // end namespace std

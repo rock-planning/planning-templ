@@ -6,7 +6,7 @@
 #include <owlapi/Vocabulary.hpp>
 #include <owlapi/io/OWLOntologyIO.hpp>
 #include <organization_model/Algebra.hpp>
-#include "solvers/csp/FluentTimeResource.hpp"
+#include "solvers/FluentTimeResource.hpp"
 #include "solvers/temporal/point_algebra/TimePointComparator.hpp"
 #include "solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
 #include "symbols/object_variables/LocationCardinality.hpp"
@@ -330,9 +330,9 @@ void Mission::validateAvailableResources() const
             + mModelPool.toString());
 }
 
-std::vector<solvers::csp::FluentTimeResource> Mission::getResourceRequirements(const Mission::Ptr& mission)
+std::vector<solvers::FluentTimeResource> Mission::getResourceRequirements(const Mission::Ptr& mission)
 {
-    using namespace solvers::csp;
+    using namespace solvers;
 
     std::vector<FluentTimeResource> requirements;
 
@@ -472,7 +472,7 @@ graph_analysis::Edge::Ptr Mission::addRelation(const graph_analysis::Vertex::Ptr
     return edge;
 }
 
-solvers::csp::FluentTimeResource Mission::fromLocationCardinality(const solvers::temporal::PersistenceCondition::Ptr& p, const Mission::Ptr& mission)
+solvers::FluentTimeResource Mission::fromLocationCardinality(const solvers::temporal::PersistenceCondition::Ptr& p, const Mission::Ptr& mission)
 {
     using namespace templ::solvers::temporal;
     point_algebra::TimePointComparator timepointComparator(mission->getTemporalConstraintNetwork());
@@ -509,17 +509,17 @@ solvers::csp::FluentTimeResource Mission::fromLocationCardinality(const solvers:
     // Map objects to numeric indices -- the indices can be mapped
     // backed using the mission they were created from
     uint32_t timeIndex = std::distance(mission->mTimeIntervals.cbegin(), iit);
-    FluentTimeResource ftr(mission,
-            (int) std::distance(mission->mRequestedResources.cbegin(), sit)
+    solvers::FluentTimeResource ftr(mission,
+            std::distance(mission->mRequestedResources.cbegin(), sit)
             , timeIndex
-            , (int) std::distance(locations.cbegin(), lit)
+            , std::distance(locations.cbegin(), lit)
     );
 
     owlapi::model::OWLOntologyAsk ask = mission->getOrganizationModelAsk().ontology();
     if(ask.isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
     {
         // retrieve upper bound
-        ftr.maxCardinalities = mission->mOrganizationModelAsk.getFunctionalSaturationBound(resourceModel);
+        ftr.setMaxCardinalities( mission->mOrganizationModelAsk.getFunctionalSaturationBound(resourceModel) );
 
     } else if(ask.isSubClassOf(resourceModel, organization_model::vocabulary::OM::Actor()))
     {
@@ -527,16 +527,16 @@ solvers::csp::FluentTimeResource Mission::fromLocationCardinality(const solvers:
         {
             case owlapi::model::OWLCardinalityRestriction::MIN :
             {
-                size_t min = ftr.minCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::min());
-                ftr.minCardinalities[ resourceModel ] = std::max(min, (size_t) locationCardinality->getCardinality());
-                ftr.maxCardinalities[ resourceModel ] = std::numeric_limits<size_t>::max();
+                size_t min = ftr.getMinCardinalities().getValue(resourceModel, std::numeric_limits<size_t>::min());
+                ftr.setMinCardinalities(resourceModel, std::max(min, (size_t) locationCardinality->getCardinality()) );
+                ftr.setMaxCardinalities(resourceModel, std::numeric_limits<size_t>::max());
                 break;
             }
             case owlapi::model::OWLCardinalityRestriction::MAX :
             {
-                size_t max = ftr.maxCardinalities.getValue(resourceModel, std::numeric_limits<size_t>::max());
-                ftr.maxCardinalities[ resourceModel ] = std::min(max, (size_t) locationCardinality->getCardinality());
-                ftr.minCardinalities[ resourceModel ] = 0;
+                size_t max = ftr.getMaxCardinalities().getValue(resourceModel, std::numeric_limits<size_t>::max());
+                ftr.setMaxCardinalities(resourceModel, std::min(max, (size_t) locationCardinality->getCardinality()));
+                ftr.setMinCardinalities(resourceModel, 0);
                 break;
             }
             default:

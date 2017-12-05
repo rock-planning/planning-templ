@@ -20,14 +20,14 @@ class RoleTimeline
 public:
     void setRole(const Role& role) { mRole = role; }
 
-    void add(const solvers::csp::FluentTimeResource& fts) { mFluents.push_back(fts); }
+    void add(const solvers::FluentTimeResource& fts) { mFluents.push_back(fts); }
 
     const std::vector<FluentTimeResource>& getFluentTimeResources() const { return mFluents; }
     const std::vector<symbols::constants::Location::Ptr>& getLocations() const { return mLocations; }
     const std::vector<solvers::temporal::Interval>& getIntervals() const { return mIntervals; }
 
-    symbols::constants::Location::Ptr getLocation(const solvers::csp::FluentTimeResource& fts) const;
-    solvers::temporal::Interval getInterval(const solvers::csp::FluentTimeResource& fts) const;
+    symbols::constants::Location::Ptr getLocation(const solvers::FluentTimeResource& fts) const;
+    solvers::temporal::Interval getInterval(const solvers::FluentTimeResource& fts) const;
 
     bool operator<(const RoleTimeline& other) const;
 

@@ -18,9 +18,9 @@ struct Flaw
     Role::List affectedRoles;
     csp::RoleTimeline roleTimeline;
 
-    csp::FluentTimeResource previousFtr;
-    csp::FluentTimeResource ftr;
-    csp::FluentTimeResource subsequentFtr;
+    FluentTimeResource previousFtr;
+    FluentTimeResource ftr;
+    FluentTimeResource subsequentFtr;
 
     std::string description;
 

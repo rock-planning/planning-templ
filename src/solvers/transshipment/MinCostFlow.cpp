@@ -4,7 +4,8 @@
 #include <graph_analysis/WeightedEdge.hpp>
 #include <graph_analysis/GraphIO.hpp>
 #include <organization_model/facets/Robot.hpp>
-#include <templ/solvers/csp/FluentTimeResource.hpp>
+
+#include <templ/solvers/FluentTimeResource.hpp>
 #include <templ/utils/Logger.hpp>
 
 using namespace graph_analysis;
@@ -109,8 +110,8 @@ void MinCostFlow::setCommoditySupplyAndDemand()
 
             size_t commodityId = cit - mCommoditiesRoles.begin();
             // Retrieve the (time-based) sorted list of FluentTimeResources
-            const std::vector<csp::FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
-            std::vector<csp::FluentTimeResource>::const_iterator fit = ftrs.begin();
+            const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
+            std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
             Vertex::Ptr previous;
             for(; fit != ftrs.end(); ++fit)
             {
@@ -257,7 +258,7 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
         const csp::RoleTimeline& roleTimeline = rit->second;
 
         // Identify the relevant fluent
-        std::vector<csp::FluentTimeResource>::const_iterator fit = getFluent(roleTimeline, tuple);
+        std::vector<FluentTimeResource>::const_iterator fit = getFluent(roleTimeline, tuple);
         Flaw flaw(violation, affectedRoles);
         flaw.ftr = *fit;
 
@@ -325,12 +326,12 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
     }
 }
 
-std::vector<csp::FluentTimeResource>::const_iterator MinCostFlow::getFluent(const csp::RoleTimeline& roleTimeline, const SpaceTime::Network::tuple_t::Ptr& tuple) const
+std::vector<FluentTimeResource>::const_iterator MinCostFlow::getFluent(const csp::RoleTimeline& roleTimeline, const SpaceTime::Network::tuple_t::Ptr& tuple) const
 {
     LOG_DEBUG_S << "Find tuple: " << tuple->toString() << " in timeline " << roleTimeline.toString();
 
-    const std::vector<csp::FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
-    std::vector<csp::FluentTimeResource>::const_iterator fit = ftrs.begin();
+    const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
+    std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
     for(; fit != ftrs.end(); ++fit)
     {
         symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);

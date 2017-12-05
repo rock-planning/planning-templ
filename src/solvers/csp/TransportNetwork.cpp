@@ -658,8 +658,8 @@ void TransportNetwork::initializeMinMaxConstraints()
                         /// Consider resource cardinality constraint
                         /// Check what is set for the given model
                         LOG_DEBUG_S << "Check min cardinality for " << mAvailableModels[mi];
-                        organization_model::ModelPool::const_iterator cardinalityIt = fts.minCardinalities.find( mAvailableModels[mi] );
-                        if(cardinalityIt != fts.minCardinalities.end())
+                        organization_model::ModelPool::const_iterator cardinalityIt = fts.getMinCardinalities().find( mAvailableModels[mi] );
+                        if(cardinalityIt != fts.getMinCardinalities().end())
                         {
                             minCardinality = cardinalityIt->second;
                             LOG_DEBUG_S << "Found resource cardinality constraint: " << std::endl
@@ -1443,14 +1443,15 @@ void TransportNetwork::postRoleAssignments()
                     //
                     // location (offset) = row % #ofLocations
                     // timepointIndex = (row - location(offset)) / #ofLocations
-                    size_t row = FluentTimeIndex::toRowOrColumnIndex(fts.fluent, timeIndex, numberOfFluents, numberOfTimepoints);
+                    size_t fluentIdx = fts.getFluentIdx();
+                    size_t row = FluentTimeIndex::toRowOrColumnIndex(fluentIdx, timeIndex, numberOfFluents, numberOfTimepoints);
                     // Always connect to the next timestep
-                    size_t col = FluentTimeIndex::toRowOrColumnIndex(fts.fluent, timeIndex + 1, numberOfFluents, numberOfFluents);
+                    size_t col = FluentTimeIndex::toRowOrColumnIndex(fluentIdx, timeIndex + 1, numberOfFluents, numberOfFluents);
 
 
                     LOG_INFO_S << "EdgeActivation for col: " << col << ", row: " << row << " requirement for: " << role.toString() << " roleRequirement: " << roleRequirement;
                     LOG_INFO_S << "Translates to: " << from->toString() << " to " << to->toString();
-                    LOG_INFO_S << "Fluent: " << mLocations[fts.fluent]->toString();
+                    LOG_INFO_S << "Fluent: " << mLocations[fluentIdx]->toString();
 
 
                     // constraint between timeline and roleRequirement

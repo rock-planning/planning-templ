@@ -7,14 +7,14 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
-symbols::constants::Location::Ptr RoleTimeline::getLocation(const solvers::csp::FluentTimeResource& fts) const
+symbols::constants::Location::Ptr RoleTimeline::getLocation(const solvers::FluentTimeResource& fts) const
 {
-    return mLocations.at(fts.fluent);
+    return mLocations.at(fts.getFluentIdx());
 }
 
-solvers::temporal::Interval RoleTimeline::getInterval(const solvers::csp::FluentTimeResource& fts) const
+solvers::temporal::Interval RoleTimeline::getInterval(const solvers::FluentTimeResource& fts) const
 {
-    return mIntervals.at(fts.time);
+    return mIntervals.at(fts.getTimeIntervalIdx());
 }
 
 bool RoleTimeline::operator<(const RoleTimeline& other) const
@@ -62,8 +62,8 @@ void RoleTimeline::sortByTime()
                     return false;
                 }
 
-                const solvers::temporal::Interval& lval = this->mIntervals.at(a.time);
-                const solvers::temporal::Interval& rval = this->mIntervals.at(b.time);
+                const solvers::temporal::Interval& lval = this->mIntervals.at(a.getTimeIntervalIdx());
+                const solvers::temporal::Interval& rval = this->mIntervals.at(b.getTimeIntervalIdx());
                 return lval.before(rval);
             });
 }

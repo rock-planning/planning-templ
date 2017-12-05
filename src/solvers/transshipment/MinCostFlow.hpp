@@ -93,7 +93,7 @@ protected:
      * Find the Fluent which corresponds to the given network tuple to allow
      * a reverse mapping between gaph based representation and fluents
      */
-    std::vector<templ::solvers::csp::FluentTimeResource>::const_iterator
+    std::vector<templ::solvers::FluentTimeResource>::const_iterator
         getFluent(const templ::solvers::csp::RoleTimeline& roleTimeline,
             const SpaceTime::Network::tuple_t::Ptr& tuple) const;
 

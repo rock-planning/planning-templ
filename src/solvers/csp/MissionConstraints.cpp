@@ -18,7 +18,7 @@ void MissionConstraints::allDistinct(Gecode::Space& home, Gecode::IntVarArray& r
     for(size_t roleIndex = 0; roleIndex < roles.size(); ++roleIndex)
     {
         const Role& role = roles[roleIndex];
-        if(role.getModel() == roleModel);
+        if(role.getModel() == roleModel)
         {
             Gecode::IntVarArgs args;
             {
@@ -203,8 +203,8 @@ void MissionConstraints::addFunctionRequirement(const owlapi::model::IRIList& al
     LOG_DEBUG_S << "Fluent before adding function requirement: " << ftr.toString();
 
     // insert the function requirement
-    ftr.resources.insert(index);
-    ftr.maxCardinalities = organization_model::Algebra::max(ftr.maxCardinalities, ask.getFunctionalSaturationBound(function) );
+    ftr.addResourceIdx(index);
+    ftr.setMaxCardinalities( organization_model::Algebra::max(ftr.getMaxCardinalities(), ask.getFunctionalSaturationBound(function) ) );
     LOG_DEBUG_S << "Fluent after adding function requirement: " << ftr.toString();
 }
 
@@ -234,7 +234,7 @@ void MissionConstraints::addFunctionalitiesRequirement(const owlapi::model::IRIL
         LOG_DEBUG_S << "Using resource index: " << resourceIndex;
 
         // insert the function requirement
-        ftr.resources.insert(resourceIndex);
+        ftr.addResourceIdx(resourceIndex);
 
         ftr.addFunctionalityConstraints(pair.second);
         ftr.updateSatisficingCardinalities();

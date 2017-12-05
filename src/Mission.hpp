@@ -33,9 +33,7 @@ namespace benchmark {
 }
 
 namespace solvers {
-namespace csp {
     struct FluentTimeResource;
-} // end namespace csp
 } // end namespace solvers
 
 class Mission
@@ -345,7 +343,7 @@ public:
      * Return the list of resource requirements
      * Requirements are sorted based on the from value
      */
-    static std::vector<solvers::csp::FluentTimeResource> getResourceRequirements(const Mission::Ptr& mission);
+    static std::vector<solvers::FluentTimeResource> getResourceRequirements(const Mission::Ptr& mission);
 
     /**
      * Get a fluent time resource from a Persistence
@@ -353,7 +351,7 @@ public:
      * \param p PersistenceCondition
      * \param mission The mission
      */
-    static solvers::csp::FluentTimeResource fromLocationCardinality(const solvers::temporal::PersistenceCondition::Ptr& p, const Mission::Ptr& mission);
+    static solvers::FluentTimeResource fromLocationCardinality(const solvers::temporal::PersistenceCondition::Ptr& p, const Mission::Ptr& mission);
 
     /**
      * Save the mission and the organization model files

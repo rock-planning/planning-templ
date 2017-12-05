@@ -188,8 +188,8 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
         SpaceTime::Network::tuple_t::Ptr startTuple, endTuple;
 
         LOG_INFO_S << "Process (time-sorted) timeline: " << roleTimeline.toString();
-        const std::vector<csp::FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
-        std::vector<csp::FluentTimeResource>::const_iterator fit = ftrs.begin();
+        const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
+        std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
         RoleInfo::Tag tag = RoleInfo::REQUIRED;
         for(; fit != ftrs.end(); ++fit)
         {

@@ -2,7 +2,6 @@
 #define TEMPL_SOLVERS_CSP_RESOLVER_HPP
 
 #include <templ/SharedPtr.hpp>
-#include <templ/solvers/csp/FluentTimeResource.hpp>
 #include <templ/solvers/csp/RoleDistribution.hpp>
 #include <templ/solvers/csp/ModelDistribution.hpp>
 
@@ -17,7 +16,7 @@ namespace csp {
  * \class Resolver
  * \brief A resolver can be applied to a planning problem in order to further
  * constrain or relax the problem
- * 
+ *
  * It applies either to model or to the role distribution
  */
 class Resolver
@@ -49,12 +48,12 @@ private:
 class RoleAddDistinction : public Resolver
 {
 public:
-    RoleAddDistinction(const FluentTimeResource& fts0, 
+    RoleAddDistinction(const FluentTimeResource& fts0,
             const FluentTimeResource& fts1,
             const owlapi::model::IRI& model,
             uint32_t addDelta,
             const RoleDistribution::Solution& solution);
-    
+
     virtual ~RoleAddDistinction(){}
 
     void apply(PlanningState* planningState);

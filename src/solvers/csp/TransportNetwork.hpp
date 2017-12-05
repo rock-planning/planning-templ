@@ -12,7 +12,7 @@
 #include "../../Mission.hpp"
 #include "../../Configuration.hpp"
 #include "Types.hpp"
-#include "FluentTimeResource.hpp"
+#include "../FluentTimeResource.hpp"
 #include "utils/FluentTimeIndex.hpp"
 #include "../transshipment/MinCostFlow.hpp"
 #include "FlawResolution.hpp"

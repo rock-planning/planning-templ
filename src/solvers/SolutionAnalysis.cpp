@@ -53,7 +53,7 @@ std::set<Role> SolutionAnalysis::getRequiredRoles(size_t minRequirement) const
     return requiredRoles;
 }
 
-double SolutionAnalysis::getMetricValue(const csp::FluentTimeResource& ftr) const
+double SolutionAnalysis::getMetricValue(const FluentTimeResource& ftr) const
 {
     using namespace organization_model;
     ModelPool minRequired = getMinResourceRequirements(ftr);
@@ -70,7 +70,7 @@ double SolutionAnalysis::getMetricValue(const csp::FluentTimeResource& ftr) cons
     //}
 }
 
-organization_model::ModelPool SolutionAnalysis::getMinAvailableResources(const csp::FluentTimeResource& ftr) const
+organization_model::ModelPool SolutionAnalysis::getMinAvailableResources(const FluentTimeResource& ftr) const
 {
     symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(ftr.getFluent());
     assert(location);
@@ -91,7 +91,7 @@ organization_model::ModelPool SolutionAnalysis::getMinAvailableResources(const c
     return organization_model::Algebra::max(minAvailableResources, functionalities);
 }
 
-organization_model::ModelPool SolutionAnalysis::getMaxAvailableResources(const csp::FluentTimeResource& ftr) const
+organization_model::ModelPool SolutionAnalysis::getMaxAvailableResources(const FluentTimeResource& ftr) const
 {
     symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(ftr.getFluent());
     assert(location);
@@ -144,10 +144,10 @@ SolutionAnalysis::MinMaxModelPools SolutionAnalysis::getRequiredResources(const 
     using namespace temporal::point_algebra;
     MinMaxModelPools minMaxModelPools;
 
-    std::vector<solvers::csp::FluentTimeResource>::const_iterator cit = mResourceRequirements.begin();
+    std::vector<solvers::FluentTimeResource>::const_iterator cit = mResourceRequirements.begin();
     for(; cit != mResourceRequirements.end(); ++cit)
     {
-        const solvers::csp::FluentTimeResource& ftr = *cit;
+        const solvers::FluentTimeResource& ftr = *cit;
 
         symbols::constants::Location::Ptr ftrLocation = ftr.getLocation();
         if(location != ftrLocation)
@@ -160,28 +160,28 @@ SolutionAnalysis::MinMaxModelPools SolutionAnalysis::getRequiredResources(const 
                     interval.getFrom(),
                     interval.getTo()))
         {
-            minMaxModelPools.first.push_back( ftr.minCardinalities );
-            minMaxModelPools.second.push_back( ftr.maxCardinalities );
+            minMaxModelPools.first.push_back( ftr.getMinCardinalities() );
+            minMaxModelPools.second.push_back( ftr.getMaxCardinalities() );
         }
     }
 
     return minMaxModelPools;
 }
 
-SolutionAnalysis::MinMaxModelPools SolutionAnalysis::getRequiredResources(const csp::FluentTimeResource& ftr) const
+SolutionAnalysis::MinMaxModelPools SolutionAnalysis::getRequiredResources(const FluentTimeResource& ftr) const
 {
     using namespace temporal::point_algebra;
     MinMaxModelPools minMaxModelPools;
 
-    std::vector<solvers::csp::FluentTimeResource>::const_iterator cit = mResourceRequirements.begin();
+    std::vector<solvers::FluentTimeResource>::const_iterator cit = mResourceRequirements.begin();
     for(; cit != mResourceRequirements.end(); ++cit)
     {
-        const solvers::csp::FluentTimeResource& requirementFtr = *cit;
+        const solvers::FluentTimeResource& requirementFtr = *cit;
         if(ftr.getLocation() == requirementFtr.getLocation() &&
                 ftr.getInterval() == requirementFtr.getInterval())
         {
-            minMaxModelPools.first.push_back(ftr.minCardinalities);
-            minMaxModelPools.second.push_back(ftr.maxCardinalities);
+            minMaxModelPools.first.push_back(ftr.getMinCardinalities());
+            minMaxModelPools.second.push_back(ftr.getMaxCardinalities());
             return minMaxModelPools;
         }
     }
@@ -193,8 +193,8 @@ void SolutionAnalysis::analyse()
 {
 //    // a collect all requirements of the mission -- as translated from the
 //    // persistence conditions
-//    std::vector<solvers::csp::FluentTimeResource> requirements = Mission::getResourceRequirements(mpMission);
-//    for(const solvers::csp::FluentTimeResource& ftr : requirements)
+//    std::vector<solvers::FluentTimeResource> requirements = Mission::getResourceRequirements(mpMission);
+//    for(const solvers::FluentTimeResource& ftr : requirements)
 //    {
 //        analyse(ftr);
 //    }
@@ -208,17 +208,17 @@ void SolutionAnalysis::save() const
 
 }
 
-void SolutionAnalysis::analyse(const solvers::csp::FluentTimeResource& ftr)
+void SolutionAnalysis::analyse(const solvers::FluentTimeResource& ftr)
 {
     double d = degreeOfFulfillment(ftr);
     // Main spatio temporal requirement
     // needs to be checked upon fulfillment
     //
     // -- partial fulfillment or full fulfillment --
-    //std::vector<solvers::csp::FluentTimeResource& ftr = solution.collectRelated(ftr);
+    //std::vector<solvers::FluentTimeResource& ftr = solution.collectRelated(ftr);
 }
 
-double SolutionAnalysis::degreeOfFulfillment(const solvers::csp::FluentTimeResource& ftr)
+double SolutionAnalysis::degreeOfFulfillment(const solvers::FluentTimeResource& ftr)
 {
 //    std::set<organization_model::Functionality> requiredFunctionalities = ftr.getFunctionalities();
 //
@@ -226,29 +226,29 @@ double SolutionAnalysis::degreeOfFulfillment(const solvers::csp::FluentTimeResou
     return 0.0;
 }
 
-organization_model::ModelPool SolutionAnalysis::getMinResourceRequirements(const csp::FluentTimeResource& ftr) const
+organization_model::ModelPool SolutionAnalysis::getMinResourceRequirements(const FluentTimeResource& ftr) const
 {
     using namespace organization_model;
     return getRequiredResources(ftr).first.front();
 }
 
-organization_model::ModelPool SolutionAnalysis::getMaxResourceRequirements(const csp::FluentTimeResource& ftr) const
+organization_model::ModelPool SolutionAnalysis::getMaxResourceRequirements(const FluentTimeResource& ftr) const
 {
     using namespace organization_model;
     return getRequiredResources(ftr).second.front();
 }
 
-SpaceTime::Network::tuple_t::Ptr SolutionAnalysis::getFromTuple(const csp::FluentTimeResource& ftr) const
+SpaceTime::Network::tuple_t::Ptr SolutionAnalysis::getFromTuple(const FluentTimeResource& ftr) const
 {
     return mSolutionNetwork.tupleByKeys(ftr.getLocation(), ftr.getInterval().getFrom());
 }
 
-SpaceTime::Network::tuple_t::Ptr SolutionAnalysis::getToTuple(const csp::FluentTimeResource& ftr) const
+SpaceTime::Network::tuple_t::Ptr SolutionAnalysis::getToTuple(const FluentTimeResource& ftr) const
 {
     return mSolutionNetwork.tupleByKeys(ftr.getLocation(), ftr.getInterval().getTo());
 }
 
-organization_model::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequirements(const solvers::csp::FluentTimeResource& ftr) const
+organization_model::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequirements(const solvers::FluentTimeResource& ftr) const
 {
     using namespace organization_model;
     ModelPool requiredResources = getMinResourceRequirements(ftr);
@@ -266,7 +266,7 @@ organization_model::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequir
     return Algebra::delta(requiredResources, availableResources);
 }
 
-organization_model::ModelPoolDelta SolutionAnalysis::getMaxMissingResources(const solvers::csp::FluentTimeResource& ftr) const
+organization_model::ModelPoolDelta SolutionAnalysis::getMaxMissingResources(const solvers::FluentTimeResource& ftr) const
 {
     using namespace organization_model;
     ModelPool requiredResources = getMinResourceRequirements(ftr);
@@ -414,7 +414,7 @@ void SolutionAnalysis::quantifyTime() const
 
 void SolutionAnalysis::quantifyMetric() const
 {
-    for(const csp::FluentTimeResource& ftr : mResourceRequirements)
+    for(const FluentTimeResource& ftr : mResourceRequirements)
     {
         try {
             double value = getMetricValue(ftr);
@@ -501,7 +501,7 @@ std::string SolutionAnalysis::toString(size_t indent) const
     ss << hspace << "SolutionAnalysis:" << std::endl;
     ss << hspace << "    required roles: " << Role::toString( getRequiredRoles() ) << std::endl;
 
-    for(const solvers::csp::FluentTimeResource& ftr : mResourceRequirements)
+    for(const solvers::FluentTimeResource& ftr : mResourceRequirements)
     {
         ss << ftr.toString(indent + 4) << std::endl;
         ss << getMinAvailableResources(ftr).toString(indent + 4) << std::endl;

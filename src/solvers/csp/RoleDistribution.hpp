@@ -112,10 +112,13 @@ public:
     void addDistinct(const FluentTimeResource& fts0, const FluentTimeResource& fts1, const owlapi::model::IRI& model, uint32_t additional, const Solution& solution);
 };
 
-std::ostream& operator<<(std::ostream& os, const RoleDistribution::Solution& solution);
-std::ostream& operator<<(std::ostream& os, const RoleDistribution::SolutionList& solutions);
-
 } // end namespace csp
 } // end namespace solvers
 } // end namespace templ
+
+namespace std {
+    std::ostream& operator<<(std::ostream& os, const templ::solvers::csp::RoleDistribution::Solution& solution);
+    std::ostream& operator<<(std::ostream& os, const templ::solvers::csp::RoleDistribution::SolutionList& solutions);
+}
+
 #endif // TEMPL_SOLVERS_CSP_ROLE_DISTRIBUTION_HPP

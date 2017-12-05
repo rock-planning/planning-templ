@@ -15,12 +15,13 @@
 #include <organization_model/vocabularies/OM.hpp>
 #include <organization_model/facets/Robot.hpp>
 
-#include <templ/solvers/GQReasoner.hpp>
-#include <templ/solvers/csp/ModelDistribution.hpp>
-#include <templ/solvers/csp/RoleDistribution.hpp>
-#include <templ/solvers/transshipment/MinCostFlow.hpp>
-#include <templ/utils/PathConstructor.hpp>
-#include <templ/Plan.hpp>
+#include "solvers/GQReasoner.hpp"
+#include "solvers/csp/ModelDistribution.hpp"
+#include "solvers/csp/RoleDistribution.hpp"
+#include "solvers/transshipment/MinCostFlow.hpp"
+#include "utils/PathConstructor.hpp"
+#include "Plan.hpp"
+#include "solvers/FluentTimeResource.hpp"
 
 using namespace organization_model;
 using namespace templ::solvers;

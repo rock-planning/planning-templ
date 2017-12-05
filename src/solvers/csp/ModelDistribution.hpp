@@ -10,7 +10,7 @@
 #include <organization_model/OrganizationModelAsk.hpp>
 
 #include <templ/Mission.hpp>
-#include <templ/solvers/csp/FluentTimeResource.hpp>
+#include <templ/solvers/FluentTimeResource.hpp>
 
 namespace templ {
 namespace solvers {
@@ -108,7 +108,7 @@ private:
     std::vector<FluentTimeResource> mResourceRequirements;
 
     // map timeslot to fluenttime service
-    std::map<uint32_t, std::vector<FluentTimeResource> > mTimeIndexedRequirements;
+    std::map<size_t, std::vector<FluentTimeResource> > mTimeIndexedRequirements;
 
     // ###########################
     // Model-based mapping

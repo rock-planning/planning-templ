@@ -1,13 +1,13 @@
 #include "MissionWriter.hpp"
 #include "../utils/XMLUtils.hpp"
-#include "../solvers/csp/FluentTimeResource.hpp"
+#include "../solvers/FluentTimeResource.hpp"
 #include "../solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp"
 #include "../solvers/temporal/IntervalConstraint.hpp"
 #include "../io/MissionRequirements.hpp"
 #include "../constraints/ModelConstraint.hpp"
 
 using namespace templ::utils;
-using namespace templ::solvers::csp;
+using namespace templ::solvers;
 namespace pa = templ::solvers::temporal::point_algebra;
 
 namespace templ {
@@ -171,17 +171,15 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
         XMLUtils::startElement(writer, "resource-requirement");
         std::set<owlapi::model::IRI> models;
         {
-            organization_model::ModelPool::const_iterator cit = ftr.minCardinalities.begin();
-            for(; cit != ftr.minCardinalities.end(); ++cit)
+            for(const std::pair<owlapi::model::IRI,size_t> p : ftr.getMinCardinalities())
             {
-                models.insert(cit->first);
+                models.insert(p.first);
             }
         }
         {
-            organization_model::ModelPool::const_iterator cit = ftr.maxCardinalities.begin();
-            for(; cit != ftr.maxCardinalities.end(); ++cit)
+            for(const std::pair<owlapi::model::IRI,size_t> p : ftr.getMaxCardinalities())
             {
-                models.insert(cit->first);
+                models.insert(p.first);
             }
         }
         for(const owlapi::model::IRI& model : models)
@@ -193,8 +191,8 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
             XMLUtils::endElement(writer); // end model;
 
             // minCardinalities
-            organization_model::ModelPool::const_iterator minIt =  ftr.minCardinalities.find(model);
-            if(minIt != ftr.minCardinalities.end())
+            organization_model::ModelPool::const_iterator minIt =  ftr.getMinCardinalities().find(model);
+            if(minIt != ftr.getMinCardinalities().end())
             {
                 std::stringstream sm;
                 sm << minIt->second;
@@ -203,8 +201,8 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
                 XMLUtils::endElement(writer); // end minCardinality
             }
 
-            organization_model::ModelPool::const_iterator maxIt =  ftr.maxCardinalities.find(model);
-            if(maxIt != ftr.maxCardinalities.end())
+            organization_model::ModelPool::const_iterator maxIt =  ftr.getMaxCardinalities().find(model);
+            if(maxIt != ftr.getMaxCardinalities().end())
             {
                 if(maxIt->second != std::numeric_limits<size_t>::max())
                 {

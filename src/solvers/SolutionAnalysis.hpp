@@ -4,7 +4,7 @@
 #include "../Mission.hpp"
 #include "../SpaceTime.hpp"
 #include "Solution.hpp"
-#include "csp/FluentTimeResource.hpp"
+#include "FluentTimeResource.hpp"
 #include "../Plan.hpp"
 #include "temporal/TemporalConstraintNetwork.hpp"
 #include <organization_model/Metric.hpp>
@@ -52,7 +52,7 @@ public:
     /**
      * Get the metrics, e.g., redundancy of the fluent time resource
      */
-    double getMetricValue(const csp::FluentTimeResource& ftr) const;
+    double getMetricValue(const FluentTimeResource& ftr) const;
 
     /**
      * Retrieve the list of required roles / all roles that are involved in this
@@ -67,25 +67,25 @@ public:
      * Get the minimum required resource for the given fluent time resource
      * \return model pool of the minimum required resources
      */
-    organization_model::ModelPool getMinResourceRequirements(const csp::FluentTimeResource& ftr) const;
+    organization_model::ModelPool getMinResourceRequirements(const FluentTimeResource& ftr) const;
 
     /**
      * Get the maximum required resource for the given fluent time resource
      * \return model pool of the maximum required resources
      */
-    organization_model::ModelPool getMaxResourceRequirements(const csp::FluentTimeResource& ftr) const;
+    organization_model::ModelPool getMaxResourceRequirements(const FluentTimeResource& ftr) const;
 
     /**
      * Get the corresponding space time tuple for source time of a fluent time resource
      * definition
      */
-    SpaceTime::Network::tuple_t::Ptr getFromTuple(const csp::FluentTimeResource& ftr) const;
+    SpaceTime::Network::tuple_t::Ptr getFromTuple(const FluentTimeResource& ftr) const;
 
     /**
      * Get the corresponding space time tuple for the target time of a fluent time resource
      * definition
      */
-    SpaceTime::Network::tuple_t::Ptr getToTuple(const csp::FluentTimeResource& ftr) const;
+    SpaceTime::Network::tuple_t::Ptr getToTuple(const FluentTimeResource& ftr) const;
 
     /**
      * Get the maximum number of missing resource requirements, i.e.
@@ -94,7 +94,7 @@ public:
      * This takes into account resolution of functionality to actual agents to
      * come to a particular solution
      */
-    organization_model::ModelPoolDelta getMinMissingResourceRequirements(const csp::FluentTimeResource& ftr) const;
+    organization_model::ModelPoolDelta getMinMissingResourceRequirements(const FluentTimeResource& ftr) const;
 
     /**
      * Get the minimum number of missing resource requirements, i.e.
@@ -103,7 +103,7 @@ public:
      * This takes into account resolution of functionality to actual agents to
      * come to a particular solution
      */
-    organization_model::ModelPoolDelta getMaxMissingResourceRequirements(const csp::FluentTimeResource& ftr) const;
+    organization_model::ModelPoolDelta getMaxMissingResourceRequirements(const FluentTimeResource& ftr) const;
 
     /**
      * Get the maximum number of missing resources, i.e.
@@ -112,7 +112,7 @@ public:
      * This takes into account resolution of functionality to actual agents to
      * come to a particular solution
      */
-    organization_model::ModelPoolDelta getMaxMissingResources(const csp::FluentTimeResource& ftr) const;
+    organization_model::ModelPoolDelta getMaxMissingResources(const FluentTimeResource& ftr) const;
 
     /**
      * Get the minimum number of missing resources, i.e.
@@ -121,7 +121,7 @@ public:
      * This takes into account resolution of functionality to actual agents to
      * come to a particular solution
      */
-    organization_model::ModelPoolDelta getMinMissingResources(const csp::FluentTimeResource& ftr) const;
+    organization_model::ModelPoolDelta getMinMissingResources(const FluentTimeResource& ftr) const;
 
     /**
      * Get the minimum number of available resources for the given fluent time
@@ -129,7 +129,7 @@ public:
      * \return ModelPool containing the available resources (including inferred
      * functionalities)
      */
-    organization_model::ModelPool getMinAvailableResources(const csp::FluentTimeResource& ftr) const;
+    organization_model::ModelPool getMinAvailableResources(const FluentTimeResource& ftr) const;
 
     /**
      * Get the maximum number of available resources for the given fluent time
@@ -139,7 +139,7 @@ public:
      * \return ModelPool containing the available resources (including inferred
      * functionalities)
      */
-    organization_model::ModelPool getMaxAvailableResources(const csp::FluentTimeResource& ftr) const;
+    organization_model::ModelPool getMaxAvailableResources(const FluentTimeResource& ftr) const;
 
     /**
      * Get the required resources as a pair of two model pool list for min
@@ -152,7 +152,7 @@ public:
      * solution, i.e.
      * find the corresponding match in the mission description
      */
-    MinMaxModelPools getRequiredResources(const csp::FluentTimeResource& ftr) const;
+    MinMaxModelPools getRequiredResources(const FluentTimeResource& ftr) const;
 
     /**
      * Get the availability as list of model pools over the course of one interval
@@ -181,7 +181,7 @@ public:
     /**
      * Get the set of available resources
      */
-    //organization_model::ModelPool getAvailableResources(const solvers::csp::FluentTimeResource& e) const;
+    //organization_model::ModelPool getAvailableResources(const solvers::FluentTimeResource& e) const;
 
     std::string toString(size_t indent = 0) const;
 
@@ -196,16 +196,16 @@ private:
     /**
      * Check solution with respect to the given requirement
      */
-    void analyse(const solvers::csp::FluentTimeResource& requirement);
+    void analyse(const solvers::FluentTimeResource& requirement);
 
-    double degreeOfFulfillment(const solvers::csp::FluentTimeResource& requirement);
+    double degreeOfFulfillment(const solvers::FluentTimeResource& requirement);
 
 
     Mission::Ptr mpMission;
     SpaceTime::Network mSolutionNetwork;
     Plan mPlan;
 
-    std::vector<solvers::csp::FluentTimeResource> mResourceRequirements;
+    std::vector<solvers::FluentTimeResource> mResourceRequirements;
     solvers::temporal::point_algebra::TimePointComparator mTimepointComparator;
 
     mutable graph_analysis::BaseGraph::Ptr mpTimeDistanceGraph;
