@@ -11,9 +11,7 @@ BOOST_AUTO_TEST_CASE(relative_complement)
     std::vector<Role> roles;
     for(size_t i = 0; i < 10; ++i)
     {
-        std::stringstream ss;
-        ss << "test_role_" << i;
-        Role role(ss.str(), "http://model/instance#0");
+        Role role(i, "http://model/instance#0");
         roles.push_back(role);
     }
 

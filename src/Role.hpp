@@ -16,11 +16,12 @@ namespace templ {
 class Role
 {
     friend class boost::serialization::access;
-
-    /// name / identifier or the role
-    std::string mName;
     /// type of model this role fulfills
     owlapi::model::IRI mModel;
+    /// id or the role
+    size_t mId;
+
+    std::string mName;
 public:
     typedef std::vector<Role> List;
     typedef std::set<Role> Set;
@@ -35,10 +36,11 @@ public:
      * \param name Name/Id of the role
      * \param model Model identification
      */
-    Role(const std::string& name, const owlapi::model::IRI& model);
+    Role(size_t id, const owlapi::model::IRI& model);
 
-    const std::string& getName() const { return mName; }
     const owlapi::model::IRI& getModel() const { return mModel; }
+    size_t getId() const  { return mId; }
+    const std::string& getName() const { return mName; }
 
     std::string toString() const;
     static std::string toString(const List& roles, size_t indent = 0);
@@ -47,14 +49,15 @@ public:
     static organization_model::ModelPool getModelPool(const Set& roles);
 
     bool operator<(const Role& other) const;
-    bool operator==(const Role& other) const { return mName == other.mName && mModel == other.mModel; }
+    bool operator==(const Role& other) const { return mModel == other.mModel && mId == other.mId; }
     bool operator!=(const Role& other) const { return ! (*this == other); }
 
     template<class Archive>
     void serialize(Archive & ar, const unsigned int version)
     {
-        ar & mName;
         ar & mModel;
+        ar & mId;
+        ar & mName;
     }
 
     /**
@@ -63,6 +66,9 @@ public:
      */
     static List createRoles(const organization_model::ModelPool& modelPool);
 };
+
+typedef Role::Set Coalition;
+typedef std::vector<Role::Set> CoalitionStructure;
 
 } // end namespace templ
 #endif // TEMPL_ROLE_HPP

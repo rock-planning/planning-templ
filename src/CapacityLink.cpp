@@ -10,7 +10,7 @@ namespace templ {
 
 const graph_analysis::EdgeRegistration<CapacityLink> CapacityLink::msRegistration;
 
-Role CapacityLink::msLocationTransitionRole = Role("local-transition",owlapi::model::IRI());
+Role CapacityLink::msLocationTransitionRole = Role(0,owlapi::model::IRI("http://rock-robotics.org/2014/07/local-transition#"));
 
 CapacityLink::CapacityLink()
     : graph_analysis::Edge()

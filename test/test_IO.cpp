@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_SUITE(io)
 
 BOOST_AUTO_TEST_CASE(role_serialization)
 {
-    Role role("test_role", "http://model/instance#0");
+    Role role(0, "http://model/instance#");
 
     std::stringstream ss;
     //boost::archive::text_oarchive oarch(ss);
@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(role_serialization)
 BOOST_AUTO_TEST_CASE(role_info_serialization)
 {
     RoleInfo roleInfo;
-    Role role("test_role", "http://model/instance#0");
+    Role role(0, "http://model/instance#");
     roleInfo.addRole(role);
     roleInfo.addRole(role,"tag-0");
     roleInfo.addRole(role,"tag-1");
@@ -49,9 +49,7 @@ BOOST_AUTO_TEST_CASE(role_info_weighted_edge_serialization_0)
 
     for(size_t i = 0; i < 5; ++i)
     {
-        std::stringstream ss;
-        ss << "test_role-" << i;
-        Role role(ss.str(), "http://model/instance#0");
+        Role role(i, "http://model/instance#");
         e.addRole(role);
     }
 
@@ -119,9 +117,7 @@ BOOST_AUTO_TEST_CASE(role_info_weighted_edge_serialization_1)
     RoleInfoWeightedEdge::Ptr edge( new RoleInfoWeightedEdge());
     for(size_t i = 0; i < 5; ++i)
     {
-        std::stringstream ss;
-        ss << "test_role-" << i;
-        Role role(ss.str(), "http://model/instance#0");
+        Role role(i, "http://model/instance#0");
         edge->addRole(role);
     }
 //    //eManager->registerType("RoleInfoWeightedEdge", edge, true);
@@ -157,9 +153,7 @@ BOOST_AUTO_TEST_CASE(role_info_weighted_edge_serialization_2)
 
     for(size_t i = 0; i < 5; ++i)
     {
-        std::stringstream ss;
-        ss << "test_role-" << i;
-        Role role(ss.str(), "http://model/instance#0");
+        Role role(i, "http://model/instance#0");
         e.addRole(role);
     }
 

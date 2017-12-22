@@ -4,19 +4,24 @@
 namespace templ {
 
 Role::Role()
-    : mName("unknown")
-    , mModel()
+    : mModel()
+    , mId(0)
+    , mName("unknown")
 {}
 
-Role::Role(const std::string& name, const owlapi::model::IRI& model)
-    : mName(name)
-    , mModel(model)
-{}
+Role::Role(size_t id, const owlapi::model::IRI& model)
+    : mModel(model)
+    , mId(id)
+{
+    std::stringstream ss;
+    ss << mModel.getFragment() << "_" << mId;
+    mName = ss.str();
+}
 
 std::string Role::toString() const
 {
     std::stringstream ss;
-    ss << "Role: " << mName << " (";
+    ss << "Role: " << getName() << " (";
     if(mModel != owlapi::model::IRI())
     {
         ss << mModel.getFragment();
@@ -91,7 +96,7 @@ bool Role::operator<(const Role& other) const
 {
     if(mModel == other.mModel)
     {
-        return mName < other.mName;
+        return mId < other.mId;
     }
     return mModel < other.mModel;
 }
@@ -108,9 +113,7 @@ Role::List Role::createRoles(const organization_model::ModelPool& modelPool)
         // Update roles
         for(size_t i = 0; i < count; ++i)
         {
-            std::stringstream ss;
-            ss << model.getFragment() << "_" << i;
-            Role role(ss.str(), model);
+            Role role(i, model);
             roles.push_back(role);
         }
     }
