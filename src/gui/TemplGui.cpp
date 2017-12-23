@@ -21,6 +21,11 @@
 #include <QPrinter>
 #include <QPrintDialog>
 #include <QSvgGenerator>
+#include <QPalette>
+
+#include <QDockWidget>
+#include <QTableWidget>
+#include <QFileSystemModel>
 
 #include <base-logging/Logging.hpp>
 
@@ -42,6 +47,8 @@
 #include "../gui/edge_items/CapacityLinkItem.hpp"
 #include "../gui/vertex_items/RoleInfoItem.hpp"
 #include "../solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
+#include "models/AgentStyleModel.hpp"
+#include "widgets/PenStyle.hpp"
 
 using namespace graph_analysis;
 using namespace graph_analysis::gui;
@@ -62,7 +69,7 @@ TemplGui::TemplGui()
     mpUi->setupUi(this);
 
     mpUi->tabWidget->clear();
-    mpUi->tabWidget->addTab(mpBaseGraphView, mpBaseGraphView->getClassName());
+    mpUi->tabWidget->addTab(mpBaseGraphView, "Solution View");
 
     GraphLayoutManager* layoutManager = GraphLayoutManager::getInstance();
     GraphLayout::Ptr layout = layoutManager->getGraphLayout("grid-layout-default");
@@ -76,7 +83,7 @@ TemplGui::TemplGui()
     mpUi->tabWidget->addTab(mpMissionEditor,
                             mpMissionEditor->getClassName());
     mpUi->tabWidget->addTab(mpMissionView,
-                            "Mission view");
+                            "Mission View");
     mpUi->tabWidget->addTab(mpOntologyView,
                             mpOntologyView->getClassName());
     mpUi->tabWidget->setCurrentWidget(mpMissionEditor);
@@ -92,10 +99,30 @@ TemplGui::TemplGui()
     //connect(mpQBaseGraph, SIGNAL(graphChanged()),
     //        this, SLOT(updateVisualization()));
 
+    createMenus();
 
+    QScrollArea* scrollArea = new QScrollArea;
+    scrollArea->setWidget( new widgets::PenStyle(mpUi->solutionStyleWidget));
+    mpUi->solutionStyleWidget->addTab(scrollArea, "Graph Style");
+
+    updateRecentFileActions();
+
+    registerGraphElementTypes();
+
+    // Making sure the bottom docking widget sits between the two outer docking
+    // widgets
+    setCorner(Qt::TopLeftCorner, Qt::LeftDockWidgetArea);
+    setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
+    setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
+    setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+}
+
+void TemplGui::createMenus()
+{
     ActionCommander comm(this);
     QStyle* style = new QCommonStyle();
 
+    // BEGIN FILE
     QMenu *fileMenu = new QMenu(QObject::tr("&File"));
 
     QAction *actionImport = comm.addAction("Import", SLOT(importGraph()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open ), tr("Import graph from file"));
@@ -125,7 +152,9 @@ TemplGui::TemplGui()
         fileMenu->addAction(mpRecentFileActions[i]);
     }
     fileMenu->addSeparator();
+    // END FILE
 
+    // BEGIN View
     // https://joekuan.wordpress.com/2015/09/23/list-of-qt-icons/ for list of
     // standard icons
     QMenu *viewMenu = new QMenu(QObject::tr("&View"));
@@ -133,10 +162,36 @@ TemplGui::TemplGui()
     viewMenu->addAction(clearView);
     QAction *gridLayoutAction = comm.addAction("Customize GridLayout", SLOT(customizeGridLayout()), style->standardIcon(QStyle::SP_FileDialogListView), QKeySequence(Qt::ControlModifier & Qt::Key_G), tr("Customize grid layout"));
     viewMenu->addAction(gridLayoutAction);
+    // END View
+
+    // BEGIN Windows
+    // BEGIN Windows->Dockable Dialogs
+    QMenu* windowsMenu = new QMenu(QObject::tr("&Windows"));
+    QMenu* viewDockWidgetMenu = windowsMenu->addMenu("&Dockable Dialogs");
+    viewDockWidgetMenu->addAction( mpUi->dockWidgetLeft->toggleViewAction() );
+    viewDockWidgetMenu->addAction( mpUi->dockWidgetRight->toggleViewAction() );
+    viewDockWidgetMenu->addAction( mpUi->dockWidgetBottom->toggleViewAction() );
+
+
+    QFileSystemModel* model = new QFileSystemModel;
+    model->setRootPath(QDir::currentPath());
+    mpUi->filesystemTreeView->setModel(model);
+    mpUi->filesystemTreeView->setRootIndex(model->index(QDir::currentPath()));
+    mpUi->filesystemTab->setEnabled(true);
+
+    organization_model::ModelPool modelPool;
+    modelPool["http://test/sherpa#model"] = 5;
+    QAbstractTableModel* agentStyleModel = new models::AgentStyleModel(modelPool);
+    mpUi->agentStyleModelView->setModel(agentStyleModel);
+    connect(mpUi->agentStyleModelView, SIGNAL(doubleClicked(QModelIndex)), agentStyleModel, SLOT(setColor(QModelIndex)));
+    mpUi->solutionStyleWidget->setEnabled(true);
+    // END Windows->Dockable Dialogs
+    // END Windows
 
     QMenuBar *bar = menuBar();
     bar->addMenu(fileMenu);
     bar->addMenu(viewMenu);
+    bar->addMenu(windowsMenu);
 
     QToolBar* toolBar = new QToolBar("Toolbar");
     toolBar->addAction(actionImport);
@@ -145,9 +200,6 @@ TemplGui::TemplGui()
     toolBar->setFloatable(true);
     addToolBar(toolBar);
 
-    updateRecentFileActions();
-
-    registerGraphElementTypes();
 }
 
 TemplGui::~TemplGui()

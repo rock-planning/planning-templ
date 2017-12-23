@@ -54,6 +54,11 @@ private:
 
     void registerGraphElementTypes();
 
+    /**
+     * Create all menus
+     */
+    void createMenus();
+
     QString strippedName(const QString& fullFileName);
 
     void updateRecentFileActions();

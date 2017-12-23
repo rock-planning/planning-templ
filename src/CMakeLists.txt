@@ -310,6 +310,8 @@ rock_library(templ_gui
         gui/edge_items/RoleInfoItem.hpp
         gui/edge_items/CapacityLinkItem.hpp
         gui/vertex_items/RoleInfoItem.hpp
+        gui/models/AgentStyleModel.hpp
+        gui/widgets/PenStyle.hpp
     SOURCES
         gui/TemplGui.cpp
         gui/SpatioTemporalRequirementItem.cpp
@@ -320,6 +322,8 @@ rock_library(templ_gui
         gui/edge_items/RoleInfoItem.cpp
         gui/edge_items/CapacityLinkItem.cpp
         gui/vertex_items/RoleInfoItem.cpp
+        gui/models/AgentStyleModel.cpp
+        gui/widgets/PenStyle.cpp
     MOC
         gui/TemplGui.hpp
         gui/SpatioTemporalRequirementItem.hpp
@@ -330,6 +334,8 @@ rock_library(templ_gui
         gui/edge_items/RoleInfoItem.hpp
         gui/edge_items/CapacityLinkItem.hpp
         gui/vertex_items/RoleInfoItem.hpp
+        gui/models/AgentStyleModel.hpp
+        gui/widgets/PenStyle.hpp
     DEPS
         templ
     DEPS_PKGCONFIG
@@ -338,6 +344,7 @@ rock_library(templ_gui
         gui/TemplGui.ui
         gui/MissionEditor/MissionEditor.ui
         gui/OntologyView/OntologyView.ui
+        gui/widgets/PenStyle.ui
 )
 
 rock_executable(templ-gui gui/Main.cpp

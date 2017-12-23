@@ -4,6 +4,8 @@
 #include <base-logging/Logging.hpp>
 #include <cmath>
 #include <iostream>
+#include <QSettings>
+#include <QtCore/qmath.h>
 
 using namespace graph_analysis::gui;
 
@@ -54,10 +56,15 @@ int CapacityLinkItem::type() const
 
 void CapacityLinkItem::adjustEdgePositioning()
 {
+    /// Allow setting via widget
+    QSettings settings("templ","gui");
+    QPen pen = settings.value("editor/edge/pen").value<QPen>();
+
     prepareGeometryChange();
 
     drawBezierEdge();
-    drawArrowHead(mArrowSize);
+
+    drawArrowHead(mArrowSize*qSqrt(pen.width()), pen.brush(), QPen(pen.brush().color()));
 
     mpLabel->setPos(mpEdgePath->boundingRect().center() -
                     mpLabel->boundingRect().center());
@@ -67,6 +74,7 @@ void CapacityLinkItem::adjustEdgePositioning()
     mpFillBar->setPos(mpLabel->pos().x(), mpLabel->pos().y() - mpFillBar->rect().height());
     mpFillStatus->setPos(mpLabel->pos().x(), mpLabel->pos().y() - mpFillStatus->rect().height());
 
+    getEdgePath()->setPen(pen);
 }
 
 void CapacityLinkItem::paint(QPainter* painter,
