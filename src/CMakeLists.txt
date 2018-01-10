@@ -5,7 +5,6 @@ rock_library(templ_core
         Configuration.cpp
         Constraint.cpp
         ConstraintNetwork.cpp
-        Role.cpp
         RoleInfo.cpp
         RoleInfoWeightedEdge.cpp
         Symbol.cpp
