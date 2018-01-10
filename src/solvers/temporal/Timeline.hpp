@@ -40,7 +40,7 @@ public:
     void addTemporalAssertion(TemporalAssertion::Ptr assertion);
 
     /**
-     * Add constraint to this timeline, e.g., constraints 
+     * Add constraint to this timeline, e.g., constraints
      * between different qualitative timepoints
      */
     void addConstraint(Constraint::Ptr constraint);

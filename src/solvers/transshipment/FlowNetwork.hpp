@@ -11,12 +11,17 @@ namespace transshipment {
 
 /**
  * Graph-based representation of mobile system requirements
+ * The requirements are given either as part of a minimal/sparse timeline, i.e.
+ * the minimum requirements to be fulfilled or a fully expanded timeline
  *
+ * TODO: merge this into a single representation, the reason for this split is
+ * the support of diverge code paths
  */
 class FlowNetwork
 {
 public:
     /**
+     * Default constructor of the flow network
      * \param minimalTimelines The set of minimal requirement per role
      * \param expandedTimelines The set of additional requirements for roles
      */

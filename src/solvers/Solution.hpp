@@ -25,8 +25,9 @@ public:
     typedef std::vector<Solution> List;
 
     /// The space time network contains the / the (min cost flow) solution.
-    /// For the representation of vertices SpaceTime::RoleInfoSpaceTimeTuple is used,
-    /// for the representation of edges RoleInfoWeightedEdge
+    /// For the representation of
+    ///     - vertices: SpaceTime::RoleInfoSpaceTimeTuple
+    ///     - edges:    RoleInfoWeightedEdge
     SpaceTime::Network mSpaceTimeNetwork;
 
     // Each vertex: requires a description on how to reconfigure:

@@ -92,17 +92,15 @@ void FlowNetwork::initializeExpandedTimelines()
             continue;
         }
 
-        LOG_DEBUG_S << "Add capacity for mobile system: " << role.getModel();
+        /// MOBILE SYSTEMS ONLY
         uint32_t capacity = robot.getTransportCapacity();
-        LOG_DEBUG_S << "Role: " << role.toString() << std::endl
-            << "    transport capacity: " << capacity << std::endl;
 
         namespace pa = templ::solvers::temporal::point_algebra;
         pa::TimePoint::Ptr prevIntervalEnd;
         co::Location::Ptr prevLocation;
         SpaceTime::Network::tuple_t::Ptr startTuple, endTuple;
 
-        // Iterator over all role-specific timelines and annotate vertices and
+        // Iterate over all role-specific timelines and annotate vertices and
         // edges with the information of the role that is assigned to it
         SpaceTime::Timeline::const_iterator cit = roleTimeline.begin();
         RoleInfo::Tag tag = RoleInfo::AVAILABLE;
