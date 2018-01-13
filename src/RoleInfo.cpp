@@ -86,13 +86,16 @@ std::string RoleInfo::toString(uint32_t indent) const
     if(!mRoles.empty())
     {
         ss << hspace << "    roles:" << std::endl;
-        {
-            std::set<Role>::const_iterator it = mRoles.begin();
-            for(; it != mRoles.end(); ++it)
-            {
-                ss << hspace << "        " << it->toString() << std::endl;
-            }
-        }
+        Role::TypeMap typeMap = Role::toTypeMap(mRoles);
+        ss << Role::toString(typeMap, indent + 8);
+        //{
+
+        //    std::set<Role>::const_iterator it = mRoles.begin();
+        //    for(; it != mRoles.end(); ++it)
+        //    {
+        //        ss << hspace << "        " << it->toString() << std::endl;
+        //    }
+        //}
     }
 
     std::map<std::string, std::set<Role> >::const_iterator rit = mTaggedRoles.begin();
@@ -102,11 +105,13 @@ std::string RoleInfo::toString(uint32_t indent) const
         if(!roles.empty())
         {
             ss << hspace << "    roles (" << rit->first << "):" << std::endl;
-            std::set<Role>::const_iterator it = roles.begin();
-            for(; it != roles.end(); ++it)
-            {
-                ss << hspace << "        " << it->toString() << std::endl;
-            }
+            Role::TypeMap typeMap = Role::toTypeMap(roles);
+            ss << Role::toString(typeMap, indent + 8);
+            //std::set<Role>::const_iterator it = roles.begin();
+            //for(; it != roles.end(); ++it)
+            //{
+            //    ss << hspace << "        " << it->toString() << std::endl;
+            //}
         }
     }
 

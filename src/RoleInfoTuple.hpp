@@ -40,7 +40,7 @@ public:
     {
     }
 
-    std::string getClassName() const override { return "RoleInfoTuple"; } //typeid(*this).name(); }
+    std::string getClassName() const override { return "RoleInfoTuple"; }
 
     std::string toString(uint32_t indent = 0) const override
     {

@@ -346,6 +346,9 @@ rock_library(templ_gui
         gui/widgets/PenStyle.ui
 )
 
+# qt4_add_resources(qrc_files src/gui/TemplGui.qrc)
+# target_link_libraries(templ_gui ${qrc_files})
+
 rock_executable(templ-gui gui/Main.cpp
     DEPS templ_gui)
 

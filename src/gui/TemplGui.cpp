@@ -105,6 +105,9 @@ TemplGui::TemplGui()
     scrollArea->setWidget( new widgets::PenStyle(mpUi->solutionStyleWidget));
     mpUi->solutionStyleWidget->addTab(scrollArea, "Graph Style");
 
+    //mpUi->solutionStyleWidget->addTab(new widgets::PenStyle(mpUi->solutionStyleWidget), "Graph Style");
+    //activateEdgeStyle();
+
     updateRecentFileActions();
 
     registerGraphElementTypes();
@@ -184,6 +187,8 @@ void TemplGui::createMenus()
     QAbstractTableModel* agentStyleModel = new models::AgentStyleModel(modelPool);
     mpUi->agentStyleModelView->setModel(agentStyleModel);
     connect(mpUi->agentStyleModelView, SIGNAL(doubleClicked(QModelIndex)), agentStyleModel, SLOT(setColor(QModelIndex)));
+    //models::ColorChooserDelegate* colorChooserDelegate = new models::ColorChooserDelegate(this);
+    //mpUi->agentStyleModelView->setItemDelegate(colorChooserDelegate);
     mpUi->solutionStyleWidget->setEnabled(true);
     // END Windows->Dockable Dialogs
     // END Windows
@@ -201,6 +206,16 @@ void TemplGui::createMenus()
     addToolBar(toolBar);
 
 }
+
+//void TemplGui::activateEdgeStyle()
+//{
+//    QPalette* palette = new QPalette();
+//    palette->setColor(QPalette::Button, Qt::black);
+//    mpUi->colorPushButton->setPalette(*palette);
+//    mpUi->colorPushButton->setText("OK");
+//    QString s = "background-color: red";
+//    mpUi->colorPushButton->setStyleSheet(s);
+//}
 
 TemplGui::~TemplGui()
 {
@@ -316,6 +331,11 @@ void TemplGui::selectLayout()
         if(ok)
         {
             mpBaseGraphView->applyLayout(desiredLayout.toStdString());
+            if(desiredLayout.toStdString() == "grid-layout-default")
+            {
+                std::cout << "Preparing grid layout";
+                mpBaseGraphView->prepareGridLayout();
+            }
         }
     }
     updateVisualization();

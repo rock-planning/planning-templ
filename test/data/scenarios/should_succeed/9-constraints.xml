@@ -64,11 +64,9 @@
     </requirement>
     <requirement id='1'>
         <spatial-requirement>
-            <location>
-                <id>base1</id>
-            </location>
+            <at>base1</at>
         </spatial-requirement>
-        <temporal-requirement type="persistence-condition | event" >
+        <temporal-requirement>
             <from>t2</from>
             <to>t3</to>
         </temporal-requirement>
@@ -81,13 +79,27 @@
     </requirement>
     <requirement id='2'>
         <spatial-requirement>
-            <location>
-                <id>base2</id>
-            </location>
+            <at>base2</at>
         </spatial-requirement>
-        <temporal-requirement type="persistence-condition | event" >
+        <temporal-requirement>
             <from>t2</from>
             <to>t5</to>
+        </temporal-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>7</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement id='3'>
+        <spatial-requirement>
+            <from>base1</from>
+            <to>base2</to>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t3</from>
+            <to>t4</to>
         </temporal-requirement>
         <resource-requirement>
             <resource>

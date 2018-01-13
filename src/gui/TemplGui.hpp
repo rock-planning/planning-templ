@@ -1,6 +1,7 @@
 #ifndef TEMPL_GUI_TEMPL_GUI_HPP
 #define TEMPL_GUI_TEMPL_GUI_HPP
 
+#include <iostream>
 #include <QMainWindow>
 #include <graph_analysis/gui/QBaseGraph.hpp>
 #include <graph_analysis/gui/layouts/GridLayout.hpp>
@@ -59,6 +60,8 @@ private:
      */
     void createMenus();
 
+    //void activateEdgeStyle();
+
     QString strippedName(const QString& fullFileName);
 
     void updateRecentFileActions();
@@ -78,6 +81,8 @@ private slots:
     void clearView();
     void customizeGridLayout();
     void exportScene();
+
+    void setChecked(bool check) { std::cout << "CHECKED: " << check; }
 
 
     /*Connected to QBaseGraph*/

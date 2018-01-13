@@ -38,28 +38,28 @@ double Cost::getTravelDistance(const symbols::constants::Location::PtrList& path
 
 double Cost::estimateTravelTime(const symbols::constants::Location::Ptr& from,
         const symbols::constants::Location::Ptr& to,
-        const Role::Set& roleSet)
+        const Coalition& coalition)
 {
     assert(!roleSet.empty());
 
-    organization_model::ModelPool modelPool = Role::getModelPool(roleSet);
     double distance = (from->getPosition() - to->getPosition()).norm();
 
-    double minTime = std::numeric_limits<double>::max();
+    organization_model::ModelPool modelPool = Role::getModelPool(coalition);
     organization_model::OrganizationModelAsk ask(mpOrganizationModel, modelPool, true);
-    // Identify system that should be used for the transport
-    for(const Role& role : roleSet)
-    {
-        organization_model::facets::Robot robot(role.getModel(), ask);
-        if( robot.isMobile())
-        {
-            double time = distance / robot.getNominalVelocity();
-            minTime = std::min(time, minTime);
-        }
-    }
-    LOG_WARN_S << "RoleSet: " << std::endl << Role::toString(roleSet) << std::endl <<
-        " time " << minTime;
 
+    // Identify system that should be used for the transport
+    double minTime = std::numeric_limits<double>::max();
+    organization_model::facets::Robot robot(modelPool, ask);
+    if( robot.isMobile())
+    {
+        double time = distance / robot.getNominalVelocity();
+        minTime = std::min(time, minTime);
+        LOG_WARN_S << "RoleSet: " << std::endl << Role::toString(coalition) << std::endl <<
+            " time " << minTime;
+    } else {
+        LOG_WARN_S << "Immobile RoleSet: " << std::endl << Role::toString(coalition) << std::endl <<
+            " time " << minTime;
+    }
     return minTime;
 }
 

@@ -14,13 +14,26 @@ public:
     Cost(const organization_model::OrganizationModel::Ptr& organizationModel);
 
     /**
-     * Compute the travel distance from a given path
+     * Compute the travel distance from a given path using the norm of the
+     * segment distances
      */
     static double getTravelDistance(const symbols::constants::Location::PtrList& path);
 
+    /**
+     * Estimate the travel time from a particular location to a destination for
+     * a given coalition
+     */
     double estimateTravelTime(const symbols::constants::Location::Ptr& from,
             const symbols::constants::Location::Ptr& to,
-            const Role::Set& roles);
+            const Coalition& coalition);
+
+    /**
+     * Estimate the reconfiguration cost from a particular CoalitionStructure
+     * to a particular coalition structure
+     * \return cost
+     */
+    double estimateReconfigurationCost(const CoalitionStructure& from,
+        const CoalitionStructure& to);
 
 private:
     organization_model::OrganizationModel::Ptr mpOrganizationModel;
