@@ -64,8 +64,6 @@ private:
 
     QString strippedName(const QString& fullFileName);
 
-    void updateRecentFileActions();
-
     void activateGraph(graph_analysis::BaseGraph::Ptr& graph);
 
     static std::string getColumnLabel(const graph_analysis::Vertex::Ptr& vertex);
@@ -81,6 +79,8 @@ private slots:
     void clearView();
     void customizeGridLayout();
     void exportScene();
+    void updateRecentFileActions();
+    void clearRecentFiles();
 
     void setChecked(bool check) { std::cout << "CHECKED: " << check; }
 

@@ -139,6 +139,10 @@ void TemplGui::createMenus()
     fileMenu->addAction(saveGraphics);
     fileMenu->addSeparator();
 
+    QMenu* recentFilesMenu = new QMenu(QObject::tr("&Recent Files"));
+    connect(recentFilesMenu, SIGNAL(aboutToShow()), this, SLOT(updateRecentFileActions()));
+
+    fileMenu->addMenu(recentFilesMenu);
     // Populate the recent files list
     for(int i = 0; i < MaxRecentFiles; ++i)
     {
@@ -152,8 +156,10 @@ void TemplGui::createMenus()
     int existingRecentFiles = qMin(mpRecentFileActions.size(), (int) MaxRecentFiles);
     for(int i = 0; i < existingRecentFiles; ++i)
     {
-        fileMenu->addAction(mpRecentFileActions[i]);
+        recentFilesMenu->addAction(mpRecentFileActions[i]);
     }
+    QAction* clearRecentFiles = comm.addAction("Clear list", SLOT(clearRecentFiles()), style->standardIcon(QStyle::SP_TrashIcon), QKeySequence(Qt::ControlModifier & Qt::Key_C), tr("Clear recent files"));
+    recentFilesMenu->addAction(clearRecentFiles);
     fileMenu->addSeparator();
     // END FILE
 
@@ -250,13 +256,13 @@ void TemplGui::registerGraphElementTypes()
 
 void TemplGui::updateRecentFileActions()
 {
-    QSettings settings;
+    QSettings settings(QCoreApplication::organizationName(), "IO");
     QStringList files = settings.value("recentImportFileList").toStringList();
 
     int numRecentFiles = qMin(files.size(), (int) MaxRecentFiles);
     for(int i = 0; i < numRecentFiles; ++i)
     {
-        QString text = tr("&%1 %2").arg(i + 1).arg(strippedName(files[i]));
+        QString text = tr("&%1 %2").arg(i + 1).arg(files[i]);
         mpRecentFileActions[i]->setText(text);
         mpRecentFileActions[i]->setData(files[i]);
         mpRecentFileActions[i]->setVisible(true);
@@ -331,11 +337,6 @@ void TemplGui::selectLayout()
         if(ok)
         {
             mpBaseGraphView->applyLayout(desiredLayout.toStdString());
-            if(desiredLayout.toStdString() == "grid-layout-default")
-            {
-                std::cout << "Preparing grid layout";
-                mpBaseGraphView->prepareGridLayout();
-            }
         }
     }
     updateVisualization();
@@ -450,6 +451,14 @@ void TemplGui::sortRowLabel(const graph_analysis::BaseGraph::Ptr& graph, graph_a
 void TemplGui::exportScene()
 {
     graph_analysis::gui::dialogs::IODialog::exportScene(this->mpBaseGraphView->scene(), this);
+}
+
+void TemplGui::clearRecentFiles()
+{
+    QSettings settings(QCoreApplication::organizationName(), "IO");
+    QStringList files;
+    settings.setValue("recentImportFileList", files);
+    updateRecentFileActions();
 }
 
 } // end namespace gui
