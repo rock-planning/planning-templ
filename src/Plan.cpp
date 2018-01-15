@@ -1,7 +1,7 @@
 #include "Plan.hpp"
 #include <sstream>
 #include <fstream>
-#include <organization_model/facets/Robot.hpp>
+#include <organization_model/facades/Robot.hpp>
 #include <base-logging/Logging.hpp>
 #include "SpaceTime.hpp"
 #include "RoleInfoTuple.hpp"
@@ -224,7 +224,7 @@ void Plan::computeGraph() const
             const Role& role = cit->first;
 
             // getTransportSystem
-            organization_model::facets::Robot robot(role.getModel(), organizationModelAsk);
+            organization_model::facades::Robot robot(role.getModel(), organizationModelAsk);
             if(!robot.isMobile())
             {
                 continue;
@@ -285,7 +285,7 @@ void Plan::computeGraph() const
             const Role& role = cit->first;
             const RoleBasedPlan::mapped_type& plan = cit->second;
 
-            organization_model::facets::Robot robot(role.getModel(), organizationModelAsk);
+            organization_model::facades::Robot robot(role.getModel(), organizationModelAsk);
             if(robot.isMobile())
             {
                 continue;

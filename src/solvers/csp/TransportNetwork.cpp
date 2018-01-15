@@ -16,7 +16,7 @@
 #include <templ/SharedPtr.hpp>
 #include <templ/symbols/object_variables/LocationCardinality.hpp>
 #include <templ/SpaceTime.hpp>
-#include <organization_model/facets/Robot.hpp>
+#include <organization_model/facades/Robot.hpp>
 
 #include "ConstraintMatrix.hpp"
 #include "branchers/TimelineBrancher.hpp"
@@ -832,7 +832,7 @@ void TransportNetwork::initializeRoleDistributionConstraints()
                     LOG_DEBUG_S << "Constraint general role usage: " << std::endl
                         << "     " << mAvailableModels[modelIndex].toString() << "# <= " << maxCardinality;
                     // Limit mobile / immobile systems
-                    organization_model::facets::Robot robot(mAvailableModels[modelIndex], mAsk);
+                    organization_model::facades::Robot robot(mAvailableModels[modelIndex], mAsk);
                     if(robot.isMobile())
                     {
 
@@ -1523,7 +1523,7 @@ void TransportNetwork::postRoleAssignments()
         for(uint32_t roleIdx = 0; roleIdx < mActiveRoles.size(); ++roleIdx)
         {
             const Role& role = mRoles[ mActiveRoles[roleIdx] ];
-            organization_model::facets::Robot robot(role.getModel(), mAsk);
+            organization_model::facades::Robot robot(role.getModel(), mAsk);
             if(robot.isMobile())
             {
                 uint32_t transportCapacity = robot.getTransportCapacity();
@@ -1550,7 +1550,7 @@ void TransportNetwork::postRoleAssignments()
         propagators::isPath(*this, mTimelines[i], mActiveRoleList[i].toString(), numberOfTimepoints, mLocations.size());
 
         // Only branch on the mobile systems
-        organization_model::facets::Robot robot(mActiveRoleList[i].getModel(), mAsk);
+        organization_model::facades::Robot robot(mActiveRoleList[i].getModel(), mAsk);
         if(robot.isMobile())
         {
             Gecode::SetAFC timelineUsageAfc(*this, mTimelines[i], timelineAfcDecay);

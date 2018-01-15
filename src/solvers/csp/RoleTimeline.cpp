@@ -1,5 +1,5 @@
 #include "RoleTimeline.hpp"
-#include <organization_model/facets/Robot.hpp>
+#include <organization_model/facades/Robot.hpp>
 #include <base-logging/Logging.hpp>
 #include "../Cost.hpp"
 
@@ -78,7 +78,7 @@ std::string RoleTimeline::toString() const
     }
 
     organization_model::OrganizationModelAsk ask(mOrganizationModel);
-    organization_model::facets::Robot robot(mRole.getModel(), ask);
+    organization_model::facades::Robot robot(mRole.getModel(), ask);
     ss << "    " << robot.toString() << std::endl;
 
     ss << "    travel distance (in km):         " << travelDistance()/1.0E3 << std::endl;
@@ -162,14 +162,14 @@ double RoleTimeline::estimatedEnergyCost() const
     double distance = travelDistance();
 
     organization_model::OrganizationModelAsk ask(mOrganizationModel);
-    organization_model::facets::Robot robot(mRole.getModel(), ask);
+    organization_model::facades::Robot robot(mRole.getModel(), ask);
     return robot.estimatedEnergyCost(distance);
 }
 
 double RoleTimeline::duration() const
 {
     organization_model::OrganizationModelAsk ask(mOrganizationModel);
-    organization_model::facets::Robot robot(mRole.getModel(), ask);
+    organization_model::facades::Robot robot(mRole.getModel(), ask);
     return travelDistance()/robot.getNominalVelocity();
 }
 

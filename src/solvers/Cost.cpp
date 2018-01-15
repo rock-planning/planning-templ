@@ -1,5 +1,5 @@
 #include "Cost.hpp"
-#include <organization_model/facets/Robot.hpp>
+#include <organization_model/facades/Robot.hpp>
 #include <organization_model/OrganizationModelAsk.hpp>
 
 namespace templ {
@@ -49,7 +49,7 @@ double Cost::estimateTravelTime(const symbols::constants::Location::Ptr& from,
 
     // Identify system that should be used for the transport
     double minTime = std::numeric_limits<double>::max();
-    organization_model::facets::Robot robot(modelPool, ask);
+    organization_model::facades::Robot robot(modelPool, ask);
     if( robot.isMobile())
     {
         double time = distance / robot.getNominalVelocity();

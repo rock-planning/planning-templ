@@ -3,7 +3,7 @@
 #include <graph_analysis/BipartiteGraph.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
 #include <graph_analysis/GraphIO.hpp>
-#include <organization_model/facets/Robot.hpp>
+#include <organization_model/facades/Robot.hpp>
 
 #include <templ/solvers/FluentTimeResource.hpp>
 #include <templ/utils/Logger.hpp>
@@ -28,7 +28,7 @@ MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
     for(; rit != mTimelines.end(); ++rit)
     {
         const Role& role = rit->first;
-        organization_model::facets::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
+        organization_model::facades::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
         if(!robot.isMobile()) // only immobile systems are relevant
         {
             // Allow to later map roles back from index

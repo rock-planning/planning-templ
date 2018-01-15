@@ -2,7 +2,7 @@
 #include <gecode/int/rel.hh>
 #include <gecode/minimodel.hh>
 #include <base-logging/Logging.hpp>
-#include <organization_model/facets/Robot.hpp>
+#include <organization_model/facades/Robot.hpp>
 
 #include "MultiCommodityFlow.hpp"
 
@@ -77,7 +77,7 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
         for(uint32_t roleIdx = 0; roleIdx < mRoles.size(); ++roleIdx)
         {
             const Role& role = mRoles[roleIdx];
-            organization_model::facets::Robot robot(role.getModel(), mAsk);
+            organization_model::facades::Robot robot(role.getModel(), mAsk);
             int32_t supplyDemand = robot.getTransportSupplyDemand();
             if(supplyDemand == 0)
             {

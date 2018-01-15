@@ -13,7 +13,7 @@
 #include <limits>
 
 #include <organization_model/vocabularies/OM.hpp>
-#include <organization_model/facets/Robot.hpp>
+#include <organization_model/facades/Robot.hpp>
 
 #include "solvers/GQReasoner.hpp"
 #include "solvers/csp/ModelDistribution.hpp"
