@@ -26,6 +26,7 @@
    - computation of reconfiguration cost / provide a time estimate [2018-01-09]
   - templ::Role moved to organization_model::AtomicAgent
   - gui: updated recent files menu
+  - general constraints are added to the Mission
 
 # Todos Backlog
 ## Priorities

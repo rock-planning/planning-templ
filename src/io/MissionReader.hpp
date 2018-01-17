@@ -104,6 +104,40 @@ private:
             xmlNodePtr current,
             const std::map<size_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap);
 
+    /**
+     * An exammple for the model constraints
+     *\verbatim
+    <model-constraints>
+        <all-distinct>
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </all-distinct>
+        <min-distinct value="10">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </min-distinct>
+        <min-equal value="1">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </min-equal>
+        <min-function value="10">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <requirements>0</requirements>
+        </min-function>
+        <min-property value="10">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <requirements>0</requirements>
+            <property>http://www.rock-robotics.org/2014/01/om-schema#transportCapacity</property>
+        </min-property>
+        <!-- when general properties makes sense -->
+        <max-property value="1000">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <requirements>0</requirements>
+            <property>http://www.rock-robotics.org/2014/01/om-schema#mass</property>
+        </max-property>
+    </model-constraints>
+     \endverbatim
+     */
     static constraints::ModelConstraint::List parseModelConstraints(xmlDocPtr doc,
             xmlNodePtr current,
             const std::map<size_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap);

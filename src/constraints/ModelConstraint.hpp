@@ -13,6 +13,12 @@ namespace constraints {
 /**
  * Define the set of general mission constraints which can be used to details
  * the planning problem
+ * A typical constraint is a tuple of <M,R,P,V>, where
+ * M is the model, R is the set of requirement ids, P is the property label and
+ * V is the value that is used as reference value for this constraint
+ * Property and value are optional
+ *
+ * \see io::MissionReader for details on how the XML encoding is done
  */
 class ModelConstraint : public constraints::HyperConstraint
 {
