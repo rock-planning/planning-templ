@@ -10,6 +10,11 @@ namespace templ {
 
 /**
  * A Constraint represents an edge in the constraint network
+ *
+ * Some implementation out of the existing constraint categories:
+ * \see constraints::ModelConstraint
+ * \see solvers::temporal::point_algebra::QualitativeTimePoint
+ * \see solvers::temporal::IntervalConstraint
  */
 class Constraint
 {
@@ -26,10 +31,13 @@ public:
 
     static std::map<Category, std::string> CategoryTxt;
 
+    /**
+     * Default constructor for constraint
+     */
     Constraint();
 
     /**
-     * Default constructor for a constraint
+     * Connstructor for a constraint using the category
      */
     Constraint(Category category);
 
@@ -39,7 +47,8 @@ public:
     virtual ~Constraint();
 
     /**
-     * Get the type of this constraint
+     * Get the category of this constraint
+     * \return category
      */
     Category getCategory() const { return mCategory; }
 
@@ -51,10 +60,14 @@ public:
 
     /**
      * Get stringified object
-     * \return string repr
+     * \return string representation
      */
     virtual std::string toString() const { return toString(0); }
 
+    /**
+     * Get stringified object with indentation
+     * \return string representation
+     */
     virtual std::string toString(uint32_t indent) const = 0;
 
 private:

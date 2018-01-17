@@ -13,8 +13,9 @@ namespace solvers {
 namespace temporal {
 
 /**
- * An Interval Constraint represents an edge in the constraint network identified by a set of intervals
- * \ which represents the constraints between two TimePoints
+ * An IntervalConstraint represents an edge in the ConstraintNetwork an interval
+ * constraint containts a list of intervals which represent the constraints for
+ * the transition between two TimePoints
  */
 class IntervalConstraint : public constraints::SimpleConstraint
 {
@@ -50,7 +51,15 @@ public:
 
     virtual std::string toString(uint32_t indent = 0) const override;
 
+    /**
+     * Serialize this object
+     * \return serialized data blob
+     */
     std::string serializeBounds() const;
+
+    /**
+     * Deserialize a blob into this object
+     */
     void deserializeBounds(const std::string& blob);
 
     /**
@@ -63,16 +72,28 @@ public:
      */
     point_algebra::TimePoint::Ptr getTargetTimePoint() { return dynamic_pointer_cast<point_algebra::TimePoint>( getTargetVertex()); }
 
-    // add a new interval
-    void addInterval(Bounds newInterval) { mIntervals.push_back(newInterval); }
+    /**
+     * Add a new interval
+     * \param newInterval
+     */
+    void addInterval(const Bounds& newInterval) { mIntervals.push_back(newInterval); }
 
-    // returns the set of intervals for an interval constraint
+    /**
+     * Get the intervals
+     * \return list of bounds/intervals
+     */
     const std::vector<Bounds>& getIntervals() const { return mIntervals; }
 
-    // returns the number of intervals of an interval constraint
+    /**
+     * Get number of intervals of this constraint
+     * \returns the number of intervals of an interval constraint
+     */
     size_t getIntervalsNumber() const {return mIntervals.size(); }
 
-    // check if a given interval is included in an interval constraint
+    /**
+     * Check if a given interval is included in an interval constraint
+     * \return true if interval is included in this constraint
+     */
     bool checkInterval(const Bounds& x);
 
     /**
