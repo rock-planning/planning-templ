@@ -10,7 +10,7 @@ namespace constraints {
 class SimpleConstraint :  public Constraint, public graph_analysis::Edge
 {
 public:
-    typedef shared_ptr<Constraint> Ptr;
+    typedef shared_ptr<SimpleConstraint> Ptr;
 
     SimpleConstraint();
 
