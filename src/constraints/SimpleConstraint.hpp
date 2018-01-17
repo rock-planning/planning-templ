@@ -20,8 +20,13 @@ public:
 
     /**
      * Constructor for a constraint using source and target
+     * \param category Category for this constraint
+     * \param source The source vertex for the constraint (edge)
+     * \param target The target vertex for the constraint (edge)
      */
-    SimpleConstraint(Category category, const Variable::Ptr& source, const Variable::Ptr& target);
+    SimpleConstraint(Category category,
+            const Variable::Ptr& source,
+            const Variable::Ptr& target);
 
     /**
      * Deconstructor

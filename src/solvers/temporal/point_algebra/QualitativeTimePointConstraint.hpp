@@ -36,7 +36,9 @@ public:
      */
     QualitativeTimePointConstraint();
 
-    QualitativeTimePointConstraint(Variable::Ptr source, Variable::Ptr target, Type constraintType);
+    QualitativeTimePointConstraint(const Variable::Ptr& source,
+            const Variable::Ptr& target,
+            Type constraintType);
 
     virtual void setLabel(const std::string& label);
 
@@ -50,7 +52,7 @@ public:
 
     static QualitativeTimePointConstraint::Ptr create(Variable::Ptr source, Variable::Ptr target, Type constraintType);
 
-    static QualitativeTimePointConstraint::Ptr getSymmetric(QualitativeTimePointConstraint::Ptr constraint);
+    static QualitativeTimePointConstraint::Ptr getSymmetric(const QualitativeTimePointConstraint::Ptr& constraint);
 
     /**
      * Get the symmetric constraint
