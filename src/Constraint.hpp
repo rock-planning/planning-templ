@@ -17,6 +17,7 @@ public:
     typedef shared_ptr<Constraint> Ptr;
     typedef std::vector<Ptr> PtrList;
 
+    // A general category of the constraint
     enum Category { UNKNOWN,
         TEMPORAL_QUALITATIVE,
         TEMPORAL_QUANTITATIVE,

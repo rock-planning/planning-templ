@@ -51,10 +51,7 @@ public:
      *
      * here a -> I, b -> S
      *
-     * looseIntersection: a_i intersect with b
-     \f[
-        \forall i : I^{'}_i=[L_i,U_i]\text{, where } [L_i,U_i] \text{are the lower and upper bounds of the intersection } I_i \oplus S
-     \f]
+     * looseIntersection: a_i intersect with b: \f$[ \forall i : I^{'}_i=[L_i,U_i] \f$, where \f$ [L_i,U_i] \f$ are the lower and upper bounds of the intersection \f$ I_i \oplus S \f$
      */
     static std::vector<Bounds> looseIntersection(const std::vector<Bounds>& a, const std::vector<Bounds>& b);
 

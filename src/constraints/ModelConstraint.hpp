@@ -20,8 +20,27 @@ public:
     typedef std::vector<ModelConstraint> List;
     typedef shared_ptr<ModelConstraint> Ptr;
 
-    enum Type { UNKNOWN,
-        MIN_DISTINCT, MAX_DISTINCT, ALL_DISTINCT,
+    /// Available model constraint types
+    enum Type {
+        /// Unknown constraint
+        UNKNOWN,
+        /// \f$ minDistinct(S,\widehat{a},n) \f$ describes
+        /// the constraint: \f$ \forall s_i,s_j \in S, i \neq j: \left|
+        /// |A_{s_i}^{\widehat{a}}| - |A_{s_j}^{\widehat{a}}| \right| \geq n \f$,
+        /// where \f$ n > 0 \f$, \f$ Si \subset STR \f$, and \f$ A_s^{\widehat{a}}
+        /// \f$ represents the filtered set of A which contains only agents of
+        /// type \f$ \widehat{a} \f$ and is associated with the spatio-temporally
+        /// qualified expression s.
+        MIN_DISTINCT,
+        /// \f$ maxDistinct(S,\widehat{a},n) \f$ describe the equivalent maximum
+        /// constraint to \p minDistinct
+        MAX_DISTINCT,
+        /// \f$ allDistinct(STR,\widehat{a}) \f$ describes
+        /// the constraint: \f$ \forall s \in STR: \bigcap A_s^{\widehat{a}} =
+        /// \emptyset \f$ , where \f$ A_s^{\widehat{a}} \f$ represents the subset of
+        /// agents of type \f$ \widehat{a} \f$ which are associated with the
+        /// spatio-temporally qualified expression s.
+        ALL_DISTINCT,
         MIN_EQUAL, MAX_EQUAL,
         MIN_FUNCTION, MAX_FUNCTION,
         MIN_PROPERTY, MAX_PROPERTY,
@@ -43,13 +62,44 @@ public:
 
     std::string toString(uint32_t indent) const override;
 
+    /**
+     * Get the refered model of the constraint
+     * \return model
+     */
     const owlapi::model::IRI& getModel() const { return mModel; }
+
+    /**
+     * Get the value of the constraint
+     * \return value
+     */
     uint32_t getValue() const { return mValue; }
+
+    /**
+     * Get the property this model related to
+     * \return property or owlapi::model::IRI() if the property should not be
+     * used
+     */
     const owlapi::model::IRI& getProperty() const { return mProperty; }
+
+    /**
+     * Get the interval to which this constraint should be applied to
+     * \return space time interval
+     */
     const std::vector<SpaceTime::SpaceIntervalTuple>& getSpaceIntervalTuples() const { return mSpaceIntervalTuples; }
 
+    /**
+     * Get the model constraint type
+     * \return constraint type
+     */
     Type getModelConstraintType() const { return mType; }
 
+    /**
+     * Get the type for a given string, e.g.
+     * min-distinct, max-distinct, all-distinct,
+     * min-equal, max-equal, min-function, max-function,
+     * min-property, max-property
+     *
+     */
     static Type getTypeFromTxt(const std::string& txt);
 
 
