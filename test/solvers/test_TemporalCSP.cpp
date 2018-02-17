@@ -442,7 +442,7 @@ BOOST_AUTO_TEST_CASE(gecode_v0)
     }
 
     TemporalCSP tcsp(tcn);
-    BOOST_REQUIRE_MESSAGE(tcsp.nextSolution(), "TCSP has a solution");
+    BOOST_REQUIRE_MESSAGE(tcsp.nextSolution(), "TCSP has a solution for problem with #" << i << " timepoints");
 }
 
 BOOST_AUTO_TEST_CASE(gecode_v1)
@@ -452,7 +452,7 @@ BOOST_AUTO_TEST_CASE(gecode_v1)
 
     QualitativeTimePoint::Ptr lastTp;
     int a = 10;
-    for(; a < 2000; a += 100)
+    for(; a < 1000; a += 100)
     {
         BOOST_TEST_MESSAGE("Computation time for a: " << a);
         base::Time startTime = base::Time::now();
@@ -470,7 +470,7 @@ BOOST_AUTO_TEST_CASE(gecode_v1)
             lastTp = tp;
         }
         bool test = solvers::csp::TemporalConstraintNetwork::isConsistent(*tcn);
-        BOOST_REQUIRE_MESSAGE(test, "TCSP has a solution");
+        BOOST_REQUIRE_MESSAGE(test, "TCSP has a solution for problem with #" << tcn->getGraph()->order() << " timepoints");
         double computationTimeInS = (base::Time::now() - startTime).toSeconds();
         BOOST_TEST_MESSAGE("Computation time: " << computationTimeInS);
     }

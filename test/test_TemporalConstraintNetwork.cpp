@@ -51,10 +51,10 @@ BOOST_AUTO_TEST_CASE(ult)
 
     TemporalConstraintNetwork tcn,expected;
 
-    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<double>::max()));
-    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<double>::max()));
-    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<double>::max()));
-    point_algebra::TimePoint::Ptr v3(new point_algebra::TimePoint(0,std::numeric_limits<double>::max()));
+    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::max()));
+    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::max()));
+    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::max()));
+    point_algebra::TimePoint::Ptr v3(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::max()));
 
     IntervalConstraint::Ptr i0(new IntervalConstraint(v0,v1));
     i0->addInterval(Bounds(10,20));
