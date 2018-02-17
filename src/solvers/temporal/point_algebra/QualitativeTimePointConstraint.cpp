@@ -104,7 +104,9 @@ QualitativeTimePointConstraint::QualitativeTimePointConstraint()
     SimpleConstraint::setLabel(TypeTxt[mConstraintType]);
 }
 
-QualitativeTimePointConstraint::QualitativeTimePointConstraint(Variable::Ptr source, Variable::Ptr target, point_algebra::QualitativeTimePointConstraint::Type constraintType)
+QualitativeTimePointConstraint::QualitativeTimePointConstraint(const Variable::Ptr& source,
+        const Variable::Ptr& target,
+        point_algebra::QualitativeTimePointConstraint::Type constraintType)
     : SimpleConstraint(Constraint::TEMPORAL_QUALITATIVE, source, target)
     , mConstraintType(constraintType)
 {
