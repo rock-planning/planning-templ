@@ -41,7 +41,7 @@ organization_model::OrganizationModel::Ptr MissionReader::getOrganizationModel(c
     LIBXML_TEST_VERSION
 
     // The resulting document tree
-    xmlDocPtr doc;
+    xmlDocPtr doc = NULL;
 
     xmlParserOption options =  XML_PARSE_NOENT; // http://xmlsoft.org/html/libxml-parser.html#xmlParserOption
 
