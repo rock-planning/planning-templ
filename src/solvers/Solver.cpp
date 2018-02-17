@@ -32,13 +32,15 @@ Solver::Ptr Solver::getInstance(SolverType type)
     }
 }
 
-Solution Solver::initialSolution()
+Solution Solver::construct(const Mission::Ptr& mission,
+        StoppingCriteria c)
 {
     Solution solution;
     return solution;
 }
 
-Solution Solver::nextSolution(const Solution& seedSolution)
+Solution Solver::nextSolution(const Solution& seedSolution,
+        StoppingCriteria c)
 {
     return seedSolution;
 }

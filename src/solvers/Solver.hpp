@@ -4,6 +4,7 @@
 #include "../SharedPtr.hpp"
 #include "../Configuration.hpp"
 #include "Session.hpp"
+#include "StoppingCriteria.hpp"
 
 namespace templ {
 namespace solvers {
@@ -21,7 +22,9 @@ public:
 
     static Solver::Ptr getInstance(SolverType type);
 
-    virtual Session::Ptr run(const Mission::Ptr& mission, uint32_t minNumberOfSolutions = 0, const Configuration& configuration = Configuration()) = 0;
+    virtual Session::Ptr run(const Mission::Ptr& mission,
+            uint32_t minNumberOfSolutions = 0,
+            const Configuration& configuration = Configuration()) = 0;
 
 protected:
     Solver();
@@ -31,12 +34,17 @@ protected:
     /**
      * Identify a starting solution, e.g., using heuristics
      */
-    virtual Solution initialSolution();
+    virtual Solution construct(const Mission::Ptr& mission,
+            StoppingCriteria c = StoppingCriteria()
+            );
 
     /**
      * Perform local search around a given seed solution
+     * and iterate of these solutions
      */
-    virtual Solution nextSolution(const Solution& seedSolution);
+    virtual Solution nextSolution(const Solution& seedSolution,
+            StoppingCriteria c = StoppingCriteria()
+            );
 
 private:
     SolverType mSolverType;
