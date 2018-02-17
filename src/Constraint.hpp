@@ -37,7 +37,7 @@ public:
     Constraint();
 
     /**
-     * Connstructor for a constraint using the category
+     * Constructor for a constraint using the category
      */
     Constraint(Category category);
 

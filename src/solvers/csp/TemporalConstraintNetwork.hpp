@@ -10,8 +10,13 @@ namespace solvers {
 namespace csp {
 
 /**
- * Allow to define a temporal constraint network base on a qualitative temporal
+ * Allow to define a temporal constraint network based on a qualitative temporal
  * constraint network
+ *
+ * This CSP based variant allows solving a qualitative temporal constraint
+ * network by simple <,=,> constraints on integer variables
+ * i.e., each timepoint will be represented as IntVar, though the actual value
+ * is only important to encode the relative relationship
  */
 class TemporalConstraintNetwork : public Gecode::Space
 {
