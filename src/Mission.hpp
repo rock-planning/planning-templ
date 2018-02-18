@@ -104,6 +104,9 @@ public:
     /**
      * Set data property assignments to allow overrides, e.g., to facilitate handling of VRP related
      * problem instances in the context of benchmarking
+     *
+     * A data property assignment for a agent model, allows to set data
+     * properties, after the organization model has been read
      */
     void addDataPropertyAssignment(const DataPropertyAssignment& da) { mDataPropertyAssignments.push_back(da); }
 
@@ -113,20 +116,22 @@ public:
     const DataPropertyAssignment::List& getDataPropertyAssignments() const { return mDataPropertyAssignments; }
 
     /**
-     * Sets the available resources and triggers a refresh of the mission
-     * This also reinitializes the organization model query, which accounts for
-     * the functional saturation bound
+     * Sets the available resources in terms of available agent models, and
+     * triggers a refresh of the mission This also reinitializes the
+     * organization model query, which accounts for the functional saturation
+     * bound
      * \param modelPool List of resources and cardinalities
      */
     void setAvailableResources(const organization_model::ModelPool& modelPool);
 
     /**
-     * Get the model pool of available resources
+     * Get the model pool of available resources in terms of available agent
+     * models
      */
     const organization_model::ModelPool& getAvailableResources() const { return mModelPool; }
 
     /**
-     * Get special sets of constants
+     * Get all locations as defined along with the mission specification
      * \param excludeUnused Set to true to exclude unused constants, i.e. which
      * are not required for or used within the definition of the mission
      * \return list of location constants
@@ -145,21 +150,24 @@ public:
     symbols::constants::Location::Ptr getTransferLocation() const { return mpTransferLocation; }
 
     /**
-     * Retrieve the set of relations, i.e. mapping the existing persistenc
+     * Retrieve the set of relations, i.e. mapping the existing persistence
      * conditions to the set of requirements
      *
      */
     graph_analysis::BaseGraph::Ptr getRelations() const { return mpRelations; }
 
     /**
-     * Get all roles that can be associated with this mission
+     * Get all roles that can possibly be associated with this mission,
+     * according and derives from the available resources
      * \return list
+     * \see getAvailableResources
      */
     const Role::List& getRoles() const { return mRoles; }
 
     /**
-     * Get the list of involved models
+     * Get the list of involved models according to the available resources
      * \return list of models
+     * \see getAvailableResources
      */
     const owlapi::model::IRIList& getModels() const { return mModels; }
 
@@ -172,12 +180,14 @@ public:
     const owlapi::model::IRIList& getRequestedResources() const { return mRequestedResources; }
 
     /**
-     * Get all time intervals of the mission specification
+     * Get all time intervals of the mission specification, available after
+     * prepareTimeIntervals has been called
+     * \see prepareTimeIntervals
      */
     const std::vector<solvers::temporal::Interval>& getTimeIntervals() const { return mTimeIntervals; }
 
     /**
-     * Get the set of object variables
+     * Get the set of object variables associated with the mission
      */
     const std::set<symbols::ObjectVariable::Ptr>& getObjectVariables() const { return mObjectVariables; }
 
@@ -206,17 +216,23 @@ public:
      */
     const symbols::Constant::Ptr& getConstant(const std::string& id, symbols::Constant::Type type = symbols::Constant::UNKNOWN);
 
+    /**
+     * Get the temporal constraint network associated with the mission
+     * \return temporal constraint network
+     */
     solvers::temporal::TemporalConstraintNetwork::Ptr getTemporalConstraintNetwork() const {
         return mpTemporalConstraintNetwork; }
 
 
     /**
      * Get the list of persistence conditions defined for this mission
+     * \return persistence conditions
      */
     std::vector<solvers::temporal::PersistenceCondition::Ptr> getPersistenceConditions() const { return mPersistenceConditions; }
 
     /**
      * Set the logger that is associated with this mission object
+     * \param logger Logger instance
      */
     void setLogger(const Logger::Ptr& logger) { mpLogger = logger; }
 
@@ -234,11 +250,15 @@ public:
 
     /**
      * Get the list of constraints
+     * \return constraint of this mission
      */
     std::vector<Constraint::Ptr> getConstraints() const { return mConstraints; }
 
     /**
-     * Add relation
+     * Add relation from source to target
+     * \param source
+     * \param label
+     * \param target
      */
     graph_analysis::Edge::Ptr addRelation(const graph_analysis::Vertex::Ptr& source,
             const std::string& label,
