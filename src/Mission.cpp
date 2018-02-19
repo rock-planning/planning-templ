@@ -330,6 +330,15 @@ void Mission::validateAvailableResources() const
             + mModelPool.toString());
 }
 
+void Mission::updateMaxCardinalities(solvers::FluentTimeResource& ftr) const
+{
+    organization_model::ModelPool maxCardinalities = ftr.getMaxCardinalities();
+    organization_model::ModelPool maxAvailability = getAvailableResources();
+
+    organization_model::ModelPool newMax = organization_model::Algebra::min(maxCardinalities, maxAvailability);
+    ftr.setMaxCardinalities(newMax);
+}
+
 std::vector<solvers::FluentTimeResource> Mission::getResourceRequirements(const Mission::Ptr& mission)
 {
     using namespace solvers;
@@ -346,6 +355,8 @@ std::vector<solvers::FluentTimeResource> Mission::getResourceRequirements(const 
         {
             try {
                 FluentTimeResource ftr = fromLocationCardinality( p, mission );
+                // set upper bounds according to available resources
+                mission->updateMaxCardinalities(ftr);
                 requirements.push_back(ftr);
             } catch(const std::invalid_argument& e)
             {

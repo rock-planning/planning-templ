@@ -375,8 +375,18 @@ public:
     void validateForPlanning() const;
 
     /**
+     * Update the max cardinalites according the the available resources of a
+     * mission
+     */
+    void updateMaxCardinalities(solvers::FluentTimeResource& ftr) const;
+
+    /**
      * Return the list of resource requirements
      * Requirements are sorted based on the from value
+     * \param mission Pointer to mission -- this pointer will be associated
+     * with all resource requirements (thus we do not simply use a reference
+     * here)
+     * \return list of FluentTimeResource
      */
     static std::vector<solvers::FluentTimeResource> getResourceRequirements(const Mission::Ptr& mission);
 
