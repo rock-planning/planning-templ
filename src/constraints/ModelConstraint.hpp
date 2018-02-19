@@ -11,7 +11,7 @@ namespace templ {
 namespace constraints {
 
 /**
- * Define the set of general mission constraints which can be used to details
+ * Define the set of general mission constraints which can be used to detail
  * the planning problem
  * A typical constraint is a tuple of <M,R,P,V>, where
  * M is the model, R is the set of requirement ids, P is the property label and
