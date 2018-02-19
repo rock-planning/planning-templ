@@ -72,7 +72,6 @@ rock_library(templ_moft
         solvers/GQReasoner.cpp
         io/TemporalConstraint.cpp
         solvers/csp/TemporalConstraintNetwork.cpp
-        solvers/csp/TemporalCSP.cpp
         solvers/temporal/Bounds.cpp
         solvers/temporal/Chronicle.cpp
         solvers/temporal/Event.cpp
@@ -96,7 +95,6 @@ rock_library(templ_moft
         io/TemporalConstraint.hpp
         solvers/GQReasoner.hpp
         solvers/csp/TemporalConstraintNetwork.hpp
-        solvers/csp/TemporalCSP.hpp
         solvers/temporal/Bounds.hpp
         solvers/temporal/Chronicle.hpp
         solvers/temporal/Event.hpp
