@@ -1,5 +1,6 @@
 #include "TemporalConstraintNetwork.hpp"
 #include "../../solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp"
+#include <base-logging/Logging.hpp>
 
 using namespace graph_analysis;
 using namespace templ::solvers::temporal;
@@ -8,10 +9,27 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
-TemporalConstraintNetwork::TemporalConstraintNetwork(const temporal::QualitativeTemporalConstraintNetwork& tcn)
-    : Gecode::Space()
-    , mVertices(tcn.getGraph()->getAllVertices())
-    , mTimepoints(*this, mVertices.size(), 0, mVertices.size() - 1)
+TemporalConstraintNetworkBase::TemporalConstraintNetworkBase()
+{}
+
+TemporalConstraintNetworkBase::TemporalConstraintNetworkBase(const temporal::QualitativeTemporalConstraintNetwork& tcn)
+    : mVertices(tcn.getGraph()->getAllVertices())
+{}
+
+TemporalConstraintNetworkBase::TemporalConstraintNetworkBase(const temporal::QualitativeTemporalConstraintNetwork& tcn,
+            Gecode::Space& space,
+            Gecode::IntVarArray& timepoints)
+    : mVertices(tcn.getGraph()->getAllVertices())
+{
+    addConstraints(tcn, space, timepoints);
+}
+
+TemporalConstraintNetworkBase::~TemporalConstraintNetworkBase()
+{}
+
+void TemporalConstraintNetworkBase::addConstraints(const temporal::QualitativeTemporalConstraintNetwork& tcn,
+        Gecode::Space& space,
+        Gecode::IntVarArray& timepoints)
 {
     EdgeIterator::Ptr edgeIt = tcn.getGraph()->getEdgeIterator();
     while(edgeIt->next())
@@ -22,34 +40,35 @@ TemporalConstraintNetwork::TemporalConstraintNetwork(const temporal::Qualitative
             throw std::runtime_error("templ::solvers::csp::TemporalConstraintNetwork: encountered an edge which is not a QualitativeTimePointConstraint");
         }
 
-        size_t sourceIdx = getVertexIdx( constraint->getSourceVertex() );
-        size_t targetIdx = getVertexIdx( constraint->getTargetVertex() );
+        size_t sourceIdx = getVertexIdx( constraint->getSourceVertex(), mVertices );
+        size_t targetIdx = getVertexIdx( constraint->getTargetVertex(), mVertices );
 
-        //std::cout << "Add constraint: " << point_algebra::QualitativeTimePointConstraint::TypeTxt[ constraint->getType() ] <<
-        //   " from: " << sourceIdx << " to: " << targetIdx << std::endl;
+        LOG_DEBUG_S << "Add constraint: " << point_algebra::QualitativeTimePointConstraint::TypeTxt[constraint->getType() ] << " from: " << sourceIdx << " to: " << targetIdx << std::endl
+            << constraint->getSourceVertex()->toString() << " --> " << constraint->getTargetVertex()->toString();
+
 
         switch(constraint->getType())
         {
             case point_algebra::QualitativeTimePointConstraint::Empty:
-                this->fail();
+                space.fail();
                 break;
             case point_algebra::QualitativeTimePointConstraint::Less:
-                Gecode::rel(*this, mTimepoints[sourceIdx], Gecode::IRT_LE, mTimepoints[targetIdx]);
+                Gecode::rel(space, timepoints[sourceIdx], Gecode::IRT_LE, timepoints[targetIdx]);
                 break;
             case point_algebra::QualitativeTimePointConstraint::LessOrEqual:
-                Gecode::rel(*this, mTimepoints[sourceIdx], Gecode::IRT_LQ, mTimepoints[targetIdx]);
+                Gecode::rel(space, timepoints[sourceIdx], Gecode::IRT_LQ, timepoints[targetIdx]);
                 break;
             case point_algebra::QualitativeTimePointConstraint::Greater:
-                Gecode::rel(*this, mTimepoints[sourceIdx], Gecode::IRT_GR, mTimepoints[targetIdx]);
+                Gecode::rel(space, timepoints[sourceIdx], Gecode::IRT_GR, timepoints[targetIdx]);
                 break;
             case point_algebra::QualitativeTimePointConstraint::GreaterOrEqual:
-                Gecode::rel(*this, mTimepoints[sourceIdx], Gecode::IRT_GQ, mTimepoints[targetIdx]);
+                Gecode::rel(space, timepoints[sourceIdx], Gecode::IRT_GQ, timepoints[targetIdx]);
                 break;
             case point_algebra::QualitativeTimePointConstraint::Equal:
-                Gecode::rel(*this, mTimepoints[sourceIdx], Gecode::IRT_EQ, mTimepoints[targetIdx]);
+                Gecode::rel(space, timepoints[sourceIdx], Gecode::IRT_EQ, timepoints[targetIdx]);
                 break;
             case point_algebra::QualitativeTimePointConstraint::Distinct:
-                Gecode::rel(*this, mTimepoints[sourceIdx], Gecode::IRT_NQ, mTimepoints[targetIdx]);
+                Gecode::rel(space, timepoints[sourceIdx], Gecode::IRT_NQ, timepoints[targetIdx]);
                 break;
             case point_algebra::QualitativeTimePointConstraint::Universal:
                 break;
@@ -57,32 +76,9 @@ TemporalConstraintNetwork::TemporalConstraintNetwork(const temporal::Qualitative
                 break;
         }
     }
-
-    branch(*this, mTimepoints, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN());
 }
 
-TemporalConstraintNetwork::TemporalConstraintNetwork(bool shared, TemporalConstraintNetwork& other)
-    : Gecode::Space(shared, other)
-    , mVertices(other.mVertices)
-{
-    mTimepoints.update(*this, shared, other.mTimepoints);
-}
-
-TemporalConstraintNetwork::~TemporalConstraintNetwork()
-{}
-
-TemporalConstraintNetwork* TemporalConstraintNetwork::nextSolution()
-{
-    Gecode::DFS<TemporalConstraintNetwork> searchEngine(this);
-    TemporalConstraintNetwork* current = searchEngine.next();
-    if(current)
-    {
-        return current;
-    }
-    return NULL;
-}
-
-bool TemporalConstraintNetwork::isConsistent(const temporal::QualitativeTemporalConstraintNetwork& tcn)
+bool TemporalConstraintNetworkBase::isConsistent(const temporal::QualitativeTemporalConstraintNetwork& tcn)
 {
     if(tcn.getGraph()->order() <= 1)
     {
@@ -101,19 +97,17 @@ bool TemporalConstraintNetwork::isConsistent(const temporal::QualitativeTemporal
     return false;
 }
 
-Gecode::Space* TemporalConstraintNetwork::copy(bool share)
-{
-    return new TemporalConstraintNetwork(share, *this);
-}
 
-std::vector<temporal::point_algebra::TimePoint::Ptr> TemporalConstraintNetwork::getSortedList(const temporal::QualitativeTemporalConstraintNetwork& tcn)
+
+std::vector<temporal::point_algebra::TimePoint::Ptr> TemporalConstraintNetworkBase::getSortedList(const temporal::QualitativeTemporalConstraintNetwork& tcn)
 {
     std::vector<temporal::point_algebra::TimePoint::Ptr> timepoints = tcn.getTimepoints();
     sort(tcn, timepoints);
     return timepoints;
 }
 
-void TemporalConstraintNetwork::sort(const temporal::QualitativeTemporalConstraintNetwork& tcn, std::vector<temporal::point_algebra::TimePoint::Ptr>& timepoints)
+void TemporalConstraintNetworkBase::sort(const temporal::QualitativeTemporalConstraintNetwork& tcn,
+        std::vector<temporal::point_algebra::TimePoint::Ptr>& timepoints)
 {
     TemporalConstraintNetwork tcnSolver(tcn);
     TemporalConstraintNetwork* tcnSolution = tcnSolver.nextSolution();
@@ -122,30 +116,30 @@ void TemporalConstraintNetwork::sort(const temporal::QualitativeTemporalConstrai
         throw std::invalid_argument("templ::solvers::csp::TemporalConstraintNetwork::getSortedList: cannot perform sorting. Network is inconsistent");
     }
 
-    sort(tcnSolution, timepoints);
+    sort(tcnSolution->mTimepoints, timepoints, tcnSolver.mVertices);
 
     delete tcnSolution;
 }
-void TemporalConstraintNetwork::sort(const TemporalConstraintNetwork* tcnSolution, std::vector<temporal::point_algebra::TimePoint::Ptr>& timepoints)
-{
-    if(!tcnSolution)
-    {
-        throw std::invalid_argument("templ::solvers::csp::TemporalConstraintNetwork::sort: cannot perform sorting. Network is NULL");
-    }
+void TemporalConstraintNetworkBase::sort(const Gecode::IntVarArray& timepointArray,
+        std::vector<temporal::point_algebra::TimePoint::Ptr>& timepoints,
+        graph_analysis::Vertex::PtrList& verticesCache)
 
-    if(!tcnSolution->mTimepoints.assigned())
+{
+    if(!timepointArray.assigned())
     {
         throw std::invalid_argument("templ::solvers::csp::TemporalConstraintNetwork::sort: cannot perform sorting. Network is not fully assigned");
     }
 
-    std::sort(timepoints.begin(), timepoints.end(), [tcnSolution](const temporal::point_algebra::TimePoint::Ptr& a, const temporal::point_algebra::TimePoint::Ptr& b){
-            return tcnSolution->getValue(a) < tcnSolution->getValue(b);
+    std::sort(timepoints.begin(), timepoints.end(), [&timepointArray, &verticesCache](const temporal::point_algebra::TimePoint::Ptr& a, const temporal::point_algebra::TimePoint::Ptr& b){
+            return TemporalConstraintNetworkBase::getValue(a, timepointArray, verticesCache) < TemporalConstraintNetworkBase::getValue(b, timepointArray, verticesCache);
             });
 }
 
-uint32_t TemporalConstraintNetwork::getValue(const graph_analysis::Vertex::Ptr& v) const
+uint32_t TemporalConstraintNetworkBase::getValue(const graph_analysis::Vertex::Ptr& v,
+        const Gecode::IntVarArray& timepoints,
+        graph_analysis::Vertex::PtrList& verticesCache)
 {
-    const Gecode::IntVar& var = mTimepoints[ getVertexIdx(v) ];
+    const Gecode::IntVar& var = timepoints[ getVertexIdx(v, verticesCache) ];
     if(var.assigned())
     {
         return var.val();
@@ -153,21 +147,23 @@ uint32_t TemporalConstraintNetwork::getValue(const graph_analysis::Vertex::Ptr& 
     throw std::invalid_argument("templ::solvers::csp::TemporalConstraintNetwork::getValue: constraint variable corresponding to the given vertex has not yet been assigned");
 }
 
-size_t TemporalConstraintNetwork::getVertexIdx(const graph_analysis::Vertex::Ptr& vertex) const
+size_t TemporalConstraintNetworkBase::getVertexIdx(const graph_analysis::Vertex::Ptr& vertex,
+            graph_analysis::Vertex::PtrList& verticesCache
+        )
 {
-    if(mVertices.empty())
+    if(verticesCache.empty())
     {
         throw std::runtime_error("templ::solvers::csp::TemporalConstraintNetwork::getVertexIdx: list of vertices is empty");
     }
 
-    std::vector<graph_analysis::Vertex::Ptr>::const_iterator cit = std::find(mVertices.cbegin(), mVertices.cend(), vertex);
+    std::vector<graph_analysis::Vertex::Ptr>::const_iterator cit = std::find(verticesCache.cbegin(), verticesCache.cend(), vertex);
 
-    if(cit != mVertices.cend())
+    if(cit != verticesCache.cend())
     {
-        return std::distance(mVertices.cbegin(), cit);
+        return std::distance(verticesCache.cbegin(), cit);
     }
 
-    for(const Vertex::Ptr& v : mVertices)
+    for(const Vertex::Ptr& v : verticesCache)
     {
         if(!v)
         {
@@ -178,6 +174,85 @@ size_t TemporalConstraintNetwork::getVertexIdx(const graph_analysis::Vertex::Ptr
     }
 
     throw std::invalid_argument("tempL::solvers::csp::TemporalConstraintNetwork::getVertexIdx: given vertex '" + vertex->toString() + "' does not exist in the related graph");
+}
+
+
+temporal::QualitativeTemporalConstraintNetwork::Ptr TemporalConstraintNetworkBase::translate(const Gecode::IntVarArray& solution)
+{
+    temporal::QualitativeTemporalConstraintNetwork::Ptr qtcn = make_shared<temporal::QualitativeTemporalConstraintNetwork>();
+
+    namespace pa = temporal::point_algebra;
+
+    for(size_t a = 0; a < mVertices.size() - 1; ++a)
+    {
+        const pa::TimePoint::Ptr& vertexA = dynamic_pointer_cast<pa::TimePoint>(mVertices[a]);
+        uint32_t valueA = getValue(vertexA, solution, mVertices);
+        for(size_t b = a + 1; b < mVertices.size(); ++b)
+        {
+            const pa::TimePoint::Ptr& vertexB = dynamic_pointer_cast<pa::TimePoint>(mVertices[b]);
+            uint32_t valueB = getValue(vertexB, solution, mVertices);
+
+            pa::QualitativeTimePointConstraint::Type type = pa::QualitativeTimePointConstraint::Empty;
+
+            if(valueA == valueB)
+            {
+                type = pa::QualitativeTimePointConstraint::Equal;
+            } else if(valueA < valueB)
+            {
+                type = pa::QualitativeTimePointConstraint::Less;
+            } else // valueA > valueB
+            {
+                type = pa::QualitativeTimePointConstraint::Greater;
+            }
+
+            qtcn->addQualitativeConstraint(vertexA, vertexB, type);
+        }
+    }
+    return qtcn;
+}
+
+TemporalConstraintNetwork::TemporalConstraintNetwork(const temporal::QualitativeTemporalConstraintNetwork& tcn)
+    : Gecode::Space()
+    , TemporalConstraintNetworkBase(tcn)
+    , mTimepoints(*this, mVertices.size(), 0, mVertices.size() - 1)
+{
+
+    addConstraints(tcn, *this, mTimepoints);
+    branch(*this, mTimepoints, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN());
+}
+
+TemporalConstraintNetwork::TemporalConstraintNetwork(bool shared, TemporalConstraintNetwork& other)
+    : Gecode::Space(shared, other)
+{
+    setVertices( other.getVertices() );
+    mTimepoints.update(*this, shared, other.mTimepoints);
+}
+
+TemporalConstraintNetwork::~TemporalConstraintNetwork()
+{}
+
+
+TemporalConstraintNetwork* TemporalConstraintNetwork::nextSolution()
+{
+    Gecode::DFS<TemporalConstraintNetwork> searchEngine(this);
+    TemporalConstraintNetwork* current = searchEngine.next();
+    if(current)
+    {
+        return current;
+    }
+    return NULL;
+}
+
+Gecode::Space* TemporalConstraintNetwork::copy(bool share)
+{
+    return new TemporalConstraintNetwork(share, *this);
+}
+
+temporal::TemporalConstraintNetwork::Ptr TemporalConstraintNetwork::getTemporalConstraintNetwork() const
+{
+    temporal::TemporalConstraintNetwork::Ptr tcn(new QualitativeTemporalConstraintNetwork());
+
+    return tcn;
 }
 
 } // end namespace csp

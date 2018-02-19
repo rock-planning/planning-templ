@@ -11,6 +11,7 @@
 #include "solvers/temporal/Interval.hpp"
 #include "solvers/temporal/PersistenceCondition.hpp"
 #include "solvers/temporal/point_algebra/TimePoint.hpp"
+#include "solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
 #include "Role.hpp"
 #include "symbols/ObjectVariable.hpp"
 #include "symbols/constants/Location.hpp"
@@ -222,6 +223,20 @@ public:
      */
     solvers::temporal::TemporalConstraintNetwork::Ptr getTemporalConstraintNetwork() const {
         return mpTemporalConstraintNetwork; }
+
+    /**
+     * Get the qualitative temporal constraint network associated with the mission
+     * \return temporal constraint network
+     */
+    solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr getQualitativeTemporalConstraintNetwork() const {
+        using namespace solvers::temporal;
+        QualitativeTemporalConstraintNetwork::Ptr qtcn = dynamic_pointer_cast<solvers::temporal::QualitativeTemporalConstraintNetwork>(mpTemporalConstraintNetwork);
+        if(!qtcn)
+        {
+            throw std::invalid_argument("templ::Mission::getQualitativeTemporalConstraintNetwork: could not cast temporal constraint network to qualitiative temporal constraint network");
+        }
+        return qtcn;
+    }
 
 
     /**

@@ -524,6 +524,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Con
     , mTimepoints(mpMission->getTimepoints())
     , mLocations(mpMission->getLocations())
     , mResourceRequirements(Mission::getResourceRequirements(mpMission))
+    , mQualitativeTimepoints(*this, mpMission->getQualitativeTemporalConstraintNetwork()->getTimepoints().size(), 0, mpMission->getQualitativeTemporalConstraintNetwork()->getTimepoints().size()-1)
     , mModelUsage(*this, /*# of models*/ mpMission->getAvailableResources().size()*
             /*# of fluent time services*/mResourceRequirements.size(), 0, mModelPool.getMaxResourceCount()) // maximum number of model at that point
     , mAvailableModels(mpMission->getModels())
@@ -551,16 +552,8 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Con
 
     Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mpMission->getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
 
-    // General resource constraints
-    //  - identify overlapping fts, limit resources for these (TODO: better
-    //    identification of overlapping requirements)
-    //
-    setUpperBoundForConcurrentRequirements();
-
     // Limit roles to resource availability
     initializeRoleDistributionConstraints();
-    // There can be only one assignment per role
-    enforceUnaryResourceUsage();
 
     // (C) Avoid computation of solutions that are redunant
     // Gecode documentation says however in 8.10.2 that "Symmetry breaking by
@@ -569,11 +562,22 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Con
     //
     Gecode::Symmetries symmetries = identifySymmetries();
 
+    // Allow branching of temporal constraint network
+    // Initialize constraint network after mQualitativeTimepoints has been
+    // properly constructed -- otherwise we will trigger segfaults
+    mTemporalConstraintNetwork = TemporalConstraintNetworkBase(*mpMission->getQualitativeTemporalConstraintNetwork(),*this, mQualitativeTimepoints);
+    // makeing sure we get a fully assigned temporal constraint network, i.e.
+    // one without gaps before we proceed
+    Gecode::Rnd temporalNetworkRnd;
+    temporalNetworkRnd.hw();
+    Gecode::assign(*this, mQualitativeTimepoints, Gecode::INT_ASSIGN_RND(temporalNetworkRnd));
+    Gecode::branch(*this, &TransportNetwork::doPostTemporalConstraints);
+
     // For each requirement add the min/max and extensional constraints
     // for all overlapping requirements create maximum resource constraints
     Gecode::branch(*this, &TransportNetwork::doPostMinMaxConstraints);
 
-    // allow
+    // Allow only composite agents, i.e. combinations of models, that provide a particular functionality
     Gecode::branch(*this, &TransportNetwork::doPostExtensionalContraints);
 
     Gecode::IntAFC modelUsageAfc(*this, mModelUsage, 0.99);
@@ -966,6 +970,8 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
     , mConfiguration(other.mConfiguration)
     , mUseMasterSlave(other.mUseMasterSlave)
     , mpCurrentMaster(other.mpCurrentMaster)
+    , mTemporalConstraintNetwork(other.mTemporalConstraintNetwork)
+    , mpQualitativeTemporalConstraintNetwork(other.mpQualitativeTemporalConstraintNetwork)
 {
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
@@ -973,6 +979,7 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
     mRoleUsage.update(*this, share, other.mRoleUsage);
     mCost.update(*this, share, other.mCost);
     mNumberOfFlaws.update(*this, share, other.mNumberOfFlaws);
+    mQualitativeTimepoints.update(*this, share, other.mQualitativeTimepoints);
 
     for(size_t i = 0; i < other.mTimelines.size(); ++i)
     {
@@ -1300,6 +1307,39 @@ std::vector<uint32_t> TransportNetwork::computeActiveRoles() const
     LOG_INFO_S << "Role usage: " << roleUsageToString();
 
     return activeRoles;
+}
+
+void TransportNetwork::doPostTemporalConstraints(Gecode::Space& home)
+{
+    static_cast<TransportNetwork&>(home).postTemporalConstraints();
+}
+
+void TransportNetwork::postTemporalConstraints()
+{
+    (void) status();
+    // Update temporal constraint network after the solution has been computed
+    mpQualitativeTemporalConstraintNetwork = mTemporalConstraintNetwork.translate(mQualitativeTimepoints);
+    temporal::point_algebra::TimePointComparator tcp(mpQualitativeTemporalConstraintNetwork);
+
+    // Update the timepoint comparator
+    for(temporal::Interval& i : mIntervals)
+    {
+        i.setTimePointComparator(tcp);
+    }
+
+    // update timepoint comparator for intervals
+
+    // General resource constraints
+    //  - identify overlapping fts, limit resources for these (TODO: better
+    //    identification of overlapping requirements)
+    //
+    // TODO: in brancher since its time dependant
+    setUpperBoundForConcurrentRequirements();
+
+    // There can be only one assignment per role
+    //
+    // TODO: in brancher since its time dependant
+    enforceUnaryResourceUsage();
 }
 
 void TransportNetwork::doPostMinMaxConstraints(Gecode::Space& home)

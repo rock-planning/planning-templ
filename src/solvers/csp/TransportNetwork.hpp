@@ -16,6 +16,7 @@
 #include "utils/FluentTimeIndex.hpp"
 #include "../transshipment/MinCostFlow.hpp"
 #include "FlawResolution.hpp"
+#include "TemporalConstraintNetwork.hpp"
 
 #include "../Solver.hpp"
 
@@ -132,6 +133,13 @@ private:
 
     // map timeslot to fluenttime service
     std::map<uint32_t, std::vector<FluentTimeResource> > mTimeIndexedRequirements;
+
+    // ###############################
+    // Temporal constraint networks
+    // ###############################
+    TemporalConstraintNetworkBase mTemporalConstraintNetwork;
+    Gecode::IntVarArray mQualitativeTimepoints;
+    temporal::QualitativeTemporalConstraintNetwork::Ptr mpQualitativeTemporalConstraintNetwork;
 
     // ###########################
     // Model-based mapping
@@ -261,6 +269,9 @@ private:
      * \return set of roles (by index id) that are active
      */
     std::vector<uint32_t> computeActiveRoles() const;
+
+    static void doPostTemporalConstraints(Gecode::Space& home);
+    void postTemporalConstraints();
 
     static void doPostMinMaxConstraints(Gecode::Space& home);
     static void doPostExtensionalContraints(Gecode::Space& home);
