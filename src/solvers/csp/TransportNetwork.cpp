@@ -521,7 +521,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Con
     , mAsk(mpMission->getOrganizationModel(), mpMission->getAvailableResources(), true)
     , mResources(mpMission->getRequestedResources())
     , mIntervals(mpMission->getTimeIntervals())
-    , mTimepoints(mpMission->getTimepoints())
+    , mTimepoints(mpMission->getUnorderedTimepoints())
     , mLocations(mpMission->getLocations())
     , mResourceRequirements(Mission::getResourceRequirements(mpMission))
     , mQualitativeTimepoints(*this, mpMission->getQualitativeTemporalConstraintNetwork()->getTimepoints().size(), 0, mpMission->getQualitativeTemporalConstraintNetwork()->getTimepoints().size()-1)
@@ -1321,6 +1321,8 @@ void TransportNetwork::postTemporalConstraints()
     mpQualitativeTemporalConstraintNetwork = mTemporalConstraintNetwork.translate(mQualitativeTimepoints);
     temporal::point_algebra::TimePointComparator tcp(mpQualitativeTemporalConstraintNetwork);
 
+    // Sort the timepoints according
+    TemporalConstraintNetworkBase::sort(*mpQualitativeTemporalConstraintNetwork, mTimepoints);
     // Update the timepoint comparator
     for(temporal::Interval& i : mIntervals)
     {
@@ -1862,7 +1864,7 @@ uint32_t TransportNetwork::getTimepointIndex(const temporal::point_algebra::Time
     {
         return timepointIt - mTimepoints.begin();
     }
-    throw std::invalid_argument("templ::solvers::csp::TransportNetwork::getTimepointIdx: unknown timepoint given");
+    throw std::invalid_argument("templ::solvers::csp::TransportNetwork::getTimepointIdx: unknown timepoint '" + timePoint->toString() + "' given");
 }
 
 std::ostream& operator<<(std::ostream& os, const TransportNetwork::Solution& solution)

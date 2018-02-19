@@ -150,10 +150,26 @@ public:
     std::vector<symbols::constants::Location::Ptr> getLocations(bool excludeUnused = true) const;
 
     /**
+     * Get the timepoints unordered, i.e. all timepoints known to the mission
+     * \return timepoints unordered
+     */
+    solvers::temporal::point_algebra::TimePoint::PtrList getUnorderedTimepoints() const
+    { return mTimePoints; }
+
+
+    /**
      * Get the timepoints ordered by the associated temporal constraint network
+     * \param sorted sort timepoints if possible
      * \return timepoints ordered (earlier entries correspond to earlier times)
      */
-    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> getTimepoints() const;
+    solvers::temporal::point_algebra::TimePoint::PtrList getOrderedTimepoints() const;
+
+    /**
+     * Redirects to getOrderedTimepoints
+     * \deprecated Prefer using getUnorderedTimepoints or getOrderedTimepoints
+     * instead according to the requirements
+     */
+    solvers::temporal::point_algebra::TimePoint::PtrList getTimepoints() const { return getOrderedTimepoints(); }
 
     /**
      * Get the special transfer-location
@@ -472,6 +488,8 @@ private:
     /// Since a sorted set required the less operator for sorting in is not a suitable
     /// suitable container for Interval, since overlapping intervals have to be considered
     std::vector<solvers::temporal::Interval> mTimeIntervals;
+    // Timepoints associated with the time intervals
+    solvers::temporal::point_algebra::TimePoint::PtrList mTimePoints;
 
     std::set<symbols::ObjectVariable::Ptr> mObjectVariables;
     std::set<symbols::Constant::Ptr> mConstants;

@@ -51,6 +51,7 @@ Mission::Mission(const Mission& other)
     , mConstraints(other.mConstraints)
     , mRequestedResources(other.mRequestedResources)
     , mTimeIntervals(other.mTimeIntervals)
+    , mTimePoints(other.mTimePoints)
     , mObjectVariables(other.mObjectVariables)
     , mConstants(other.mConstants)
     , mConstantsUse(other.mConstantsUse)
@@ -160,6 +161,16 @@ void Mission::prepareTimeIntervals()
             LOG_DEBUG_S << "TimeInterval: " << tit->toString() << " already in list";
         }
     }
+
+    std::set<solvers::temporal::point_algebra::TimePoint::Ptr> uniqueTimepoints;
+    for(const solvers::temporal::Interval& interval : mTimeIntervals)
+    {
+        uniqueTimepoints.insert( interval.getFrom() );
+        uniqueTimepoints.insert( interval.getTo() );
+    }
+
+    mTimePoints.clear();
+    mTimePoints.insert(mTimePoints.begin(), uniqueTimepoints.begin(), uniqueTimepoints.end());
 }
 
 void Mission::validateForPlanning() const
@@ -280,7 +291,9 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addTemporalAssertion(const sy
     }
 
     LOG_DEBUG_S << "Adding implicitly defined temporal constraint for time interval";
-    mpTemporalConstraintNetwork->addQualitativeConstraint(fromTp, toTp, pa::QualitativeTimePointConstraint::Less);
+    pa::QualitativeTimePointConstraint::Ptr constraint = make_shared<pa::QualitativeTimePointConstraint>(fromTp, toTp, pa::QualitativeTimePointConstraint::Less);
+    addConstraint(constraint);
+
     return persistenceCondition;
 }
 
@@ -398,20 +411,10 @@ std::vector<symbols::constants::Location::Ptr> Mission::getLocations(bool exclud
 }
 
 
-std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> Mission::getTimepoints() const
+solvers::temporal::point_algebra::TimePoint::PtrList Mission::getOrderedTimepoints() const
 {
-    std::set<solvers::temporal::point_algebra::TimePoint::Ptr> uniqueTimepoints;
-    std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> timepoints;
-
-    for(const solvers::temporal::Interval& interval : mTimeIntervals)
-    {
-        uniqueTimepoints.insert( interval.getFrom() );
-        uniqueTimepoints.insert( interval.getTo() );
-    }
-
-    timepoints.insert(timepoints.begin(), uniqueTimepoints.begin(), uniqueTimepoints.end());
+    solvers::temporal::point_algebra::TimePoint::PtrList timepoints = mTimePoints;
     solvers::temporal::QualitativeTemporalConstraintNetwork::Ptr qtcn = dynamic_pointer_cast<solvers::temporal::QualitativeTemporalConstraintNetwork>(mpTemporalConstraintNetwork);
-
     if(qtcn)
     {
         std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> tps = solvers::csp::TemporalConstraintNetwork::getSortedList(*qtcn);
