@@ -291,7 +291,10 @@ organization_model::ModelPool::Set FluentTimeResource::getDomain() const
     // organization model at initialization
     organization_model::ModelPool::Set combinations = mpMission->getOrganizationModelAsk().getResourceSupport(functionalities, mFunctionalitiesConstraints);
 
-    LOG_INFO_S << "Resources: " << organization_model::ModelPool::toString(combinations);
+    LOG_INFO_S << "Identify resource support for the following functionalities: " << organization_model::Functionality::toString(functionalities) << std::endl
+            << "    with constraints: " << std::endl << organization_model::FunctionalityRequirement::toString(mFunctionalitiesConstraints, 8) << std::endl
+            << "    resources: " << organization_model::ModelPool::toString(combinations);
+
     LOG_INFO_S << "    max cardinalities: " << mMaxCardinalities.toString(8);
 
     // Enforce the upper bound (defined e.g. by the mpMissions general resource

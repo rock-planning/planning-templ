@@ -17,7 +17,7 @@ namespace solvers {
 /**
  * \class FluentTimeResource
  * \details A FluentTimeResource represents a spatio-temporal requirement
- * defining the set of resource at a particular location over a given time
+ * defining the set of resources at a particular location over a given time
  * interval
  */
 class FluentTimeResource
@@ -33,7 +33,8 @@ public:
 
     /**
      * Construct a FluentTimeResource
-     * \param mission
+     * \param mission Mission from which this requirement originates, in order
+     * to allow access to the organization model and available resources
      * \param resource Index of resource
      * \param time
      */
@@ -49,14 +50,28 @@ public:
     std::string toString(uint32_t indent = 0) const;
     static std::string toString(const List& list, uint32_t indent = 0);
 
+    /**
+     * Set the mission that is associated with this FluentTimeResource instance
+     */
     void setMission(const Mission::Ptr& mission) { mpMission = mission; }
+
+    /**
+     * Get the mission that is associated with this FluentTimeResource instance
+     */
     Mission::Ptr getMission() const { return mpMission; }
 
+    /**
+     * Add a resource requirement using the idx (for CSP based variants)
+     */
     void addResourceIdx(size_t idx) { mResources.insert(idx); }
+
+    /**
+     * Get resource requirement as set of indices
+     */
     const std::set<size_t>& getResourceIndices() const { return mResources; }
 
     /**
-     * Retrieve the interval associated with FluentTimeResource::time
+     * Retrieve the interval associated with FluentTimeResource instance
      * \return interval this object refers to
      */
     solvers::temporal::Interval getInterval() const;
@@ -82,7 +97,7 @@ public:
     void setInterval(size_t time);
 
     /**
-     * Get the associated fluent (location)
+     * Get the associated fluent (here: location)
      * \return fluent symbol (currently only symbols::constants::Location::Ptr)
      */
     Symbol::Ptr getFluent() const;
@@ -168,7 +183,7 @@ public:
      * Get the overlapping/concurrent FluentTimeResources
      * from indexed list of intervals
      * \param requirements Referencing intervals using index
-     * \param intervals Intervallist that is reference by requirements
+     * \param intervals Intervallist that is referenced by the requirements
      */
     static std::vector< List > getConcurrent(const List& requirements,
             const std::vector<solvers::temporal::Interval>& intervals);
@@ -198,7 +213,7 @@ public:
     static void compact(std::vector<FluentTimeResource>& requirements);
 
     /**
-     * Get the domain in terms of model pool that are allowed
+     * Get the domain in terms of model pools that are allowed
      * TimeInterval -- Location (StateVariable) : associated robot models
      * pair(time_interval, location) -- map_to --> service requirements
      * pair(time_interval, location) -- map_to --> set of set of models
@@ -206,8 +221,7 @@ public:
      * optional:
      *  - parameterize on resource usage/distribution
 
-     * Get the minimum requirements as set of ModelCombinations
-     * \return ModelCombinations that fulfill the requirement
+     * \return ModelPools that fulfill the requirement
      */
     organization_model::ModelPool::Set getDomain() const;
 
@@ -221,7 +235,7 @@ public:
     /**
      * Increment the min cardinality for a resource requirement for a given
      * increment, adds the resource model to the required resources if not
-     * previously requested
+     * previously requested.
      * \param increment Value to add to the min cardinalities
      */
     void incrementResourceRequirement(const owlapi::model::IRI& model, size_t increment);
