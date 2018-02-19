@@ -1,28 +1,61 @@
-#include <templ/io/MissionReader.hpp>
+#include "../io/MissionReader.hpp"
+#include "../solvers/FluentTimeResource.hpp"
+
 #include <graph_analysis/GraphIO.hpp>
+#include <boost/program_options.hpp>
+#include <iostream>
 
 /// Simple reader utility
 int main(int argc, char** argv)
 {
-    if(argc != 3)
+    namespace po = boost::program_options;
+
+    po::options_description description("allowed options");
+    description.add_options()
+        ("help","describe arguments")
+        ("file", po::value<std::string>(), "Path to the mission specification")
+        ("om", po::value<std::string>(), "IRI of the organization model (optional)")
+        ;
+
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, description), vm);
+    po::notify(vm);
+
+    if(vm.count("help") || !vm.count("file"))
     {
-        printf("usage: %s <file> <organization_model>\n", argv[0]);
-        exit(-1);
+        std::cout << description << std::endl;
+        exit(1);
     }
 
-    std::string filename = argv[1];
-    std::string organizationModelFilename = argv[2];
+    std::string filename = vm["file"].as<std::string>();
+
+    std::string organizationModelFilename;
+    if(vm.count("om"))
+    {
+        organizationModelFilename = vm["om"].as<std::string>();
+    }
 
     using namespace templ;
-    Mission mission = io::MissionReader::fromFile(filename, organizationModelFilename);
-    mission.prepareTimeIntervals();
+    Mission::Ptr mission;
+    if(organizationModelFilename.empty())
+    {
+        mission = Mission::Ptr(new Mission(io::MissionReader::fromFile(filename)));
+    } else {
+        mission = Mission::Ptr(new Mission(io::MissionReader::fromFile(filename, organizationModelFilename)));
+    }
 
-    printf("%s\n",mission.toString().c_str());
+    mission->prepareTimeIntervals();
+
+    std::cout << mission->toString() << std::endl;
+
+    std::vector<solvers::FluentTimeResource> ftrs = Mission::getResourceRequirements(mission);
+    std::cout << solvers::FluentTimeResource::toString(ftrs) << std::endl;
+
 
     std::string dotFilename = "/tmp/templ-mission-relations.dot";
-    graph_analysis::io::GraphIO::write(dotFilename, mission.getRelations());
+    graph_analysis::io::GraphIO::write(dotFilename, mission->getRelations());
     dotFilename = "Written '" + dotFilename + "'";
-    printf("%s\n", dotFilename.c_str() );
+    std::cout << dotFilename << std::endl;
 
     return 0;
 }
