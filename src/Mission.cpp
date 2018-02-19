@@ -18,7 +18,10 @@ namespace templ {
 
 namespace pa = solvers::temporal::point_algebra;
 
-Mission::Mission(organization_model::OrganizationModel::Ptr om, const std::string& name)
+Mission::Mission()
+{}
+
+Mission::Mission(const organization_model::OrganizationModel::Ptr& om, const std::string& name)
     : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
     , mpRelations(graph_analysis::BaseGraph::getInstance())
     , mpOrganizationModel(om)
@@ -365,7 +368,7 @@ std::vector<solvers::FluentTimeResource> Mission::getResourceRequirements(const 
         }
     }
 
-    // If multiple requirement exists that have the same interval
+    // If multiple requirements exists that have the same interval
     // they can be compacted into one requirement
     FluentTimeResource::compact(requirements);
     return requirements;

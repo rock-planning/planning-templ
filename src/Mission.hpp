@@ -37,6 +37,11 @@ namespace solvers {
     struct FluentTimeResource;
 } // end namespace solvers
 
+/**
+ * \class Mission
+ * \brief Description of a mission involving a reconfigurable multi-robot system
+ *
+ */
 class Mission
 {
     friend class MissionPlanner;
@@ -50,7 +55,12 @@ class Mission
 public:
     typedef shared_ptr<Mission> Ptr;
 
-    Mission(organization_model::OrganizationModel::Ptr om, const std::string& name = "");
+    /**
+     * Default constructor to allow usage in maps
+     */
+    Mission();
+
+    Mission(const organization_model::OrganizationModel::Ptr& om, const std::string& name = "");
 
     Mission(const Mission& other);
 
@@ -393,19 +403,27 @@ public:
     /**
      * Get a fluent time resource from a Persistence
      * condition (using LocationCardinality)
-     * \param p PersistenceCondition
-     * \param mission The mission
+     * \param p PersistenceCondition to convert
+     * \param mission pointer to a mission
      */
     static solvers::FluentTimeResource fromLocationCardinality(const solvers::temporal::PersistenceCondition::Ptr& p, const Mission::Ptr& mission);
 
     /**
      * Save the mission and the organization model files
+     * \param path Path to a folder to save the mission and organization model
+     * files
      */
     void saveInputData(const std::string& path) const;
 
 protected:
+    /**
+     * Require a constant to be declared
+     */
     void requireConstant(const symbols::Constant::Ptr& constant);
 
+    /**
+     * Increment an internal use counter for a constant
+     */
     uint32_t incrementConstantUse(const symbols::Constant::Ptr& constant);
 
     /**
