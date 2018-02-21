@@ -121,6 +121,7 @@
         </duration>
     </temporal-constraints>
     <model-constraints>
+        <!-- unification constraint -->
         <all-distinct>
             <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
             <requirements>0,1</requirements>
@@ -129,25 +130,48 @@
             <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
             <requirements>0,1</requirements>
         </min-distinct>
+        <max-distinct value="2"> <!-- that would equal all-distinct -->
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </max-distinct>
+        <all-equal>
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </all-equal>
         <min-equal value="1">
             <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
             <requirements>0,1</requirements>
         </min-equal>
+        <max-equal value="1">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </max-equal>
+
+        <!-- function: number of distinct systems to be available -->
+        <max-function value="10">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <requirements>0</requirements>
+        </max-function>
         <min-function value="10">
             <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
             <requirements>0</requirements>
         </min-function>
-        <min-property value="10">
-            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
-            <requirements>0</requirements>
-            <property>http://www.rock-robotics.org/2014/01/om-schema#transportCapacity</property>
-        </min-property>
+
         <!-- when general properties makes sense -->
         <max-property value="1000">
             <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
             <requirements>0</requirements>
             <property>http://www.rock-robotics.org/2014/01/om-schema#mass</property>
         </max-property>
+        <min-property value="10">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <requirements>0</requirements>
+            <property>http://www.rock-robotics.org/2014/01/om-schema#transportCapacity</property>
+        </min-property>
+
+        <!-- min/max model cardinalities are part of the fluent time resource
+             respresentation -->
+
     </model-constraints>
 </constraints>
 </mission>
