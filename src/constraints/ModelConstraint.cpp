@@ -10,6 +10,7 @@ std::map<ModelConstraint::Type, std::string> ModelConstraint::TypeTxt =  {
     { ModelConstraint::ALL_DISTINCT, "all-distinct"},
     { ModelConstraint::MIN_EQUAL,    "min-equal"},
     { ModelConstraint::MAX_EQUAL,    "max-equal"},
+    { ModelConstraint::ALL_EQUAL,    "all-equal"},
     { ModelConstraint::MIN_FUNCTION, "min-function"},
     { ModelConstraint::MAX_FUNCTION, "max-function"},
     { ModelConstraint::MIN_PROPERTY, "min-property"},
@@ -42,7 +43,7 @@ std::string ModelConstraint::toString(uint32_t indent) const
     std::stringstream ss;
     ss << hspace << TypeTxt[mType] << ":" << std::endl;
     ss << hspace << "    model: " << mModel.toString() << std::endl;
-    if(mType != ALL_DISTINCT)
+    if(! (mType == ALL_DISTINCT || mType == ALL_EQUAL) )
     {
         ss << hspace << "    value: " << mValue << std::endl;
         if(mType == MIN_PROPERTY || mType == MAX_PROPERTY)

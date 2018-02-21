@@ -729,6 +729,7 @@ constraints::ModelConstraint::List MissionReader::parseModelConstraints(xmlDocPt
                 case ModelConstraint::MIN_DISTINCT:
                 case ModelConstraint::MAX_DISTINCT:
                     value = boost::lexical_cast<size_t>( XMLUtils::getProperty(current, "value") );
+                case ModelConstraint::ALL_EQUAL:
                 case ModelConstraint::ALL_DISTINCT:
                     model = XMLUtils::getSubNodeContent(doc, current, "model");
                     requirementsTxt = XMLUtils::getSubNodeContent(doc, current, "requirements");

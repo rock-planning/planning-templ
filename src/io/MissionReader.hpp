@@ -116,6 +116,10 @@ private:
             <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
             <requirements>0,1</requirements>
         </min-distinct>
+        <all-equal>
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </all-equal>
         <min-equal value="1">
             <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
             <requirements>0,1</requirements>

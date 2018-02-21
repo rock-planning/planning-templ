@@ -47,7 +47,9 @@ public:
         /// agents of type \f$ \widehat{a} \f$ which are associated with the
         /// spatio-temporally qualified expression s.
         ALL_DISTINCT,
-        MIN_EQUAL, MAX_EQUAL,
+        MIN_EQUAL,
+        MAX_EQUAL,
+        ALL_EQUAL,
         MIN_FUNCTION, MAX_FUNCTION,
         MIN_PROPERTY, MAX_PROPERTY,
         END_TYPE };
