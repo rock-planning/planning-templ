@@ -15,7 +15,12 @@ namespace io {
  */
 struct SpatialRequirement
 {
+    // Allow definition of a position constraint
     Location location;
+
+    // Allow definition of a transition constraint
+    Location fromLocation;
+    Location toLocation;
 
     std::string toString(uint32_t indent = 0) const;
 };

@@ -120,7 +120,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
     LIBXML_TEST_VERSION
 
     // The resulting document tree
-    xmlDocPtr doc;
+    xmlDocPtr doc = NULL;
 
     xmlParserOption options =  XML_PARSE_NOENT; // http://xmlsoft.org/html/libxml-parser.html#xmlParserOption
 
@@ -301,7 +301,9 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
     {
         xmlFreeDoc(doc);
         xmlCleanupParser();
-        throw;
+        throw std::runtime_error("templ::io::MissionReader: failed to parse file " + url +
+                " -- " + e.what());
+
     }
 
     /*
@@ -371,6 +373,22 @@ SpatialRequirement MissionReader::parseSpatialRequirement(xmlDocPtr doc, xmlNode
         if(XMLUtils::nameMatches(current, "location"))
         {
             requirement.location.id = XMLUtils::getSubNodeContent(doc, current, "id");
+        } else if(XMLUtils::nameMatches(current, "at"))
+        {
+            if(!requirement.location.id.empty())
+            {
+                std::stringstream ss;
+                ss << "templ::io::MissionReader::parseSpatialRequirement: double definition of location id";
+                ss << " at line: " << xmlGetLineNo(current) << "; " << requirement.location.id << " is already set as id";
+                throw std::invalid_argument(ss.str());
+            }
+            requirement.location.id = XMLUtils::getContent(doc, current,1,true);
+        } else if(XMLUtils::nameMatches(current, "from"))
+        {
+            requirement.fromLocation.id = XMLUtils::getContent(doc, current,1,true);
+        } else if(XMLUtils::nameMatches(current, "to"))
+        {
+            requirement.toLocation.id = XMLUtils::getContent(doc, current,1,true);
         }
         current = current->next;
     }
