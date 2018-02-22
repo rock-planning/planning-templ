@@ -411,6 +411,11 @@ std::vector<symbols::constants::Location::Ptr> Mission::getLocations(bool exclud
     return locations;
 }
 
+symbols::constants::Location::Ptr Mission::getLocation(const std::string& name) const
+{
+    using namespace symbols::constants;
+    return dynamic_pointer_cast<Location>( getConstant(name, symbols::Constant::LOCATION) );
+}
 
 solvers::temporal::point_algebra::TimePoint::PtrList Mission::getOrderedTimepoints() const
 {
@@ -424,6 +429,34 @@ solvers::temporal::point_algebra::TimePoint::PtrList Mission::getOrderedTimepoin
         mpTemporalConstraintNetwork->sort(timepoints);
     }
     return timepoints;
+}
+
+solvers::temporal::point_algebra::TimePoint::Ptr Mission::getTimepoint(const std::string& name) const
+{
+    using namespace solvers::temporal::point_algebra;
+    for(const TimePoint::Ptr& t : mTimePoints)
+    {
+        if(t->getLabel() == name)
+        {
+            return t;
+        }
+    }
+    throw std::invalid_argument("templ::Mission::getTimepoint: no timepoint '" + name + "' exists");
+}
+
+const solvers::temporal::Interval& Mission::getTimeInterval(const std::string& from, const std::string& to) const
+{
+    for(const solvers::temporal::Interval& i : mTimeIntervals)
+    {
+        if(i.getFrom()->getLabel() == from
+                && i.getTo()->getLabel() == to)
+        {
+            return i;
+        }
+    }
+
+    throw std::invalid_argument("templ::Mission::getTimeInterval: no interval from '" + from + "'"
+            " to '" + to + "' available -- make sure you called prepareTimeIntervals");
 }
 
 void Mission::requireConstant(const symbols::Constant::Ptr& constant)
@@ -462,7 +495,7 @@ void Mission::addConstant(const symbols::Constant::Ptr& constant)
     }
 }
 
-const symbols::Constant::Ptr& Mission::getConstant(const std::string& id, symbols::Constant::Type type)
+const symbols::Constant::Ptr& Mission::getConstant(const std::string& id, symbols::Constant::Type type) const
 {
     using namespace symbols;
     std::set<Constant::Ptr>::const_iterator cit = mConstants.begin();

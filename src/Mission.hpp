@@ -151,6 +151,13 @@ public:
     std::vector<symbols::constants::Location::Ptr> getLocations(bool excludeUnused = true) const;
 
     /**
+     * Get location by name
+     * \param name of location
+     * \return timepoint
+     */
+    symbols::constants::Location::Ptr getLocation(const std::string& name) const;
+
+    /**
      * Get the timepoints unordered, i.e. all timepoints known to the mission
      * \return timepoints unordered
      */
@@ -171,6 +178,13 @@ public:
      * instead according to the requirements
      */
     solvers::temporal::point_algebra::TimePoint::PtrList getTimepoints() const { return getOrderedTimepoints(); }
+
+    /**
+     * Get timepoint by name
+     * \param name of timepoint
+     * \return timepoint
+     */
+    solvers::temporal::point_algebra::TimePoint::Ptr getTimepoint(const std::string& name) const;
 
     /**
      * Get the special transfer-location
@@ -215,6 +229,15 @@ public:
     const std::vector<solvers::temporal::Interval>& getTimeIntervals() const { return mTimeIntervals; }
 
     /**
+     * Get the timeinterval range from the timepoint given by from, to timepoint
+     * given by to
+     * \return Interval
+     * \throw std::invalid_argument if Interval could not be found among the
+     * existing
+     */
+    const solvers::temporal::Interval& getTimeInterval(const std::string& from, const std::string& to) const;
+
+    /**
      * Get the set of object variables associated with the mission
      */
     const std::set<symbols::ObjectVariable::Ptr>& getObjectVariables() const { return mObjectVariables; }
@@ -242,7 +265,7 @@ public:
      * Get constant by name
      * \throws std::invalid_argument when the constant cannot be found
      */
-    const symbols::Constant::Ptr& getConstant(const std::string& id, symbols::Constant::Type type = symbols::Constant::UNKNOWN);
+    const symbols::Constant::Ptr& getConstant(const std::string& id, symbols::Constant::Type type = symbols::Constant::UNKNOWN) const;
 
     /**
      * Get the temporal constraint network associated with the mission
