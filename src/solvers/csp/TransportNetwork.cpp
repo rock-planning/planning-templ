@@ -30,6 +30,7 @@
 #include "MissionConstraints.hpp"
 #include "Search.hpp"
 #include "../SolutionAnalysis.hpp"
+#include "MissionConstraintManager.hpp"
 
 using namespace templ::solvers::csp::utils;
 
@@ -554,6 +555,8 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Con
 
     // Limit roles to resource availability
     initializeRoleDistributionConstraints();
+    // Mission constraints
+    applyMissionConstraints();
 
     // (C) Avoid computation of solutions that are redunant
     // Gecode documentation says however in 8.10.2 that "Symmetry breaking by
@@ -886,6 +889,14 @@ void TransportNetwork::initializeRoleDistributionConstraints()
     }
 }
 
+void TransportNetwork::applyMissionConstraints()
+{
+    for(const Constraint::Ptr& constraint : mpMission->getConstraints())
+    {
+        MissionConstraintManager::apply(constraint, *this);
+    }
+}
+
 void TransportNetwork::enforceUnaryResourceUsage()
 {
     // Role distribution
@@ -1213,6 +1224,13 @@ solvers::Session::Ptr TransportNetwork::run(const templ::Mission::Ptr& mission, 
     solvers::Solution::List solutions;
     session->setSolutions(solutions);
     return session;
+}
+
+void TransportNetwork::addConstraint(const Constraint::Ptr& constraint)
+{
+    mConstraints.push_back(constraint);
+
+    MissionConstraintManager::apply(constraint, *this);
 }
 
 void TransportNetwork::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPool::Set& combinations) const

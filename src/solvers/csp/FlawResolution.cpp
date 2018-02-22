@@ -2,7 +2,9 @@
 #include "TransportNetwork.hpp"
 #include "../../SharedPtr.hpp"
 #include "MissionConstraints.hpp"
+#include "MissionConstraintManager.hpp"
 #include <organization_model/PropertyConstraint.hpp>
+#include "../../constraints/ModelConstraint.hpp"
 
 namespace templ {
 namespace solvers {
@@ -142,28 +144,37 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
     {
         case ga::ConstraintViolation::TransFlow:
 
-            std::cout << "Transflow violation: resolver option #" << alternative << std::endl;
+            //std::cout << "Transflow violation: resolver option #" << alternative << std::endl;
             {
                 switch(alternative)
                 {
                     case 0:
-                        std::cout
-                            << "    adding distiction constraint" << std::endl
-                            << "         distinction for role " << flaw.affectedRole().getModel() << std::endl
-                            << "         current space " << &currentSpace << std::endl
-                            << "         last space " << &lastSpace << std::endl
-                            << std::endl;
+                    {
+                        //std::cout
+                        //    << "    adding distiction constraint" << std::endl
+                        //    << "         distinction for role " << flaw.affectedRole().getModel() << std::endl
+                        //    << "         current space " << &currentSpace << std::endl
+                        //    << "         last space " << &lastSpace << std::endl
+                        //    << std::endl;
 
-                        MissionConstraints::addDistinct(currentSpace,
-                                lastSpace.mRoleUsage,
-                                currentSpace.mRoleUsage,
+                        FluentTimeResource::List ftrs;
+                        ftrs.push_back(flaw.ftr);
+                        ftrs.push_back(flaw.subsequentFtr);
+
+                        std::set<Role> uniqueRoles = MissionConstraints::getUniqueRoles(lastSpace.mRoleUsage,
                                 currentSpace.mRoles,
                                 currentSpace.mResourceRequirements,
-                                flaw.ftr,
-                                flaw.subsequentFtr,
+                                ftrs,
+                                flaw.affectedRole().getModel());
+
+                        constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(constraints::ModelConstraint::MIN_DISTINCT,
                                 flaw.affectedRole().getModel(),
-                                1);
+                                MissionConstraintManager::mapToSpaceTime(ftrs),
+                                uniqueRoles.size() + 1);
+
+                        currentSpace.addConstraint( constraint );
                         break;
+                    }
                     default:
                         break;
                 }
@@ -176,6 +187,7 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                 switch(alternative)
                 {
                     case 0:
+                    {
                         std::cout
                             << "    adding distiction constraint" << std::endl
                             << "        additional distinction for: " << abs(flaw.violation.getDelta()) << " and role: " << flaw.affectedRole().toString() << std::endl
@@ -183,17 +195,27 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                             << "        last space " << &lastSpace << std::endl
                             << std::endl;
 
-                            MissionConstraints::addDistinct(currentSpace,
-                                    lastSpace.mRoleUsage,
-                                    currentSpace.mRoleUsage,
-                                    currentSpace.mRoles, currentSpace.mResourceRequirements,
-                                    flaw.previousFtr,
-                                    flaw.ftr,
+                            FluentTimeResource::List ftrs;
+                            ftrs.push_back(flaw.previousFtr);
+                            ftrs.push_back(flaw.ftr);
+
+                            std::set<Role> uniqueRoles = MissionConstraints::getUniqueRoles(lastSpace.mRoleUsage,
+                                    currentSpace.mRoles,
+                                    currentSpace.mResourceRequirements,
+                                    ftrs,
+                                    flaw.affectedRole().getModel());
+
+                            constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(constraints::ModelConstraint::MIN_DISTINCT,
                                     flaw.affectedRole().getModel(),
-                                    abs( flaw.violation.getDelta() )
-                                    );
+                                    MissionConstraintManager::mapToSpaceTime(ftrs),
+                                    uniqueRoles.size() + flaw.violation.getDelta());
+
+                            currentSpace.addConstraint( constraint );
+
                             break;
+                    }
                     case 1:
+                    {
                         std::cout << "    add model requirement: for min one transport provider" << std::endl;
                         std::cout << "        for fluent time resource: " << std::endl
                                 << flaw.ftr.toString(8);
@@ -206,23 +228,20 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                             std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
                         }
 
-                        MissionConstraints::addFunctionRequirement(
-                                currentSpace.mResources,
-                                currentSpace.mResourceRequirements,
-                                flaw.ftr,
-                                organization_model::vocabulary::OM::resolve("TransportProvider"),
-                                currentSpace.mAsk);
 
-                        if(TransportNetwork::msInteractive)
-                        {
-                            std::cout << "Fluents after adding function requirement: " << std::endl;
-                            for(const FluentTimeResource& ftr : currentSpace.mResourceRequirements)
-                            {
-                                std::cout << ftr.toString(12) << std::endl;
-                            }
-                            std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-                        }
+                        FluentTimeResource::List ftrs;
+                        ftrs.push_back(flaw.ftr);
+
+                        constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(
+                                constraints::ModelConstraint::MIN_FUNCTION,
+                                organization_model::vocabulary::OM::resolve("TransportProvider"),
+                                MissionConstraintManager::mapToSpaceTime(ftrs),
+                                1
+                                );
+
+                        currentSpace.addConstraint( constraint );
                         break;
+                    }
                     default:
                         break;
                 }
@@ -231,8 +250,8 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
         case ga::ConstraintViolation::TotalTransFlow:
             break;
         case ga::ConstraintViolation::TotalMinFlow:
-            std::cout << "TotalMinFlow violation: resolver option #" << alternative << std::endl;
-            std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+            //std::cout << "TotalMinFlow violation: resolver option #" << alternative << std::endl;
+            //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
             switch(alternative)
             {
                 case 0:
@@ -248,37 +267,50 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                         std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
                     }
 
-                    using namespace organization_model;
-                    Functionality functionality( vocabulary::OM::resolve("TransportProvider") );
+                    FluentTimeResource::List ftrs;
+                    ftrs.push_back(flaw.ftr);
 
-                    // Add the constraint to increase the transport capacity to
-                    // cover for the existing delta
-                    PropertyConstraint::Set constraints;
-                    PropertyConstraint constraint( vocabulary::OM::resolve("transportCapacity"), PropertyConstraint::GREATER_EQUAL, flaw.violation.getInFlow() + abs(flaw.violation.getDelta()) );
-                    constraints.insert(constraint);
+                    constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(
+                            constraints::ModelConstraint::MIN_PROPERTY,
+                            organization_model::vocabulary::OM::resolve("TransportProvider"),
+                            MissionConstraintManager::mapToSpaceTime(ftrs),
+                            flaw.violation.getInFlow() + abs(flaw.violation.getDelta()),
+                            organization_model::vocabulary::OM::resolve("transportCapacity")
+                            );
 
-                    FunctionalityRequirement functionalityRequirement(functionality, constraints);
-                    FunctionalityRequirement::Map functionalityRequirements;
-                    functionalityRequirements[functionality] = functionalityRequirement;
+                    currentSpace.addConstraint(constraint);
 
-                    MissionConstraints::addFunctionalitiesRequirement(
-                            currentSpace.mResources,
-                            currentSpace.mResourceRequirements,
-                            flaw.ftr,
-                            functionalityRequirements,
-                            currentSpace.mAsk);
+                    //using namespace organization_model;
+                    //Functionality functionality( vocabulary::OM::resolve("TransportProvider") );
 
-                    if(TransportNetwork::msInteractive)
-                    {
-                        std::cout << "Add functionality requirement: " << FunctionalityRequirement::toString(functionalityRequirements, 8) << std::endl;
-                        std::cout << "Added constraint: " << constraint.toString() << std::endl;
-                        std::cout << "Fluents after adding function requirement: " << std::endl;
-                        for(const FluentTimeResource& ftr : currentSpace.mResourceRequirements)
-                        {
-                            std::cout << ftr.toString(12) << std::endl;
-                        }
-                        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-                    }
+                    //// Add the constraint to increase the transport capacity to
+                    //// cover for the existing delta
+                    //PropertyConstraint::Set constraints;
+                    //PropertyConstraint constraint( vocabulary::OM::resolve("transportCapacity"), PropertyConstraint::GREATER_EQUAL, flaw.violation.getInFlow() + abs(flaw.violation.getDelta()) );
+                    //constraints.insert(constraint);
+
+                    //FunctionalityRequirement functionalityRequirement(functionality, constraints);
+                    //FunctionalityRequirement::Map functionalityRequirements;
+                    //functionalityRequirements[functionality] = functionalityRequirement;
+
+                    //MissionConstraints::addFunctionalitiesRequirement(
+                    //        currentSpace.mResources,
+                    //        currentSpace.mResourceRequirements,
+                    //        flaw.ftr,
+                    //        functionalityRequirements,
+                    //        currentSpace.mAsk);
+
+                    //if(TransportNetwork::msInteractive)
+                    //{
+                    //    std::cout << "Add functionality requirement: " << FunctionalityRequirement::toString(functionalityRequirements, 8) << std::endl;
+                    //    std::cout << "Added constraint: " << constraint.toString() << std::endl;
+                    //    std::cout << "Fluents after adding function requirement: " << std::endl;
+                    //    for(const FluentTimeResource& ftr : currentSpace.mResourceRequirements)
+                    //    {
+                    //        std::cout << ftr.toString(12) << std::endl;
+                    //    }
+                    //    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+                    //}
                     break;
             }
             break;

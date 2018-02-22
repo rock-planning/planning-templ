@@ -5,6 +5,8 @@ namespace templ {
 namespace constraints {
 
 std::map<ModelConstraint::Type, std::string> ModelConstraint::TypeTxt =  {
+    { ModelConstraint::MIN,          "min" },
+    { ModelConstraint::MAX,          "max" },
     { ModelConstraint::MIN_DISTINCT, "min-distinct"},
     { ModelConstraint::MAX_DISTINCT, "max-distinct"},
     { ModelConstraint::ALL_DISTINCT, "all-distinct"},

@@ -1,0 +1,180 @@
+<!-- <!xml version="1.0"?> -->
+<mission xmlns="http://www.rock-robotics.org/missions#"
+    xmlns:om="http://www.rock-robotics.org/2014/01/om-schema#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+>
+<name>Immobile and mobile system deployment</name>
+<description>    
+    Use of two mobile units required to deliver immobile units to the same target
+</description>
+<organization_model>http://www.rock-robotics.org/2015/12/projects/TransTerrA</organization_model>
+<resources>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+        <maxCardinality>10</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+        <maxCardinality>20</maxCardinality>
+    </resource>
+</resources>
+<constants>
+    <location>
+        <id>lander</id>
+        <radius>moon</radius>
+        <latitude>-83.82009</latitude>
+        <longitude>87.53932</longitude>
+    </location>
+    <location>
+        <id>base1</id>
+        <radius>moon</radius>
+        <latitude>-84.1812</latitude>
+        <longitude>87.60494</longitude>
+    </location>
+    <location>
+        <id>base2</id>
+        <radius>moon</radius>
+        <latitude>-83.58491</latitude>
+        <longitude>85.98319</longitude>
+    </location>
+</constants>
+<requirements>
+    <requirement id='0'>
+        <spatial-requirement>
+            <location>
+                <id>lander</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement type="persistence-condition | event" >
+            <from>t0</from>
+            <to>t1</to>
+        </temporal-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+                <minCardinality>10</minCardinality>
+                <maxCardinality>10</maxCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>20</minCardinality>
+                <maxCardinality>20</maxCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement id='1'>
+        <spatial-requirement>
+            <at>base1</at>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t2</from>
+            <to>t3</to>
+        </temporal-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>6</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement id='2'>
+        <spatial-requirement>
+            <at>base2</at>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t2</from>
+            <to>t5</to>
+        </temporal-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>7</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement id='3'>
+        <spatial-requirement>
+            <at>base1</at>
+            <!--<from>base1</from>
+            <to>base2</to> -->
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t3</from>
+            <to>t4</to>
+        </temporal-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>7</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+</requirements>
+<constraints>
+    <temporal-constraints>
+        <greaterThan lval="t2" rval="t1" />
+        <greaterThan lval="t3" rval="t2" />
+        <greaterThan lval="t4" rval="t3" />
+        <greaterThan lval="t5" rval="t4" />
+        <duration min="50" max="100">
+            <from>t2</from>
+            <to>t5</to>
+        </duration>
+    </temporal-constraints>
+    <model-constraints>
+        <!-- unification constraint -->
+        <all-distinct>
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </all-distinct>
+        <min-distinct value="10">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </min-distinct>
+        <max-distinct value="2"> <!-- that would equal all-distinct -->
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </max-distinct>
+        <all-equal>
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </all-equal>
+        <min-equal value="1">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </min-equal>
+        <max-equal value="1">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </max-equal>
+
+        <!-- function: number of distinct systems to be available -->
+        <max-function value="10">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <requirements>0</requirements>
+        </max-function>
+        <min-function value="10">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <requirements>0</requirements>
+        </min-function>
+
+        <!-- when general properties makes sense -->
+        <max-property value="1000">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <requirements>0</requirements>
+            <property>http://www.rock-robotics.org/2014/01/om-schema#mass</property>
+        </max-property>
+        <min-property value="10">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <requirements>0</requirements>
+            <property>http://www.rock-robotics.org/2014/01/om-schema#transportCapacity</property>
+        </min-property>
+
+        <!-- min/max model cardinalities are part of the fluent time resource
+             respresentation -->
+
+    </model-constraints>
+</constraints>
+</mission>
+
+

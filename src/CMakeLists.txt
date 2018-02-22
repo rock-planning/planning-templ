@@ -147,6 +147,7 @@ rock_library(templ
         solvers/csp/ConstraintMatrix.cpp
         solvers/csp/FlawResolution.cpp
         solvers/csp/MissionConstraints.cpp
+        solvers/csp/MissionConstraintManager.cpp
         solvers/csp/ModelDistribution.cpp
         solvers/csp/Resolver.cpp
         solvers/csp/RoleDistribution.cpp
@@ -195,6 +196,7 @@ rock_library(templ
         solvers/csp/ConstraintMatrix.hpp
         solvers/csp/FlawResolution.hpp
         solvers/csp/MissionConstraints.hpp
+        solvers/csp/MissionConstraintManager.hpp
         solvers/csp/ModelDistribution.hpp
         solvers/csp/Resolver.hpp
         solvers/csp/RoleDistribution.hpp

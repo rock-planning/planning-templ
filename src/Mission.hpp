@@ -317,7 +317,7 @@ public:
      * Get the list of constraints
      * \return constraint of this mission
      */
-    std::vector<Constraint::Ptr> getConstraints() const { return mConstraints; }
+    const std::vector<Constraint::Ptr>& getConstraints() const { return mConstraints; }
 
     /**
      * Add relation from source to target

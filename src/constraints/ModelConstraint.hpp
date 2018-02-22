@@ -30,6 +30,10 @@ public:
     enum Type {
         /// Unknown constraint
         UNKNOWN,
+        // Maximum usage of agent instances across multiple requirements
+        MAX,
+        // Minimum usage of agent instances across multiple requirements
+        MIN,
         /// \f$ minDistinct(S,\widehat{a},n) \f$ describes
         /// the constraint: \f$ \forall s_i,s_j \in S, i \neq j: \left|
         /// |A_{s_i}^{\widehat{a}}| - |A_{s_j}^{\widehat{a}}| \right| \geq n \f$,

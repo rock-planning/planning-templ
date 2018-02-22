@@ -36,6 +36,7 @@ class TransportNetwork : public Gecode::Space, public Solver
     friend class templ::MissionPlanner;
     friend class templ::solvers::Solver;
     friend class FlawResolution;
+    friend class MissionConstraintManager;
 
 public:
     typedef std::map<FluentTimeResource, organization_model::ModelPool > ModelDistribution;
@@ -105,7 +106,7 @@ public:
     };
 
     friend class SearchState;
-private:
+protected:
     /// The mission to plan for
     Mission::Ptr mpMission;
 
@@ -230,6 +231,8 @@ private:
 
     static FlowSolutions msMinCostFlowSolutions;
 
+    /// List of extra constraints
+    Constraint::PtrList mConstraints;
 private:
 
     std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelPool::Set& set) const;
@@ -324,17 +327,6 @@ protected:
     virtual void constrainSlave(const Gecode::Space& n);
 
 
-    /**
-     * Get the solution of this Gecode::Space instance
-     */
-    Solution getSolution() const;
-
-    /**
-     * Save a found solution
-     */
-    static void saveSolution(const Solution& solution, const Mission::Ptr& mission);
-
-
     ModelDistribution getModelDistribution() const;
     RoleDistribution getRoleDistribution() const;
 
@@ -369,6 +361,11 @@ protected:
      *
      */
     void initializeRoleDistributionConstraints();
+
+    /**
+     * Apply all 'extra' mission constraints
+     */
+    void applyMissionConstraints();
 
     /**
      * Limit the usage of instances/roles to 1 for concurrent requirements
@@ -409,7 +406,22 @@ public:
      */
     static SolutionList solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions = 0, const Configuration& configuration = Configuration());
 
+    /**
+     * Get the solution of this Gecode::Space instance
+     */
+    Solution getSolution() const;
+
+    /**
+     * Save a found solution
+     */
+    static void saveSolution(const Solution& solution, const Mission::Ptr& mission);
+
     solvers::Session::Ptr run(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const Configuration& configuration);
+
+    /**
+     * Add a general constraint
+     */
+    void addConstraint(const Constraint::Ptr& constraint);
 
     std::string toString() const;
 

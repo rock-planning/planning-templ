@@ -7,6 +7,7 @@ rock_testsuite(test_suite suite.cpp
     solvers/test_Propagators_IsValidTransportEdge.cpp
     solvers/test_TransportNetwork.cpp
     solvers/test_TemporallyExpandedGraph.cpp
+    solvers/test_MissionConstraints.cpp
     test_Benchmarks.cpp
     test_CartographicMapping.cpp
     test_Configuration.cpp
