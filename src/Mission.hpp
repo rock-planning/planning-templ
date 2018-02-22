@@ -27,6 +27,7 @@ class MissionPlanner;
 
 namespace io {
     class MissionReader;
+    class SpatioTemporalRequirement;
 }
 
 namespace benchmark {
@@ -304,6 +305,39 @@ public:
     graph_analysis::Edge::Ptr addRelation(const graph_analysis::Vertex::Ptr& source,
             const std::string& label,
             const graph_analysis::Vertex::Ptr& target);
+
+    /**
+     * Get the requirement that is associated witha particular requirement id
+     * \param requirement id
+     * \return requirement
+     * \throw std::invalid_argument if no instance with given id could be found
+     */
+    shared_ptr<io::SpatioTemporalRequirement> getRequirementById(uint32_t id) const;
+
+    /**
+     * Find the fluent time resource which is related to the spatio temporal
+     * requirement as defined in the mission specification
+     * \param requirement the requirement as parsed out of the mission
+     * specification
+     * \param ftrs the already processed and generated list of
+     * FluentTimeResource
+     * \return FluentTimeResource related to the requirement
+     * \throw std::invalid_argument if no related instance could be found
+     */
+    solvers::FluentTimeResource findRelated(const shared_ptr<io::SpatioTemporalRequirement>& requirement,
+            const std::vector<solvers::FluentTimeResource>& ftrs) const;
+
+    /**
+     * Find the fluent time resource which is related to the spatio temporal
+     * requirement with the given id as defined in the mission specification
+     * \param id of the requirement in the mission specification
+     * \param ftrs the already processed and generated list of
+     * FluentTimeResource
+     * \return FluentTimeResource related to the requirement
+     * \throw std::invalid_argument if no related instance could be found
+     */
+    solvers::FluentTimeResource findRelatedById(uint32_t id,
+            const std::vector<solvers::FluentTimeResource>& ftrs) const;
 
     /// UTILITY FUNCTIONS
 

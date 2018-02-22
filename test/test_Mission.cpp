@@ -3,6 +3,7 @@
 #include <templ/io/MissionReader.hpp>
 #include <templ/io/MissionWriter.hpp>
 #include "test_utils.hpp"
+#include <templ/solvers/FluentTimeResource.hpp>
 
 using namespace templ;
 namespace pa = templ::solvers::temporal::point_algebra;
@@ -48,6 +49,25 @@ BOOST_AUTO_TEST_CASE(reader_writer)
     Mission mission = io::MissionReader::fromFile(missionFilename, organizationModel);
 
     io::MissionWriter::write("/tmp/mission-test-out.xml", mission);
+}
+
+BOOST_AUTO_TEST_CASE(relations)
+{
+    std::string rootDir = getRootDir();
+    std::string missionFilename = rootDir + "/test/data/scenarios/test-mission-constraints.xml";
+    Mission m = io::MissionReader::fromFile(missionFilename);
+    Mission::Ptr mission(new Mission(m));
+    mission->prepareTimeIntervals();
+
+    using namespace templ::solvers;
+    FluentTimeResource::List requirements = Mission::getResourceRequirements(mission);
+    for(uint32_t i = 0; i < 4; ++i)
+    {
+        solvers::FluentTimeResource ftr;
+        BOOST_REQUIRE_NO_THROW( ftr = mission->findRelatedById(i, requirements));
+        BOOST_TEST_MESSAGE("#" << i << " related:\n" << ftr.toString(4));
+    }
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

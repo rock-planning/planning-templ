@@ -13,6 +13,7 @@
 #include "symbols/object_variables/LocationNumericAttribute.hpp"
 #include "solvers/csp/TemporalConstraintNetwork.hpp"
 #include "io/MissionWriter.hpp"
+#include "io/MissionRequirements.hpp"
 
 namespace templ {
 
@@ -487,6 +488,50 @@ graph_analysis::Edge::Ptr Mission::addRelation(const graph_analysis::Vertex::Ptr
     Edge::Ptr edge(new Edge(source, target, label));
     mpRelations->addEdge(edge);
     return edge;
+}
+
+io::SpatioTemporalRequirement::Ptr Mission::getRequirementById(uint32_t id) const
+{
+    using namespace graph_analysis;
+    VertexIterator::Ptr vertexIt = mpRelations->getVertexIterator();
+    while(vertexIt->next())
+    {
+        io::SpatioTemporalRequirement::Ptr requirement = dynamic_pointer_cast<io::SpatioTemporalRequirement>(vertexIt->current());
+        if(requirement && requirement->id == id)
+        {
+            return requirement;
+        }
+    }
+    std::stringstream ss;
+    ss << "templ::Mission::getRequirementById: could not find requirement with id '" << id << "'";
+    throw std::invalid_argument(ss.str());
+}
+
+solvers::FluentTimeResource Mission::findRelated(const io::SpatioTemporalRequirement::Ptr& requirement, const solvers::FluentTimeResource::List& ftrs) const
+{
+    using namespace solvers::temporal::point_algebra;
+    for(const solvers::FluentTimeResource& ftr : ftrs)
+    {
+        if(ftr.getLocation()->getInstanceName() == requirement->spatial.location.id)
+        {
+            solvers::temporal::Interval interval = ftr.getInterval();
+            if(interval.getFrom()->getLabel() == requirement->temporal.from
+                    && interval.getTo()->getLabel() == requirement->temporal.to)
+            {
+                return ftr;
+            }
+        }
+    }
+
+    std::stringstream ss;
+    ss << "templ::Mission::findRelated: could not identify related fluent time resource for ";
+    ss << " requirement with id '" << requirement->id << "'";
+    throw std::invalid_argument(ss.str());
+}
+
+solvers::FluentTimeResource Mission::findRelatedById(uint32_t id, const solvers::FluentTimeResource::List& ftrs) const
+{
+    return findRelated( getRequirementById(id), ftrs );
 }
 
 solvers::FluentTimeResource Mission::fromLocationCardinality(const solvers::temporal::PersistenceCondition::Ptr& p, const Mission::Ptr& mission)
