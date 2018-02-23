@@ -9,16 +9,15 @@
 
 #include <organization_model/OrganizationModelAsk.hpp>
 
-#include "../../Mission.hpp"
 #include "../../Configuration.hpp"
-#include "Types.hpp"
+#include "../../Mission.hpp"
 #include "../FluentTimeResource.hpp"
-#include "utils/FluentTimeIndex.hpp"
+#include "../Solver.hpp"
 #include "../transshipment/MinCostFlow.hpp"
 #include "FlawResolution.hpp"
 #include "TemporalConstraintNetwork.hpp"
-
-#include "../Solver.hpp"
+#include "Types.hpp"
+#include "utils/FluentTimeIndex.hpp"
 
 namespace templ {
 namespace solvers {
@@ -42,6 +41,9 @@ public:
     typedef std::map<FluentTimeResource, organization_model::ModelPool > ModelDistribution;
     typedef std::map<FluentTimeResource, Role::List> RoleDistribution;
 
+    /**
+     * Solution for a TransportNetwork problem
+     */
     class Solution
     {
         friend class TransportNetwork;
@@ -138,8 +140,11 @@ protected:
     // ###############################
     // Temporal constraint networks
     // ###############################
+    // Solver/helper instance for the qualitative TCN
     TemporalConstraintNetworkBase mTemporalConstraintNetwork;
+    // Gecode representation of the qualitative TCN
     Gecode::IntVarArray mQualitativeTimepoints;
+    // The currently considered qualitative TCN without gaps
     temporal::QualitativeTemporalConstraintNetwork::Ptr mpQualitativeTemporalConstraintNetwork;
 
     // ###########################
@@ -383,6 +388,9 @@ protected:
 public:
     TransportNetwork();
 
+    /**
+     * Construct CSP-based solver for a particular mission
+     */
     TransportNetwork(const templ::Mission::Ptr& mission, const Configuration& configuration = Configuration());
 
     /**
