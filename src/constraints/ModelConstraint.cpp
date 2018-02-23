@@ -39,6 +39,20 @@ ModelConstraint::ModelConstraint(Type type,
 {
 }
 
+ModelConstraint::ModelConstraint(Type type,
+            const owlapi::model::IRI& model,
+            const SpaceTime::SpaceIntervalTuple& affectedSpaceInterval,
+            uint32_t value,
+            const owlapi::model::IRI& property)
+    : HyperConstraint(MODEL)
+    , mType(type)
+    , mModel(model)
+    , mValue(value)
+    , mProperty(property)
+{
+    mSpaceIntervalTuples.push_back(affectedSpaceInterval);
+}
+
 std::string ModelConstraint::toString(uint32_t indent) const
 {
     std::string hspace(indent,' ');

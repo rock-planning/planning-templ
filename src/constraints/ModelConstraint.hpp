@@ -68,6 +68,12 @@ public:
             uint32_t value = 0,
             const owlapi::model::IRI& property = owlapi::model::IRI());
 
+    ModelConstraint(Type type,
+            const owlapi::model::IRI& model,
+            const SpaceTime::SpaceIntervalTuple& affectedSpaceInterval,
+            uint32_t value = 0,
+            const owlapi::model::IRI& property = owlapi::model::IRI());
+
     std::string getClassName() const override { return "ModelConstraint"; }
 
     std::string toString() const override { return toString(0); }
