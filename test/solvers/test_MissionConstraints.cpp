@@ -74,6 +74,9 @@ struct MissionFixture
 
             TransportNetwork::Solution solution = current->getSolution();
             current->saveSolution(solution, mission);
+
+            Mission::Ptr augmentedMission = current->getAugmentedMission();
+            augmentedMission->save("/tmp/templ-test-augmented-mission.xml");
         }
     }
 

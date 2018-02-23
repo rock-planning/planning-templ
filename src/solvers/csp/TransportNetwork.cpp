@@ -31,6 +31,7 @@
 #include "Search.hpp"
 #include "../SolutionAnalysis.hpp"
 #include "MissionConstraintManager.hpp"
+#include "../../constraints/ModelConstraint.hpp"
 
 using namespace templ::solvers::csp::utils;
 
@@ -1233,6 +1234,70 @@ void TransportNetwork::addConstraint(const Constraint::Ptr& constraint)
     MissionConstraintManager::apply(constraint, *this);
 }
 
+Constraint::PtrList TransportNetwork::getAssignmentsAsConstraints() const
+{
+    using namespace organization_model;
+    Constraint::PtrList constraints;
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
+
+
+    // Min resource model constraints
+    for(size_t f = 0; f < mResourceRequirements.size(); ++f)
+    {
+        const FluentTimeResource& ftr = mResourceRequirements[f];
+
+        ModelPool modelPool = currentMinModelAssignment(ftr);
+        for(const ModelPool::value_type& v : modelPool)
+        {
+            constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(
+                    constraints::ModelConstraint::MIN,
+                    v.first,
+                    MissionConstraintManager::mapToSpaceTime(ftr),
+                    v.second
+                    );
+            constraints.push_back(constraint);
+        }
+    }
+
+    for(size_t r = 0; r < mRoles.size(); ++r)
+    {
+        FluentTimeResource::List presentAt;
+        for(size_t f = 0; f < mResourceRequirements.size(); ++f)
+        {
+            Gecode::IntVar var = roleDistribution(r,f);
+            if(var.assigned() && var.val() == 1)
+            {
+                presentAt.push_back( mResourceRequirements[f] );
+            }
+        }
+
+        if(!presentAt.empty())
+        {
+            constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(
+                    constraints::ModelConstraint::MIN_EQUAL,
+                    mRoles[r].getModel(),
+                    MissionConstraintManager::mapToSpaceTime( presentAt ),
+                    1
+                    );
+            constraints.push_back(constraint);
+        }
+    }
+
+    return constraints;
+
+}
+
+Mission::Ptr TransportNetwork::getAugmentedMission() const
+{
+    Mission::Ptr augmentedMission = make_shared<Mission>(*mpMission);
+    Constraint::PtrList constraints = getAssignmentsAsConstraints();
+    for(Constraint::Ptr& constraint : constraints)
+    {
+        augmentedMission->addConstraint(constraint);
+    }
+    return augmentedMission;
+}
+
 void TransportNetwork::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPool::Set& combinations) const
 {
     std::set< std::vector<uint32_t> > csp = utils::Converter::toCSP(mpMission, combinations);
@@ -1325,6 +1390,24 @@ std::vector<uint32_t> TransportNetwork::computeActiveRoles() const
     LOG_INFO_S << "Role usage: " << roleUsageToString();
 
     return activeRoles;
+}
+
+organization_model::ModelPool TransportNetwork::currentMinModelAssignment(const FluentTimeResource& ftr) const
+{
+    organization_model::ModelPool modelPool;
+    Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
+
+    size_t ftrIdx = FluentTimeResource::getIndex(mResourceRequirements, ftr);
+
+    for(size_t r = 0; r < mRoles.size(); ++r)
+    {
+        Gecode::IntVar var = roleDistribution(r,ftrIdx);
+        if(var.assigned() && var.val() == 1)
+        {
+            modelPool[ mRoles[r].getModel() ] += 1;
+        }
+    }
+    return modelPool;
 }
 
 void TransportNetwork::doPostTemporalConstraints(Gecode::Space& home)

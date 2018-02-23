@@ -278,6 +278,11 @@ private:
      */
     std::vector<uint32_t> computeActiveRoles() const;
 
+    /**
+     * Get the current (minimum) model assignment for a FluentTimeResource
+     */
+    organization_model::ModelPool currentMinModelAssignment(const FluentTimeResource& ftr) const;
+
     static void doPostTemporalConstraints(Gecode::Space& home);
     void postTemporalConstraints();
 
@@ -430,6 +435,17 @@ public:
      * Add a general constraint
      */
     void addConstraint(const Constraint::Ptr& constraint);
+
+    /**
+     * Get the current assignments as constraints
+     */
+    Constraint::PtrList getAssignmentsAsConstraints() const;
+
+    /**
+     * Create a mission that is augmented with the current assignment encoded
+     * into constraints
+     */
+    Mission::Ptr getAugmentedMission() const;
 
     std::string toString() const;
 

@@ -49,6 +49,14 @@ public:
      */
     static std::vector<SpaceTime::SpaceIntervalTuple> mapToSpaceTime(const FluentTimeResource::List& ftrs);
 
+    /**
+     * Utility function to convert FluentTimeResource to SpaceTime (as
+     * used in a Constraint
+     * \param ftr FluentTimeResource to be converted
+     * \todo Find better place for this functionality
+     */
+    static SpaceTime::SpaceIntervalTuple mapToSpaceTime(const FluentTimeResource& ftr);
+
 private:
     /** Find all FluentTimeResource which are related to a Constraint
      * \param constraint

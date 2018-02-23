@@ -171,7 +171,7 @@ FluentTimeResource::List MissionConstraintManager::findAffected(const shared_ptr
     if(affected.empty())
     {
         throw std::invalid_argument("templ::solvers::csp::MissionConstraintManager::findAffected:"
-                " failed to identify affected requirements");
+                " failed to identify affected requirements for constraint: " + constraint->toString());
     }
 
     return affected;
@@ -187,6 +187,11 @@ std::vector<SpaceTime::SpaceIntervalTuple> MissionConstraintManager::mapToSpaceT
         tuples.push_back(tuple);
     }
     return tuples;
+}
+
+SpaceTime::SpaceIntervalTuple MissionConstraintManager::mapToSpaceTime(const FluentTimeResource& ftr)
+{
+    return SpaceTime::SpaceIntervalTuple(ftr.getLocation(), ftr.getInterval());
 }
 
 } // end namespace csp
