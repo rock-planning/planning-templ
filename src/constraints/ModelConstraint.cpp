@@ -67,10 +67,15 @@ std::string ModelConstraint::toString(uint32_t indent) const
             ss << hspace << "    property: " << mValue << std::endl;
         }
     }
-    ss << hspace << "    space-time:" << std::endl;
-    for(const SpaceTime::SpaceIntervalTuple& tuple : mSpaceIntervalTuples)
+    if(mSpaceIntervalTuples.empty())
     {
-        ss << tuple.toString(indent + 8);
+        ss << hspace << "    space-time: n/a" << std::endl;
+    } else {
+        ss << hspace << "    space-time:" << std::endl;
+        for(const SpaceTime::SpaceIntervalTuple& tuple : mSpaceIntervalTuples)
+        {
+            ss << tuple.toString(indent + 8);
+        }
     }
     return ss.str();
 }
