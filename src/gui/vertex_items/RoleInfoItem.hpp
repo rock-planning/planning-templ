@@ -61,7 +61,8 @@ protected:
     /**
      * Add a model table
      */
-    QGraphicsProxyWidget* addModelTable(const owlapi::model::IRI& model, int xPos, int yPos,
+    QGraphicsProxyWidget* addModelTable(const owlapi::model::IRI& model,
+            int xPos, int yPos,
             size_t columnCount = 5,
             size_t rowCount = 5,
             size_t defaultColumnSize = 10,

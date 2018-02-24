@@ -15,7 +15,22 @@ class RoleInfo
 public:
     typedef shared_ptr<RoleInfo> Ptr;
 
-    enum Tag { UNKNOWN, ASSIGNED = 1, REQUIRED, AVAILABLE};
+    enum Tag { UNKNOWN,
+        ASSIGNED = 1,
+        REQUIRED,
+        AVAILABLE
+    };
+
+    // assigned (according to current solution -- CSP step)
+    // available (according to multi-commodity min cost flow step)
+    // required (per mission spec)
+    enum Status { UNKNOWN_STATUS,
+        REQUIRED_ASSIGNED,   // GREEN
+        REQUIRED_UNASSIGNED, // RED  infeasible csp / min cost flow, but might still be an overall feasible solution (due to compensation through other)
+        NOTREQUIRED_ASSIGNED,   // YELLOW
+        NOTREQUIRED_AVAILABLE, // BLACK
+    };
+
     static std::map<Tag, std::string> TagTxt;
 
     RoleInfo();
@@ -26,11 +41,24 @@ public:
 
     bool hasRole(const Role& role, const std::string& tag = "") const;
 
+    bool hasRole(const Role& role, const Tag& tag) const;
+
     const std::set<Role>& getRoles(const std::string& tag ="") const;
 
     const std::set<Role>& getRoles(const Tag& tag) const;
 
-    std::set<Role> getAllRoles() const;
+    const std::set<Role>& getAllRoles() const;
+
+    /**
+     * Get the status a particular role
+     */
+    Status getStatus(const owlapi::model::IRI& model, uint32_t id) const;
+
+    /**
+     * Retrieve a role if it exists, otherwise throw
+     * \throw std::invalid_argument if role does not exist
+     */
+    const Role& getRole(const owlapi::model::IRI& model, uint32_t id) const;
 
     /**
      * Compute the complement C between two role sets with respect to the tag0 set,
@@ -58,6 +86,7 @@ public:
     std::string toString(uint32_t indent = 0) const;
 
 protected:
+    mutable std::set<Role> mAllRoles;
     std::set<Role> mRoles;
     mutable std::map<std::string, std::set<Role> > mTaggedRoles;
 };

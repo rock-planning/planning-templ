@@ -38,6 +38,7 @@ void RoleInfo::addRole(const Role& role, const std::string& tag)
     } else {
         mTaggedRoles[tag].insert(role);
     }
+    mAllRoles.insert(role);
 }
 
 
@@ -67,16 +68,9 @@ bool RoleInfo::hasRole(const Role& role, const std::string& tag) const
     }    return roleSet->end() != roleSet->find(role);
 }
 
-std::set<Role> RoleInfo::getAllRoles() const
+bool RoleInfo::hasRole(const Role& role, const Tag& tag) const
 {
-    std::set<Role> roles = mRoles;
-    std::map<std::string, std::set<Role> >::const_iterator cit = mTaggedRoles.begin();
-    for( ; cit != mTaggedRoles.end(); ++cit)
-    {
-        const std::set<Role>& taggedRoles = cit->second;
-        roles.insert(taggedRoles.begin(), taggedRoles.end());
-    }
-    return roles;
+    return hasRole(role, TagTxt[tag]);
 }
 
 std::string RoleInfo::toString(uint32_t indent) const
@@ -88,14 +82,6 @@ std::string RoleInfo::toString(uint32_t indent) const
         ss << hspace << "    roles:" << std::endl;
         Role::TypeMap typeMap = Role::toTypeMap(mRoles);
         ss << Role::toString(typeMap, indent + 8);
-        //{
-
-        //    std::set<Role>::const_iterator it = mRoles.begin();
-        //    for(; it != mRoles.end(); ++it)
-        //    {
-        //        ss << hspace << "        " << it->toString() << std::endl;
-        //    }
-        //}
     }
 
     std::map<std::string, std::set<Role> >::const_iterator rit = mTaggedRoles.begin();
@@ -107,18 +93,70 @@ std::string RoleInfo::toString(uint32_t indent) const
             ss << hspace << "    roles (" << rit->first << "):" << std::endl;
             Role::TypeMap typeMap = Role::toTypeMap(roles);
             ss << Role::toString(typeMap, indent + 8);
-            //std::set<Role>::const_iterator it = roles.begin();
-            //for(; it != roles.end(); ++it)
-            //{
-            //    ss << hspace << "        " << it->toString() << std::endl;
-            //}
         }
     }
-
-
     return ss.str();
 }
 
+const Role::Set& RoleInfo::getAllRoles() const
+{
+    if(mAllRoles.empty() && !(mRoles.empty() && mTaggedRoles.empty()))
+    {
+        mAllRoles.insert(mRoles.begin(), mRoles.end());
+	std::map<std::string, std::set<Role> >::const_iterator cit = mTaggedRoles.begin();
+  	for( ; cit != mTaggedRoles.end(); ++cit)
+        {
+            const std::set<Role>& taggedRoles = cit->second;
+            mAllRoles.insert(taggedRoles.begin(), taggedRoles.end());
+        }
+    }
+    return mAllRoles;
+}
+
+RoleInfo::Status RoleInfo::getStatus(const owlapi::model::IRI& model, uint32_t id) const
+{
+    try {
+        const Role& role = getRole(model, id);
+        if(hasRole(role, REQUIRED))
+        {
+            if(hasRole(role, ASSIGNED))
+            {
+                return REQUIRED_ASSIGNED;
+            } else {
+                return REQUIRED_UNASSIGNED;
+            }
+        } else { // NOT REQUIRED
+        {
+            if(hasRole(role, ASSIGNED))
+            {
+                return NOTREQUIRED_ASSIGNED;
+            }
+	    if(hasRole(role, AVAILABLE))
+                return NOTREQUIRED_AVAILABLE;
+            }
+        }
+    } catch(const std::invalid_argument& e)
+    {
+        // role unknown
+    }
+    return UNKNOWN_STATUS;
+}
+
+const Role& RoleInfo::getRole(const owlapi::model::IRI& model, uint32_t id) const
+{
+    Role::Set::const_iterator cit;
+    cit = std::find_if(mAllRoles.begin(), mAllRoles.end(), [&model,id](const Role& other)
+            {
+                return other.getModel() == model && other.getId() == id;
+            });
+    if(cit != mAllRoles.end())
+    {
+        return *cit;
+    }
+
+    throw std::invalid_argument("templ::RoleInfo::getRole: could not find role: " +
+            model.toString() + std::to_string(id));
+}
 
 Role::List RoleInfo::getRelativeComplement(const std::string& tag0, const std::string& tag1) const
 {
@@ -184,6 +222,7 @@ Role::List RoleInfo::getSymmetricDifference(const std::string& tag0, const std::
 
 void RoleInfo::clear()
 {
+    mAllRoles.clear();
     mRoles.clear();
     mTaggedRoles.clear();
 }

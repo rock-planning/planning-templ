@@ -127,6 +127,7 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
 
     QPen pen = mpRect->pen();
     std::stringstream ss;
+    ss << vertex->toString();
     Role::List missing = tuple->getRelativeComplement(RoleInfo::TagTxt[ RoleInfo::REQUIRED ], RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]);
     if(!missing.empty())
     {
@@ -319,6 +320,7 @@ QGraphicsSvgItem* RoleInfoItem::getSvgItemForModel(const owlapi::model::IRI& iri
     QGraphicsSvgItem* modelSvg = new QGraphicsSvgItem(file, this);
     int svgActualHeight = modelSvg->renderer()->defaultSize().height();
     modelSvg->setScale(height*1.0/svgActualHeight);
+    modelSvg->setToolTip(iri.toString().c_str());
     return modelSvg;
 }
 
@@ -356,6 +358,41 @@ QGraphicsProxyWidget* RoleInfoItem::addModelTable(const owlapi::model::IRI& mode
     QGraphicsProxyWidget* tableProxy = new QGraphicsProxyWidget(this);
     tableProxy->setWidget(tableWidget);
     tableProxy->setGeometry(QRect(0,0,tableWidth, tableHeight));
+
+    SpaceTime::Network::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(getVertex());
+
+    for(size_t r = 0; r < rowCount; ++r)
+    {
+        for(size_t c = 0; c < columnCount; ++c)
+        {
+            uint32_t id = c*rowCount + r;
+            RoleInfo::Status status = tuple->getStatus(model, id);
+            if(status == RoleInfo::UNKNOWN_STATUS)
+            {
+                continue;
+            }
+            tableWidget->setItem(r,c, new QTableWidgetItem);
+            tableWidget->item(r,c)->setToolTip(QString(model.getFragment().c_str()) + "_" + QString::number(id));
+
+            switch(status)
+            {
+                case RoleInfo::NOTREQUIRED_AVAILABLE:
+                    tableWidget->item(r,c)->setBackground(Qt::black);
+                    break;
+                case RoleInfo::NOTREQUIRED_ASSIGNED:
+                    tableWidget->item(r,c)->setBackground(Qt::yellow);
+                    break;
+                case RoleInfo::REQUIRED_ASSIGNED:
+                    tableWidget->item(r,c)->setBackground(Qt::green);
+                    break;
+                case RoleInfo::REQUIRED_UNASSIGNED:
+                    tableWidget->item(r,c)->setBackground(Qt::red);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 
     // Use sceneBoundingRect here, to get size after(!) the svg has been scaled
     modelSvg->setPos(xPos - modelSvg->sceneBoundingRect().width() - 3, yPos);
