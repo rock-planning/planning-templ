@@ -270,13 +270,13 @@ BOOST_AUTO_TEST_CASE(operation_loose_path)
 BOOST_AUTO_TEST_CASE(example_network_0)
 {
     TemporalConstraintNetwork tcn,expected;
-    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v0->setLabel("v0");
-    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v1->setLabel("v1");
-    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v2->setLabel("v2");
-    point_algebra::TimePoint::Ptr v3(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v3(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v3->setLabel("v3");
 
     // Designing start
@@ -364,13 +364,13 @@ BOOST_AUTO_TEST_CASE(example_network_0)
 BOOST_AUTO_TEST_CASE(example_network_1)
 {
     TemporalConstraintNetwork tcn,expected;
-    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v0->setLabel("v0");
-    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v1->setLabel("v1");
-    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v2->setLabel("v2");
-    point_algebra::TimePoint::Ptr v3(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v3(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v3->setLabel("v3");
 
     // Designing start
@@ -472,13 +472,13 @@ BOOST_AUTO_TEST_CASE(example_network_1)
 BOOST_AUTO_TEST_CASE(intersection_network)
 {
     TemporalConstraintNetwork tcn,expected;
-    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v0->setLabel("v0");
-    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v1->setLabel("v1");
-    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v2->setLabel("v2");
-    point_algebra::TimePoint::Ptr v3(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v3(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v3->setLabel("v3");
 
     IntervalConstraint::Ptr i0(new IntervalConstraint(v0,v1));
@@ -537,13 +537,13 @@ BOOST_AUTO_TEST_CASE(loose_intersection)
 {
     TemporalConstraintNetwork tcn,tcn2,expected;
 
-    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v0->setLabel("v0");
-    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v1->setLabel("v1");
-    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v2->setLabel("v2");
-    point_algebra::TimePoint::Ptr v3(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v3(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
     v3->setLabel("v3");
 
     IntervalConstraint::Ptr i0(new IntervalConstraint(v0,v1));
@@ -649,9 +649,9 @@ BOOST_AUTO_TEST_CASE(lpc)
 {
     TemporalConstraintNetwork tcn,expected;
 
-    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
-    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
-    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<double>::infinity()));
+    point_algebra::TimePoint::Ptr v0(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
+    point_algebra::TimePoint::Ptr v1(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
+    point_algebra::TimePoint::Ptr v2(new point_algebra::TimePoint(0,std::numeric_limits<uint64_t>::infinity()));
 
     IntervalConstraint::Ptr i0(new IntervalConstraint(v0,v1));
     i0->addInterval(Bounds(1,2));
