@@ -40,7 +40,7 @@ double Cost::estimateTravelTime(const symbols::constants::Location::Ptr& from,
         const symbols::constants::Location::Ptr& to,
         const Coalition& coalition)
 {
-    assert(!roleSet.empty());
+    assert(!coalition.empty());
 
     double distance = (from->getPosition() - to->getPosition()).norm();
 
