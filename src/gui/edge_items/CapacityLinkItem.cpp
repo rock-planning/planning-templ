@@ -24,7 +24,7 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
         new QGraphicsTextItem(QString(edge->getClassName().c_str()), this);
     mpClassName->setDefaultTextColor(Qt::gray);
 
-    mpFillBar = new QGraphicsRectItem(getEdgePath()->pos().x(), getEdgePath()->pos().y(), 100, 10, this);
+    mpFillBar = new QGraphicsRectItem(getEdgePath()->pos().x(), getEdgePath()->pos().y()+120, 10, 100, this);
     mpFillBar->setPen( QPen(Qt::black) );
     mpFillBar->setBrush(QBrush(Qt::white));
 
@@ -35,7 +35,7 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
        consumptionInPercent = capacityLink->getConsumptionLevel();
     }
 
-    mpFillStatus = new QGraphicsRectItem(getEdgePath()->pos().x(), getEdgePath()->pos().y(), consumptionInPercent*100 , 10, this);
+    mpFillStatus = new QGraphicsRectItem(getEdgePath()->pos().x(), getEdgePath()->pos().y()+120, 10, consumptionInPercent*100, this);
     mpFillStatus->setPen( QPen(Qt::black) );
     mpFillStatus->setBrush(QBrush(Qt::black));
 
