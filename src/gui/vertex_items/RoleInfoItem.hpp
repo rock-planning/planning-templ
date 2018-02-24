@@ -2,6 +2,10 @@
 #define TEMPL_GUI_VERTEX_ITEMS_ROLE_INFO_ITEM_HPP
 
 #include <graph_analysis/gui/VertexItemBase.hpp>
+#include <QGraphicsSvgItem>
+#include <QGraphicsProxyWidget>
+
+#include <owlapi/model/IRI.hpp>
 
 namespace templ {
 namespace gui {
@@ -49,6 +53,21 @@ protected:
     void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
 
+    /**
+     *  Get the SVG Item for a particular agent model
+     */
+    QGraphicsSvgItem* getSvgItemForModel(const owlapi::model::IRI& iri = owlapi::model::IRI(), size_t height = 50);
+
+    /**
+     * Add a model table
+     */
+    QGraphicsProxyWidget* addModelTable(const owlapi::model::IRI& model, int xPos, int yPos,
+            size_t columnCount = 5,
+            size_t rowCount = 5,
+            size_t defaultColumnSize = 10,
+            size_t defaultRowSize = 10);
+
+
     VertexItemBase* createNewItem(graph_analysis::gui::GraphWidget* graphWidget,
                 const graph_analysis::Vertex::Ptr& vertex,
                 QGraphicsItem* parent) const;
@@ -61,6 +80,11 @@ private:
 
     QGraphicsEllipseItem* mpEllipse;
     QGraphicsTextItem* mpEllipseText;
+
+    QGraphicsSvgItem* mpLocationSvg;
+    QGraphicsTextItem* mpLocationLabel;
+    QGraphicsSvgItem* mpTimepointSvg;
+    QGraphicsTextItem* mpTimepointLabel;
 
     /** convert the current scenePos of the item to smth like "(23, -14)" */
     QString getScenePosAsString() const;

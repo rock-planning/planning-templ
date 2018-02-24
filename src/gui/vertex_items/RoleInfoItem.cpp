@@ -9,6 +9,12 @@
 #include "../../SpaceTime.hpp"
 
 #include <base-logging/Logging.hpp>
+#include <QSvgRenderer>
+#include <QTableWidget>
+#include <QHeaderView>
+#include <QDebug>
+#include <QScrollBar>
+#include <QResource>
 
 using namespace graph_analysis;
 using namespace graph_analysis::gui;
@@ -48,24 +54,35 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     mpRect = new QGraphicsRectItem(this);
     mpRect->setPen(QPen(Qt::blue));
 
-    mpLabel = new QGraphicsTextItem(QString(vertex->toString().c_str()), this);
+    SpaceTime::Network::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(vertex);
+    assert(tuple);
+
+    mpLabel = new QGraphicsTextItem(QString(""), this);
     QFont font = mpLabel->font();
     font.setBold(true);
     mpLabel->setFont(font);
+
+    mpLocationSvg = new QGraphicsSvgItem(":/resources/pictograms/location.svg", this);
+    mpLocationSvg->setScale(25.0/ mpLocationSvg->renderer()->defaultSize().height());
+    mpLocationSvg->setPos(0,-50);
+    mpLocationLabel = new QGraphicsTextItem(QString(tuple->first()->getInstanceName().c_str()), this);
+    mpLocationLabel->setPos(mpLocationSvg->pos() + QPointF(25,0));
+
+
+    mpTimepointSvg = new QGraphicsSvgItem(":/resources/pictograms/timepoint.svg", this);
+    mpTimepointSvg->setScale(25.0/ mpTimepointSvg->renderer()->defaultSize().height());
+    mpTimepointSvg->setPos(mpLocationSvg->pos() + QPoint(0,25 + 3));
+    mpTimepointLabel = new QGraphicsTextItem(QString(tuple->second()->getLabel().c_str()), this);
+    mpTimepointLabel->setPos(mpTimepointSvg->pos() + QPointF(25,0));
 
     mpClassName =
         new QGraphicsTextItem(QString(vertex->getClassName().c_str()), this);
     mpClassName->setPos(mpLabel->pos() +
                         QPoint(0, mpLabel->boundingRect().height()));
     mpClassName->setDefaultTextColor(Qt::gray);
-    // we wanna show the current qt-coordinate on the canvas
+
     mpInfoBox = new QGraphicsTextItem("", this);
     mpInfoBox->setDefaultTextColor(Qt::darkGreen);
-
-    // now that all the children are there, we use their bounding-rect to
-    // enlarge the background-rect. note that we never modify the boundingRect
-    // afterwards.
-    mpRect->setRect(childrenBoundingRect());
 
     // change the position of the "coordinate" label to be pinned in the
     // top-right corner of the blue rect
@@ -84,6 +101,22 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     mpEllipseText->setPlainText("0.95");
     mpEllipseText->setDefaultTextColor(Qt::gray);
 
+
+    int yPos = 50;
+    Role::TypeMap typeMap = Role::toTypeMap( tuple->getAllRoles());
+    for(const Role::TypeMap::value_type& v : typeMap)
+    {
+        addModelTable(v.first, 0, yPos,
+                5, 5,
+                10, 10);
+        yPos += 5*10 + 3;
+    }
+
+    // now that all the children are there, we use their bounding-rect to
+    // enlarge the background-rect. note that we never modify the boundingRect
+    // afterwards.
+    mpRect->setRect(childrenBoundingRect());
+
     // for this "Simple" type we want to have it movable. this graphical
     // "object" will not be contained inside other items, so thats ok
     setFlag(ItemIsMovable);
@@ -91,12 +124,6 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     // for thi specific "Simple" implmentation, we accept drops -- and allow
     // drops -- to create new edges. see later.
     setAcceptDrops(true);
-
-
-
-    // Identify items with missing roles
-    SpaceTime::Network::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>( getVertex() );
-    assert(tuple);
 
     QPen pen = mpRect->pen();
     std::stringstream ss;
@@ -274,6 +301,68 @@ void RoleInfoItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 void RoleInfoItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
 }
+
+QGraphicsSvgItem* RoleInfoItem::getSvgItemForModel(const owlapi::model::IRI& iri, size_t height)
+{
+    QString file = ":/resources/pictograms/pictogram-unknown.svg";
+    if(!iri.empty())
+    {
+        QString agentmodel( iri.getFragment().c_str());
+        QString filename = ":/resources/pictograms/pictogram-"+ agentmodel.toLower() +".svg";
+        QResource resource(filename);
+        if(resource.isValid())
+        {
+            file = filename;
+        }
+    }
+
+    QGraphicsSvgItem* modelSvg = new QGraphicsSvgItem(file, this);
+    int svgActualHeight = modelSvg->renderer()->defaultSize().height();
+    modelSvg->setScale(height*1.0/svgActualHeight);
+    return modelSvg;
+}
+
+QGraphicsProxyWidget* RoleInfoItem::addModelTable(const owlapi::model::IRI& model,
+        int xPos, int yPos,
+        size_t columnCount,
+        size_t rowCount,
+        size_t defaultColumnSize,
+        size_t defaultRowSize
+        )
+{
+    // Make sure model svg is as high as the table
+    QGraphicsSvgItem* modelSvg = getSvgItemForModel(model, rowCount*defaultRowSize );
+
+    size_t tableWidth = columnCount*defaultColumnSize + 3;
+    size_t tableHeight = rowCount*defaultRowSize + 3;
+
+    // row x cols
+    QTableWidget* tableWidget = new QTableWidget(rowCount, columnCount);
+    tableWidget->setGeometry(QRect(0,0,tableWidth, tableHeight));
+    tableWidget->setMaximumWidth(tableWidth);
+    tableWidget->setMaximumHeight(tableHeight);
+
+    //tableWidget->resizeColumnsToContents();
+    tableWidget->verticalHeader()->setVisible(false);
+    tableWidget->verticalHeader()->setMinimumSectionSize(1);
+    tableWidget->verticalHeader()->setDefaultSectionSize(defaultRowSize);
+    tableWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    tableWidget->horizontalHeader()->setVisible(false);
+    tableWidget->horizontalHeader()->setMinimumSectionSize(1);
+    tableWidget->horizontalHeader()->setDefaultSectionSize(defaultColumnSize);
+    tableWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+    QGraphicsProxyWidget* tableProxy = new QGraphicsProxyWidget(this);
+    tableProxy->setWidget(tableWidget);
+    tableProxy->setGeometry(QRect(0,0,tableWidth, tableHeight));
+
+    // Use sceneBoundingRect here, to get size after(!) the svg has been scaled
+    modelSvg->setPos(xPos - modelSvg->sceneBoundingRect().width() - 3, yPos);
+    tableProxy->setPos(xPos, yPos);
+    return tableProxy;
+}
+
 VertexItemBase* RoleInfoItem::createNewItem(graph_analysis::gui::GraphWidget* graphWidget,
            const graph_analysis::Vertex::Ptr& vertex,
             QGraphicsItem* parent) const

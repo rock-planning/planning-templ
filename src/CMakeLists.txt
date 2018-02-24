@@ -1,5 +1,7 @@
 find_package(Boost REQUIRED system filesystem serialization program_options)
 
+# For adding the qt4 resources
+set(CMAKE_AUTORCC ON)
 rock_library(templ_core
     SOURCES
         Configuration.cpp
@@ -323,6 +325,7 @@ rock_library(templ_gui
         gui/vertex_items/RoleInfoItem.cpp
         gui/models/AgentStyleModel.cpp
         gui/widgets/PenStyle.cpp
+        ../resources.qrc
     MOC
         gui/TemplGui.hpp
         gui/SpatioTemporalRequirementItem.hpp
@@ -345,9 +348,6 @@ rock_library(templ_gui
         gui/OntologyView/OntologyView.ui
         gui/widgets/PenStyle.ui
 )
-
-# qt4_add_resources(qrc_files src/gui/TemplGui.qrc)
-# target_link_libraries(templ_gui ${qrc_files})
 
 rock_executable(templ-gui gui/Main.cpp
     DEPS templ_gui)
