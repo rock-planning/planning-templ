@@ -7,7 +7,7 @@
 #include <owlapi/model/OWLOntologyAsk.hpp>
 #include <organization_model/ModelPool.hpp>
 #include <organization_model/vocabularies/OM.hpp>
-#include <organization_model/Functionality.hpp>
+#include <organization_model/Resource.hpp>
 #include <templ/solvers/temporal/Interval.hpp>
 #include <templ/Mission.hpp>
 
@@ -63,7 +63,7 @@ public:
     /**
      * Add a resource requirement using the idx (for CSP based variants)
      */
-    void addResourceIdx(size_t idx) { mResources.insert(idx); }
+    void addResourceIdx(size_t idx);
 
     /**
      * Get resource requirement as set of indices
@@ -192,19 +192,23 @@ public:
      * Get the set of functionalities this FluentTimeResource requires
      * This is a subset of the overall required resources
      */
-    std::set<organization_model::Functionality> getFunctionalities() const;
+    organization_model::Resource::Set getRequiredResources() const;
 
     /**
-     * Get the set of requirements for the set of functionalities associated
-     * witht this fluent-time-resource
+     * Set the functionalities, i.e. overwrite all existing
      */
-    organization_model::FunctionalityRequirement::Map getFunctionalitiesConstraints() const { return mFunctionalitiesConstraints; }
+    void setRequiredResources(const organization_model::Resource::Set& resources) { mRequiredResources = resources; }
 
     /**
      * Add a functionality constraint
      * \param constraint Functionality constraint
      */
-    void addFunctionalityConstraints(const organization_model::FunctionalityRequirement& constraint);
+    void addRequiredResource(const organization_model::Resource& resource);
+
+    /**
+     * Refresh the set of required resources
+     */
+    void updateRequiredResources() const;
 
     /**
      * Create a compact representation for all requirement that
@@ -238,7 +242,7 @@ public:
      * previously requested.
      * \param increment Value to add to the min cardinalities
      */
-    void incrementResourceRequirement(const owlapi::model::IRI& model, size_t increment);
+    void incrementResourceMinCardinality(const owlapi::model::IRI& model, size_t increment);
 
     /**
      * Update the set of satisficing cardinalities by computing the functional
@@ -263,19 +267,21 @@ private:
     /// the fluent, e.g. space/location
     size_t mFluent;
 
-    // Todo: embed the functionality requirements into the the planner,
-    // i.e.
-    // allow to call
-    // ModelPool::Set organization_model::OrganizationModelAsk::getResourceSupport(requirement)
-    organization_model::FunctionalityRequirement::Map mFunctionalitiesConstraints;
+    // Set of required resources including additional constraints
+    mutable organization_model::Resource::Set mRequiredResources;
 
     /// min cardinalities of the available models
     organization_model::ModelPool mMinCardinalities;
     /// max cardinalities of the available models
     organization_model::ModelPool mMaxCardinalities;
+
     /// satisficing cardinalities (functional saturation) of the available
     /// models
     organization_model::ModelPool mSatisficingCardinalities;
+
+    /// Flag to mark that an update is required
+    /// see updateRequiredResources
+    mutable bool mUpdateRequired;
 };
 
 } // end namespace solvers

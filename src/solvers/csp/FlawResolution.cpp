@@ -279,38 +279,6 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                             );
 
                     currentSpace.addConstraint(constraint);
-
-                    //using namespace organization_model;
-                    //Functionality functionality( vocabulary::OM::resolve("TransportProvider") );
-
-                    //// Add the constraint to increase the transport capacity to
-                    //// cover for the existing delta
-                    //PropertyConstraint::Set constraints;
-                    //PropertyConstraint constraint( vocabulary::OM::resolve("transportCapacity"), PropertyConstraint::GREATER_EQUAL, flaw.violation.getInFlow() + abs(flaw.violation.getDelta()) );
-                    //constraints.insert(constraint);
-
-                    //FunctionalityRequirement functionalityRequirement(functionality, constraints);
-                    //FunctionalityRequirement::Map functionalityRequirements;
-                    //functionalityRequirements[functionality] = functionalityRequirement;
-
-                    //MissionConstraints::addFunctionalitiesRequirement(
-                    //        currentSpace.mResources,
-                    //        currentSpace.mResourceRequirements,
-                    //        flaw.ftr,
-                    //        functionalityRequirements,
-                    //        currentSpace.mAsk);
-
-                    //if(TransportNetwork::msInteractive)
-                    //{
-                    //    std::cout << "Add functionality requirement: " << FunctionalityRequirement::toString(functionalityRequirements, 8) << std::endl;
-                    //    std::cout << "Added constraint: " << constraint.toString() << std::endl;
-                    //    std::cout << "Fluents after adding function requirement: " << std::endl;
-                    //    for(const FluentTimeResource& ftr : currentSpace.mResourceRequirements)
-                    //    {
-                    //        std::cout << ftr.toString(12) << std::endl;
-                    //    }
-                    //    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-                    //}
                     break;
             }
             break;

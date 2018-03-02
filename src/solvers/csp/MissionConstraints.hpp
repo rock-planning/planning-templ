@@ -266,46 +266,31 @@ public:
             uint32_t additional = 1);
 
     /**
-     * Add a particular function requirement to the current mission with respect to a
+     * Add a particular resource (function) requirement to the current mission with respect to a
      * FluentTimeResource instance
      * \throws std::invalid_argument when fluent time resource could not be
      * found
      */
-    static void addFunctionRequirement(const owlapi::model::IRIList& allAvailableResources,
+    static void addResourceRequirement(const owlapi::model::IRIList& allAvailableResources,
             std::vector<FluentTimeResource>& resourceRequirements,
             const FluentTimeResource& fts,
-            const owlapi::model::IRI& function,
+            const organization_model::Resource& resource,
             organization_model::OrganizationModelAsk ask);
 
     /**
-     * Add a particular function requirement to the current mission with respect
+     * Add a particular resource (function) requirement to the current mission with respect
      * to a set of FluentTimeResource instances
      * \throw std::invalid_argument when fluent time resource could not be found
      */
-    static void addFunctionRequirement(const owlapi::model::IRIList& allAvailableResources,
+    static void addResourceRequirement(const owlapi::model::IRIList& allAvailableResources,
             std::vector<FluentTimeResource>& resourceRequirements,
             const FluentTimeResource::List& ftrs,
-            const owlapi::model::IRI& function,
+            const organization_model::Resource& resource,
             organization_model::OrganizationModelAsk ask);
 
-    /**
-     * Add functionalities requirements (functionalities with particular property constraints)
-     * with respect to a FluentTimeResource instance
-     * \throws std::invalid_argument when fluent time resource could not be
-     * found
-     */
-    static void addFunctionalitiesRequirement(const owlapi::model::IRIList& allAvailableResources,
-            std::vector<FluentTimeResource>& resourceRequirements,
-            const FluentTimeResource& fts,
-            const organization_model::FunctionalityRequirement::Map& functionalitiesRequirements,
-            organization_model::OrganizationModelAsk ask);
-
-    static void addFunctionalitiesRequirement(const owlapi::model::IRIList& allAvailableResources,
-            std::vector<FluentTimeResource>& resourceRequirements,
-            const FluentTimeResource::List& ftrs,
-            const organization_model::FunctionalityRequirement::Map& functionalitiesRequirements,
-            organization_model::OrganizationModelAsk ask);
-
+private:
+    static size_t getResourceIndex(const owlapi::model::IRIList& allAvailableResources,
+            const organization_model::Resource& resource);
 };
 
 } // end namespace csp

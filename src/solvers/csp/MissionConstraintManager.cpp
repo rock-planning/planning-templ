@@ -89,57 +89,51 @@ void MissionConstraintManager::apply(const shared_ptr<constraints::ModelConstrai
                     constraint->getValue());
             break;
         case ModelConstraint::MIN_FUNCTION:
-            MissionConstraints::addFunctionRequirement(
+            MissionConstraints::addResourceRequirement(
                     transportNetwork.mResources,
                     allRequirements,
                     affectedRequirements,
-                    constraint->getModel(),
+                    organization_model::Resource(constraint->getModel()),
                     transportNetwork.mpMission->getOrganizationModelAsk());
 
             break;
         case ModelConstraint::MIN_PROPERTY:
         {
             using namespace organization_model;
-            Functionality functionality( constraint->getModel() );
+            Resource resource( constraint->getModel() );
             // Add the constraint to increase the transport capacity to
             // cover for the existing delta
             PropertyConstraint::Set constraints;
             PropertyConstraint propertyConstraint( constraint->getProperty(),
                     PropertyConstraint::GREATER_EQUAL, constraint->getValue());
             constraints.insert(propertyConstraint);
+            resource.setPropertyConstraints(constraints);
 
-            FunctionalityRequirement functionalityRequirement(functionality, constraints);
-            FunctionalityRequirement::Map functionalityRequirements;
-            functionalityRequirements[functionality] = functionalityRequirement;
-
-            MissionConstraints::addFunctionalitiesRequirement(
+            MissionConstraints::addResourceRequirement(
                     transportNetwork.mResources,
                     allRequirements,
                     affectedRequirements,
-                    functionalityRequirements,
+                    resource,
                     transportNetwork.mpMission->getOrganizationModelAsk());
             break;
         }
         case ModelConstraint::MAX_PROPERTY:
         {
             using namespace organization_model;
-            Functionality functionality( constraint->getModel() );
+            Resource resource( constraint->getModel() );
             // Add the constraint to increase the transport capacity to
             // cover for the existing delta
             PropertyConstraint::Set constraints;
             PropertyConstraint propertyConstraint( constraint->getProperty(),
                     PropertyConstraint::LESS_EQUAL, constraint->getValue());
             constraints.insert(propertyConstraint);
+            resource.setPropertyConstraints(constraints);
 
-            FunctionalityRequirement functionalityRequirement(functionality, constraints);
-            FunctionalityRequirement::Map functionalityRequirements;
-            functionalityRequirements[functionality] = functionalityRequirement;
-
-            MissionConstraints::addFunctionalitiesRequirement(
+            MissionConstraints::addResourceRequirement(
                     transportNetwork.mResources,
                     allRequirements,
                     affectedRequirements,
-                    functionalityRequirements,
+                    resource,
                     transportNetwork.mpMission->getOrganizationModelAsk());
             break;
         }

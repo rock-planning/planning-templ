@@ -7,6 +7,7 @@ namespace templ {
 namespace solvers {
 
 FluentTimeResource::FluentTimeResource()
+    : mUpdateRequired(false)
 {}
 
 FluentTimeResource::FluentTimeResource(const Mission::Ptr& mpMission,
@@ -18,6 +19,7 @@ FluentTimeResource::FluentTimeResource(const Mission::Ptr& mpMission,
     , mTimeInterval(timeInterval)
     , mFluent(fluent)
     , mMaxCardinalities(availableModels)
+    , mUpdateRequired(true)
 {
     assert(mpMission);
     mResources.insert(resource);
@@ -74,8 +76,8 @@ std::string FluentTimeResource::toString(uint32_t indent) const
     {
         ss << dit->toString(indent + 8) << std::endl;
     }
-    ss << hspace << "    constraints: " << std::endl;
-    ss << organization_model::FunctionalityRequirement::toString(mFunctionalitiesConstraints, indent + 8) << std::endl;
+    ss << hspace << "    required resources: " << std::endl;
+    ss << organization_model::Resource::toString(mRequiredResources, indent + 8) << std::endl;
     return ss.str();
 }
 
@@ -89,6 +91,12 @@ std::string FluentTimeResource::toString(const List& list, uint32_t indent)
         ss << ftr.toString(indent + 4);
     }
     return ss.str();
+}
+
+void FluentTimeResource::addResourceIdx(size_t idx)
+{
+    mResources.insert(idx);
+    mUpdateRequired = true;
 }
 
 solvers::temporal::Interval FluentTimeResource::getInterval() const
@@ -198,8 +206,21 @@ std::vector< FluentTimeResource::List > FluentTimeResource::getConcurrent(const 
 
     return concurrentFts;
 }
-// TODO: this will require quantification as well
-std::set<organization_model::Functionality> FluentTimeResource::getFunctionalities() const
+
+organization_model::Resource::Set FluentTimeResource::getRequiredResources() const
+{
+    if(mUpdateRequired)
+    {
+        updateRequiredResources();
+        mUpdateRequired = false;
+    }
+
+    return mRequiredResources;
+}
+
+// TODO: this will require quantification as well, but an be added as
+// constraint, e.g. cardinality constraint to
+void FluentTimeResource::updateRequiredResources() const
 {
     owlapi::model::OWLOntologyAsk ontologyAsk(mpMission->getOrganizationModel()->ontology());
     owlapi::model::IRIList mappedResources = mpMission->getRequestedResources();
@@ -213,24 +234,24 @@ std::set<organization_model::Functionality> FluentTimeResource::getFunctionaliti
         using namespace organization_model;
         if( ontologyAsk.isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
         {
-            organization_model::Functionality functionality(resourceModel);
-            functionalities.insert(functionality);
+            organization_model::Resource::Set::const_iterator cit;
+            cit = std::find_if(mRequiredResources.begin(), mRequiredResources.end(), [resourceModel](const organization_model::Resource& r)
+                    {
+                        return resourceModel == r.getModel();
+                    });
+            if(cit == mRequiredResources.end())
+            {
+                organization_model::Resource functionality(resourceModel);
+                mRequiredResources.insert(functionality);
+            }
         }
     }
-    return functionalities;
 }
 
-
-
-void FluentTimeResource::addFunctionalityConstraints(const organization_model::FunctionalityRequirement& constraint)
+void FluentTimeResource::addRequiredResource(const organization_model::Resource& resource)
 {
-    organization_model::FunctionalityRequirement::Map::iterator it = mFunctionalitiesConstraints.find(constraint.getFunctionality());
-    if(it != mFunctionalitiesConstraints.end())
-    {
-        it->second.addPropertyConstraints( constraint.getPropertyConstraints() );
-    } else {
-        mFunctionalitiesConstraints[constraint.getFunctionality()] = constraint;
-    }
+    mRequiredResources.insert(resource);
+    mRequiredResources = organization_model::Resource::merge(mRequiredResources);
 }
 
 void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements)
@@ -279,8 +300,8 @@ organization_model::ModelPool::Set FluentTimeResource::getDomain() const
     // It constructs a model combination set, i.e., extensional constraints from
     // where solutions can be picked
     //
-    // Collect functionality requirements
-    std::set<organization_model::Functionality> functionalities = getFunctionalities();
+    // Collect requiredResource, including functionality requirements
+    organization_model::Resource::Set requiredResources = getRequiredResources();
 
     // When retrieving combinations for requested functionality, then this is not the
     // complete set since this might conflict with the minCardinalities
@@ -289,11 +310,11 @@ organization_model::ModelPool::Set FluentTimeResource::getDomain() const
     //
     // The functional saturation bound has already been applied to the
     // organization model at initialization
-    organization_model::ModelPool::Set combinations = mpMission->getOrganizationModelAsk().getResourceSupport(functionalities, mFunctionalitiesConstraints);
+    organization_model::ModelPool::Set combinations = mpMission->getOrganizationModelAsk().getResourceSupport(requiredResources);
 
-    LOG_INFO_S << "Identify resource support for the following functionalities: " << organization_model::Functionality::toString(functionalities) << std::endl
-            << "    with constraints: " << std::endl << organization_model::FunctionalityRequirement::toString(mFunctionalitiesConstraints, 8) << std::endl
-            << "    resources: " << organization_model::ModelPool::toString(combinations);
+    LOG_INFO_S << "Support for the following resource requests:" << std::endl
+        << organization_model::Functionality::toString(requiredResources) << std::endl
+        << "    agent combinations: " << organization_model::ModelPool::toString(combinations);
 
     LOG_INFO_S << "    max cardinalities: " << mMaxCardinalities.toString(8);
 
@@ -304,11 +325,10 @@ organization_model::ModelPool::Set FluentTimeResource::getDomain() const
 
     // The minimum resource requirements are accounted here by enforcing the
     // lower bound -- the given combinations are guaranteed to support the
-    // services due upperBound which is derived from the functionalSaturationBound
+    // services since the upperBound is derived from the functionalSaturationBound
     LOG_INFO_S << "    min cardinalities: " << mMinCardinalities.toString(8);
     combinations = ModelPool::expandToLowerBound(combinations, mMinCardinalities);
     LOG_INFO_S << "Expanded resource (lower bound enforced): " << ModelPool::toString(combinations);
-
     return combinations;
 }
 
@@ -338,7 +358,7 @@ size_t FluentTimeResource::getIndex(const List& list, const FluentTimeResource& 
             + FluentTimeResource::toString(list,4) +"'");
 }
 
-void FluentTimeResource::incrementResourceRequirement(const owlapi::model::IRI& model, size_t number)
+void FluentTimeResource::incrementResourceMinCardinality(const owlapi::model::IRI& model, size_t number)
 {
     owlapi::model::IRIList mappedResources = mpMission->getRequestedResources();
     for(size_t idx = 0; idx != mappedResources.size(); ++idx)
@@ -356,9 +376,9 @@ void FluentTimeResource::incrementResourceRequirement(const owlapi::model::IRI& 
 void FluentTimeResource::updateSatisficingCardinalities()
 {
     using namespace organization_model;
-    std::set<Functionality> functionalities = getFunctionalities();
+    Resource::Set requiredResources = getRequiredResources();
 
-    ModelPool saturation = mpMission->getOrganizationModelAsk().getFunctionalSaturationBound(functionalities, mFunctionalitiesConstraints);
+    ModelPool saturation = mpMission->getOrganizationModelAsk().getFunctionalSaturationBound(requiredResources);
     ModelPool satisficingCardinalities = Algebra::min(mpMission->getAvailableResources(), saturation);
 
     // Resource constraints might enforce a minimum cardinality that is higher than the functional saturation bound

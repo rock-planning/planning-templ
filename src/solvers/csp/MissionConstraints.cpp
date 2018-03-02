@@ -484,7 +484,7 @@ void MissionConstraints::addModelRequirement(
     {
         if(*it == ftr)
         {
-            // add function requirement --> check addFunctionRequirement
+            // add function requirement --> check addResourceRequirement
             // update FTR modelpool
             // (add max cardinalities)
             std::cout << "Updated min cardinalities: for " << model.toString() << std::endl << it->toString(4);
@@ -494,17 +494,56 @@ void MissionConstraints::addModelRequirement(
     throw std::invalid_argument("templ::solvers::csp::MissionConstraints::addModelRequirement: given FluentTimeResource is not part of the given list");
 }
 
-void MissionConstraints::addFunctionRequirement(const owlapi::model::IRIList& allAvailableResources, std::vector<FluentTimeResource>& resourceRequirements,
+void MissionConstraints::addResourceRequirement(const owlapi::model::IRIList& allAvailableResources,
+        std::vector<FluentTimeResource>& resourceRequirements,
         const FluentTimeResource& fts,
-        const owlapi::model::IRI& function,
+        const organization_model::Resource& resource,
         organization_model::OrganizationModelAsk ask)
+{
+    // Find the function requirement index
+    size_t index = getResourceIndex(allAvailableResources, resource);
+    // identify the fluent time resource
+    size_t idx = FluentTimeResource::getIndex(resourceRequirements, fts);
+    FluentTimeResource& ftr = resourceRequirements[idx];
+
+    LOG_DEBUG_S << "Fluent before adding function requirement: " << ftr.toString();
+
+    ftr.addResourceIdx(index);
+    ftr.addRequiredResource(resource);
+    ftr.updateSatisficingCardinalities();
+
+    // TODO: should max be really changed here, it should be rather min to be
+    // updated -- though it can be checked here if max cardinalities are not
+    // exceeded
+    ftr.setMaxCardinalities( organization_model::Algebra::max(ftr.getMaxCardinalities(), ask.getFunctionalSaturationBound(resource) ));
+    LOG_DEBUG_S << "Fluent after adding function requirement: " << ftr.toString();
+}
+
+void MissionConstraints::addResourceRequirement(const owlapi::model::IRIList& allAvailableResources,
+        std::vector<FluentTimeResource>& resourceRequirements,
+        const FluentTimeResource::List& ftrs,
+        const organization_model::Resource& resource,
+        organization_model::OrganizationModelAsk ask)
+{
+    for(const FluentTimeResource& ftr : ftrs)
+    {
+        addResourceRequirement(allAvailableResources,
+                resourceRequirements,
+                ftr,
+                resource,
+                ask);
+    }
+}
+
+size_t MissionConstraints::getResourceIndex(const owlapi::model::IRIList& allAvailableResources,
+        const organization_model::Resource& resource)
 {
     // Find the function requirement index
     size_t index = 0;
     owlapi::model::IRIList::const_iterator cit = allAvailableResources.begin();
     for(; cit != allAvailableResources.end(); ++cit, ++index)
     {
-        if(*cit == function)
+        if(*cit == resource.getModel())
         {
             break;
         }
@@ -513,93 +552,10 @@ void MissionConstraints::addFunctionRequirement(const owlapi::model::IRIList& al
     // If function cannot be found add the function to the (known) required resources
     if(index >= allAvailableResources.size())
     {
-            throw std::invalid_argument("templ::solvers::csp::MissionConstraints: could not find the resource index for: '" + function.toString() + "' -- which is not a service class");
-    }
-    LOG_DEBUG_S << "Using resource index: " << index;
-
-    // identify the fluent time resource
-    size_t idx = FluentTimeResource::getIndex(resourceRequirements, fts);
-    FluentTimeResource& ftr = resourceRequirements[idx];
-
-    LOG_DEBUG_S << "Fluent before adding function requirement: " << ftr.toString();
-
-    // insert the function requirement
-    ftr.addResourceIdx(index);
-
-    // TODO: should max be really changed here, it should be rather min to be
-    // updated -- though it can be checked here if max cardinalities are not
-    // exceeded
-    ftr.setMaxCardinalities( organization_model::Algebra::max(ftr.getMaxCardinalities(), ask.getFunctionalSaturationBound(function) ) );
-    LOG_DEBUG_S << "Fluent after adding function requirement: " << ftr.toString();
-}
-
-void MissionConstraints::addFunctionRequirement(const owlapi::model::IRIList& allAvailableResources,
-        std::vector<FluentTimeResource>& resourceRequirements,
-        const FluentTimeResource::List& ftrs,
-        const owlapi::model::IRI& function,
-        organization_model::OrganizationModelAsk ask)
-{
-    for(const FluentTimeResource& ftr : ftrs)
-    {
-        addFunctionRequirement(allAvailableResources,
-                resourceRequirements,
-                ftr,
-                function,
-                ask);
-    }
-}
-
-void MissionConstraints::addFunctionalitiesRequirement(const owlapi::model::IRIList& allAvailableResources,
-            std::vector<FluentTimeResource>& resourceRequirements,
-            const FluentTimeResource& fts,
-            const organization_model::FunctionalityRequirement::Map& functionalitiesRequirements,
-            organization_model::OrganizationModelAsk ask)
-{
-    // identify the fluent time resource
-    size_t idx = FluentTimeResource::getIndex(resourceRequirements, fts);
-    FluentTimeResource& ftr = resourceRequirements[idx];
-    LOG_DEBUG_S << "Fluent before adding function requirement: " << ftr.toString();
-
-    using namespace organization_model;
-    for(const FunctionalityRequirement::Map::value_type& pair : functionalitiesRequirements)
-    {
-        const owlapi::model::IRI& function = pair.first.getModel();
-
-        // Find the function requirement index
-        owlapi::model::IRIList::const_iterator cit = std::find(allAvailableResources.begin(), allAvailableResources.end(), function);
-        if(cit == allAvailableResources.end())
-        {
-            throw std::invalid_argument("templ::solvers::csp::MissionConstraints: could not find the resource index for: '" + function.toString() + "' -- which is not a service class");
-        }
-        size_t resourceIndex = std::distance(allAvailableResources.begin(), cit);
-        LOG_DEBUG_S << "Using resource index: " << resourceIndex;
-
-        // insert the function requirement
-        ftr.addResourceIdx(resourceIndex);
-
-        ftr.addFunctionalityConstraints(pair.second);
-        ftr.updateSatisficingCardinalities();
+            throw std::invalid_argument("templ::solvers::csp::MissionConstraints::getResourceIndex: could not find the resource index for: '" + resource.getModel().toString() + "'");
     }
 
-    // Add tuple
-    LOG_DEBUG_S << " Fluent after adding function requirement: " << ftr.toString();
-}
-
-void MissionConstraints::addFunctionalitiesRequirement(const owlapi::model::IRIList& allAvailableResources,
-            std::vector<FluentTimeResource>& resourceRequirements,
-            const FluentTimeResource::List& ftrs,
-            const organization_model::FunctionalityRequirement::Map& functionalitiesRequirements,
-            organization_model::OrganizationModelAsk ask)
-{
-    for(const FluentTimeResource& ftr : ftrs)
-    {
-        addFunctionalitiesRequirement(
-                allAvailableResources,
-                resourceRequirements,
-                ftr,
-                functionalitiesRequirements,
-                ask);
-    }
+    return index;
 }
 
 } // end namespace csp
