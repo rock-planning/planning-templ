@@ -8,6 +8,7 @@ rock_testsuite(test_suite suite.cpp
     solvers/test_TransportNetwork.cpp
     solvers/test_TemporallyExpandedGraph.cpp
     solvers/test_MissionConstraints.cpp
+    test_Constraints.cpp
     test_Benchmarks.cpp
     test_CartographicMapping.cpp
     test_Configuration.cpp

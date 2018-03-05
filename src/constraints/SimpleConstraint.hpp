@@ -52,6 +52,11 @@ public:
     virtual std::string toString(uint32_t indent) const override;
 
     /**
+     * Check equality of two simple constraints
+     */
+    bool operator==(const Constraint& other) const override;
+
+    /**
      * Get the source vertex/variable of this constraint
      */
     Variable::Ptr getSourceVariable() const { return dynamic_pointer_cast<Variable>( getSourceVertex()); }

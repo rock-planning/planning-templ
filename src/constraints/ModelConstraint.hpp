@@ -74,11 +74,15 @@ public:
             uint32_t value = 0,
             const owlapi::model::IRI& property = owlapi::model::IRI());
 
+    bool operator==(const Constraint& other) const override;
+
     std::string getClassName() const override { return "ModelConstraint"; }
 
     std::string toString() const override { return toString(0); }
 
     std::string toString(uint32_t indent) const override;
+
+    void setModel(const owlapi::model::IRI& model) { mModel = model; }
 
     /**
      * Get the refered model of the constraint
@@ -86,11 +90,15 @@ public:
      */
     const owlapi::model::IRI& getModel() const { return mModel; }
 
+    void setValue(uint32_t value) { mValue = value; }
+
     /**
      * Get the value of the constraint
      * \return value
      */
     uint32_t getValue() const { return mValue; }
+
+    void setProperty(const owlapi::model::IRI& property) { mProperty = property; }
 
     /**
      * Get the property this model related to
@@ -99,11 +107,14 @@ public:
      */
     const owlapi::model::IRI& getProperty() const { return mProperty; }
 
+    void setSpaceIntervalTuples(const std::vector<SpaceTime::SpaceIntervalTuple>& tuples) { mSpaceIntervalTuples = tuples; }
     /**
      * Get the interval to which this constraint should be applied to
      * \return space time interval
      */
     const std::vector<SpaceTime::SpaceIntervalTuple>& getSpaceIntervalTuples() const { return mSpaceIntervalTuples; }
+
+    void setModelConstraintType(Type type) { mType = type; }
 
     /**
      * Get the model constraint type

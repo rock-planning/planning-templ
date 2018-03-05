@@ -384,6 +384,12 @@ public:
     void addConstraint(const Constraint::Ptr& constraint);
 
     /**
+     * Check if mission has a particular constraint
+     * \return True, if the mission has this constraint, false otherwise
+     */
+    bool hasConstraint(const Constraint::Ptr& constraint) const;
+
+    /**
      * Adds a temporal assertion, i.e. the assertion of a state variable to a
      * particular value/objectVariable
      *

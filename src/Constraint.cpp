@@ -1,6 +1,9 @@
 #include "Constraint.hpp"
 #include <iostream>
 
+#include "constraints/ModelConstraint.hpp"
+#include "constraints/SimpleConstraint.hpp"
+
 using namespace graph_analysis;
 
 namespace templ {
@@ -21,5 +24,10 @@ std::map<Constraint::Category, std::string> Constraint::CategoryTxt = {
     { Constraint::TEMPORAL_QUANTITATIVE, "TEMPORAL_QUANTITATIVE" },
     { Constraint::MODEL,    "MODEL" }
 };
+
+bool Constraint::operator==(const Constraint& other) const
+{
+    return mCategory == other.mCategory;
+}
 
 } // end namespace templ

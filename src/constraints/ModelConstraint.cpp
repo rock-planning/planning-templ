@@ -53,6 +53,22 @@ ModelConstraint::ModelConstraint(Type type,
     mSpaceIntervalTuples.push_back(affectedSpaceInterval);
 }
 
+bool ModelConstraint::operator==(const Constraint& _other) const
+{
+    const ModelConstraint* other = dynamic_cast<const ModelConstraint*>(&_other);
+    if(other)
+    {
+        return Constraint::operator==(_other)
+            && getSourceVertices() == other->getSourceVertices()
+            && getTargetVertices() == other->getTargetVertices()
+            && mType == other->mType
+            && mModel == other->mModel
+            && mSpaceIntervalTuples == other->mSpaceIntervalTuples
+            && mValue == other->mValue
+            && mProperty == other->mProperty;
+    }
+    return false;
+}
 std::string ModelConstraint::toString(uint32_t indent) const
 {
     std::string hspace(indent,' ');

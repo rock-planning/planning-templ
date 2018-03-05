@@ -23,6 +23,20 @@ SimpleConstraint::SimpleConstraint(Category category, const Variable::Ptr& sourc
 SimpleConstraint::~SimpleConstraint()
 {}
 
+bool SimpleConstraint::operator==(const Constraint& _other) const
+{
+    const SimpleConstraint* other = dynamic_cast<const SimpleConstraint*>(&_other);
+    if(other)
+    {
+        return Constraint::operator==(_other)
+            && getSourceVertex() == other->getSourceVertex()
+            && getTargetVertex() == other->getTargetVertex()
+            && getLabel() == other->getLabel()
+            ;
+    }
+    return false;
+}
+
 std::string SimpleConstraint::toString() const
 {
     return toString(0);

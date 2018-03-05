@@ -300,13 +300,25 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addTemporalAssertion(const sy
 
 void Mission::addConstraint(const Constraint::Ptr& constraint)
 {
-    using namespace solvers::temporal::point_algebra;
-    mConstraints.push_back(constraint);
-
-    if(constraint->getCategory() == Constraint::TEMPORAL_QUALITATIVE)
+    if(!hasConstraint(constraint))
     {
-        mpTemporalConstraintNetwork->addConstraint(constraint);
+        using namespace solvers::temporal::point_algebra;
+        mConstraints.push_back(constraint);
+
+        if(constraint->getCategory() == Constraint::TEMPORAL_QUALITATIVE)
+        {
+            mpTemporalConstraintNetwork->addConstraint(constraint);
+        }
     }
+}
+
+bool Mission::hasConstraint(const Constraint::Ptr& constraint) const
+{
+    return mConstraints.end() != std::find_if(mConstraints.begin(),
+            mConstraints.end(), [&constraint](const Constraint::Ptr& other)
+            {
+                return *constraint == *other;
+            });
 }
 
 std::string Mission::toString() const

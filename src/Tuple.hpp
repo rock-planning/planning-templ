@@ -68,6 +68,12 @@ public:
         return ss.str();
     }
 
+    bool operator==(const Tuple<A,B>& other) const
+    {
+        return mA == other.mA
+            && mB == other.mB;
+    }
+
     bool operator<(const Tuple<A,B>& other) const
     {
         if(mA < other.mA)

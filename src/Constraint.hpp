@@ -46,6 +46,10 @@ public:
      */
     virtual ~Constraint();
 
+    virtual bool operator==(const Constraint& other) const;
+
+    bool operator!=(const Constraint& other) const { return !(*this == other); }
+
     /**
      * Get the category of this constraint
      * \return category
