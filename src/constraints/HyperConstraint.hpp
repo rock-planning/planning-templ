@@ -42,16 +42,16 @@ public:
 
     virtual std::string toString(uint32_t indent) const override;
 
-    /**
-     * Get list of source variables that a associated with this hyper constraint
-     */
-    Variable::PtrList getSourceVariables() const;
+    ///**
+    // * Get list of source variables that a associated with this hyper constraint
+    // */
+    //Variable::PtrList getSourceVariables() const;
 
-    /**
-     * Get list of target variables that are associated with this hyper
-     * constraint
-     */
-    Variable::PtrList getTargetVariables() const;
+    ///**
+    // * Get list of target variables that are associated with this hyper
+    // * constraint
+    // */
+    //Variable::PtrList getTargetVariables() const;
 
 protected:
 
