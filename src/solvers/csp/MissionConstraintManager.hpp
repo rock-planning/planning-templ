@@ -64,7 +64,7 @@ private:
      * \todo Find better place for this functionality
      * \return List of FluentTimeResource which contains only the one related to the constraint
      */
-    static FluentTimeResource::List findAffected(const shared_ptr<constraints::ModelConstraint>& constraint, const FluentTimeResource::List& ftrs);
+    static FluentTimeResource::Set findAffected(const shared_ptr<constraints::ModelConstraint>& constraint, const FluentTimeResource::List& ftrs);
 
 };
 

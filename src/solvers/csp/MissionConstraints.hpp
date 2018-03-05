@@ -24,7 +24,7 @@ public:
     static void usage(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
             const Role::List& allRoles,
             const FluentTimeResource::List& allRequirements,
-            const FluentTimeResource::List& affectedRequirements,
+            const FluentTimeResource::Set& affectedRequirements,
             const owlapi::model::IRI& roleModel,
             Gecode::IntRelType relation,
             uint32_t use);
@@ -32,14 +32,14 @@ public:
     static void min(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
             const Role::List& allRoles,
             const FluentTimeResource::List& allRequirements,
-            const FluentTimeResource::List& affectedRequirements,
+            const FluentTimeResource::Set& affectedRequirements,
             const owlapi::model::IRI& roleModel,
             uint32_t use);
 
     static void max(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
             const Role::List& allRoles,
             const FluentTimeResource::List& allRequirements,
-            const FluentTimeResource::List& affectedRequirements,
+            const FluentTimeResource::Set& affectedRequirements,
             const owlapi::model::IRI& roleModel,
             uint32_t use);
 
@@ -61,7 +61,7 @@ public:
     static void allDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
             const Role::List& allRoles,
             const FluentTimeResource::List& allRequirements,
-            const FluentTimeResource::List& affectedRequirements,
+            const FluentTimeResource::Set& affectedRequirements,
             const owlapi::model::IRI& roleModel);
 
     /**
@@ -83,7 +83,7 @@ public:
     static void distinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
             const Role::List& roles,
             const FluentTimeResource::List& allRequirements,
-            const FluentTimeResource::List& affectedRequirements,
+            const FluentTimeResource::Set& affectedRequirements,
             const owlapi::model::IRI& roleModel,
             uint32_t distinctRoles,
             Gecode::IntRelType relation);
@@ -117,7 +117,7 @@ public:
     static void minDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
             const Role::List& roles,
             const FluentTimeResource::List& allRequirements,
-            const FluentTimeResource::List& affectedRequirements,
+            const FluentTimeResource::Set& affectedRequirements,
             const owlapi::model::IRI& roleModel,
             uint32_t minDistinctRoles);
 
@@ -148,7 +148,7 @@ public:
     static void maxDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
             const Role::List& roles,
             const FluentTimeResource::List& allRequirements,
-            const FluentTimeResource::List& affectedRequirements,
+            const FluentTimeResource::Set& affectedRequirements,
             const owlapi::model::IRI& roleModel,
             uint32_t distinctRoles);
 
@@ -182,7 +182,7 @@ public:
     static void equal(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
             const Role::List& roles,
             const FluentTimeResource::List& allRequirements,
-            const FluentTimeResource::List& affectedRequirements,
+            const FluentTimeResource::Set& affectedRequirements,
             const owlapi::model::IRI& roleModel,
             uint32_t equalRoles,
             Gecode::IntRelType relation);
@@ -195,7 +195,7 @@ public:
     static void allEqual(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
             const Role::List& allRoles,
             const FluentTimeResource::List& allRequirements,
-            const FluentTimeResource::List& affectedRequirements,
+            const FluentTimeResource::Set& affectedRequirements,
             const owlapi::model::IRI& roleModel);
 
     static void minEqual(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
@@ -206,7 +206,7 @@ public:
     static void minEqual(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
             const Role::List& roles,
             const FluentTimeResource::List& allRequirements,
-            const FluentTimeResource::List& affectedRequirements,
+            const FluentTimeResource::Set& affectedRequirements,
             const owlapi::model::IRI& roleModel,
             uint32_t equalRoles);
 
@@ -218,7 +218,7 @@ public:
     static void maxEqual(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
             const Role::List& roles,
             const FluentTimeResource::List& allRequirements,
-            const FluentTimeResource::List& affectedRequirements,
+            const FluentTimeResource::Set& affectedRequirements,
             const owlapi::model::IRI& roleModel,
             uint32_t equalRoles);
 
@@ -284,7 +284,7 @@ public:
      */
     static void addResourceRequirement(const owlapi::model::IRIList& allAvailableResources,
             std::vector<FluentTimeResource>& resourceRequirements,
-            const FluentTimeResource::List& ftrs,
+            const FluentTimeResource::Set& ftrs,
             const organization_model::Resource& resource,
             organization_model::OrganizationModelAsk ask);
 

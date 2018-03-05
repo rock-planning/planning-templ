@@ -10,7 +10,7 @@ namespace csp {
 void MissionConstraints::usage(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
         const Role::List& allRoles,
         const FluentTimeResource::List& allRequirements,
-        const FluentTimeResource::List& affectedRequirements,
+        const FluentTimeResource::Set& affectedRequirements,
         const owlapi::model::IRI& roleModel,
         Gecode::IntRelType relation,
         uint32_t use)
@@ -52,7 +52,7 @@ void MissionConstraints::usage(Gecode::Space& home, Gecode::IntVarArray& roleUsa
 void MissionConstraints::min(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
         const Role::List& allRoles,
         const FluentTimeResource::List& allRequirements,
-        const FluentTimeResource::List& affectedRequirements,
+        const FluentTimeResource::Set& affectedRequirements,
         const owlapi::model::IRI& roleModel,
         uint32_t use)
 {
@@ -68,7 +68,7 @@ void MissionConstraints::min(Gecode::Space& home, Gecode::IntVarArray& roleUsage
 void MissionConstraints::max(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
         const Role::List& allRoles,
         const FluentTimeResource::List& allRequirements,
-        const FluentTimeResource::List& affectedRequirements,
+        const FluentTimeResource::Set& affectedRequirements,
         const owlapi::model::IRI& roleModel,
         uint32_t use)
 
@@ -89,9 +89,7 @@ void MissionConstraints::allDistinct(Gecode::Space& home, Gecode::IntVarArray& r
         const FluentTimeResource& fts0, const FluentTimeResource& fts1,
         const owlapi::model::IRI& roleModel)
 {
-    FluentTimeResource::List affectedRequirements;
-    affectedRequirements.push_back(fts0);
-    affectedRequirements.push_back(fts1);
+    FluentTimeResource::Set affectedRequirements = { fts0, fts1 };
 
     return allDistinct(home, roleUsage, roles, requirements, affectedRequirements, roleModel);
 }
@@ -99,7 +97,7 @@ void MissionConstraints::allDistinct(Gecode::Space& home, Gecode::IntVarArray& r
 void MissionConstraints::allDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
         const Role::List& allRoles,
         const FluentTimeResource::List& allRequirements,
-        const FluentTimeResource::List& affectedRequirements,
+        const FluentTimeResource::Set& affectedRequirements,
         const owlapi::model::IRI& roleModel)
 {
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(roleUsage, /*width --> col*/ allRoles.size(), /*height --> row*/ allRequirements.size());
@@ -154,16 +152,7 @@ void MissionConstraints::distinct(Gecode::Space& home, Gecode::IntVarArray& role
         // if so -- sum equals to 0 thus there is no distinction
         Gecode::IntVar rolePresentInBoth = Gecode::expr(home, abs(v0 - v1));
         args << rolePresentInBoth;
-       //rel(home, v0, Gecode::IRT_EQ, 0); //minDistinctRoles);
-       //rel(home, v1, Gecode::IRT_EQ, 0); //minDistinctRoles);
-
-       //LOG_WARN_S << "v0" << v0 << " at index: " << roleIndex << "/" << fluent0;
-       //LOG_WARN_S << "v1" << v1 << " at index: " << roleIndex << "/" << fluent1;
     }
-    LOG_WARN_S << "Distinct (" << relation << ") between: " << fts0.toString(4) << std::endl
-        << fts1.toString(4)
-        << distinctRoles
-        << " args: "<< args;
 
     Gecode::IntVar sumOfAppearance = Gecode::expr(home, sum(args));
     rel(home, sumOfAppearance, relation, distinctRoles);
@@ -172,11 +161,13 @@ void MissionConstraints::distinct(Gecode::Space& home, Gecode::IntVarArray& role
 void MissionConstraints::distinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
         const Role::List& allRoles,
         const FluentTimeResource::List& allRequirements,
-        const FluentTimeResource::List& affectedRequirements,
+        const FluentTimeResource::Set& _affectedRequirements,
         const owlapi::model::IRI& roleModel,
         uint32_t distinctRoles,
         Gecode::IntRelType relation)
 {
+    FluentTimeResource::List affectedRequirements(_affectedRequirements.begin(), _affectedRequirements.end());
+
     for(size_t a = 0; a < affectedRequirements.size() - 1; ++a)
     {
         for(size_t b = a+1; b < affectedRequirements.size(); ++b)
@@ -216,7 +207,7 @@ void MissionConstraints::maxDistinct(Gecode::Space& home, Gecode::IntVarArray& r
 void MissionConstraints::minDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
         const Role::List& allRoles,
         const FluentTimeResource::List& allRequirements,
-        const FluentTimeResource::List& affectedRequirements,
+        const FluentTimeResource::Set& affectedRequirements,
         const owlapi::model::IRI& roleModel,
         uint32_t distinctRoles)
 {
@@ -230,7 +221,7 @@ void MissionConstraints::minDistinct(Gecode::Space& home, Gecode::IntVarArray& r
 void MissionConstraints::maxDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
         const Role::List& allRoles,
         const FluentTimeResource::List& allRequirements,
-        const FluentTimeResource::List& affectedRequirements,
+        const FluentTimeResource::Set& affectedRequirements,
         const owlapi::model::IRI& roleModel,
         uint32_t distinctRoles)
 {
@@ -247,9 +238,7 @@ void MissionConstraints::equal(Gecode::Space& home, Gecode::IntVarArray& roleUsa
         const owlapi::model::IRI& roleModel, uint32_t equalRoles,
         Gecode::IntRelType relation)
 {
-    FluentTimeResource::List affectedRequirements;
-    affectedRequirements.push_back(fts0);
-    affectedRequirements.push_back(fts1);
+    FluentTimeResource::Set affectedRequirements = { fts0, fts1 };
 
     return equal(home, roleUsage, allRoles,
             requirements,
@@ -262,7 +251,7 @@ void MissionConstraints::equal(Gecode::Space& home, Gecode::IntVarArray& roleUsa
 void MissionConstraints::equal(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
         const Role::List& allRoles,
         const FluentTimeResource::List& allRequirements,
-        const FluentTimeResource::List& affectedRequirements,
+        const FluentTimeResource::Set& affectedRequirements,
         const owlapi::model::IRI& roleModel,
         uint32_t equalRoles,
         Gecode::IntRelType relation)
@@ -289,13 +278,12 @@ void MissionConstraints::equal(Gecode::Space& home, Gecode::IntVarArray& roleUsa
 
         // Get the count of a roles involvement and check whether it is involved
         // in all affected requirements
-        Gecode::IntVar roleInvolvement = Gecode::expr(home, sum(args));
-        Gecode::BoolVar rolePresentInAll = Gecode::expr(home, allRequirements.size() == roleInvolvement);
+        Gecode::BoolVar rolePresentInAll = Gecode::expr(home, affectedRequirements.size() == sum(args));
 
         // Translate the bool var into a (countable) IntVar, so that we can sum
         // all roles that fulfill the 'full assignment' to the
         // affectedRequirements
-        Gecode::IntVar rolePresent(home,0, allRequirements.size());
+        Gecode::IntVar rolePresent(home, 0, affectedRequirements.size());
         channel(home, rolePresentInAll, rolePresent);
 
         rolesInvolvedArgs << rolePresent;
@@ -320,7 +308,7 @@ void MissionConstraints::allEqual(Gecode::Space& home, Gecode::IntVarArray& role
 void MissionConstraints::allEqual(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
         const Role::List& allRoles,
         const FluentTimeResource::List& allRequirements,
-        const FluentTimeResource::List& affectedRequirements,
+        const FluentTimeResource::Set& affectedRequirements,
         const owlapi::model::IRI& roleModel)
 {
     return maxDistinct(home, roleUsage, allRoles,
@@ -347,7 +335,7 @@ void MissionConstraints::minEqual(Gecode::Space& home, Gecode::IntVarArray& role
 void MissionConstraints::minEqual(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
  const Role::List& roles,
  const FluentTimeResource::List& allRequirements,
- const FluentTimeResource::List& affectedRequirements,
+ const FluentTimeResource::Set& affectedRequirements,
  const owlapi::model::IRI& roleModel,
  uint32_t equalRoles)
 {
@@ -376,7 +364,7 @@ void MissionConstraints::maxEqual(Gecode::Space& home, Gecode::IntVarArray& role
 void MissionConstraints::maxEqual(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
  const Role::List& roles,
  const FluentTimeResource::List& allRequirements,
- const FluentTimeResource::List& affectedRequirements,
+ const FluentTimeResource::Set& affectedRequirements,
  const owlapi::model::IRI& roleModel,
  uint32_t equalRoles)
 {
@@ -521,7 +509,7 @@ void MissionConstraints::addResourceRequirement(const owlapi::model::IRIList& al
 
 void MissionConstraints::addResourceRequirement(const owlapi::model::IRIList& allAvailableResources,
         std::vector<FluentTimeResource>& resourceRequirements,
-        const FluentTimeResource::List& ftrs,
+        const FluentTimeResource::Set& ftrs,
         const organization_model::Resource& resource,
         organization_model::OrganizationModelAsk ask)
 {

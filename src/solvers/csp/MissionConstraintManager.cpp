@@ -33,7 +33,7 @@ void MissionConstraintManager::apply(const shared_ptr<constraints::ModelConstrai
 
     const owlapi::model::IRI& roleModel = constraint->getModel();
 
-    FluentTimeResource::List affectedRequirements = findAffected(constraint, allRequirements);
+    FluentTimeResource::Set affectedRequirements = findAffected(constraint, allRequirements);
 
     using namespace templ::constraints;
     switch(constraint->getModelConstraintType())
@@ -144,9 +144,9 @@ void MissionConstraintManager::apply(const shared_ptr<constraints::ModelConstrai
     }
 }
 
-FluentTimeResource::List MissionConstraintManager::findAffected(const shared_ptr<constraints::ModelConstraint>& constraint, const FluentTimeResource::List& ftrs)
+FluentTimeResource::Set MissionConstraintManager::findAffected(const shared_ptr<constraints::ModelConstraint>& constraint, const FluentTimeResource::List& ftrs)
 {
-    FluentTimeResource::List affected;
+    FluentTimeResource::Set affected;
 
     const std::vector<SpaceTime::SpaceIntervalTuple>& spaceIntervals = constraint->getSpaceIntervalTuples();
     for(const SpaceTime::SpaceIntervalTuple& spaceInterval : spaceIntervals)
@@ -157,7 +157,7 @@ FluentTimeResource::List MissionConstraintManager::findAffected(const shared_ptr
             {
                 if(ftr.getInterval() == spaceInterval.second())
                 {
-                    affected.push_back(ftr);
+                    affected.insert(ftr);
                 }
             }
         }
