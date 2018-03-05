@@ -64,11 +64,14 @@ void FlawResolution::prepare(const std::vector<transshipment::Flaw>& flaws)
         indices.push_back(i);
     }
 
-    numeric::Combination<size_t> combinations(indices, indices.size(), numeric::MAX);
-    do {
-        Draw combination = combinations.current();
-        mDraws.push_back(combination);
-    } while(combinations.next());
+    if(!indices.empty())
+    {
+        numeric::Combination<size_t> combinations(indices, indices.size(), numeric::MAX);
+        do {
+            Draw combination = combinations.current();
+            mDraws.push_back(combination);
+        } while(combinations.next());
+    }
 }
 
 FlawResolution::ResolutionOptions FlawResolution::current() const
