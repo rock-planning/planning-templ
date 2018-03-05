@@ -342,6 +342,7 @@ rock_library(templ_gui
         templ
     DEPS_PKGCONFIG
         QtGui
+        QtXml
     UI
         gui/TemplGui.ui
         gui/MissionEditor/MissionEditor.ui

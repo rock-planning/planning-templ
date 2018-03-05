@@ -7,6 +7,9 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QGraphicsGridLayout>
+#include <QTreeView>
+#include <QStandardItem>
+#include <QDomNode>
 
 #include <graph_analysis/Graph.hpp>
 #include <templ/Mission.hpp>
@@ -14,7 +17,7 @@
 namespace templ {
 namespace gui {
 
-class MissionView : public QGraphicsView
+class MissionView : public QTreeView
 {
     Q_OBJECT
 
@@ -28,42 +31,32 @@ public:
     }
 
 private:
+    QStandardItem* mpItem;
     Mission::Ptr mpMission;
-    QGraphicsGridLayout* mpGraphicsGridLayout;
-    QGraphicsScene* mpScene;
 
-    organization_model::OrganizationModel::Ptr mpOrganizationModel;
 
+    void updateVisualization();
+    void loadXML(const QString& missionSpec);
+    void refreshView();
+
+    QStandardItem* createRoot(const QString& name);
+    QStandardItem* createChild(QStandardItem* item, const QDomNode& node);
+    void setItem(QStandardItemModel* model);
+
+    void preOrder(QDomNode node, QStandardItemModel* model, QStandardItem* item = 0);
+
+public slots:
+    void on_planMission_clicked();
     // Adding/Removing Constraints
     void on_addConstraintButton_clicked();
     void on_removeConstraintButton_clicked();
 
     // Loading/Storing Missions
     void on_loadMissionButton_clicked();
-    void on_loadOrganizationModelButton_clicked();
 
     void on_saveButton_clicked();
     void on_updateButton_clicked();
     void on_clearButton_clicked();
-
-    void updateVisualization();
-
-    void refreshView();
-
-protected:
-    /// qt mouse wheel spin callback
-    void wheelEvent(QWheelEvent *event);
-    /// scales scene (zooms into or out of the scene)
-    void scaleView(qreal scaleFactor);
-
-    void mousePressEvent(QMouseEvent*);
-
-    void mouseReleaseEvent(QMouseEvent*);
-
-    void contextMenuEvent(QContextMenuEvent* event);
-
-public slots:
-    void on_planMission_clicked();
 
 };
 
