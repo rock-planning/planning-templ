@@ -110,23 +110,17 @@ void MinCostFlow::setCommoditySupplyAndDemand()
 
             size_t commodityId = cit - mCommoditiesRoles.begin();
             // Retrieve the (time-based) sorted list of FluentTimeResources
-            const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
-            std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
-            Vertex::Ptr previous;
+            const FluentTimeResource::List& ftrs = roleTimeline.getFluentTimeResources();
+            FluentTimeResource::List::const_iterator fit = ftrs.begin();
             for(; fit != ftrs.end(); ++fit)
             {
-                // Map back space and time to human-readable information
-                symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
-                solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
+                const FluentTimeResource& ftr = *fit;
 
-                // Get the tuple in the graph and augment with role
-                // information
-                SpaceTime::Network::tuple_t::Ptr currentTuple = mSpaceTimeNetwork.tupleByKeys(location, interval.getFrom());
+                // todo update constraint for all that are assigned inbetween
+                SpaceTime::Network::tuple_t::Ptr currentFromTuple = getFromTimeTuple(ftr);
 
-                Vertex::Ptr vertex = mBipartiteGraph.getUniquePartner(currentTuple);
-                assert(vertex);
-                MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex =
-                    dynamic_pointer_cast<MultiCommodityMinCostFlow::vertex_t>(vertex);
+                // Get the vertex in graph and assign
+                MultiCommodityMinCostFlow::vertex_t::Ptr fromMulticommodityVertex = getPartner(currentFromTuple);
 
                 // - first entry (start point): can be interpreted as source
                 // - intermediate entries (transflow) as lower flow bound
@@ -135,17 +129,17 @@ void MinCostFlow::setCommoditySupplyAndDemand()
                 if(fit == ftrs.begin())
                 {
                     tag = RoleInfo::AVAILABLE;
-                    multicommodityVertex->setCommoditySupply(commodityId, 1);
+                    fromMulticommodityVertex->setCommoditySupply(commodityId, 1);
                 } else if(fit+1 == ftrs.end())
                 {
-                    multicommodityVertex->setCommoditySupply(commodityId, -1);
+                    // set last one
+                    fromMulticommodityVertex->setCommoditySupply(commodityId, -1);
                 } else { // intermediate ones
                     // set minimum flow that needs to go through this node
                     // for this commodity (i.e. can be either 0 or 1)
-                    multicommodityVertex->setCommodityMinTransFlow(commodityId, 1);
+                    fromMulticommodityVertex->setCommodityMinTransFlow(commodityId, 1);
                 }
-                currentTuple->addRole(role, tag);
-                previous = vertex;
+                currentFromTuple->addRole(role, tag);
             }
         }
     } // end for role timelines
@@ -342,8 +336,43 @@ std::vector<FluentTimeResource>::const_iterator MinCostFlow::getFluent(const csp
             return fit;
         }
     }
-    throw std::invalid_argument("MissionPlanner::getFluent: could not retrieve corresponding fluent in timeline: '"
+    throw std::invalid_argument("templ::solvers::transshipment::MinCostFlow::getFluent: could not retrieve corresponding fluent in timeline: '"
             + roleTimeline.toString() + "' from tuple '" + tuple->toString());
+}
+
+
+SpaceTime::Network::tuple_t::Ptr MinCostFlow::getFromTimeTuple(const FluentTimeResource& ftr)
+{
+    // Map back space and time to human-readable information
+    const symbols::constants::Location::Ptr& location = ftr.getLocation();
+    const solvers::temporal::Interval& interval = ftr.getInterval();
+
+    // Get the tuple in the graph and augment with role
+    // information
+    return mSpaceTimeNetwork.tupleByKeys(location, interval.getFrom());
+}
+
+SpaceTime::Network::tuple_t::Ptr MinCostFlow::getToTimeTuple(const FluentTimeResource& ftr)
+{
+    // Map back space and time to human-readable information
+    const symbols::constants::Location::Ptr& location = ftr.getLocation();
+    const solvers::temporal::Interval& interval = ftr.getInterval();
+
+    // Get the tuple in the graph and augment with role
+    // information
+    return mSpaceTimeNetwork.tupleByKeys(location, interval.getTo());
+}
+
+MultiCommodityMinCostFlow::vertex_t::Ptr MinCostFlow::getPartner(const SpaceTime::Network::tuple_t::Ptr& tuple)
+{
+    Vertex::Ptr vertex = mBipartiteGraph.getUniquePartner(tuple);
+
+    if(!vertex)
+    {
+        throw std::invalid_argument("templ::solvers::transshipment::MinCostFlow::getToTimePartner: "
+                "failed to get corresponding vertex for resource: " + tuple->toString());
+    }
+    return dynamic_pointer_cast<MultiCommodityMinCostFlow::vertex_t>(vertex);
 }
 
 } // end namespace transshipment

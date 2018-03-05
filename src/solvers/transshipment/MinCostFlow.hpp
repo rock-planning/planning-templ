@@ -97,6 +97,11 @@ protected:
         getFluent(const templ::solvers::csp::RoleTimeline& roleTimeline,
             const SpaceTime::Network::tuple_t::Ptr& tuple) const;
 
+    SpaceTime::Network::tuple_t::Ptr getFromTimeTuple(const FluentTimeResource& ftr);
+    SpaceTime::Network::tuple_t::Ptr getToTimeTuple(const FluentTimeResource& ftr);
+
+    graph_analysis::algorithms::MultiCommodityMinCostFlow::vertex_t::Ptr getPartner(const SpaceTime::Network::tuple_t::Ptr& tuple);
+
 private:
     Mission::Ptr mpMission;
     std::map<Role, csp::RoleTimeline> mTimelines;
