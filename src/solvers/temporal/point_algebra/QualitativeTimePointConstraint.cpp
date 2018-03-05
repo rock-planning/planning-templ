@@ -113,6 +113,12 @@ QualitativeTimePointConstraint::QualitativeTimePointConstraint(const Variable::P
     SimpleConstraint::setLabel(TypeTxt[constraintType]);
 }
 
+bool QualitativeTimePointConstraint::operator==(const QualitativeTimePointConstraint& other) const
+{
+    return SimpleConstraint::operator==(other)
+        && mConstraintType == other.mConstraintType;
+}
+
 void QualitativeTimePointConstraint::setLabel(const std::string& label)
 {
     std::map<QualitativeTimePointConstraint::Type, std::string>::const_iterator cit = TypeTxt.begin();
@@ -373,9 +379,13 @@ std::vector<QualitativeTimePointConstraint::Type> QualitativeTimePointConstraint
     return types;
 }
 
-std::string QualitativeTimePointConstraint::toString() const
+std::string QualitativeTimePointConstraint::toString(uint32_t indent) const
 {
-    return SimpleConstraint::toString() + ": " + TypeTxt[getType()];
+    std::string hspace(indent,' ');
+    std::stringstream ss;
+    ss << SimpleConstraint::toString(indent) << std::endl;
+    ss << hspace << "relation:" << TypeTxt[getType()] << std::endl;
+    return ss.str();
 }
 
 } // end namespace point_algebra

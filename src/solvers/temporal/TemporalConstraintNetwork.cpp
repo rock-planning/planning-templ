@@ -433,7 +433,7 @@ std::string TemporalConstraintNetwork::toString(uint32_t indent) const
         QualitativeTimePointConstraint::Ptr t = dynamic_pointer_cast<QualitativeTimePointConstraint>(it->current());
         if(t)
         {
-            ss << hspace << t->toString();
+            ss << t->toString(indent);
         }
     }
     return ss.str();

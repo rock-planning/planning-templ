@@ -40,11 +40,13 @@ public:
             const Variable::Ptr& target,
             Type constraintType);
 
-    virtual void setLabel(const std::string& label);
+    bool operator==(const QualitativeTimePointConstraint& other) const;
 
-    virtual std::string getClassName() const { return "QualitativeTimePointConstraint"; }
+    void setLabel(const std::string& label) override;
 
-    virtual std::string toString() const;
+    std::string getClassName() const override { return "QualitativeTimePointConstraint"; }
+
+    std::string toString(uint32_t indent) const override;
 
     void setType(QualitativeTimePointConstraint::Type type);
 
