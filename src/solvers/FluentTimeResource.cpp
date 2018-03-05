@@ -2,6 +2,7 @@
 #include <organization_model/Algebra.hpp>
 #include <base-logging/Logging.hpp>
 #include "../utils/Index.hpp"
+#include <iostream>
 
 namespace templ {
 namespace solvers {
@@ -205,6 +206,36 @@ std::vector< FluentTimeResource::List > FluentTimeResource::getConcurrent(const 
     }
 
     return concurrentFts;
+}
+
+std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(const List& requirements)
+{
+    std::vector<List> mutualExclusive;
+    for(size_t a = 0; a < requirements.size(); ++a)
+    {
+        const FluentTimeResource& ftrA = requirements[a];
+
+        std::cout << "Mutual exclusive to : "<< ftrA.toString(4) << std::endl;
+        List concurrent;
+        concurrent.push_back(ftrA);
+        for(size_t b = a + 1; b < requirements.size(); ++b)
+        {
+            const FluentTimeResource& ftrB = requirements[b];
+
+            // Time overlap
+            if(ftrA.getLocation() != ftrB.getLocation())
+            {
+                if(ftrA.getInterval().overlaps(ftrB.getInterval()))
+                {
+                    std::cout << ftrB.toString(8) << std::endl;
+                    concurrent.push_back(ftrB);
+
+                }
+            }
+        }
+        mutualExclusive.push_back(concurrent);
+    }
+    return mutualExclusive;
 }
 
 organization_model::Resource::Set FluentTimeResource::getRequiredResources() const

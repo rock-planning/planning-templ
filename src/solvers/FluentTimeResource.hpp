@@ -25,6 +25,7 @@ class FluentTimeResource
 
 public:
     typedef std::vector<FluentTimeResource> List;
+    typedef std::set<FluentTimeResource> Set;
 
     /**
      * Default constructor to allow usage in lists
@@ -187,6 +188,11 @@ public:
      */
     static std::vector< List > getConcurrent(const List& requirements,
             const std::vector<solvers::temporal::Interval>& intervals);
+
+    /**
+     * Get the mutual exclusive set of requirements
+     */
+    static std::vector<List> getMutualExclusive(const List& requirements);
 
     /**
      * Get the set of functionalities this FluentTimeResource requires

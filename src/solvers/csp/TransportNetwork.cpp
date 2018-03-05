@@ -754,7 +754,7 @@ void TransportNetwork::setUpperBoundForConcurrentRequirements()
     {
         // Set of available models: mModelPool
         // Make sure the assignments are within resource bounds for concurrent requirements
-        std::vector< std::vector<FluentTimeResource> > concurrentRequirements = FluentTimeResource::getConcurrent(mResourceRequirements, mIntervals);
+        std::vector< std::vector<FluentTimeResource> > concurrentRequirements = FluentTimeResource::getMutualExclusive(mResourceRequirements);
 
         std::vector< std::vector<FluentTimeResource> >::const_iterator cit = concurrentRequirements.begin();
         for(; cit != concurrentRequirements.end(); ++cit)
@@ -905,7 +905,7 @@ void TransportNetwork::enforceUnaryResourceUsage()
 
     // Set of available models: mModelPool
     // Make sure the assignments are within resource bounds for concurrent requirements
-    std::vector< std::vector<FluentTimeResource> > concurrentRequirements = FluentTimeResource::getConcurrent(mResourceRequirements, mIntervals);
+    std::vector< std::vector<FluentTimeResource> > concurrentRequirements = FluentTimeResource::getMutualExclusive(mResourceRequirements);
 
     std::vector< std::vector<FluentTimeResource> >::const_iterator cit = concurrentRequirements.begin();
     if(!concurrentRequirements.empty())
