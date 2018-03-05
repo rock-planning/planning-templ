@@ -273,7 +273,7 @@
   </widget>
  </widget>
  <resources>
-  <include location="../../resources/qtresources.qrc"/>
+  <include location="../../resources.qrc"/>
  </resources>
  <connections/>
 </ui>

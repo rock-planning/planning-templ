@@ -126,42 +126,27 @@ void TemplGui::createMenus()
     QStyle* style = new QCommonStyle();
 
     // BEGIN FILE
-    QMenu *fileMenu = new QMenu(QObject::tr("&File"));
+    QMenu* fileMenu = new QMenu(QObject::tr("&File"));
 
-    QAction *actionImport = comm.addAction("Import", SLOT(importGraph()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open ), tr("Import graph from file"));
+    QMenu* importMenu = new QMenu(QObject::tr("&Import"));
+    QAction *actionImport = comm.addAction("Import Graph", SLOT(importGraph()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open ), tr("Import graph from file"));
+    QAction *actionImportSolution = comm.addAction("Import Solution", SLOT(importSolution()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open & Qt::Key_S ), tr("Import solution from file"));
+    QAction *actionImportMission = comm.addAction("Import Mission", SLOT(importMission()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open & Qt::Key_M ), tr("Import solution from file"));
+
+    importMenu->addAction(actionImport);
+    importMenu->addAction(actionImportSolution);
+    importMenu->addAction(actionImportMission);
+    fileMenu->addMenu(importMenu);
+
     QAction *actionExport = comm.addAction("Export", SLOT(exportGraph()), style->standardIcon(QStyle::SP_DialogSaveButton), QKeySequence( QKeySequence::SaveAs), tr("Export graph to file"));
     QAction *selectLayout = comm.addAction("Layout", SLOT(selectLayout()), style->standardIcon(QStyle::SP_FileDialogListView), QKeySequence( Qt::ControlModifier & Qt::Key_L), tr("Export graph to file"));
     QAction *saveGraphics = comm.addAction("Export Scene", SLOT(exportScene()), style->standardIcon(QStyle::SP_DialogSaveButton), QKeySequence(Qt::ControlModifier & Qt::Key_I), tr("Export scene"));
 
-    fileMenu->addAction(actionImport);
     fileMenu->addAction(actionExport);
     fileMenu->addAction(selectLayout);
     fileMenu->addAction(saveGraphics);
     fileMenu->addSeparator();
 
-    QMenu* recentFilesMenu = new QMenu(QObject::tr("&Recent Files"));
-    connect(recentFilesMenu, SIGNAL(aboutToShow()), this, SLOT(updateRecentFileActions()));
-
-    fileMenu->addMenu(recentFilesMenu);
-    // Populate the recent files list
-    for(int i = 0; i < MaxRecentFiles; ++i)
-    {
-        QAction* action = new QAction(this);
-        action->setVisible(false);
-        mpRecentFileActions.push_back(action);
-        connect(action, SIGNAL(triggered()), this, SLOT(importRecentFile()));
-    }
-
-    // account only for the existing files
-    int existingRecentFiles = qMin(mpRecentFileActions.size(), (int) MaxRecentFiles);
-    for(int i = 0; i < existingRecentFiles; ++i)
-    {
-        recentFilesMenu->addAction(mpRecentFileActions[i]);
-    }
-    QAction* clearRecentFiles = comm.addAction("Clear list", SLOT(clearRecentFiles()), style->standardIcon(QStyle::SP_TrashIcon), QKeySequence(Qt::ControlModifier & Qt::Key_C), tr("Clear recent files"));
-    recentFilesMenu->addAction(clearRecentFiles);
-    fileMenu->addSeparator();
-    // END FILE
 
     // BEGIN View
     // https://joekuan.wordpress.com/2015/09/23/list-of-qt-icons/ for list of
@@ -211,6 +196,8 @@ void TemplGui::createMenus()
     toolBar->setFloatable(true);
     addToolBar(toolBar);
 
+    QMenu* recentFilesMenu = createRecentFilesMenu();
+    fileMenu->addMenu(recentFilesMenu);
 }
 
 //void TemplGui::activateEdgeStyle()
@@ -256,20 +243,29 @@ void TemplGui::registerGraphElementTypes()
 
 void TemplGui::updateRecentFileActions()
 {
-    QSettings settings(QCoreApplication::organizationName(), "IO");
-    QStringList files = settings.value("recentImportFileList").toStringList();
+    updateRecentFileActions("Solutions");
+    updateRecentFileActions("Missions");
+    updateRecentFileActions("Graphs");
+}
 
+void TemplGui::updateRecentFileActions(const QString& label)
+{
+    QSettings settings(QCoreApplication::organizationName(), "IO" + label);
+    QList<QAction*> recentFileActions = mpRecentFileActionsMap[label];
+
+    QStringList files = settings.value("recentImportFileList").toStringList();
     int numRecentFiles = qMin(files.size(), (int) MaxRecentFiles);
     for(int i = 0; i < numRecentFiles; ++i)
     {
         QString text = tr("&%1 %2").arg(i + 1).arg(files[i]);
-        mpRecentFileActions[i]->setText(text);
-        mpRecentFileActions[i]->setData(files[i]);
-        mpRecentFileActions[i]->setVisible(true);
+        recentFileActions[i]->setText(text);
+        recentFileActions[i]->setData(files[i]);
+        recentFileActions[i]->setVisible(true);
     }
+
     for(int j = numRecentFiles; j < MaxRecentFiles; ++j)
     {
-        mpRecentFileActions[j]->setVisible(false);
+        recentFileActions[j]->setVisible(false);
     }
 }
 
@@ -278,9 +274,11 @@ QString TemplGui::strippedName(const QString& fullFileName)
     return QFileInfo(fullFileName).fileName();
 }
 
-void TemplGui::importGraph()
+void TemplGui::importGraph(const QString& settingsLabel)
 {
-    graph_analysis::BaseGraph::Ptr graph = graph_analysis::gui::dialogs::IODialog::importGraph(this);
+    graph_analysis::BaseGraph::Ptr graph = graph_analysis::gui::dialogs::IODialog::importGraph(this,
+            QString(),
+            settingsLabel);
     activateGraph(graph);
 }
 
@@ -309,16 +307,21 @@ void TemplGui::exportGraph()
     graph_analysis::gui::dialogs::IODialog::exportGraph(mpBaseGraphView->graph());
 }
 
-void TemplGui::importRecentFile()
+void TemplGui::importRecentGraph(const QString& settingsLabel)
 {
     QAction *action = qobject_cast<QAction*>(sender());
     if(action)
     {
         qDebug() << "Importing file from: " << action->data().toString();
-        graph_analysis::BaseGraph::Ptr graph = graph_analysis::gui::dialogs::IODialog::importGraph(this, action->data().toString());
+        graph_analysis::BaseGraph::Ptr graph = graph_analysis::gui::dialogs::IODialog::importGraph(this, action->data().toString(), settingsLabel);
 
         activateGraph(graph);
     }
+}
+
+void TemplGui::importRecentMission()
+{
+    qDebug() << "Importing missions is not supported yet";
 }
 
 void TemplGui::clearView()
@@ -453,12 +456,72 @@ void TemplGui::exportScene()
     graph_analysis::gui::dialogs::IODialog::exportScene(this->mpBaseGraphView->scene(), this);
 }
 
-void TemplGui::clearRecentFiles()
+void TemplGui::clearRecentFileList(const QString& name)
 {
-    QSettings settings(QCoreApplication::organizationName(), "IO");
+    QSettings settings(QCoreApplication::organizationName(), "IO" + name);
     QStringList files;
     settings.setValue("recentImportFileList", files);
     updateRecentFileActions();
+}
+
+QMenu* TemplGui::createRecentFilesMenu()
+{
+    ActionCommander comm(this);
+    QCommonStyle style;
+
+    QMenu* recentFilesMenu = new QMenu(QObject::tr("&Recent Files"));
+    QList<QString> recentFileList;
+    recentFileList.append("Graphs");
+    recentFileList.append("Missions");
+    recentFileList.append("Solutions");
+
+    foreach(const QString& name, recentFileList)
+    {
+        QMenu* recentFilesSubMenu = new QMenu("&" + name);
+        QList<QAction*>& subMenuActionList = mpRecentFileActionsMap[name];
+
+        // Populate the recent files list
+        for(int i = 0; i < MaxRecentFiles; ++i)
+        {
+            QAction* action = new QAction(this);
+            action->setVisible(false);
+            subMenuActionList.push_back(action);
+            if(name == "Mission")
+            {
+                connect(action, SIGNAL(triggered()), this, SLOT(importRecentMission()));
+            } else if(name == "Solutions")
+            {
+                connect(action, SIGNAL(triggered()), this, SLOT(importRecentSolution()));
+            } else {
+                connect(action, SIGNAL(triggered()), this, SLOT(importRecentGraph()));
+            }
+        }
+
+        QAction* clearRecentFiles = NULL;
+        if(name == "Mission")
+        {
+            clearRecentFiles = comm.addAction("Clear list", SLOT(clearRecentMissions()), style.standardIcon(QStyle::SP_TrashIcon), QKeySequence(Qt::ControlModifier & Qt::Key_C), tr("Clear recent files"));
+        } else if(name == "Solution")
+        {
+            clearRecentFiles = comm.addAction("Clear list", SLOT(clearRecentSolutions()), style.standardIcon(QStyle::SP_TrashIcon), QKeySequence(Qt::ControlModifier & Qt::Key_C), tr("Clear recent files"));
+        } else {
+            clearRecentFiles = comm.addAction("Clear list", SLOT(clearRecentFileList()), style.standardIcon(QStyle::SP_TrashIcon), QKeySequence(Qt::ControlModifier & Qt::Key_C), tr("Clear recent files"));
+        }
+
+        recentFilesSubMenu->addSeparator();
+        recentFilesSubMenu->addAction(clearRecentFiles);
+
+        int existingRecentFiles = qMin(subMenuActionList.size(), (int) MaxRecentFiles);
+        for(int i = 0; i < existingRecentFiles; ++i)
+        {
+            recentFilesSubMenu->addAction(subMenuActionList[i]);
+        }
+        recentFilesMenu->addMenu(recentFilesSubMenu);
+    }
+
+    connect(recentFilesMenu, SIGNAL(aboutToShow()), this, SLOT(updateRecentFileActions()));
+    return recentFilesMenu;
+
 }
 
 } // end namespace gui

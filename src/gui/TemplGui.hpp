@@ -44,7 +44,9 @@ private:
     // the subwigets, present in this window
     graph_analysis::gui::BaseGraphView* mpBaseGraphView;
 
-    QList<QAction*> mpRecentFileActions;
+    /// Store recent file actions list -- allow for additional set of
+    QMap<QString, QList<QAction*> > mpRecentFileActionsMap;
+
     enum { MaxRecentFiles = 5 };
 
     MissionEditor* mpMissionEditor;
@@ -71,16 +73,35 @@ private:
 
     static void sortRowLabel(const graph_analysis::BaseGraph::Ptr& graph, graph_analysis::gui::layouts::GridLayout::ColumnLabels& labels);
 
+    QMenu* createRecentFilesMenu();
+
 private slots:
-    void importGraph();
+    void importSolution() { importGraph("Solutions"); }
+    void importGraph(const QString& settingsLabel = "Graphs");
+
+    void importMission() { }
+
     void exportGraph();
     void selectLayout();
-    void importRecentFile();
     void clearView();
     void customizeGridLayout();
     void exportScene();
+
+    /**
+     * \param settingsLabel Label to separate the recentImportFileList under
+     * different namespaces in QSettings
+     */
+    void importRecentGraph(const QString& settingsLabel = "Graphs");
+
+    void importRecentSolution() { importRecentGraph("Solutions"); }
+    void importRecentMission();
+
     void updateRecentFileActions();
-    void clearRecentFiles();
+    void updateRecentFileActions(const QString& label);
+
+    void clearRecentFileList(const QString& name = "Graphs");
+    void clearRecentSolutions() { clearRecentFileList("Solutions"); }
+    void clearRecentMissions() { clearRecentFileList("Missions"); }
 
     void setChecked(bool check) { std::cout << "CHECKED: " << check; }
 
