@@ -7,6 +7,9 @@
 
 namespace templ {
 
+/**
+ * Edge representation to allow storing RoleInfo on an edge
+ */
 class RoleInfoWeightedEdge : public graph_analysis::WeightedEdge, public RoleInfo
 {
 public:

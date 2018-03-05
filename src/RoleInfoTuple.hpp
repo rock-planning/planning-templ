@@ -19,6 +19,10 @@
 
 namespace templ {
 
+/**
+ * This class combines the concept of Tuple and RoleInfo,
+ * so that both can stored on a single vertex in a graph
+ */
 template<typename A, typename B>
 class RoleInfoTuple : public Tuple<A, B>, public virtual RoleInfo
 {

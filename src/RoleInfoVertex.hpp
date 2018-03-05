@@ -6,6 +6,10 @@
 
 namespace templ {
 
+/**
+ * A vertex definition to allow storing RoleInfo using the graph base
+ * representation
+ */
 class RoleInfoVertex: public graph_analysis::Vertex, public virtual RoleInfo
 {
 public:

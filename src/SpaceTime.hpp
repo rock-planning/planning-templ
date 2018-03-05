@@ -55,7 +55,8 @@ public:
     static std::string toString(const Timelines& timelines, size_t indent = 0);
 
     /**
-     * Convert to a graph representation
+     * Convert to a set of timelines to a graph representation, timelines
+     * \return SpaceTime::Network
      */
     static SpaceTime::Network toNetwork(const symbols::constants::Location::PtrList& locations, const templ::solvers::temporal::point_algebra::TimePoint::PtrList& timepoints, const Timelines& timelines);
 
