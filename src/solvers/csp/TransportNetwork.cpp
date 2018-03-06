@@ -704,8 +704,10 @@ void TransportNetwork::initializeMinMaxConstraints()
 
 void TransportNetwork::addExtensionalConstraints()
 {
-    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mpMission->getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
-        std::map<uint32_t, Gecode::TupleSet> extensionalConstraints;
+    size_t availableResourceCount = mpMission->getAvailableResources().size();
+    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage,
+            /*width --> col*/ availableResourceCount,
+            /*height --> row*/ mResourceRequirements.size());
 
    std::vector<FluentTimeResource>::const_iterator fit = mResourceRequirements.begin();
    for(; fit != mResourceRequirements.end(); ++fit)
@@ -728,21 +730,15 @@ void TransportNetwork::addExtensionalConstraints()
             return;
         }
         LOG_DEBUG_S << "ExtensionalConstraints: add ftr: " << ftr.toString();
-        appendToTupleSet(extensionalConstraints[requirementIndex], allowedCombinations);
-   }
 
-   // use the prepared list of extensional constraints to activate the
-   // constraints
-   for(std::pair<uint32_t, Gecode::TupleSet> pair : extensionalConstraints)
-   {
-       uint32_t requirementIndex = pair.first;
-       Gecode::TupleSet& tupleSet = pair.second;
-       // one a tuple set has been fully defined it has to be finalized
-       tupleSet.finalize();
-       extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
+        // A tuple set is a fully expanded vector describing the cardinality for
+        // all available resources
+        Gecode::TupleSet tupleSet(availableResourceCount);
+        appendToTupleSet(tupleSet, allowedCombinations);
+        tupleSet.finalize();
+        extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
    }
 }
-
 
 void TransportNetwork::setUpperBoundForConcurrentRequirements()
 {
@@ -1442,6 +1438,7 @@ void TransportNetwork::postTemporalConstraints()
     //
     // TODO: in brancher since its time dependant
     enforceUnaryResourceUsage();
+    LOG_WARN_S << "POST TEMPORAL CONSTRAINTS" << mQualitativeTimepoints;
 }
 
 void TransportNetwork::doPostMinMaxConstraints(Gecode::Space& home)
@@ -1732,8 +1729,14 @@ void TransportNetwork::postMinCostFlow()
 
     std::map<Role, csp::RoleTimeline> minimalTimelines =  RoleTimeline::computeTimelines(*mpMission.get(), getRoleDistribution());
 
-    LOG_DEBUG_S << "RoleTimelines: " << std::endl
+    std::cout << "RoleTimelines: " << std::endl
         << RoleTimeline::toString(minimalTimelines, 4);
+
+    for(size_t i = 0; i < mActiveRoleList.size(); ++i)
+    {
+        LOG_WARN_S << "Active role: " << i << " of " << mActiveRoleList.size() << " " << mActiveRoleList[i].toString() << std::endl
+            << Formatter::toString(mTimelines[i], mLocations.size());
+    }
 
     //assert(!timelines.empty());
     try {
