@@ -75,11 +75,11 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     mpTimepointLabel = new QGraphicsTextItem(QString(tuple->second()->getLabel().c_str()), this);
     mpTimepointLabel->setPos(mpTimepointSvg->pos() + QPointF(25,0));
 
-    mpClassName =
-        new QGraphicsTextItem(QString(vertex->getClassName().c_str()), this);
-    mpClassName->setPos(mpLabel->pos() +
-                        QPoint(0, mpLabel->boundingRect().height()));
-    mpClassName->setDefaultTextColor(Qt::gray);
+    // Commented showing of class name
+    //mpClassName = new QGraphicsTextItem(QString(vertex->getClassName().c_str()), this);
+    //mpClassName->setPos(mpLabel->pos() +
+    //                    QPoint(0, mpLabel->boundingRect().height()));
+    //mpClassName->setDefaultTextColor(Qt::gray);
 
     mpInfoBox = new QGraphicsTextItem("", this);
     mpInfoBox->setDefaultTextColor(Qt::darkGreen);
@@ -367,11 +367,15 @@ QGraphicsProxyWidget* RoleInfoItem::addModelTable(const owlapi::model::IRI& mode
         {
             uint32_t id = c*rowCount + r;
             RoleInfo::Status status = tuple->getStatus(model, id);
+            QTableWidgetItem* item = new QTableWidgetItem();
+            item->setFlags(item->flags() & ~Qt::ItemIsEditable & ~Qt::ItemIsSelectable);
+            tableWidget->setItem(r,c,item);
+
             if(status == RoleInfo::UNKNOWN_STATUS)
             {
                 continue;
             }
-            tableWidget->setItem(r,c, new QTableWidgetItem);
+
             tableWidget->item(r,c)->setToolTip(QString(model.getFragment().c_str()) + "_" + QString::number(id));
 
             switch(status)

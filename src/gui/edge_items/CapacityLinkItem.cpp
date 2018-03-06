@@ -21,10 +21,10 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
 {
     mpLabel = new QGraphicsTextItem("", this);
     mpClassName =
-        new QGraphicsTextItem(QString(edge->getClassName().c_str()), this);
+        new QGraphicsTextItem(QString("Capacity"), this);
     mpClassName->setDefaultTextColor(Qt::gray);
 
-    mpFillBar = new QGraphicsRectItem(getEdgePath()->pos().x(), getEdgePath()->pos().y()+120, 10, 100, this);
+    mpFillBar = new QGraphicsRectItem(getEdgePath()->pos().x(), getEdgePath()->pos().y()+125, 10, 100, this);
     mpFillBar->setPen( QPen(Qt::black) );
     mpFillBar->setBrush(QBrush(Qt::white));
 
@@ -35,7 +35,7 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
        consumptionInPercent = capacityLink->getConsumptionLevel();
     }
 
-    mpFillStatus = new QGraphicsRectItem(getEdgePath()->pos().x(), getEdgePath()->pos().y()+120, 10, consumptionInPercent*100, this);
+    mpFillStatus = new QGraphicsRectItem(getEdgePath()->pos().x(), getEdgePath()->pos().y()+125, 10, consumptionInPercent*100, this);
     mpFillStatus->setPen( QPen(Qt::black) );
     mpFillStatus->setBrush(QBrush(Qt::black));
 
@@ -91,12 +91,15 @@ QRectF CapacityLinkItem::boundingRect() const
 void CapacityLinkItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
     mpClassName->setPlainText("");
-    mpLabel->setPlainText(getEdge()->toString().c_str());
+    QString text(getEdge()->toString().c_str());
+    mpLabel->setHtml(QString("<div style=\"background-color:#ffffff; white-space: pre;\">")
+            + text
+            + QString("</div>"));
 }
 
 void CapacityLinkItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-    mpClassName->setPlainText(getEdge()->getClassName().c_str());
+    mpClassName->setPlainText("Capacity");
     mpLabel->setPlainText("");
 }
 
