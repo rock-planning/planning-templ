@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <QResource>
 
 #include <QApplication>
 #include <QTime>
@@ -13,6 +14,8 @@ int main(int argc, char **argv)
     // setting up qt application
     QApplication app(argc, argv);
     app.setApplicationName("Templ");
+
+    Q_INIT_RESOURCE(resources);
 
     // provide seed for force-based layouting in the LayerViewWidget and
     // ComponentEditorWidget

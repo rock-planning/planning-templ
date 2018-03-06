@@ -80,7 +80,7 @@ QualitativeTimePointConstraint::Ptr QualitativeTemporalConstraintNetwork::addQua
     }
 
     QualitativeTimePointConstraint::Ptr constraint = QualitativeTimePointConstraint::create(t1, t2, constraintType);
-    LOG_DEBUG_S << "Adding QualitativeTimePointConstraint: " << constraint->toString();
+    LOG_DEBUG_S << "Adding QualitativeTimePointConstraint: " << constraint->toString(4);
     TemporalConstraintNetwork::addConstraint(constraint);
     mUpdatedConstraints.insert(VertexPair(t1,t2));
 
@@ -179,25 +179,16 @@ bool QualitativeTemporalConstraintNetwork::pathConsistency_BeekManak()
 
 bool QualitativeTemporalConstraintNetwork::incrementalPathConsistency()
 {
-    size_t count = 0;
     std::vector<Vertex::Ptr> vertices = getGraph()->getAllVertices();
     LOG_DEBUG_S << "Incremental path consistency: updated constraints #" << mUpdatedConstraints.size();
     while(!mUpdatedConstraints.empty())
     {
-        //std::string updated;
-        //std::set<VertexPair>::const_iterator uit = mUpdatedConstraints.begin();
-        //for(; uit != mUpdatedConstraints.end(); ++uit)
-        //{
-        //    updated = updated + "["+ uit->first->toString() + "--"+ uit->second->toString() + "]";
-        //}
-
         VertexPair pair = *mUpdatedConstraints.begin();
         mUpdatedConstraints.erase(mUpdatedConstraints.begin());
 
         const Vertex::Ptr& i = pair.first;
         const Vertex::Ptr& j = pair.second;
 
-        size_t triangleCheckCount = 0;
         std::vector<Vertex::Ptr>::const_iterator cit = vertices.begin();
 
         // Handle corner case for small
@@ -347,48 +338,32 @@ bool QualitativeTemporalConstraintNetwork::isConsistent(const std::vector<Vertex
     // in this triangle, then it can be assumed to be still consistent
     //
     // Otherwise a previous run did determine inconsistency
-    const Vertex::Ptr& v0 = vertexTriangle[0];
-    const Vertex::Ptr& v1 = vertexTriangle[1];
-    const Vertex::Ptr& v2 = vertexTriangle[2];
-
-    int count = 0;
     base::Time start = base::Time::now();
+    std::vector<Vertex::Ptr> triangle = vertexTriangle;
 
-//    numeric::Permutation<Vertex::Ptr> permutation(vertexTriangle);
-//    do {
-//        base::Time intermediateStart = base::Time::now();
-//
-//        std::vector<Vertex::Ptr> triangle = permutation.current();
-        std::vector<Vertex::Ptr> triangle = vertexTriangle;
+    int i = 0;
+    int j = 2;
+    int k = 1;
 
-        int i = 0;
-        int j = 2;
-        int k = 1;
+    try {
+        //LOG_DEBUG_S << "Checking triangle: " << triangle[i]->toString() << " -- " << triangle[j]->toString() <<
+        //    " -- " << triangle[k]->toString();
+        QualitativeTimePointConstraint::Type ij = getBidirectionalConstraintType(triangle[i], triangle[j]);
+        QualitativeTimePointConstraint::Type ik = getBidirectionalConstraintType(triangle[i], triangle[k]);
+        QualitativeTimePointConstraint::Type kj = getBidirectionalConstraintType(triangle[k], triangle[j]);
 
-        try {
-            //LOG_DEBUG_S << "Checking triangle: " << triangle[i]->toString() << " -- " << triangle[j]->toString() <<
-            //    " -- " << triangle[k]->toString();
-            QualitativeTimePointConstraint::Type ij = getBidirectionalConstraintType(triangle[i], triangle[j]);
-            QualitativeTimePointConstraint::Type ik = getBidirectionalConstraintType(triangle[i], triangle[k]);
-            QualitativeTimePointConstraint::Type kj = getBidirectionalConstraintType(triangle[k], triangle[j]);
+        QualitativeTimePointConstraint::Type ij_composition = QualitativeTimePointConstraint::getComposition(ik,kj);
 
-            QualitativeTimePointConstraint::Type ij_composition = QualitativeTimePointConstraint::getComposition(ik,kj);
-
-            QualitativeTimePointConstraint::Type compositionType = QualitativeTimePointConstraint::getIntersection(ij, ij_composition);
-            ++count;
-            if(compositionType == QualitativeTimePointConstraint::Empty)
-            {
-                return false;
-            }
-        } catch(const std::runtime_error& e)
+        QualitativeTimePointConstraint::Type compositionType = QualitativeTimePointConstraint::getIntersection(ij, ij_composition);
+        if(compositionType == QualitativeTimePointConstraint::Empty)
         {
-            LOG_INFO_S << e.what();
             return false;
         }
-        //LOG_WARN_S << "Time for triangle permutation: " << intermediate.toSeconds();
-    //} while(permutation.next());
-
-    LOG_WARN_S << "Number of checks to verify consistency: " << count  << " time needed: " << (start - base::Time::now()).toSeconds();
+    } catch(const std::runtime_error& e)
+    {
+        LOG_INFO_S << e.what();
+        return false;
+    }
 
     return true;
 }
