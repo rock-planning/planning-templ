@@ -207,13 +207,13 @@ public:
      * This copy constructor is required for the search engine
      * and it has to provide a deep copy
      */
-    ModelDistribution(bool share, ModelDistribution& s);
+    ModelDistribution(ModelDistribution& s);
 
     /**
      * Creat a copy of this space
      * This method is called by the search engine
      */
-    virtual Gecode::Space* copy(bool share);
+    virtual Gecode::Space* copy();
 
     static SolutionList solve(const templ::Mission::Ptr& mission);
 

@@ -4,6 +4,7 @@
 #include <gecode/set/branch.hh>
 #include <algorithm>
 #include <random>
+#include "SetNGL.hpp"
 
 namespace templ {
 namespace solvers {
@@ -49,8 +50,8 @@ TimelineBrancher::TimelineBrancher(Gecode::Home home, MultiTimelineView& x0,
     initialize(home);
 }
 
-TimelineBrancher::TimelineBrancher(Gecode::Space& space, bool share, TimelineBrancher& b)
-    : Gecode::Brancher(space, share, b)
+TimelineBrancher::TimelineBrancher(Gecode::Space& space, TimelineBrancher& b)
+    : Gecode::Brancher(space, b)
     , mSupplyDemand(b.mSupplyDemand)
     , mRandom(b.mRandom)
     , mRandomGenerator(b.mRandomGenerator)
@@ -67,7 +68,7 @@ TimelineBrancher::TimelineBrancher(Gecode::Space& space, bool share, TimelineBra
     for(size_t i = 0; i < b.x.size(); ++i)
     {
         TimelineView view;
-        view.update(space, share, b.x[i]);
+        view.update(space, b.x[i]);
         x.push_back(view);
     }
     assert(x.size() == b.x.size());
@@ -494,9 +495,9 @@ void TimelineBrancher::print(const Gecode::Space& home,
         o << "x[" << pos << "] = { " << pv.choices[a] << "}";
     }
 }
-Gecode::Actor* TimelineBrancher::copy(Gecode::Space& home, bool share)
+Gecode::Actor* TimelineBrancher::copy(Gecode::Space& home)
 {
-    return new (home) TimelineBrancher(home, share, *this);
+    return new (home) TimelineBrancher(home, *this);
 }
 
 size_t TimelineBrancher::dispose(Gecode::Space& home)

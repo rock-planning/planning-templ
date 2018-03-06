@@ -138,7 +138,7 @@ public:
     /**
      * Copy constructor for Gecode
      */
-    TemporalConstraintNetwork(bool shared, TemporalConstraintNetwork& other);
+    TemporalConstraintNetwork(TemporalConstraintNetwork& other);
 
     /**
      * Deconstructor
@@ -148,7 +148,7 @@ public:
     /**
      * Copy call for Gecode
      */
-    virtual Gecode::Space* copy(bool share);
+    virtual Gecode::Space* copy(void);
 
     /**
      * Find a valid assignment for this temporal constraint network

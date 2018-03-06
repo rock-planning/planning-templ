@@ -18,25 +18,25 @@ public:
         , mNumberOfTimepoints(numberOfTimepoints)
         , mNumberOfFluents(numberOfFluents)
         , mNumberOfVertices(numberOfTimepoints*numberOfFluents)
-        , mGraph(*this, mNumberOfVertices, Gecode::IntSet::empty, Gecode::IntSet(0,mNumberOfVertices-1), 0,1)
+        , mGraph(*this, mNumberOfVertices, Gecode::IntSet::empty, Gecode::IntSet(0,mNumberOfVertices-1), 0u,1u )
     {
         // get full path length
         templ::solvers::csp::propagators::isPath(*this, mGraph, "test-path", numberOfTimepoints, numberOfFluents, numberOfTimepoints-1);
         branch(*this, mGraph, Gecode::SET_VAR_MAX_MAX(), Gecode::SET_VAL_MAX_EXC());
     }
 
-    TestSpace(bool share, TestSpace& other)
-        : Gecode::Space(share, other)
+    TestSpace(TestSpace& other)
+        : Gecode::Space(other)
         , mNumberOfVertices(other.mNumberOfVertices)
         , mNumberOfFluents(other.mNumberOfFluents)
         , mNumberOfTimepoints(other.mNumberOfTimepoints)
     {
-        mGraph.update(*this, share, other.mGraph);
+        mGraph.update(*this, other.mGraph);
     }
 
-    virtual Gecode::Space* copy(bool share)
+    virtual Gecode::Space* copy()
     {
-        return new TestSpace(share, *this);
+        return new TestSpace(*this);
     }
 
     std::string toString() const

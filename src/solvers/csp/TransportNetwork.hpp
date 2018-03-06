@@ -403,13 +403,13 @@ public:
      * This copy constructor is required for the search engine
      * and it has to provide a deep copy
      */
-    TransportNetwork(bool share, TransportNetwork& s);
+    TransportNetwork(TransportNetwork& s);
 
     /**
      * Creat a copy of this space
      * This method is called by the search engine
      */
-    virtual Gecode::Space* copy(bool share);
+    virtual Gecode::Space* copy(void);
 
     /**
      * Solve the mission

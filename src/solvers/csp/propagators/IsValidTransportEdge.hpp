@@ -32,7 +32,7 @@ public:
         SetVarArrayView x;
 
         DemandSupply(Gecode::Space& home, Gecode::Propagator& p, Gecode::Council<DemandSupply>& c, SetVarArrayView x, size_t numberOfFluents);
-        DemandSupply(Gecode::Space& home, bool shared, DemandSupply& a);
+        DemandSupply(Gecode::Space& home, DemandSupply& a);
 
         void dispose(Gecode::Space& home, Gecode::Council<DemandSupply>& c);
 
@@ -57,7 +57,7 @@ public:
      */
     IsValidTransportEdge(Gecode::Space& home, SetVarArrayView& multiEdge, const std::vector<int32_t>& supplyDemand, uint32_t timepoint, uint32_t fluent, uint32_t numberOfFluents);
 
-    IsValidTransportEdge(Gecode::Space& home, bool share, IsValidTransportEdge& p);
+    IsValidTransportEdge(Gecode::Space& home, IsValidTransportEdge& p);
 
     /**
      * IsPath propagators post function, i.e. when it is initially created
@@ -72,7 +72,7 @@ public:
      * \return the size of the just disposed propagator
      */
     virtual size_t dispose(Gecode::Space& home);
-    virtual Gecode::Propagator* copy(Gecode::Space& home, bool share);
+    virtual Gecode::Propagator* copy(Gecode::Space& home);
     virtual Gecode::PropCost cost(const Gecode::Space&, const Gecode::ModEventDelta&) const;
     virtual Gecode::ExecStatus advise(Gecode::Space& home, Gecode::Advisor& a, const Gecode::Delta& d);
     virtual void reschedule(Gecode::Space& home);

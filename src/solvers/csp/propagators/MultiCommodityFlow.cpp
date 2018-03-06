@@ -151,13 +151,13 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
     }
 }
 
-MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home, bool share, MultiCommodityFlow& flow)
-    : NaryPropagator<Set::SetView, Set::PC_SET_ANY>(home, share, flow)
+MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home, MultiCommodityFlow& flow)
+    : NaryPropagator<Set::SetView, Set::PC_SET_ANY>(home, flow)
     , mAsk(flow.mAsk)
     , mCapacityGraph(flow.mCapacityGraph)
     , mRoleSupplyDemand(flow.mRoleSupplyDemand)
 {
-    x.update(home, share, flow.x);
+    x.update(home, flow.x);
 }
 
 Gecode::ExecStatus MultiCommodityFlow::post(Gecode::Space& home,
@@ -180,9 +180,9 @@ size_t MultiCommodityFlow::dispose(Gecode::Space& home)
     return sizeof(*this);
 }
 
-Gecode::Propagator* MultiCommodityFlow::copy(Gecode::Space& home, bool share)
+Gecode::Propagator* MultiCommodityFlow::copy(Gecode::Space& home)
 {
-    return new (home) MultiCommodityFlow(home, share, *this);
+    return new (home) MultiCommodityFlow(home, *this);
 }
 
 Gecode::PropCost MultiCommodityFlow::cost(const Gecode::Space&, const Gecode::ModEventDelta&) const

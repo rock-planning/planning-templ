@@ -4,7 +4,6 @@
 #include "../Types.hpp"
 #include <base-logging/Logging.hpp>
 #include <gecode/set/branch.hh>
-#include "SetNGL.hpp"
 
 namespace templ {
 namespace solvers {
@@ -59,7 +58,7 @@ public:
     TimelineBrancher(Gecode::Home home, MultiTimelineView& x0,
             const std::vector<int>& mSupplyDemand);
 
-    TimelineBrancher(Gecode::Space& space, bool share, TimelineBrancher& b);
+    TimelineBrancher(Gecode::Space& space, TimelineBrancher& b);
 
     void initialize(Gecode::Space& space);
 
@@ -110,7 +109,7 @@ public:
             unsigned int a,
             std::ostream& o) const;
 
-    virtual Gecode::Actor* copy(Gecode::Space& home, bool share);
+    virtual Gecode::Actor* copy(Gecode::Space& home);
     virtual size_t dispose(Gecode::Space& home);
 
 private:

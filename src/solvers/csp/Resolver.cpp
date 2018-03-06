@@ -9,7 +9,7 @@ Resolver::Resolver(const Type& type)
     : mType(type)
 {}
 
-RoleAddDistinction::RoleAddDistinction(const FluentTimeResource& fts0, 
+RoleAddDistinction::RoleAddDistinction(const FluentTimeResource& fts0,
         const FluentTimeResource& fts1,
         const owlapi::model::IRI& model,
         uint32_t addDelta,
@@ -25,7 +25,7 @@ RoleAddDistinction::RoleAddDistinction(const FluentTimeResource& fts0,
 void RoleAddDistinction::apply(PlanningState* planningState)
 {
     // Provide a deep copy
-    RoleDistribution* rd = new RoleDistribution(true, *planningState->getRoleDistribution());
+    RoleDistribution* rd = new RoleDistribution(*planningState->getRoleDistribution());
     rd->addDistinct(mFts0, mFts1, mModel, mAdd, mSolution);
     planningState->setRoleDistribution(rd);
     planningState->setRoleDistributionSearchEngine(new Gecode::BAB<RoleDistribution>(rd));

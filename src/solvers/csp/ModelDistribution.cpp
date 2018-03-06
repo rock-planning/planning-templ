@@ -490,8 +490,8 @@ ModelDistribution::ModelDistribution(const templ::Mission::Ptr& mission)
 
 }
 
-ModelDistribution::ModelDistribution(bool share, ModelDistribution& other)
-    : Gecode::Space(share, other)
+ModelDistribution::ModelDistribution(ModelDistribution& other)
+    : Gecode::Space(other)
     , mpMission(other.mpMission)
     , mModelPool(other.mModelPool)
     , mAsk(other.mAsk)
@@ -504,13 +504,13 @@ ModelDistribution::ModelDistribution(bool share, ModelDistribution& other)
 {
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
-    mModelUsage.update(*this, share, other.mModelUsage);
-    mRoleUsage.update(*this, share, other.mRoleUsage);
+    mModelUsage.update(*this, other.mModelUsage);
+    mRoleUsage.update(*this, other.mRoleUsage);
 }
 
-Gecode::Space* ModelDistribution::copy(bool share)
+Gecode::Space* ModelDistribution::copy()
 {
-    return new ModelDistribution(share, *this);
+    return new ModelDistribution(*this);
 }
 
 std::vector<ModelDistribution::Solution> ModelDistribution::solve(const templ::Mission::Ptr& mission)

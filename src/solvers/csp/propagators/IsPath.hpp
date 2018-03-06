@@ -32,7 +32,7 @@ public:
 
     public:
         Idx(Gecode::Space& home, Gecode::Propagator& p, Gecode::Council<Idx>& c, int i, bool isTimepointIdx, SetVarArrayView x);
-        Idx(Gecode::Space& home, bool share, Idx& a);
+        Idx(Gecode::Space& home, Idx& a);
         bool isTimepointIdx() const { return mIsTimepointIdx; }
         bool isLocationIdx() const { return !mIsTimepointIdx; }
 
@@ -74,7 +74,7 @@ public:
      */
     IsPath(Gecode::Space& home, SetVarArrayView& graph, const std::string& tag, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength = 1, int maxPathLength = Gecode::Int::Limits::max);
 
-    IsPath(Gecode::Space& home, bool share, IsPath& p);
+    IsPath(Gecode::Space& home, IsPath& p);
 
     /**
      * IsPath propagators post function, i.e. when it is initially created
@@ -100,7 +100,7 @@ public:
      * \return the size of the just disposed propagator
      */
     virtual size_t dispose(Gecode::Space& home);
-    virtual Gecode::Propagator* copy(Gecode::Space& home, bool share);
+    virtual Gecode::Propagator* copy(Gecode::Space& home);
     virtual Gecode::PropCost cost(const Gecode::Space&, const Gecode::ModEventDelta&) const;
     virtual void reschedule(Gecode::Space& home);
     virtual Gecode::ExecStatus advise(Gecode::Space& home, Gecode::Advisor& a, const Gecode::Delta& d);

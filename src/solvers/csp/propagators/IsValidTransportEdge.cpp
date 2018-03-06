@@ -20,12 +20,12 @@ IsValidTransportEdge::DemandSupply::DemandSupply(Gecode::Space& home,
     x.subscribe(home, *this);
 }
 
-IsValidTransportEdge::DemandSupply::DemandSupply(Gecode::Space& home, bool shared, DemandSupply& other)
-    : Gecode::Advisor(home, shared, other)
+IsValidTransportEdge::DemandSupply::DemandSupply(Gecode::Space& home, DemandSupply& other)
+    : Gecode::Advisor(home, other)
     , edgeIdxWithDemand(other.edgeIdxWithDemand)
     , edgeValue(other.edgeValue)
 {
-    x.update(home, shared, other.x);
+    x.update(home, other.x);
 }
 
 void IsValidTransportEdge::DemandSupply::dispose(Gecode::Space& home, Gecode::Council<DemandSupply>& c)
@@ -84,16 +84,16 @@ IsValidTransportEdge::IsValidTransportEdge(Gecode::Space& home, SetVarArrayView&
     (void) new (home) DemandSupply(home, *this, c, x, numberOfFluents);
 }
 
-IsValidTransportEdge::IsValidTransportEdge(Gecode::Space& home, bool share, IsValidTransportEdge& p)
-    : NaryPropagator<Gecode::Set::SetView, Gecode::Set::PC_SET_NONE>(home, share, p)
+IsValidTransportEdge::IsValidTransportEdge(Gecode::Space& home, IsValidTransportEdge& p)
+    : NaryPropagator<Gecode::Set::SetView, Gecode::Set::PC_SET_NONE>(home, p)
     , mTimepoint(p.mTimepoint)
     , mFluent(p.mFluent)
     , mSupplyDemand(p.mSupplyDemand)
     , mLocalTargetFluent(p.mLocalTargetFluent)
     , mSpaceTimeOffset(p.mSpaceTimeOffset)
 {
-    x.update(home, share, p.x);
-    c.update(home, share, p.c);
+    x.update(home, p.x);
+    c.update(home, p.c);
 }
 
  Gecode::ExecStatus IsValidTransportEdge::post(Gecode::Space& home, const Gecode::SetVarArgs& multiEdge,
@@ -133,9 +133,9 @@ size_t IsValidTransportEdge::dispose(Gecode::Space& home)
     return sizeof(*this);
 }
 
-Gecode::Propagator* IsValidTransportEdge::copy(Gecode::Space& home, bool share)
+Gecode::Propagator* IsValidTransportEdge::copy(Gecode::Space& home)
 {
-    return new (home) IsValidTransportEdge(home, share, *this);
+    return new (home) IsValidTransportEdge(home, *this);
 }
 
 Gecode::PropCost IsValidTransportEdge::cost(const Gecode::Space&, const Gecode::ModEventDelta&) const

@@ -221,11 +221,11 @@ TemporalConstraintNetwork::TemporalConstraintNetwork(const temporal::Qualitative
     branch(*this, mTimepoints, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN());
 }
 
-TemporalConstraintNetwork::TemporalConstraintNetwork(bool shared, TemporalConstraintNetwork& other)
-    : Gecode::Space(shared, other)
+TemporalConstraintNetwork::TemporalConstraintNetwork(TemporalConstraintNetwork& other)
+    : Gecode::Space(other)
 {
     setVertices( other.getVertices() );
-    mTimepoints.update(*this, shared, other.mTimepoints);
+    mTimepoints.update(*this, other.mTimepoints);
 }
 
 TemporalConstraintNetwork::~TemporalConstraintNetwork()
@@ -243,9 +243,9 @@ TemporalConstraintNetwork* TemporalConstraintNetwork::nextSolution()
     return NULL;
 }
 
-Gecode::Space* TemporalConstraintNetwork::copy(bool share)
+Gecode::Space* TemporalConstraintNetwork::copy()
 {
-    return new TemporalConstraintNetwork(share, *this);
+    return new TemporalConstraintNetwork(*this);
 }
 
 temporal::TemporalConstraintNetwork::Ptr TemporalConstraintNetwork::getTemporalConstraintNetwork() const

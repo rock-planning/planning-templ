@@ -48,7 +48,6 @@ public:
             const organization_model::OrganizationModelAsk& ask);
 
     MultiCommodityFlow(Gecode::Space& home,
-            bool share,
             MultiCommodityFlow& flow);
 
     static Gecode::ExecStatus post(Gecode::Space& home, const Role::List& roles,
@@ -58,7 +57,7 @@ public:
 
     virtual size_t dispose(Gecode::Space& home);
 
-    virtual Gecode::Propagator* copy(Gecode::Space& home, bool share);
+    virtual Gecode::Propagator* copy(Gecode::Space& home);
 
     virtual Gecode::PropCost cost(const Gecode::Space&, const Gecode::ModEventDelta&) const;
 

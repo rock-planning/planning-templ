@@ -5,7 +5,6 @@
 #include <gecode/set.hh>
 #include <gecode/gist.hh>
 #include <gecode/search.hh>
-#include <gecode/search/meta/rbs.hh>
 
 #include <iomanip>
 #include <fstream>
@@ -960,8 +959,8 @@ Gecode::Symmetries TransportNetwork::identifySymmetries()
     return symmetries;
 }
 
-TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
-    : Gecode::Space(share, other)
+TransportNetwork::TransportNetwork(TransportNetwork& other)
+    : Gecode::Space(other)
     , mpMission(other.mpMission)
     , mModelPool(other.mModelPool)
     , mAsk(other.mAsk)
@@ -987,25 +986,25 @@ TransportNetwork::TransportNetwork(bool share, TransportNetwork& other)
 {
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
-    mModelUsage.update(*this, share, other.mModelUsage);
-    mRoleUsage.update(*this, share, other.mRoleUsage);
-    mCost.update(*this, share, other.mCost);
-    mNumberOfFlaws.update(*this, share, other.mNumberOfFlaws);
-    mQualitativeTimepoints.update(*this, share, other.mQualitativeTimepoints);
+    mModelUsage.update(*this, other.mModelUsage);
+    mRoleUsage.update(*this, other.mRoleUsage);
+    mCost.update(*this, other.mCost);
+    mNumberOfFlaws.update(*this, other.mNumberOfFlaws);
+    mQualitativeTimepoints.update(*this, other.mQualitativeTimepoints);
 
     for(size_t i = 0; i < other.mTimelines.size(); ++i)
     {
         AdjacencyList array;
         mTimelines.push_back(array);
-        mTimelines[i].update(*this, share, other.mTimelines[i]);
+        mTimelines[i].update(*this, other.mTimelines[i]);
     }
 
-    //mCapacities.update(*this, share, other.mCapacities);
+    //mCapacities.update(*this, other.mCapacities);
 }
 
-Gecode::Space* TransportNetwork::copy(bool share)
+Gecode::Space* TransportNetwork::copy()
 {
-    return new TransportNetwork(share, *this);
+    return new TransportNetwork(*this);
 }
 
 std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const Configuration& configuration)
@@ -1074,7 +1073,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
             //Gecode::BAB<TransportNetwork> searchEngine(distribution,options);
             //Gecode::DFS<TransportNetwork> searchEngine(distribution, options);
-            Gecode::TemplRBS< TransportNetwork, Gecode::BAB > searchEngine(distribution, options);
+            Gecode::RBS< TransportNetwork, Gecode::BAB > searchEngine(distribution, options);
             //Gecode::TemplRBS< TransportNetwork, Gecode::DFS > searchEngine(distribution, options);
 
         TransportNetwork* best = NULL;
@@ -1515,7 +1514,9 @@ void TransportNetwork::postRoleAssignments()
 
         /// Initialize timelines for all roles, i.e. here the current one
         /// Ajacencylist
-        Gecode::SetVarArray timeline(*this, locationTimeSize, Gecode::IntSet::empty, Gecode::IntSet(0,locationTimeSize-1),0,1);
+        unsigned int minCard = 0;
+        unsigned int maxCard = 1;
+        Gecode::SetVarArray timeline(*this, locationTimeSize, Gecode::IntSet::empty, Gecode::IntSet(0,locationTimeSize-1),minCard, maxCard);
         mTimelines.push_back(timeline);
 
         // Setup the basic constraints for the timeline

@@ -10,13 +10,13 @@ namespace csp {
 ExcNGL::ExcNGL(Space& home, SetView x, int n)
       : ViewValNGL<SetView,int,PC_SET_ANY>(home,x,n) {}
 
-ExcNGL::ExcNGL(Space& home, bool share, ExcNGL& ngl)
-      : ViewValNGL<SetView,int,PC_SET_ANY>(home,share,ngl) {}
+ExcNGL::ExcNGL(Space& home, ExcNGL& ngl)
+      : ViewValNGL<SetView,int,PC_SET_ANY>(home,ngl) {}
 
 
   NGL*
-  ExcNGL::copy(Space& home, bool share) {
-    return new (home) ExcNGL(home,share,*this);
+  ExcNGL::copy(Space& home) {
+    return new (home) ExcNGL(home,*this);
   }
   NGL::Status
   ExcNGL::status(const Space&) const {

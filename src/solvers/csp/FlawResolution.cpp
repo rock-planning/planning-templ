@@ -294,7 +294,7 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
 
 std::vector< std::pair<FlawResolution::ResolutionOption, uint32_t> > FlawResolution::selectBestResolution(Gecode::Space& space, const Gecode::Space& lastSolution, uint32_t existingCost, const FlawResolution::ResolutionOptions& resolutionOptions)
 {
-    Gecode::Space* master = space.clone(true);
+    Gecode::Space* master = space.clone();
 
     if(TransportNetwork::msInteractive)
     {
@@ -312,7 +312,7 @@ std::vector< std::pair<FlawResolution::ResolutionOption, uint32_t> > FlawResolut
             std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
         }
 
-        Gecode::Space* slave = master->clone(false);
+        Gecode::Space* slave = master->clone();
         TransportNetwork* transportNetwork = dynamic_cast<TransportNetwork*>(slave);
 
         FlawResolution::applyResolutionOption(*transportNetwork, lastSolution, option);

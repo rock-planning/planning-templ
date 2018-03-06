@@ -156,13 +156,13 @@ rock_library(templ
         solvers/csp/RoleTimeline.cpp
         solvers/csp/TransportNetwork.cpp
         solvers/csp/Types.cpp
-        solvers/csp/branchers/TimelineBrancher.cpp
         solvers/csp/branchers/SetNGL.cpp
+        solvers/csp/branchers/TimelineBrancher.cpp
         solvers/csp/propagators/IsPath.cpp
         solvers/csp/propagators/IsValidTransportEdge.cpp
         solvers/csp/propagators/MultiCommodityFlow.cpp
-        solvers/csp/search/rbs.cpp
-        solvers/csp/search/meta/rbs.cpp
+        #solvers/csp/search/rbs.cpp
+        #solvers/csp/search/meta/rbs.cpp
         solvers/csp/utils/Converter.cpp
         solvers/csp/utils/FluentTimeIndex.cpp
         solvers/csp/utils/Formatter.cpp
@@ -205,15 +205,15 @@ rock_library(templ
         solvers/csp/RoleTimeline.hpp
         solvers/csp/TransportNetwork.hpp
         solvers/csp/Types.hpp
-        solvers/csp/branchers/TimelineBrancher.hpp
         solvers/csp/branchers/SetNGL.hpp
+        solvers/csp/branchers/TimelineBrancher.hpp
         solvers/csp/propagators/IsPath.hpp
         solvers/csp/propagators/IsValidTransportEdge.hpp
         solvers/csp/propagators/MultiCommodityFlow.hpp
-        solvers/csp/Search.hpp
-        solvers/csp/search/rbs.hpp
-        solvers/csp/search/meta/rbs.hh
-        solvers/csp/search/meta/rbs.hpp
+        #solvers/csp/Search.hpp
+        #solvers/csp/search/rbs.hpp
+        #solvers/csp/search/meta/rbs.hh
+        #solvers/csp/search/meta/rbs.hpp
         solvers/csp/utils/Converter.hpp
         solvers/csp/utils/FluentTimeIndex.hpp
         solvers/csp/utils/Formatter.hpp

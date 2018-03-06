@@ -13,13 +13,13 @@ namespace csp {
       /// Constructor for creation
       ExcNGL(Gecode::Space& home, Gecode::Set::SetView x, int n);
       /// Constructor for cloning \a ngl
-      ExcNGL(Gecode::Space& home, bool share, ExcNGL& ngl);
+      ExcNGL(Gecode::Space& home, ExcNGL& ngl);
       /// Test the status of the no-good literal
       virtual NGL::Status status(const Gecode::Space& home) const;
       /// Propagate the negation of the no-good literal
       virtual Gecode::ExecStatus prune(Gecode::Space& home);
       /// Create copy
-      virtual Gecode::NGL* copy(Gecode::Space& home, bool share);
+      virtual Gecode::NGL* copy(Gecode::Space& home);
     };
 
 }}}

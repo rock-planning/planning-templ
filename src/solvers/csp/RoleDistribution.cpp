@@ -178,19 +178,19 @@ RoleDistribution::RoleDistribution(const Mission::Ptr& mission, const ModelDistr
     branch(*this, mRoleUsage, Gecode::INT_VAR_NONE(), Gecode::INT_VAL_MIN(), symmetries);
 }
 
-RoleDistribution::RoleDistribution(bool share, RoleDistribution& other)
-    : Gecode::Space(share, other)
+RoleDistribution::RoleDistribution(RoleDistribution& other)
+    : Gecode::Space(other)
     , mRoles(other.mRoles)
     , mRequirements(other.mRequirements)
     , mIntervals(other.mIntervals)
 {
-    mRoleUsage.update(*this, share, other.mRoleUsage);
+    mRoleUsage.update(*this, other.mRoleUsage);
 
 }
 
-Gecode::Space* RoleDistribution::copy(bool share)
+Gecode::Space* RoleDistribution::copy()
 {
-    return new RoleDistribution(share, *this);
+    return new RoleDistribution(*this);
 }
 
 size_t RoleDistribution::getFluentIndex(const FluentTimeResource& fluent) const

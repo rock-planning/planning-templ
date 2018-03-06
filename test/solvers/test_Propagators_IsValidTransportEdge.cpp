@@ -31,7 +31,9 @@ public:
     {
         for(size_t t = 0; t < mNumberOfTimelines; ++t)
         {
-            Gecode::SetVarArray timeline(*this, mNumberOfVertices, Gecode::IntSet::empty, Gecode::IntSet(0,mNumberOfVertices-1),0,1);
+            unsigned int minCard = 0;
+            unsigned int maxCard = 1;
+            Gecode::SetVarArray timeline(*this, mNumberOfVertices, Gecode::IntSet::empty, Gecode::IntSet(0,mNumberOfVertices-1), minCard, maxCard);
             mTimelines.push_back(timeline);
 
             std::stringstream ss;
@@ -65,8 +67,8 @@ public:
 
     }
 
-    TestValidTransportEdge(bool share, TestValidTransportEdge& other)
-        : Gecode::Space(share, other)
+    TestValidTransportEdge(TestValidTransportEdge& other)
+        : Gecode::Space(other)
         , mNumberOfTimepoints(other.mNumberOfTimepoints)
         , mNumberOfFluents(other.mNumberOfFluents)
         , mNumberOfVertices(other.mNumberOfVertices)
@@ -77,13 +79,13 @@ public:
         {
             AdjacencyList array;
             mTimelines.push_back(array);
-            mTimelines[i].update(*this, share, other.mTimelines[i]);
+            mTimelines[i].update(*this, other.mTimelines[i]);
         }
     }
 
-    virtual Gecode::Space* copy(bool share)
+    virtual Gecode::Space* copy()
     {
-        return new TestValidTransportEdge(share, *this);
+        return new TestValidTransportEdge(*this);
     }
 
     std::string toString() const
@@ -106,8 +108,6 @@ void run_test(uint32_t numberOfTimepoints, uint32_t numberOfFluents, std::vector
     Gecode::BAB<TestValidTransportEdge> searchEngine(testSpace);
     TestValidTransportEdge* best = NULL;
     TestValidTransportEdge* current = NULL;
-    bool foundSolution = false;
-
     BOOST_TEST_MESSAGE("Run search");
     while((current = searchEngine.next()))
     {

@@ -40,12 +40,12 @@ IsPath::Idx::Idx(Gecode::Space& home, Gecode::Propagator& p,
     x.subscribe(home, *this);
 }
 
-IsPath::Idx::Idx(Gecode::Space& home, bool share, Idx& other)
-    : Gecode::Advisor(home, share, other)
+IsPath::Idx::Idx(Gecode::Space& home, Idx& other)
+    : Gecode::Advisor(home, other)
     , mInfo(other.mInfo)
     , mIsTimepointIdx(other.mIsTimepointIdx)
 {
-    x.update(home, share, other.x);
+    x.update(home, other.x);
 }
 
 void IsPath::Idx::dispose(Gecode::Space& home, Gecode::Council<Idx>& c)
@@ -151,8 +151,8 @@ IsPath::IsPath(Gecode::Space& home, ViewArray<Set::SetView>& xv,
     }
 }
 
-IsPath::IsPath(Gecode::Space& home, bool share, IsPath& p)
-    : NaryPropagator<Set::SetView, Set::PC_SET_NONE>(home, share, p)
+IsPath::IsPath(Gecode::Space& home, IsPath& p)
+    : NaryPropagator<Set::SetView, Set::PC_SET_NONE>(home, p)
     , mTag(p.mTag)
     , mNumberOfTimepoints(p.mNumberOfTimepoints)
     , mNumberOfFluents(p.mNumberOfFluents)
@@ -160,8 +160,8 @@ IsPath::IsPath(Gecode::Space& home, bool share, IsPath& p)
     , mMaxPathLength(p.mMaxPathLength)
     , mAssignedTimepoints(p.mAssignedTimepoints)
 {
-    x.update(home, share, p.x);
-    c.update(home, share, p.c);
+    x.update(home, p.x);
+    c.update(home, p.c);
 }
 
 Gecode::ModEvent IsPath::disableSametimeView(Gecode::Space& home, int viewIdx)
@@ -334,9 +334,9 @@ size_t IsPath::dispose(Gecode::Space& home)
     return sizeof(*this);
 }
 
-Gecode::Propagator* IsPath::copy(Gecode::Space& home, bool share)
+Gecode::Propagator* IsPath::copy(Gecode::Space& home)
 {
-    return new (home) IsPath(home, share, *this);
+    return new (home) IsPath(home, *this);
 }
 
 Gecode::PropCost IsPath::cost(const Gecode::Space&, const Gecode::ModEventDelta&) const

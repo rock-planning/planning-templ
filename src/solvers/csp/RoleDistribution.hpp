@@ -80,9 +80,9 @@ public:
      * This copy constructor is required for the search engine
      * and it has to provide a deep copy
      */
-    RoleDistribution(bool share, RoleDistribution& other);
+    RoleDistribution(RoleDistribution& other);
 
-    Gecode::Space* copy(bool share);
+    Gecode::Space* copy();
 
     /**
      * Get the solution of this Gecode::Space instance
