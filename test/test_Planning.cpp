@@ -5,10 +5,11 @@
 #include <templ/solvers/temporal/PersistenceCondition.hpp>
 #include <templ/solvers/temporal/Timeline.hpp>
 #include <templ/solvers/temporal/Chronicle.hpp>
-#include <templ/MissionPlanner.hpp>
 #include "test_utils.hpp"
 
 #include <organization_model/vocabularies/OM.hpp>
+#include <organization_model/OrganizationModel.hpp>
+#include <templ/Mission.hpp>
 
 using namespace templ;
 using namespace templ::symbols;
@@ -100,8 +101,6 @@ BOOST_AUTO_TEST_CASE(mission_1)
     modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
     mission.setAvailableResources(modelPool);
 
-    //MissionPlanner missionPlanner(mission);
-    //CandidateMissions missions = missionPlanner.solve();
 }
 
 // actions
@@ -142,7 +141,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
 //
 // timeline -> chronicle for a single state variable
 //    -- isConsistent --> iff every pair of assertions is disjoint or refers to
-// chronicle -> 
+// chronicle ->
 //    -- isConsistent iff the timelines for all the state variables in it are
 //    consistent
 //
@@ -154,7 +153,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
 // 1. add minimum required resources to timepoints
 //
 //  --> TPS
-//     flaw <-- UnsatifiesfiedAxioms 
+//     flaw <-- UnsatifiesfiedAxioms
 //     select any flaw
 //        <-- resolve and refine plan
 //

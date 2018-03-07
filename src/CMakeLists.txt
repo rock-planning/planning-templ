@@ -127,10 +127,7 @@ rock_library(templ
         DataPropertyAssignment.cpp
         Mission.cpp
         constraints/ModelConstraint.cpp
-        MissionPlanner.cpp
         Plan.cpp
-        PlanSpaceVisitor.cpp
-        PlanningState.cpp
         solvers/Solver.cpp
         solvers/Session.cpp
         solvers/FluentTimeResource.cpp
@@ -150,9 +147,6 @@ rock_library(templ
         solvers/csp/FlawResolution.cpp
         solvers/csp/MissionConstraints.cpp
         solvers/csp/MissionConstraintManager.cpp
-        solvers/csp/ModelDistribution.cpp
-        solvers/csp/Resolver.cpp
-        solvers/csp/RoleDistribution.cpp
         solvers/csp/RoleTimeline.cpp
         solvers/csp/TransportNetwork.cpp
         solvers/csp/Types.cpp
@@ -178,8 +172,6 @@ rock_library(templ
         constraints/ModelConstraint.hpp
         MissionPlanner.hpp
         Plan.hpp
-        PlanSpaceVisitor.hpp
-        PlanningState.hpp
         io/MissionReader.hpp
         io/MissionWriter.hpp
         io/MissionRequirements.hpp
@@ -199,9 +191,6 @@ rock_library(templ
         solvers/csp/FlawResolution.hpp
         solvers/csp/MissionConstraints.hpp
         solvers/csp/MissionConstraintManager.hpp
-        solvers/csp/ModelDistribution.hpp
-        solvers/csp/Resolver.hpp
-        solvers/csp/RoleDistribution.hpp
         solvers/csp/RoleTimeline.hpp
         solvers/csp/TransportNetwork.hpp
         solvers/csp/Types.hpp
@@ -267,11 +256,6 @@ rock_executable(templ_bin Main.cpp
 
 rock_executable(templ-mission_reader
     utils/MissionReaderMain.cpp
-    DEPS templ
-)
-
-rock_executable(templ-mission_planner
-    utils/MissionPlannerMain.cpp
     DEPS templ
 )
 

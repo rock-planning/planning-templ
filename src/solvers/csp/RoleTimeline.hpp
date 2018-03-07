@@ -2,7 +2,7 @@
 #define TEMPL_SOLVERS_CSP_ROLE_TIMELINE_HPP
 
 #include <map>
-#include <templ/solvers/csp/RoleDistribution.hpp>
+#include "../FluentTimeResource.hpp"
 
 namespace templ {
 namespace solvers {

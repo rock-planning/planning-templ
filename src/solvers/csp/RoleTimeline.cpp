@@ -85,12 +85,12 @@ std::string RoleTimeline::toString() const
     return ss.str();
 }
 
-std::map<Role,RoleTimeline> RoleTimeline::computeTimelines(const Mission& mission, const RoleDistribution::Solution& roleSolution)
+std::map<Role,RoleTimeline> RoleTimeline::computeTimelines(const Mission& mission, const std::map<FluentTimeResource, Role::List>& roleSolution)
 {
     std::map<Role,RoleTimeline> timelines;
 
     // Timeline
-    RoleDistribution::Solution::const_iterator cit = roleSolution.begin();
+    std::map<FluentTimeResource, Role::List>::const_iterator cit = roleSolution.begin();
     for(; cit != roleSolution.end(); ++cit)
     {
         const Role::List& roles = cit->second;
