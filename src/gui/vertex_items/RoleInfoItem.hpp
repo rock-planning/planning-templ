@@ -4,6 +4,7 @@
 #include <graph_analysis/gui/VertexItemBase.hpp>
 #include <QGraphicsSvgItem>
 #include <QGraphicsProxyWidget>
+#include <QPen>
 
 #include <owlapi/model/IRI.hpp>
 
@@ -41,6 +42,8 @@ public:
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value);
 
 protected:
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+               QWidget* widget = 0);
     /**
      * all items by default accept drag-n-drop events. override this function
      * in later classes to prevent certain drops?
@@ -76,7 +79,6 @@ protected:
 private:
     QGraphicsTextItem* mpLabel;
     QGraphicsTextItem* mpClassName;
-    QGraphicsTextItem* mpInfoBox;
     QGraphicsRectItem* mpRect;
 
     QGraphicsEllipseItem* mpEllipse;
@@ -86,6 +88,8 @@ private:
     QGraphicsTextItem* mpLocationLabel;
     QGraphicsSvgItem* mpTimepointSvg;
     QGraphicsTextItem* mpTimepointLabel;
+
+    QPen mBorderPen;
 
     /** convert the current scenePos of the item to smth like "(23, -14)" */
     QString getScenePosAsString() const;

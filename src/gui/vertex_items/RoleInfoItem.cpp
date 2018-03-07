@@ -27,11 +27,13 @@ RoleInfoItem::RoleInfoItem()
     : VertexItemBase()
     , mpLabel(0)
     , mpClassName(0)
-    , mpInfoBox(0)
     , mpRect(0)
     , mpEllipse(0)
     , mpEllipseText(0)
-{}
+    , mBorderPen(QPen(Qt::black))
+{
+    mBorderPen.setWidth(3);
+}
 
 /**
  *
@@ -44,15 +46,18 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     : VertexItemBase(graphWidget, vertex, parent)
     , mpLabel(0)
     , mpClassName(0)
-    , mpInfoBox(0)
     , mpRect(0)
     , mpEllipse(0)
     , mpEllipseText(0)
+    , mBorderPen(QPen(Qt::black))
 {
 
-    // at the lowest (so in the background) the rectangle
+    mBorderPen.setWidth(3);
+
+    // at the lowest (so in the background) the rectangle but use it only to
+    // generate the size, so set color alpha value to 0
     mpRect = new QGraphicsRectItem(this);
-    mpRect->setPen(QPen(Qt::blue));
+    mpRect->setPen(QPen(QColor(255,255,255,0)));
 
     SpaceTime::Network::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(vertex);
     assert(tuple);
@@ -62,33 +67,19 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     font.setBold(true);
     mpLabel->setFont(font);
 
+    qreal fontSize = 25.0;
+    int xLabelOffset = 25;
     mpLocationSvg = new QGraphicsSvgItem(":/resources/pictograms/location.svg", this);
-    mpLocationSvg->setScale(25.0/ mpLocationSvg->renderer()->defaultSize().height());
+    mpLocationSvg->setScale(fontSize/ mpLocationSvg->renderer()->defaultSize().height());
     mpLocationSvg->setPos(0,-50);
     mpLocationLabel = new QGraphicsTextItem(QString(tuple->first()->getInstanceName().c_str()), this);
-    mpLocationLabel->setPos(mpLocationSvg->pos() + QPointF(25,0));
-
+    mpLocationLabel->setPos(mpLocationSvg->pos() + QPointF(xLabelOffset,0));
 
     mpTimepointSvg = new QGraphicsSvgItem(":/resources/pictograms/timepoint.svg", this);
-    mpTimepointSvg->setScale(25.0/ mpTimepointSvg->renderer()->defaultSize().height());
-    mpTimepointSvg->setPos(mpLocationSvg->pos() + QPoint(0,25 + 3));
+    mpTimepointSvg->setScale(fontSize/ mpTimepointSvg->renderer()->defaultSize().height());
+    mpTimepointSvg->setPos(mpLocationSvg->pos() + QPoint(0,xLabelOffset + 3));
     mpTimepointLabel = new QGraphicsTextItem(QString(tuple->second()->getLabel().c_str()), this);
-    mpTimepointLabel->setPos(mpTimepointSvg->pos() + QPointF(25,0));
-
-    // Commented showing of class name
-    //mpClassName = new QGraphicsTextItem(QString(vertex->getClassName().c_str()), this);
-    //mpClassName->setPos(mpLabel->pos() +
-    //                    QPoint(0, mpLabel->boundingRect().height()));
-    //mpClassName->setDefaultTextColor(Qt::gray);
-
-    mpInfoBox = new QGraphicsTextItem("", this);
-    mpInfoBox->setDefaultTextColor(Qt::darkGreen);
-
-    // change the position of the "coordinate" label to be pinned in the
-    // top-right corner of the blue rect
-    mpInfoBox->setPos(mpRect->rect().topRight()-
-                         QPointF(mpInfoBox->boundingRect().width(), 0));
-
+    mpTimepointLabel->setPos(mpTimepointSvg->pos() + QPointF(xLabelOffset,0));
 
     // Add extra visualization
     mpEllipse = new QGraphicsEllipseItem(-45,-45,40,40, this);
@@ -108,14 +99,21 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     {
         addModelTable(v.first, 0, yPos,
                 5, 5,
-                10, 10);
-        yPos += 5*10 + 3;
+                12, 12);
+        yPos += 5*12 + 5;
     }
 
     // now that all the children are there, we use their bounding-rect to
     // enlarge the background-rect. note that we never modify the boundingRect
     // afterwards.
-    mpRect->setRect(childrenBoundingRect());
+    int margin = mBorderPen.width() + 2;
+    QRectF bRect = childrenBoundingRect();
+    QRectF rect(bRect.x() - margin,
+            bRect.y() - margin,
+            bRect.width() + 2*margin,
+            bRect.height() + 2*margin);
+    mpRect->setRect(rect);
+    //mpRect->setRect(childrenBoundingRect());
 
     // for this "Simple" type we want to have it movable. this graphical
     // "object" will not be contained inside other items, so thats ok
@@ -138,6 +136,7 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
         }
         pen.setColor(Qt::red);
         mpRect->setPen(pen);
+        mBorderPen.setColor(Qt::red);
     }
     Role::List superfluous = tuple->getRelativeComplement(RoleInfo::TagTxt[ RoleInfo::ASSIGNED ], RoleInfo::TagTxt[ RoleInfo::REQUIRED ]);
     if(!superfluous.empty())
@@ -147,12 +146,6 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
         {
             ss << "    " << r.toString() << std::endl;
         }
-
-        //pen.setStyle(Qt::DashLine);
-        //mpRect->setPen(pen);
-        mpInfoBox->setPlainText("+");
-        font.setPointSize(25);
-        mpInfoBox->setFont(font);
     }
 
     setToolTip(QString( ss.str().c_str() ));
@@ -162,8 +155,19 @@ RoleInfoItem::~RoleInfoItem()
 {
     delete mpLabel;
     delete mpClassName;
-    delete mpInfoBox;
     delete mpRect;
+}
+
+
+void RoleInfoItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+               QWidget* widget)
+{
+    // we want a rectangle with round edges
+    painter->setRenderHint(QPainter::Antialiasing);
+    QPainterPath path;
+    path.addRoundedRect(childrenBoundingRect(),15,15);
+    painter->setPen(mBorderPen);
+    painter->drawPath(path);
 }
 
 // drag'n drop!
@@ -282,8 +286,6 @@ QVariant RoleInfoItem::itemChange(GraphicsItemChange change,
     case ItemScenePositionHasChanged:
     {
         // and also move the whole label a bit to stay aligned with the rect
-        mpInfoBox->setPos(mpRect->rect().topRight()-
-                             QPointF(mpInfoBox->boundingRect().height(), 0));
         break;
     }
     default:
@@ -340,6 +342,10 @@ QGraphicsProxyWidget* RoleInfoItem::addModelTable(const owlapi::model::IRI& mode
 
     // row x cols
     QTableWidget* tableWidget = new QTableWidget(rowCount, columnCount);
+    QString style;
+    style += " QTableWidget { background-color: transparent; gridline-color: gray; border-style: none; border: 2px solid gray; }";
+
+    tableWidget->setStyleSheet(style);
     tableWidget->setGeometry(QRect(0,0,tableWidth, tableHeight));
     tableWidget->setMaximumWidth(tableWidth);
     tableWidget->setMaximumHeight(tableHeight);
@@ -399,7 +405,7 @@ QGraphicsProxyWidget* RoleInfoItem::addModelTable(const owlapi::model::IRI& mode
     }
 
     // Use sceneBoundingRect here, to get size after(!) the svg has been scaled
-    modelSvg->setPos(xPos - modelSvg->sceneBoundingRect().width() - 3, yPos);
+    modelSvg->setPos(xPos - modelSvg->sceneBoundingRect().width() - 5, yPos);
     tableProxy->setPos(xPos, yPos);
     return tableProxy;
 }

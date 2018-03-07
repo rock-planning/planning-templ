@@ -31,7 +31,6 @@ protected:
 
     int mArrowSize;
     QGraphicsTextItem* mpLabel;
-    QGraphicsTextItem* mpClassName;
 
     /// Representation for the outer shape of a fill bar, to display the status of the capacity
     /// consumption

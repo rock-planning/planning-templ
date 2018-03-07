@@ -21,10 +21,6 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
     , mArrowSize(10)
 {
 
-    mpClassName =
-        new QGraphicsTextItem(QString("Capacity"), this);
-    mpClassName->setDefaultTextColor(Qt::gray);
-
     mpFillBar = new QGraphicsRectItem(getEdgePath()->pos().x()-10, getEdgePath()->pos().y()+125, 10, 100, this);
     mpFillBar->setPen( QPen(Qt::black) );
     mpFillBar->setBrush(QBrush(Qt::white));
@@ -52,7 +48,6 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
 CapacityLinkItem::~CapacityLinkItem()
 {
     delete mpLabel;
-    delete mpClassName;
 }
 
 int CapacityLinkItem::type() const
@@ -74,8 +69,6 @@ void CapacityLinkItem::adjustEdgePositioning()
 
     mpLabel->setPos(mpEdgePath->boundingRect().center() -
                     mpLabel->boundingRect().center());
-    mpClassName->setPos(mpLabel->pos() +
-                        QPointF(0, mpLabel->boundingRect().height()));
 
     mpFillBar->setPos(mpLabel->pos().x(), mpLabel->pos().y() - mpFillBar->rect().height());
     mpFillStatus->setPos(mpLabel->pos().x(), mpLabel->pos().y() - mpFillStatus->rect().height());
@@ -98,8 +91,6 @@ QRectF CapacityLinkItem::boundingRect() const
 
 void CapacityLinkItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-    mpClassName->setPlainText("");
-
     QString text("");
     CapacityLink::Ptr capacityLink = dynamic_pointer_cast<CapacityLink>( getEdge() );
     if(capacityLink)
@@ -116,7 +107,6 @@ void CapacityLinkItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 
 void CapacityLinkItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-    mpClassName->setPlainText("Capacity");
     mpLabel->setPlainText("");
 }
 
