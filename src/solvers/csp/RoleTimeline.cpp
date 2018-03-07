@@ -62,9 +62,7 @@ void RoleTimeline::sortByTime()
                     return false;
                 }
 
-                const solvers::temporal::Interval& lval = this->mIntervals.at(a.getTimeIntervalIdx());
-                const solvers::temporal::Interval& rval = this->mIntervals.at(b.getTimeIntervalIdx());
-                return lval.before(rval);
+                return a.getInterval() < b.getInterval();
             });
 }
 

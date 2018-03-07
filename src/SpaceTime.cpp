@@ -4,31 +4,39 @@
 namespace templ
 {
 
+std::string SpaceTime::toString(const Point& stp, size_t indent)
+{
+    std::stringstream ss;
+    std::string hspace(indent,' ');
+
+    assert(stp.first);
+    ss << hspace;
+    if(stp.first)
+    {
+        ss << stp.first->toString();
+    } else {
+        ss << " -- " << "unknown location";
+    }
+
+    if(stp.second)
+    {
+        ss << " -- " << stp.second->toString();
+    } else {
+        ss << " -- " << "unknown timepoint";
+    }
+    return ss.str();
+}
+
 std::string SpaceTime::toString(const Timeline& timeline, size_t indent)
 {
     std::stringstream ss;
     std::string hspace(indent,' ');
-    ss << "TIMELINE --" << std::endl;
+    ss << hspace << "TIMELINE --" << std::endl;
     Timeline::const_iterator cit = timeline.begin();
     for(; cit != timeline.end(); ++cit)
     {
         const Point& stp = *cit;
-        assert(stp.first);
-        if(stp.first)
-        {
-            ss << hspace <<  stp.first->toString();
-        } else {
-            ss << " -- " << "unknown location";
-        }
-
-        if(stp.second)
-        {
-            ss << " -- " << stp.second->toString();
-        } else {
-            ss << " -- " << "unknown timepoint";
-        }
-
-        ss << std::endl;
+        ss << toString(stp, indent + 4) << std::endl;
     }
     return ss.str();
 }

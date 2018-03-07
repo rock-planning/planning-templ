@@ -12,8 +12,17 @@ SpaceTime::Timeline TypeConversion::toTimeline(const AdjacencyList& list,
             bool doThrow)
 {
     SpaceTime::Timeline timeline;
+    symbols::constants::Location::Ptr targetLocation;
+    // find all timepoints
     for(size_t t = 0; t < timepoints.size();++t)
     {
+        if(t == timepoints.size() -1)
+        {
+            SpaceTime::Point stp(targetLocation, timepoints[t]);
+            timeline.push_back(stp);
+            break;
+        }
+
         for(size_t f = 0; f < locations.size(); ++f)
         {
             size_t idx = t*locations.size() + f;
@@ -31,6 +40,10 @@ SpaceTime::Timeline TypeConversion::toTimeline(const AdjacencyList& list,
 
             if(var.lubSize() == 1)
             {
+                // cache the target location of this assignment
+                int target = var.lubMin();
+                targetLocation = locations[target%locations.size()];
+
                 SpaceTime::Point stp(locations[f], timepoints[t]);
                 timeline.push_back(stp);
                 break;

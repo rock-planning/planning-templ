@@ -41,6 +41,8 @@ public:
     void setFirst(const A& a) { mA = a; }
     void setSecond(const B& b) { mB = b; }
 
+    std::pair<A,B> getPair() const { return std::pair<A,B>(mA,mB); }
+
     std::string getClassName() const override { return "templ::Tuple"; }
 
     std::string toString() const override { return toString(0); }

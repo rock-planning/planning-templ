@@ -9,6 +9,7 @@
 
 using namespace templ;
 using namespace organization_model;
+using namespace templ::symbols;
 
 namespace pa = templ::solvers::temporal::point_algebra;
 
@@ -37,7 +38,6 @@ BOOST_AUTO_TEST_CASE(mission_0)
 
     Mission baseMission(om);
 
-    using namespace ::templ::symbols;
     constants::Location::Ptr loc0( new constants::Location("loc0", base::Point(0,0,0)));
     constants::Location::Ptr loc1( new constants::Location("loc1", base::Point(10,10,0)));
 
@@ -389,12 +389,17 @@ BOOST_AUTO_TEST_CASE(flaw_resolution)
     std::vector<transshipment::Flaw> flaws;
     graph_analysis::algorithms::ConstraintViolation violation0(MultiCommodityVertex::Ptr(),
             0,0,1,1,ConstraintViolation::MinFlow);
-    transshipment::Flaw flaw0(violation0, Role());
+
+    constants::Location::Ptr loc0 = make_shared<constants::Location>("loc0", base::Point(0,0,0));
+    pa::TimePoint::Ptr t0 = pa::QualitativeTimePoint::getInstance("t0");
+    SpaceTime::Point spacetime(loc0,t0);
+
+    transshipment::Flaw flaw0(violation0, Role(),spacetime);
     flaws.push_back(flaw0);
 
     graph_analysis::algorithms::ConstraintViolation violation1(MultiCommodityVertex::Ptr(),
             0,0,1,1,ConstraintViolation::TransFlow);
-    transshipment::Flaw flaw1(violation1, Role());
+    transshipment::Flaw flaw1(violation1, Role(), spacetime);
     flaws.push_back(flaw1);
 
     {

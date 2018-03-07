@@ -6,6 +6,7 @@
 #include <numeric/Combinatorics.hpp>
 #include "../transshipment/Flaw.hpp"
 #include <gecode/search.hh>
+//#include <graph_analysis/algorithms/ConstraintViolation.hpp>
 
 namespace templ {
 namespace solvers {
@@ -43,6 +44,9 @@ public:
     bool next(bool random = true) const;
 
     ResolutionOptions current() const;
+
+    static FluentTimeResource::List getAffectedRequirements(const SpaceTime::Point& timepoint,
+            graph_analysis::algorithms::ConstraintViolation::Type violationType, const FluentTimeResource::List allRequirements, bool single = false);
 
     /**
      * Return the list of resolution options

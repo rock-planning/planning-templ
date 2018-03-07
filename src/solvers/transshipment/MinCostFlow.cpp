@@ -118,9 +118,11 @@ void MinCostFlow::setCommoditySupplyAndDemand()
 
                 // todo update constraint for all that are assigned inbetween
                 SpaceTime::Network::tuple_t::Ptr currentFromTuple = getFromTimeTuple(ftr);
+                SpaceTime::Network::tuple_t::Ptr currentToTuple = getToTimeTuple(ftr);
 
                 // Get the vertex in graph and assign
                 MultiCommodityMinCostFlow::vertex_t::Ptr fromMulticommodityVertex = getPartner(currentFromTuple);
+                MultiCommodityMinCostFlow::vertex_t::Ptr toMulticommodityVertex = getPartner(currentToTuple);
 
                 // - first entry (start point): can be interpreted as source
                 // - intermediate entries (transflow) as lower flow bound
@@ -130,16 +132,20 @@ void MinCostFlow::setCommoditySupplyAndDemand()
                 {
                     tag = RoleInfo::AVAILABLE;
                     fromMulticommodityVertex->setCommoditySupply(commodityId, 1);
+                    toMulticommodityVertex->setCommodityMinTransFlow(commodityId, 1);
                 } else if(fit+1 == ftrs.end())
                 {
                     // set last one
-                    fromMulticommodityVertex->setCommoditySupply(commodityId, -1);
+                    fromMulticommodityVertex->setCommodityMinTransFlow(commodityId, 1);
+                    toMulticommodityVertex->setCommoditySupply(commodityId, -1);
                 } else { // intermediate ones
                     // set minimum flow that needs to go through this node
                     // for this commodity (i.e. can be either 0 or 1)
                     fromMulticommodityVertex->setCommodityMinTransFlow(commodityId, 1);
+                    toMulticommodityVertex->setCommodityMinTransFlow(commodityId, 1);
                 }
                 currentFromTuple->addRole(role, tag);
+                currentToTuple->addRole(role, tag);
             }
         }
     } // end for role timelines
@@ -253,28 +259,7 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
 
         // Identify the relevant fluent
         std::vector<FluentTimeResource>::const_iterator fit = getFluent(roleTimeline, tuple);
-        Flaw flaw(violation, affectedRoles);
-        flaw.ftr = *fit;
-
-        switch(violation.getType())
-        {
-            // In the case of transflow we add a triebreaker between the current
-            // and the subsequent requirement
-            case ConstraintViolation::TransFlow:
-            case ConstraintViolation::TotalTransFlow:
-            {
-                flaw.subsequentFtr = *(fit+1);
-                break;
-            }
-            // In the case of minflow we add a triebreaker between the current
-            // and the previous requirement
-            case ConstraintViolation::MinFlow:
-            case ConstraintViolation::TotalMinFlow:
-            {
-                flaw.previousFtr = *(fit-1);
-            }
-            break;
-        }
+        Flaw flaw(violation, affectedRoles, tuple->getPair());
         flaws.push_back(flaw);
     }
 
@@ -331,7 +316,7 @@ std::vector<FluentTimeResource>::const_iterator MinCostFlow::getFluent(const csp
         symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
         solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
 
-        if(location == tuple->first() && interval.getFrom() == tuple->second())
+        if(location == tuple->first() && (interval.getFrom() == tuple->second() || interval.getTo() == tuple->second()))
         {
             return fit;
         }

@@ -45,6 +45,11 @@ public:
     typedef std::map<Role, Timeline > Timelines;
 
     /**
+     * Convert spacetime to string
+     */
+    static std::string toString(const Point& spacetime, size_t indent = 0);
+
+    /**
      * Convert a timeline to string
      */
     static std::string toString(const Timeline& timeline, size_t indent = 0);

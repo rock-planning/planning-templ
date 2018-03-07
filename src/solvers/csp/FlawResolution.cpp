@@ -6,6 +6,8 @@
 #include <organization_model/PropertyConstraint.hpp>
 #include "../../constraints/ModelConstraint.hpp"
 
+namespace ga = graph_analysis::algorithms;
+
 namespace templ {
 namespace solvers {
 namespace csp {
@@ -25,7 +27,6 @@ FlawResolution::FlawResolution(const FlawResolution& other)
 
 void FlawResolution::prepare(const std::vector<transshipment::Flaw>& flaws)
 {
-    namespace ga = graph_analysis::algorithms;
     mResolutionOptions.clear();
     mDraws.clear();
 
@@ -40,17 +41,17 @@ void FlawResolution::prepare(const std::vector<transshipment::Flaw>& flaws)
         switch(flaw.violation.getType())
         {
             case ga::ConstraintViolation::TransFlow:
-                mResolutionOptions.push_back( ResolutionOption(flaw,0) );
+                //mResolutionOptions.push_back( ResolutionOption(flaw,0) );
                 break;
             case ga::ConstraintViolation::MinFlow:
                 mResolutionOptions.push_back( ResolutionOption(flaw,0) );
                 //mResolutionOptions.push_back( ResolutionOption(flaw,1) );
                 break;
             case ga::ConstraintViolation::TotalTransFlow:
-                mResolutionOptions.push_back(ResolutionOption(flaw,0) );
+                //mResolutionOptions.push_back(ResolutionOption(flaw,0) );
                 break;
             case ga::ConstraintViolation::TotalMinFlow:
-                mResolutionOptions.push_back(ResolutionOption(flaw,0) );
+                //mResolutionOptions.push_back(ResolutionOption(flaw,0) );
                 break;
             default:
                 LOG_WARN_S << "Unknown flaw type";
@@ -135,15 +136,16 @@ bool FlawResolution::next(bool random) const
 
 void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::Space& lastSolution, const ResolutionOption& resolutionOption)
 {
-    namespace ga = graph_analysis::algorithms;
-
     const transshipment::Flaw& flaw = resolutionOption.first;
     size_t alternative = resolutionOption.second;
 
     TransportNetwork& currentSpace = static_cast<TransportNetwork&>(space);
     const TransportNetwork& lastSpace = static_cast<const TransportNetwork&>(lastSolution);
 
-    switch(flaw.violation.getType())
+    ga::ConstraintViolation::Type violationType = flaw.violation.getType();
+    FluentTimeResource::List ftrs = getAffectedRequirements(flaw.spacetime,
+            violationType, lastSpace.mResourceRequirements);
+    switch(violationType)
     {
         case ga::ConstraintViolation::TransFlow:
 
@@ -159,10 +161,6 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                         //    << "         current space " << &currentSpace << std::endl
                         //    << "         last space " << &lastSpace << std::endl
                         //    << std::endl;
-
-                        FluentTimeResource::List ftrs;
-                        ftrs.push_back(flaw.ftr);
-                        ftrs.push_back(flaw.subsequentFtr);
 
                         std::set<Role> uniqueRoles = MissionConstraints::getUniqueRoles(lastSpace.mRoleUsage,
                                 currentSpace.mRoles,
@@ -191,17 +189,6 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                 {
                     case 0:
                     {
-                        std::cout
-                            << "    adding distiction constraint" << std::endl
-                            << "        additional distinction for: " << abs(flaw.violation.getDelta()) << " and role: " << flaw.affectedRole().toString() << std::endl
-                            << "        current space " << &currentSpace << std::endl
-                            << "        last space " << &lastSpace << std::endl
-                            << std::endl;
-
-                            FluentTimeResource::List ftrs;
-                            ftrs.push_back(flaw.previousFtr);
-                            ftrs.push_back(flaw.ftr);
-
                             std::set<Role> uniqueRoles = MissionConstraints::getUniqueRoles(lastSpace.mRoleUsage,
                                     currentSpace.mRoles,
                                     currentSpace.mResourceRequirements,
@@ -211,7 +198,15 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                             constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(constraints::ModelConstraint::MIN_DISTINCT,
                                     flaw.affectedRole().getModel(),
                                     MissionConstraintManager::mapToSpaceTime(ftrs),
-                                    uniqueRoles.size() + flaw.violation.getDelta());
+                                    uniqueRoles.size() + abs(flaw.violation.getDelta()) );
+
+                            std::cout
+                                << "    adding distiction constraint" << std::endl
+                                << "        additional distinction for: " << abs(flaw.violation.getDelta()) << " and role: " << flaw.affectedRole().toString() << std::endl
+                                << "        current space " << &currentSpace << std::endl
+                                << "        last space " << &lastSpace << std::endl
+                                << constraint->toString(8);
+
 
                             currentSpace.addConstraint( constraint );
 
@@ -220,8 +215,8 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                     case 1:
                     {
                         std::cout << "    add model requirement: for min one transport provider" << std::endl;
-                        std::cout << "        for fluent time resource: " << std::endl
-                                << flaw.ftr.toString(8);
+                        std::cout << "        at spacetime: " << std::endl
+                                << SpaceTime::toString(flaw.spacetime, 8);
                         std::cout << "        Resulting requirements: " << std::endl;
 
                         if(TransportNetwork::msInteractive)
@@ -232,8 +227,8 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                         }
 
 
-                        FluentTimeResource::List ftrs;
-                        ftrs.push_back(flaw.ftr);
+                        FluentTimeResource::List ftrs = getAffectedRequirements(flaw.spacetime,
+                            violationType, lastSpace.mResourceRequirements, true);
 
                         constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(
                                 constraints::ModelConstraint::MIN_FUNCTION,
@@ -260,8 +255,8 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                 case 0:
                     std::cout << "    add model requirement: for transport provider" << std::endl;
                     std::cout << "        for min items: " << flaw.violation.getDelta() << std::endl;
-                    std::cout << "        for fluent time resource: " << std::endl
-                            << flaw.ftr.toString(8);
+                    std::cout << "        at spacetime: " << std::endl
+                            << SpaceTime::toString(flaw.spacetime,8);
 
                     if(TransportNetwork::msInteractive)
                     {
@@ -270,8 +265,8 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                         std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
                     }
 
-                    FluentTimeResource::List ftrs;
-                    ftrs.push_back(flaw.ftr);
+                    FluentTimeResource::List ftrs = getAffectedRequirements(flaw.spacetime,
+                        violationType, lastSpace.mResourceRequirements, true);
 
                     constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(
                             constraints::ModelConstraint::MIN_PROPERTY,
@@ -381,6 +376,37 @@ std::vector< std::pair<FlawResolution::ResolutionOption, uint32_t> > FlawResolut
     }
 
     return improvingFlaws;
+}
+
+FluentTimeResource::List FlawResolution::getAffectedRequirements(const SpaceTime::Point& spacetime,
+            graph_analysis::algorithms::ConstraintViolation::Type violationType, const FluentTimeResource::List allRequirements, bool single)
+{
+    FluentTimeResource::List affected;
+    for(const FluentTimeResource& ftr : allRequirements)
+    {
+        if(ftr.getLocation() == spacetime.first && (ftr.getInterval().getFrom() == spacetime.second ||
+                ftr.getInterval().getTo() == spacetime.second))
+        {
+            affected.push_back(ftr);
+        }
+    }
+    if(single)
+    {
+        return affected;
+    }
+
+    switch(violationType)
+    {
+        case ga::ConstraintViolation::MinFlow:
+        case ga::ConstraintViolation::TotalMinFlow:
+            break;
+        case ga::ConstraintViolation::TransFlow:
+        case ga::ConstraintViolation::TotalTransFlow:
+            break;
+        default:
+            break;
+    }
+    return affected;
 }
 
 } // end namespace csp

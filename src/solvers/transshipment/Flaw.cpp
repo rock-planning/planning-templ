@@ -7,16 +7,22 @@ namespace solvers {
 namespace transshipment {
 
 Flaw::Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
-    const Role& role)
+    const Role& role,
+    SpaceTime::Point at
+    )
     : violation(violation)
+    , spacetime(at)
 {
     affectedRoles.push_back(role);
 }
 
 Flaw::Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
-    const Role::List& roles)
+    const Role::List& roles,
+    SpaceTime::Point at
+    )
     : violation(violation)
     , affectedRoles(roles)
+    , spacetime(at)
 {}
 
 const Role& Flaw::affectedRole() const
@@ -39,58 +45,22 @@ std::string Flaw::toString(size_t indent) const
     switch(violation.getType())
     {
         case ConstraintViolation::MinFlow:
-                ss << hspace << "Minflow violation in timeline:" << std::endl
-                    << hspace << "    violation: " << std::endl
-                    << violation.toString(indent + 8) << std::endl
-                    << hspace << "    context:" << std::endl
-                    << hspace << "        previous requirement: " << previousFtr.toString(indent + 12)
-                    << hspace << "        current requirement: " << ftr.toString(indent + 12) << std::endl
-                    << hspace << "        previous interval: " << previousFtr.getInterval().toString() << std::endl
-                    << hspace << "        current interval: " << ftr.getInterval().toString() << std::endl
-                    ;
-                    //<< " timeline: " << std::endl
-                    //<< roleTimeline.toString()
-                    //<< std::endl;
+                ss << hspace << "Minflow violation in timeline:" << std::endl;
                 break;
         case ConstraintViolation::TotalMinFlow:
-                ss << hspace << "TotalMinflow violation in timeline:" << std::endl
-                    << violation.toString(indent + 8) << std::endl
-                    << hspace << "    context:" << std::endl
-                    << hspace << "        previous requirement: " << previousFtr.toString(indent + 12)
-                    << hspace << "        current requrirement: " << ftr.toString(indent + 12) << std::endl
-                    << hspace << "        previous interval: " << previousFtr.getInterval().toString() << std::endl
-                    << hspace << "        current interval: " << ftr.getInterval().toString() << std::endl
-                    ;
-                    //<< " timeline: " << std::endl
-                    //<< roleTimeline.toString()
-                    //<< std::endl;
+                ss << hspace << "TotalMinflow violation in timeline:" << std::endl;
                 break;
         case ConstraintViolation::TransFlow:
-                ss << hspace << "Transflow violation in timeline:" << std::endl
-                    << violation.toString(indent + 8) << std::endl
-                    << hspace << "    context:" << std::endl
-                    << hspace << "        current requirement: " << ftr.toString(indent + 12) << std::endl
-                    << hspace << "        subsequent requirement: " << subsequentFtr.toString(indent + 12)
-                    << hspace << "        current interval: " << ftr.getInterval().toString() << std::endl
-                    << hspace << "        subsequent interval: " << subsequentFtr.getInterval().toString() << std::endl
-                    ;
-                    //<< " timeline: " << std::endl
-                    //<< roleTimeline.toString()
-                    //<< std::endl;
+                ss << hspace << "Transflow violation in timeline:" << std::endl;
                 break;
         case ConstraintViolation::TotalTransFlow:
-                ss << hspace << "TotalTransflow violation in timeline:" << std::endl
-                    << violation.toString(indent + 8) << std::endl
-                    << hspace << "    context:" << std::endl
-                    << hspace << "        current requirement: " << ftr.toString(indent + 12) << std::endl
-                    << hspace << "        subsequent requirement: " << subsequentFtr.toString(indent + 12)
-                    << hspace << "        current interval: " << ftr.getInterval().toString() << std::endl
-                    << hspace << "        subsequent interval: " << subsequentFtr.getInterval().toString() << std::endl
-                    ;
-                    ;
+                ss << hspace << "TotalTransflow violation in timeline:" << std::endl;
                 break;
 
     }
+    ss << violation.toString(indent + 8) << std::endl;
+    ss << hspace << "    context:" << std::endl;
+    ss << hspace << "    " << SpaceTime::toString(spacetime);
     return ss.str();
 }
 
