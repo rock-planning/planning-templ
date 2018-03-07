@@ -4,6 +4,7 @@
 #include <base-logging/Logging.hpp>
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 #include <QSettings>
 #include <QtCore/qmath.h>
 
@@ -19,12 +20,12 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
     : EdgeItemBase(graphWidget, edge, parent)
     , mArrowSize(10)
 {
-    mpLabel = new QGraphicsTextItem("", this);
+
     mpClassName =
         new QGraphicsTextItem(QString("Capacity"), this);
     mpClassName->setDefaultTextColor(Qt::gray);
 
-    mpFillBar = new QGraphicsRectItem(getEdgePath()->pos().x(), getEdgePath()->pos().y()+125, 10, 100, this);
+    mpFillBar = new QGraphicsRectItem(getEdgePath()->pos().x()-10, getEdgePath()->pos().y()+125, 10, 100, this);
     mpFillBar->setPen( QPen(Qt::black) );
     mpFillBar->setBrush(QBrush(Qt::white));
 
@@ -35,12 +36,17 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
        consumptionInPercent = capacityLink->getConsumptionLevel();
     }
 
-    mpFillStatus = new QGraphicsRectItem(getEdgePath()->pos().x(), getEdgePath()->pos().y()+125, 10, consumptionInPercent*100, this);
+    mpFillStatus = new QGraphicsRectItem(getEdgePath()->pos().x()-10, getEdgePath()->pos().y()+125, 10, consumptionInPercent*100, this);
     mpFillStatus->setPen( QPen(Qt::black) );
     mpFillStatus->setBrush(QBrush(Qt::black));
 
-
     setFlag(ItemIsMovable, false);
+
+    mpLabel = new QGraphicsTextItem("", this);
+    // Make sure label is drawn on top of any edge that is might overlap with
+    getEdgePath()->stackBefore(mpLabel);
+    mpFillBar->stackBefore(mpLabel);
+    mpFillStatus->stackBefore(mpLabel);
 }
 
 CapacityLinkItem::~CapacityLinkItem()
@@ -75,6 +81,8 @@ void CapacityLinkItem::adjustEdgePositioning()
     mpFillStatus->setPos(mpLabel->pos().x(), mpLabel->pos().y() - mpFillStatus->rect().height());
 
     getEdgePath()->setPen(pen);
+
+
 }
 
 void CapacityLinkItem::paint(QPainter* painter,
@@ -91,7 +99,16 @@ QRectF CapacityLinkItem::boundingRect() const
 void CapacityLinkItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
     mpClassName->setPlainText("");
-    QString text(getEdge()->toString().c_str());
+
+    QString text("");
+    CapacityLink::Ptr capacityLink = dynamic_pointer_cast<CapacityLink>( getEdge() );
+    if(capacityLink)
+    {
+        int consumptionInPercent = capacityLink->getConsumptionLevel()*100;
+        text += "Consumed capacity: " + QString::number(consumptionInPercent) + "%\n";
+    }
+
+    text += QString(getEdge()->toString().c_str());
     mpLabel->setHtml(QString("<div style=\"background-color:#ffffff; white-space: pre;\">")
             + text
             + QString("</div>"));
