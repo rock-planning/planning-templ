@@ -32,6 +32,7 @@ public:
      * result of the multi-commodity min-cost flow optimization
      */
     MinCostFlow(const Mission::Ptr& mission,
+            const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
             const std::map<Role, csp::RoleTimeline>& minimalTimelines,
             const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines());
 
@@ -75,6 +76,13 @@ protected:
     void setCommoditySupplyAndDemand();
 
     /**
+     * Set the restrictions on the depot outgoing arcs, in order direct flow
+     * to initially demanded
+     */
+    void setDepotRestrictions(const graph_analysis::BaseGraph::Ptr& flowGraph,
+            uint32_t commodities);
+
+    /**
      * After the flow optimization has taken place -- update the space time
      * network, i.e. the locations, with information about the roles
      * Update the spaceTimeNetwork from the data of the flowGraph using the reverse mapping and adding
@@ -101,9 +109,33 @@ protected:
     SpaceTime::Network::tuple_t::Ptr getToTimeTuple(const FluentTimeResource& ftr);
 
     graph_analysis::algorithms::MultiCommodityMinCostFlow::vertex_t::Ptr getPartner(const SpaceTime::Network::tuple_t::Ptr& tuple);
+    graph_analysis::algorithms::MultiCommodityMinCostFlow::edge_t::Ptr getPartner(const graph_analysis::BaseGraph::Ptr& flowGraph, const graph_analysis::Edge::Ptr& edge);
+
+    /**
+     * Set the commodity supply demand for a tuple, based on the TimepointType
+     */
+    void setMinTransFlow(const SpaceTime::Network::tuple_t::Ptr& tuple,
+            uint32_t commodityId,
+            const Role& role,
+            uint32_t value
+            );
+
+    void setSupplyDemand(const SpaceTime::Network::tuple_t::Ptr& tuple,
+            uint32_t commodityId,
+            const Role& role,
+            int32_t value
+            );
+
+    /**
+     * Allow to retrieve the initial setup cost to be set for the optimization
+     * problem
+     * \return intial setup cost
+     */
+    uint32_t getInitialSetupCost(uint32_t commodity) const { return 0; }
 
 private:
     Mission::Ptr mpMission;
+    temporal::point_algebra::TimePoint::PtrList mSortedTimepoints;
     std::map<Role, csp::RoleTimeline> mTimelines;
     SpaceTime::Timelines mExpandedTimelines;
     std::vector<Role> mCommoditiesRoles;

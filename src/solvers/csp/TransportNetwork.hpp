@@ -125,7 +125,8 @@ protected:
 
     /// (Time)Intervals (as defined in the mission)
     std::vector<solvers::temporal::Interval> mIntervals;
-    /// Timepoints
+    /// Timepoints (will be sorted after postTemporalConstraints has been
+    /// called)
     std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> mTimepoints;
     /// Constants: Locations (as defined in the mission)
     std::vector<symbols::constants::Location::Ptr> mLocations;

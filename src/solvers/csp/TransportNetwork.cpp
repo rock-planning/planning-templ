@@ -1751,7 +1751,10 @@ void TransportNetwork::postMinCostFlow()
 
         SpaceTime::Timelines spaceTimeTimelines = getTimelines();
         std::pair<SpaceTime::Timelines, std::map<Role, csp::RoleTimeline> > key(spaceTimeTimelines, minimalTimelines);
-        transshipment::MinCostFlow minCostFlow(mpMission, minimalTimelines, spaceTimeTimelines);
+        transshipment::MinCostFlow minCostFlow(mpMission,
+                mTimepoints,
+                minimalTimelines,
+                spaceTimeTimelines);
 
         FlowSolutions::iterator it = msMinCostFlowSolutions.find(key);
         if(it == msMinCostFlowSolutions.end())

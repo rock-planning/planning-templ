@@ -5,25 +5,32 @@
 #include <graph_analysis/GraphIO.hpp>
 #include <organization_model/facades/Robot.hpp>
 
-#include <templ/solvers/FluentTimeResource.hpp>
-#include <templ/utils/Logger.hpp>
+#include "../FluentTimeResource.hpp"
+#include "../../utils/Logger.hpp"
 
 using namespace graph_analysis;
 using namespace graph_analysis::algorithms;
+using namespace templ::solvers::temporal;
 
 namespace templ {
 namespace solvers {
 namespace transshipment {
 
 MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
+        const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
         const std::map<Role, csp::RoleTimeline>& timelines,
         const SpaceTime::Timelines& expandedTimelines)
     : mpMission(mission)
+    , mSortedTimepoints(sortedTimepoints)
     , mTimelines(timelines)
     , mExpandedTimelines(expandedTimelines)
     , mFlowNetwork(mission, timelines, expandedTimelines)
     , mSpaceTimeNetwork(mFlowNetwork.getSpaceTimeNetwork())
 {
+    // Create virtual start and end depot vertices and connect them with the
+    // current start and end vertices
+    SpaceTime::injectVirtualStartAndEnd(mSpaceTimeNetwork);
+
     std::map<Role, csp::RoleTimeline>::const_iterator rit = mTimelines.begin();
     for(; rit != mTimelines.end(); ++rit)
     {
@@ -43,53 +50,68 @@ MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
 
 BaseGraph::Ptr MinCostFlow::createFlowGraph(uint32_t commodities)
 {
-   BaseGraph::Ptr flowGraph = BaseGraph::getInstance();
+    BaseGraph::Ptr flowGraph = BaseGraph::getInstance();
 
-   // Create the vertices of the flow, that can be mapped back to the space time
-   // network using the bipartiteGraph structure
-   VertexIterator::Ptr vertexIt = mSpaceTimeNetwork.getGraph()->getVertexIterator();
-   while(vertexIt->next())
-   {
-       MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex(new MultiCommodityMinCostFlow::vertex_t(commodities));
-       mBipartiteGraph.linkVertices(multicommodityVertex, vertexIt->current());
-       multicommodityVertex->setLabel(vertexIt->current()->toString());
-   }
+    // Create the vertices of the flow, that can be mapped back to the space time
+    // network using the bipartiteGraph structure
+    VertexIterator::Ptr vertexIt = mSpaceTimeNetwork.getGraph()->getVertexIterator();
+    while(vertexIt->next())
+    {
+        MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex = make_shared<MultiCommodityMinCostFlow::vertex_t>(commodities);
+        mBipartiteGraph.linkVertices(multicommodityVertex, vertexIt->current());
+        multicommodityVertex->setLabel(vertexIt->current()->toString());
+    }
 
-   // Create the edges, i.e. the 'transport-links'
-   // Iterator of the existing edges of the transport network
-   // and set the commodities
-   EdgeIterator::Ptr edgeIt = mSpaceTimeNetwork.getGraph()->getEdgeIterator();
-   while(edgeIt->next())
-   {
-       WeightedEdge::Ptr edge = dynamic_pointer_cast<WeightedEdge>(edgeIt->current());
+    // Create the edges, i.e. the 'transport-links'
+    // Iterator of the existing edges of the transport network
+    // and set the commodities
+    EdgeIterator::Ptr edgeIt = mSpaceTimeNetwork.getGraph()->getEdgeIterator();
+    while(edgeIt->next())
+    {
+        WeightedEdge::Ptr edge = dynamic_pointer_cast<WeightedEdge>(edgeIt->current());
 
-       Vertex::Ptr source = edge->getSourceVertex();
-       Vertex::Ptr target = edge->getTargetVertex();
+        Vertex::Ptr source = edge->getSourceVertex();
+        Vertex::Ptr target = edge->getTargetVertex();
 
-       // Create an edge in the multicommodity representation that correspond to the space time graph
-       MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge(new MultiCommodityMinCostFlow::edge_t(commodities));
-       multicommodityEdge->setSourceVertex( mBipartiteGraph.getUniquePartner(source) );
-       multicommodityEdge->setTargetVertex( mBipartiteGraph.getUniquePartner(target) );
+        bool isHorizonStart = (source == SpaceTime::getHorizonStartTuple());
+        bool isHorizonEnd = (target == SpaceTime::getHorizonEndTuple());
 
-       double weight = edge->getWeight();
-       uint32_t bound = 0;
-       if(weight == std::numeric_limits<double>::max())
-       {
-           bound = std::numeric_limits<uint32_t>::max();
-       } else {
-           bound = static_cast<uint32_t>(weight);
-       }
+        // Create an edge in the multicommodity representation that correspond to the space time graph
+        MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge = make_shared<MultiCommodityMinCostFlow::edge_t>(commodities);
+        multicommodityEdge->setSourceVertex( mBipartiteGraph.getUniquePartner(source) );
+        multicommodityEdge->setTargetVertex( mBipartiteGraph.getUniquePartner(target) );
 
-       // Upper bound is the maximum edge capacity for a commodity
-       multicommodityEdge->setCapacityUpperBound(bound);
-       for(size_t i = 0; i < commodities; ++i)
-       {
-           multicommodityEdge->setCommodityCapacityUpperBound(i, bound);
-       }
-       flowGraph->addEdge(multicommodityEdge);
-   }
+        double weight = edge->getWeight();
+        uint32_t bound = 0;
+        if(weight == std::numeric_limits<double>::max())
+        {
+            bound = std::numeric_limits<uint32_t>::max();
+        } else {
+            bound = static_cast<uint32_t>(weight);
+        }
 
-   return flowGraph;
+        // Upper bound is the maximum edge capacity for a commodity
+        multicommodityEdge->setCapacityUpperBound(bound);
+
+        for(size_t i = 0; i < commodities; ++i)
+        {
+            if(isHorizonStart)
+            {
+                multicommodityEdge->setCommodityCost(i, std::numeric_limits<uint32_t>::max());
+                multicommodityEdge->setCommodityCapacityUpperBound(i, 0);
+                // disable to selective enable through setDepotRestrictions
+            } if(isHorizonEnd)
+            {
+                multicommodityEdge->setCommodityCost(i, 0);
+            }
+            {
+                multicommodityEdge->setCommodityCapacityUpperBound(i, bound);
+            }
+        }
+        flowGraph->addEdge(multicommodityEdge);
+    }
+
+    return flowGraph;
 }
 
 void MinCostFlow::setCommoditySupplyAndDemand()
@@ -109,46 +131,78 @@ void MinCostFlow::setCommoditySupplyAndDemand()
                 << roleTimeline.toString();
 
             size_t commodityId = cit - mCommoditiesRoles.begin();
+            setSupplyDemand(SpaceTime::getHorizonStartTuple(),commodityId, role, 1);
+            setSupplyDemand(SpaceTime::getHorizonEndTuple(),commodityId, role, -1);
+
             // Retrieve the (time-based) sorted list of FluentTimeResources
             const FluentTimeResource::List& ftrs = roleTimeline.getFluentTimeResources();
             FluentTimeResource::List::const_iterator fit = ftrs.begin();
+
             for(; fit != ftrs.end(); ++fit)
             {
-                const FluentTimeResource& ftr = *fit;
-
                 // todo update constraint for all that are assigned inbetween
-                SpaceTime::Network::tuple_t::Ptr currentFromTuple = getFromTimeTuple(ftr);
-                SpaceTime::Network::tuple_t::Ptr currentToTuple = getToTimeTuple(ftr);
+                SpaceTime::Network::tuple_t::Ptr currentFromTuple = getFromTimeTuple(*fit);
+                SpaceTime::Network::tuple_t::Ptr currentToTuple = getToTimeTuple(*fit);
 
-                // Get the vertex in graph and assign
-                MultiCommodityMinCostFlow::vertex_t::Ptr fromMulticommodityVertex = getPartner(currentFromTuple);
-                MultiCommodityMinCostFlow::vertex_t::Ptr toMulticommodityVertex = getPartner(currentToTuple);
-
-                // - first entry (start point): can be interpreted as source
-                // - intermediate entries (transflow) as lower flow bound
-                // - final entry as demand
-                RoleInfo::Tag tag = RoleInfo::REQUIRED;
-                if(fit == ftrs.begin())
+                bool inInterval = false;
+                for(const point_algebra::TimePoint::Ptr& tp : mSortedTimepoints)
                 {
-                    tag = RoleInfo::AVAILABLE;
-                    fromMulticommodityVertex->setCommoditySupply(commodityId, 1);
-                    toMulticommodityVertex->setCommodityMinTransFlow(commodityId, 1);
-                } else if(fit+1 == ftrs.end())
-                {
-                    // set last one
-                    fromMulticommodityVertex->setCommodityMinTransFlow(commodityId, 1);
-                    toMulticommodityVertex->setCommoditySupply(commodityId, -1);
-                } else { // intermediate ones
-                    // set minimum flow that needs to go through this node
-                    // for this commodity (i.e. can be either 0 or 1)
-                    fromMulticommodityVertex->setCommodityMinTransFlow(commodityId, 1);
-                    toMulticommodityVertex->setCommodityMinTransFlow(commodityId, 1);
+                    if(currentFromTuple->second() == tp)
+                    {
+                        inInterval = true;
+                        setMinTransFlow(currentFromTuple, commodityId, role, 1);
+                    } else if(currentToTuple->second() == tp)
+                    {
+                        setMinTransFlow(currentToTuple, commodityId, role, 1);
+                        break;
+                    } else if(inInterval)
+                    {
+                        SpaceTime::Network::tuple_t::Ptr currentTuple = mSpaceTimeNetwork.tupleByKeys(fit->getLocation(),tp);
+                        setMinTransFlow(currentTuple, commodityId, role, 1);
+                    }
                 }
-                currentFromTuple->addRole(role, tag);
-                currentToTuple->addRole(role, tag);
             }
         }
     } // end for role timelines
+}
+
+void MinCostFlow::setDepotRestrictions(const graph_analysis::BaseGraph::Ptr& flowGraph,
+        uint32_t commodities)
+{
+    SpaceTime::Network::tuple_t::Ptr startDepot = SpaceTime::getHorizonStartTuple();
+
+    EdgeIterator::Ptr edgeIt = mSpaceTimeNetwork.getGraph()->getOutEdgeIterator(startDepot);
+    while(edgeIt->next())
+    {
+        Edge::Ptr edge = edgeIt->current();
+
+        MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge = getPartner(flowGraph, edge);
+        MultiCommodityMinCostFlow::vertex_t::Ptr source = dynamic_pointer_cast<MultiCommodityMinCostFlow::vertex_t>(multicommodityEdge->getSourceVertex());
+        MultiCommodityMinCostFlow::vertex_t::Ptr target = dynamic_pointer_cast<MultiCommodityMinCostFlow::vertex_t>(multicommodityEdge->getTargetVertex());
+
+        for(size_t i = 0; i < commodities; ++i)
+        {
+            uint32_t initialSetupDemand = target->getCommodityMinTransFlow(i);
+            multicommodityEdge->setCommodityCapacityUpperBound(i, initialSetupDemand);
+            multicommodityEdge->setCommodityCost(i, getInitialSetupCost(i));
+        }
+    }
+}
+
+graph_analysis::algorithms::MultiCommodityMinCostFlow::edge_t::Ptr MinCostFlow::getPartner(const graph_analysis::BaseGraph::Ptr& flowGraph,
+        const Edge::Ptr& edge)
+{
+    Vertex::Ptr source = mBipartiteGraph.getUniquePartner(edge->getSourceVertex());
+    Vertex::Ptr target = mBipartiteGraph.getUniquePartner(edge->getTargetVertex());
+
+    Edge::PtrList edges = flowGraph->getEdges(source, target);
+    if(edges.empty())
+    {
+        throw std::invalid_argument("templ::solvers::transshipment::MinCostFlow::getPartner: could not identify partner edge for '"
+                + edge->toString());
+    }
+
+    return dynamic_pointer_cast<MultiCommodityMinCostFlow::edge_t>(edges.front());
 }
 
 std::vector<Flaw> MinCostFlow::run(bool doThrow)
@@ -159,6 +213,7 @@ std::vector<Flaw> MinCostFlow::run(bool doThrow)
     uint32_t numberOfCommodities = mCommoditiesRoles.size();
     BaseGraph::Ptr flowGraph = createFlowGraph(numberOfCommodities);
     setCommoditySupplyAndDemand();
+    setDepotRestrictions(flowGraph, numberOfCommodities);
 
     MultiCommodityMinCostFlow minCostFlow(flowGraph, numberOfCommodities, LPSolver::GLPK_SOLVER);
     // LOGGING
@@ -248,17 +303,6 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
         LOG_INFO_S << "Violation for " << Role::toString(affectedRoles) << " -- at: "
                 << spaceTimePartnerVertex->toString();
 
-        // Try to identify fluent
-        std::map<Role, csp::RoleTimeline>::const_iterator rit = mTimelines.find(affectedRoles.front());
-        if(rit == mTimelines.end())
-        {
-            throw std::runtime_error("templ::solvers::transshipment::MinCostFlow::computeFlaws: "
-                    " failed to find role timeline for affectedRole: " + affectedRoles.front().toString());
-        }
-        const csp::RoleTimeline& roleTimeline = rit->second;
-
-        // Identify the relevant fluent
-        std::vector<FluentTimeResource>::const_iterator fit = getFluent(roleTimeline, tuple);
         Flaw flaw(violation, affectedRoles, tuple->getPair());
         flaws.push_back(flaw);
     }
@@ -279,7 +323,6 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
         MultiCommodityMinCostFlow::edge_t::Ptr multicommodityEdge =
             dynamic_pointer_cast<MultiCommodityMinCostFlow::edge_t>(edgeIt->current());
 
-        LOG_DEBUG_S << "Edge: " << multicommodityEdge->toString();
 
         for(size_t i = 0; i < mCommoditiesRoles.size(); ++i)
         {
@@ -307,22 +350,23 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
 
 std::vector<FluentTimeResource>::const_iterator MinCostFlow::getFluent(const csp::RoleTimeline& roleTimeline, const SpaceTime::Network::tuple_t::Ptr& tuple) const
 {
-    LOG_DEBUG_S << "Find tuple: " << tuple->toString() << " in timeline " << roleTimeline.toString();
-
     const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
     std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
     for(; fit != ftrs.end(); ++fit)
     {
-        symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
-        solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
+        const FluentTimeResource& ftr = *fit;
+        symbols::constants::Location::Ptr location = ftr.getLocation();
+        solvers::temporal::Interval interval = ftr.getInterval();
 
-        if(location == tuple->first() && (interval.getFrom() == tuple->second() || interval.getTo() == tuple->second()))
+        if(location->equals(tuple->first()) && (interval.getFrom()->equals(tuple->second()) || interval.getTo()->equals(tuple->second())))
         {
             return fit;
         }
     }
-    throw std::invalid_argument("templ::solvers::transshipment::MinCostFlow::getFluent: could not retrieve corresponding fluent in timeline: '"
-            + roleTimeline.toString() + "' from tuple '" + tuple->toString());
+
+    std::string msg = "templ::solvers::transshipment::MinCostFlow::getFluent: could not retrieve corresponding fluent in timeline: '"
+            + roleTimeline.toString() + "' from tuple '" + tuple->toString();
+    throw std::invalid_argument(msg);
 }
 
 
@@ -358,6 +402,38 @@ MultiCommodityMinCostFlow::vertex_t::Ptr MinCostFlow::getPartner(const SpaceTime
                 "failed to get corresponding vertex for resource: " + tuple->toString());
     }
     return dynamic_pointer_cast<MultiCommodityMinCostFlow::vertex_t>(vertex);
+}
+
+void MinCostFlow::setMinTransFlow(const SpaceTime::Network::tuple_t::Ptr& tuple,
+        uint32_t commodityId,
+        const Role& role,
+        uint32_t value
+        )
+{
+    MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex = getPartner(tuple);
+    // intermediate ones
+    // set minimum flow that needs to go through this node
+    // for this commodity (i.e. can be either 0 or 1)
+    multicommodityVertex->setCommodityMinTransFlow(commodityId, value);
+    tuple->addRole(role, RoleInfo::REQUIRED);
+}
+
+void MinCostFlow::setSupplyDemand(const SpaceTime::Network::tuple_t::Ptr& tuple,
+        uint32_t commodityId,
+        const Role& role,
+        int32_t value)
+{
+    MultiCommodityMinCostFlow::vertex_t::Ptr multicommodityVertex = getPartner(tuple);
+    // intermediate ones
+    // set minimum flow that needs to go through this node
+    // for this commodity (i.e. can be either 0 or 1)
+    multicommodityVertex->setCommoditySupply(commodityId, value);
+    if(value >= 0)
+    {
+        tuple->addRole(role, RoleInfo::AVAILABLE);
+    } else {
+        tuple->addRole(role, RoleInfo::REQUIRED);
+    }
 }
 
 } // end namespace transshipment
