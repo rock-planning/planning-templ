@@ -215,7 +215,6 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
     {
         const FluentTimeResource& ftrA = requirements[a];
 
-        std::cout << "Mutual exclusive to : "<< ftrA.toString(4) << std::endl;
         List concurrent;
         concurrent.push_back(ftrA);
         for(size_t b = a + 1; b < requirements.size(); ++b)
@@ -227,9 +226,7 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
             {
                 if(ftrA.getInterval().overlaps(ftrB.getInterval()))
                 {
-                    std::cout << ftrB.toString(8) << std::endl;
                     concurrent.push_back(ftrB);
-
                 }
             }
         }
