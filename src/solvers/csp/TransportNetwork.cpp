@@ -1727,7 +1727,7 @@ void TransportNetwork::postMinCostFlow()
     LOG_INFO_S << "Post MinCostFlow";
     save();
 
-    std::map<Role, csp::RoleTimeline> minimalTimelines =  RoleTimeline::computeTimelines(*mpMission.get(), getRoleDistribution());
+    std::map<Role, csp::RoleTimeline> minimalTimelines =  RoleTimeline::computeRoleTimelines(*mpMission.get(), getRoleDistribution());
 
     std::cout << "RoleTimelines: " << std::endl
         << RoleTimeline::toString(minimalTimelines, 4);
