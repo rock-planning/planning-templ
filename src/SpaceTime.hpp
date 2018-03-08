@@ -99,6 +99,12 @@ public:
     static SpaceTime::Network toNetwork(const symbols::constants::Location::PtrList& locations, const templ::solvers::temporal::point_algebra::TimePoint::PtrList& timepoints, const Timelines& timelines);
 
     /**
+     * Append a spacetimepoint to a timeline (only when it is not already part of the
+     * timeline)
+     */
+    static void appendToTimeline(Timeline& timeline, const Point& point);
+
+    /**
      * Insert virtual start and end depot markers, e.g., to allow flow
      * optimization to deal with single start and end depot
      * \see getHorizonStartTuple

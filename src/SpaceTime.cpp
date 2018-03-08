@@ -87,6 +87,14 @@ SpaceTime::Network SpaceTime::toNetwork(const symbols::constants::Location::PtrL
     return network;
 }
 
+void SpaceTime::appendToTimeline(Timeline& timeline, const Point& point)
+{
+    if(timeline.end() == std::find(timeline.begin(), timeline.end(), point))
+    {
+        timeline.push_back(point);
+    }
+}
+
 SpaceTime::Network::timepoint_t SpaceTime::getHorizonStart()
 {
     // point_algebra::Timepoint
