@@ -38,11 +38,44 @@ public:
             > Network;
 
     typedef std::pair<symbols::constants::Location::Ptr, solvers::temporal::point_algebra::TimePoint::Ptr> Point;
-    /// A timeline consisting of Points in SpaceTime
-    typedef std::vector< Point > Timeline;
+
+    typedef std::vector<Point> Points;
+
+    /// A timeline equals Points in SpaceTime
+    typedef Points Timeline;
 
     /// A role-mapped number of timelines
     typedef std::map<Role, Timeline > Timelines;
+
+    /**
+     * Get the time horizon's starting point
+     * \return timepoint describing the start time
+     */
+    static SpaceTime::Network::timepoint_t getHorizonStart();
+
+    /**
+     * Get the time horizon's end point
+     * \return timepoint describing the end time
+     */
+    static SpaceTime::Network::timepoint_t getHorizonEnd();
+
+    /**
+     * Get the value describing the depot
+     * \return location representing the depot
+     */
+    static SpaceTime::Network::value_t getDepot();
+
+    /**
+     * Return space time tuple representing the intial depot
+     * \return tuple for start depot
+     */
+    static SpaceTime::Network::tuple_t::Ptr getHorizonStartTuple();
+
+    /**
+     * Return space time tuple representing the final depot
+     * \return tuple for final depot
+     */
+    static SpaceTime::Network::tuple_t::Ptr getHorizonEndTuple();
 
     /**
      * Convert spacetime to string
@@ -64,6 +97,18 @@ public:
      * \return SpaceTime::Network
      */
     static SpaceTime::Network toNetwork(const symbols::constants::Location::PtrList& locations, const templ::solvers::temporal::point_algebra::TimePoint::PtrList& timepoints, const Timelines& timelines);
+
+    /**
+     * Insert virtual start and end depot markers, e.g., to allow flow
+     * optimization to deal with single start and end depot
+     * \see getHorizonStartTuple
+     * \see getHorizonEndTuple
+     */
+    static void injectVirtualStartAndEnd(SpaceTime::Network& network);
+
+private:
+    static SpaceTime::Network::tuple_t::Ptr msHorizonStartTuple;
+    static SpaceTime::Network::tuple_t::Ptr msHorizonEndTuple;
 
 };
 
