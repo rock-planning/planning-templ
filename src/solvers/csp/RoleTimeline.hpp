@@ -3,6 +3,7 @@
 
 #include <map>
 #include "../FluentTimeResource.hpp"
+#include "../../SpaceTime.hpp"
 
 namespace templ {
 namespace solvers {
@@ -10,24 +11,16 @@ namespace csp {
 
 class RoleTimeline
 {
-    std::vector<FluentTimeResource> mFluents;
-    std::vector<symbols::constants::Location::Ptr> mLocations;
-    std::vector<solvers::temporal::Interval> mIntervals;
-    organization_model::OrganizationModel::Ptr mOrganizationModel;
-
-    Role mRole;
-
 public:
     void setRole(const Role& role) { mRole = role; }
 
     void add(const solvers::FluentTimeResource& fts) { mFluents.push_back(fts); }
 
     const std::vector<FluentTimeResource>& getFluentTimeResources() const { return mFluents; }
-    const std::vector<symbols::constants::Location::Ptr>& getLocations() const { return mLocations; }
-    const std::vector<solvers::temporal::Interval>& getIntervals() const { return mIntervals; }
 
-    symbols::constants::Location::Ptr getLocation(const solvers::FluentTimeResource& fts) const;
-    solvers::temporal::Interval getInterval(const solvers::FluentTimeResource& fts) const;
+    //const std::vector<symbols::constants::Location::Ptr>& getLocations() const { return mLocations; }
+    //const std::vector<solvers::temporal::Interval>& getIntervals() const { return mIntervals; }
+
 
     bool operator<(const RoleTimeline& other) const;
 
@@ -39,6 +32,8 @@ public:
      */
     void sortByTime();
 
+    const SpaceTime::Timeline& getTimeline();
+
     std::string toString() const;
 
     /**
@@ -46,7 +41,7 @@ public:
      * The resulting timelines are already sorted according to time
      * \return map of roles to timelines
      */
-    static std::map<Role,RoleTimeline> computeTimelines(const Mission& mission, const std::map<FluentTimeResource, Role::List>& solution);
+    static std::map<Role,RoleTimeline> computeRoleTimelines(const Mission& mission, const std::map<FluentTimeResource, Role::List>& solution);
 
     /**
      * Convert a role->timeline map to a string representation
@@ -59,6 +54,15 @@ public:
     double estimatedEnergyCost() const;
 
     double duration() const;
+private:
+    std::vector<FluentTimeResource> mFluents;
+    std::vector<symbols::constants::Location::Ptr> mLocations;
+    std::vector<solvers::temporal::Interval> mIntervals;
+    organization_model::OrganizationModel::Ptr mOrganizationModel;
+
+    Role mRole;
+    mutable SpaceTime::Timeline mTimeline;
+
 };
 
 } // end namespace csp

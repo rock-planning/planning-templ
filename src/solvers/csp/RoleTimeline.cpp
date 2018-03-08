@@ -7,16 +7,6 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
-symbols::constants::Location::Ptr RoleTimeline::getLocation(const solvers::FluentTimeResource& fts) const
-{
-    return mLocations.at(fts.getFluentIdx());
-}
-
-solvers::temporal::Interval RoleTimeline::getInterval(const solvers::FluentTimeResource& fts) const
-{
-    return mIntervals.at(fts.getTimeIntervalIdx());
-}
-
 bool RoleTimeline::operator<(const RoleTimeline& other) const
 {
     if(mFluents < other.mFluents)
@@ -85,7 +75,23 @@ std::string RoleTimeline::toString() const
     return ss.str();
 }
 
-std::map<Role,RoleTimeline> RoleTimeline::computeTimelines(const Mission& mission, const std::map<FluentTimeResource, Role::List>& roleSolution)
+const SpaceTime::Timeline& RoleTimeline::getTimeline()
+{
+    if(mTimeline.empty())
+    {
+        sortByTime();
+        for(const FluentTimeResource& ftr : mFluents)
+        {
+            SpaceTime::Point stpFrom(ftr.getLocation(), ftr.getInterval().getFrom());
+            SpaceTime::Point stpTo(ftr.getLocation(), ftr.getInterval().getTo());
+            SpaceTime::appendToTimeline(mTimeline, stpFrom);
+            SpaceTime::appendToTimeline(mTimeline, stpTo);
+        }
+    }
+    return mTimeline;
+}
+
+std::map<Role,RoleTimeline> RoleTimeline::computeRoleTimelines(const Mission& mission, const std::map<FluentTimeResource, Role::List>& roleSolution)
 {
     std::map<Role,RoleTimeline> timelines;
 
