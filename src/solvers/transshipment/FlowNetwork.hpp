@@ -14,7 +14,11 @@ namespace transshipment {
  * The requirements are given either as part of a minimal/sparse timeline, i.e.
  * the minimum requirements to be fulfilled or a fully expanded timeline
  *
- * TODO: merge this into a single representation, the reason for this split is
+ * The demand corresponding to the immobile systems will be set through
+ * MinCostFlow
+ * \see MinCostFlow
+ *
+ * \todo improve FlowNetwork representation, the reason for this split is
  * the support of diverge code paths
  */
 class FlowNetwork
@@ -50,18 +54,6 @@ public:
     const SpaceTime::Timelines getExpandedTimelines() const { return mExpandedTimelines; }
 
     void save(const std::string& filename = "");
-
-    /**
-     * Get the row index of a vertex for supporting a GridLayout
-     * \return row index
-     */
-    size_t getRowIndex(const graph_analysis::Vertex::Ptr& vertex) const;
-
-    /**
-     * Get the column index of a vertex for supporting a GridLayout
-     * \return column index
-     */
-    size_t getColumnIndex(const graph_analysis::Vertex::Ptr& vertex) const;
 
 protected:
     /**

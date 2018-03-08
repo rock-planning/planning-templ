@@ -191,10 +191,9 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
         RoleInfo::Tag tag = RoleInfo::REQUIRED;
         for(; fit != ftrs.end(); ++fit)
         {
-            symbols::constants::Location::Ptr location = roleTimeline.getLocation(*fit);
-            solvers::temporal::Interval interval = roleTimeline.getInterval(*fit);
-
-            LOG_WARN_S << "Location: " << location->toString() << " -- interval: " << interval.toString();
+            const FluentTimeResource& ftr = *fit;
+            symbols::constants::Location::Ptr location = ftr.getLocation();
+            solvers::temporal::Interval interval = ftr.getInterval();
 
             // create tuple if it does not exist?
             endTuple = mSpaceTimeNetwork.tupleByKeys(location, interval.getFrom());
