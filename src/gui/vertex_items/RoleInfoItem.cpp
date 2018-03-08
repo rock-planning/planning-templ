@@ -123,7 +123,6 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     // drops -- to create new edges. see later.
     setAcceptDrops(true);
 
-    QPen pen = mpRect->pen();
     std::stringstream ss;
     ss << vertex->toString();
     Role::List missing = tuple->getRelativeComplement(RoleInfo::TagTxt[ RoleInfo::REQUIRED ], RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]);
@@ -134,8 +133,6 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
         {
             ss << "    " << r.toString() << std::endl;
         }
-        pen.setColor(Qt::red);
-        mpRect->setPen(pen);
         mBorderPen.setColor(Qt::red);
     }
     Role::List superfluous = tuple->getRelativeComplement(RoleInfo::TagTxt[ RoleInfo::ASSIGNED ], RoleInfo::TagTxt[ RoleInfo::REQUIRED ]);
