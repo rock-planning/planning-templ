@@ -10,29 +10,29 @@ Flaw::Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
     const Role& role,
     SpaceTime::Point at
     )
-    : violation(violation)
-    , spacetime(at)
+    : mViolation(violation)
+    , mSpacetime(at)
 {
-    affectedRoles.push_back(role);
+    mAffectedRoles.push_back(role);
 }
 
 Flaw::Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
     const Role::List& roles,
     SpaceTime::Point at
     )
-    : violation(violation)
-    , affectedRoles(roles)
-    , spacetime(at)
+    : mViolation(violation)
+    , mAffectedRoles(roles)
+    , mSpacetime(at)
 {}
 
 const Role& Flaw::affectedRole() const
 {
-    if(affectedRoles.empty())
+    if(mAffectedRoles.empty())
     {
         throw std::runtime_error("templ::solvers::transshipment::Flaw::affectedRole: no affected roles availabled");
-    } else if(affectedRoles.size() == 1)
+    } else if(mAffectedRoles.size() == 1)
     {
-        return affectedRoles.front();
+        return mAffectedRoles.front();
     } else {
         throw std::runtime_error("templ::solvers::transshipment::Flaw::affectedRole: multiple affected roles available");
     }
@@ -42,7 +42,7 @@ std::string Flaw::toString(size_t indent) const
 {
     std::stringstream ss;
     std::string hspace(indent,' ');
-    switch(violation.getType())
+    switch(mViolation.getType())
     {
         case ConstraintViolation::MinFlow:
                 ss << hspace << "Minflow violation in timeline:" << std::endl;
@@ -58,9 +58,9 @@ std::string Flaw::toString(size_t indent) const
                 break;
 
     }
-    ss << violation.toString(indent + 8) << std::endl;
+    ss << mViolation.toString(indent + 8) << std::endl;
     ss << hspace << "    context:" << std::endl;
-    ss << hspace << "    " << SpaceTime::toString(spacetime);
+    ss << hspace << "    " << SpaceTime::toString(mSpacetime);
     return ss.str();
 }
 

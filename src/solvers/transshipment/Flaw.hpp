@@ -13,18 +13,9 @@ namespace transshipment {
  * A Flaw represents a violation of the current solution with respect to the
  * requirements
  */
-struct Flaw
+class Flaw
 {
-    graph_analysis::algorithms::ConstraintViolation violation;
-    Role::List affectedRoles;
-    csp::RoleTimeline roleTimeline;
-
-    SpaceTime::Point spacetime;
-
-    std::string description;
-
-    const Role& affectedRole() const;
-
+public:
     Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
         const Role& role,
         SpaceTime::Point at);
@@ -34,6 +25,31 @@ struct Flaw
         SpaceTime::Point at);
 
     std::string toString(size_t indent = 0) const;
+
+    graph_analysis::algorithms::ConstraintViolation getViolation() const { return mViolation; }
+    void setViolation(const graph_analysis::algorithms::ConstraintViolation& violation) { mViolation = violation; }
+
+    const Role& affectedRole() const;
+    void setAffectedRoles(const Role::List& roles) { mAffectedRoles = roles; }
+
+    const csp::RoleTimeline& getRoleTimeline() const { return mRoleTimeline; }
+    void setRoleTimeline(const csp::RoleTimeline& timeline) { mRoleTimeline = timeline; }
+
+    const SpaceTime::Point& getSpaceTime() const { return mSpacetime; }
+    void setSpaceTime(const SpaceTime::Point& stp) { mSpacetime = stp; }
+
+    const std::string& getDescription() const { return mDescription; }
+    void setDescription(const std::string& description) { mDescription = description; }
+
+private:
+    graph_analysis::algorithms::ConstraintViolation mViolation;
+    Role::List mAffectedRoles;
+    csp::RoleTimeline mRoleTimeline;
+
+    SpaceTime::Point mSpacetime;
+
+    std::string mDescription;
+
 };
 
 } // end namespace transshipment
