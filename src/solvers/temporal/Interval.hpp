@@ -4,6 +4,7 @@
 #include "point_algebra/TimePoint.hpp"
 #include "point_algebra/TimePointComparator.hpp"
 #include <set>
+#include <vector>
 
 namespace templ {
 namespace solvers {
@@ -22,6 +23,9 @@ class Interval
     point_algebra::TimePointComparator mTimePointComparator;
 
 public:
+    typedef std::vector<Interval> List;
+    typedef std::set<Interval> Set;
+
     Interval();
 
     Interval(const point_algebra::TimePoint::Ptr& from,

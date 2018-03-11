@@ -190,6 +190,11 @@ public:
             const std::vector<solvers::temporal::Interval>& intervals);
 
     /**
+     *
+     */
+    static void sortForMutualExclusion(List& requirements);
+
+    /**
      * Get the mutual exclusive set of requirements
      */
     static std::vector<List> getMutualExclusive(const List& requirements);

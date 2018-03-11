@@ -2,6 +2,7 @@ rock_testsuite(test_suite suite.cpp
     #test_Scheduling.cpp
     solvers/test_AgentRoutingProblem.cpp
     solvers/test_CSP.cpp
+    solvers/test_FluentTimeResource.cpp
     solvers/test_SolutionAnalysis.cpp
     solvers/test_Propagators_IsPath.cpp
     solvers/test_Propagators_IsValidTransportEdge.cpp

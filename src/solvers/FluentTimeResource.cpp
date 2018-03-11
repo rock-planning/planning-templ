@@ -3,6 +3,7 @@
 #include <base-logging/Logging.hpp>
 #include "../utils/Index.hpp"
 #include <iostream>
+#include <algorithm>
 
 namespace templ {
 namespace solvers {
@@ -208,8 +209,44 @@ std::vector< FluentTimeResource::List > FluentTimeResource::getConcurrent(const 
     return concurrentFts;
 }
 
-std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(const List& requirements)
+void FluentTimeResource::sortForMutualExclusion(List& requirements)
 {
+    std::sort(requirements.begin(), requirements.end(), [](const FluentTimeResource& a,
+                const FluentTimeResource& b)
+            {
+                const solvers::temporal::point_algebra::TimePointComparator& tpc = a.getInterval().getTimePointComparator();
+                if( tpc.lessThan(a.getInterval().getTo(),(b.getInterval().getTo())) )
+                {
+                    return true;
+                } else if(tpc.equals(a.getInterval().getTo(), b.getInterval().getTo()))
+                {
+                    return tpc.lessThan(a.getInterval().getFrom(), b.getInterval().getFrom());
+                }
+                return false;
+            });
+}
+
+std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(const List& _requirements)
+{
+    List requirements = _requirements;
+    sortForMutualExclusion(requirements);
+
+    // Todo: check keyword 'edge finding'
+
+    // Take advantage of a specially ordered list:
+    // based on (1) earlier end point means <= true,
+    // earlier start time means <= true,
+    // to as a result order all intervals overlapping with the smallest unit
+    // will be concurrent
+    // use sorted fluents, check overlap of the first interval with rest
+    // and thus step through each interval an the potentially overlapping one
+    // [a_s -------------------------------a_e]
+    // [b_s --- b_e]
+    //                      [c_s  --- c_e]
+    //                                      [d_s ---- d_e]
+    //
+    //                 [e_s --- e_e]
+
     std::vector<List> mutualExclusive;
     for(size_t a = 0; a < requirements.size(); ++a)
     {
@@ -217,6 +254,7 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
 
         List concurrent;
         concurrent.push_back(ftrA);
+        bool hasConcurrentIntervals = false;
         for(size_t b = a + 1; b < requirements.size(); ++b)
         {
             const FluentTimeResource& ftrB = requirements[b];
@@ -226,11 +264,15 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
             {
                 if(ftrA.getInterval().overlaps(ftrB.getInterval()))
                 {
+                    hasConcurrentIntervals = true;
                     concurrent.push_back(ftrB);
                 }
             }
         }
-        mutualExclusive.push_back(concurrent);
+        if(hasConcurrentIntervals)
+        {
+            mutualExclusive.push_back(concurrent);
+        }
     }
     return mutualExclusive;
 }
