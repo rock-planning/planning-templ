@@ -128,9 +128,6 @@ void MinCostFlow::setCommoditySupplyAndDemand()
         std::vector<Role>::const_iterator cit = std::find(mCommoditiesRoles.begin(), mCommoditiesRoles.end(), role);
         if(cit != mCommoditiesRoles.end())
         {
-            LOG_INFO_S << "Set supply/demand for immobile role '" << role.toString() << "'"
-                << roleTimeline.toString();
-
             size_t commodityId = cit - mCommoditiesRoles.begin();
             setSupplyDemand(SpaceTime::getHorizonStartTuple(),commodityId, role, 1);
             setSupplyDemand(SpaceTime::getHorizonEndTuple(),commodityId, role, -1);
