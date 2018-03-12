@@ -24,6 +24,8 @@ public:
 
     bool operator<(const RoleTimeline& other) const;
 
+    size_t size() const { return mTimeline.size(); }
+
     /**
      * Sort this timeline using the set of intervals
      * to map the time indices in the FluentTimeResource to actual intervals
