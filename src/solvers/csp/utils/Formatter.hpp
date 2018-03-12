@@ -3,9 +3,10 @@
 #include <gecode/minimodel.hh>
 #include <gecode/set.hh>
 
-#include <templ/Variable.hpp>
-#include <templ/Symbol.hpp>
-#include <templ/Role.hpp>
+#include "../../../Variable.hpp"
+#include "../../../Symbol.hpp"
+#include "../../../Role.hpp"
+#include "../../FluentTimeResource.hpp"
 
 namespace templ {
 namespace solvers {
@@ -30,6 +31,13 @@ public:
     static std::string toString(const Gecode::ViewArray<Gecode::Set::SetView>& array, size_t columnSize);
 
     static std::string toString(const std::vector<Gecode::SetVarArray>& array, size_t columnSize);
+
+    /**
+     * Print an array of roles with respect to requirements
+     */
+    static std::string toString(const Gecode::IntVarArray& array,
+            const Role::List& roles,
+            const FluentTimeResource::List& requirements);
 
 };
 

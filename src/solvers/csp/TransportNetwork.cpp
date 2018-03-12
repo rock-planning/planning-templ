@@ -1467,6 +1467,7 @@ void TransportNetwork::postRoleAssignments()
     (void) status();
 
     LOG_WARN_S << "Posting Role Assignments: request status" << std::endl
+        << modelUsageToString() << std::endl
         << roleUsageToString();
 
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
@@ -1729,8 +1730,6 @@ void TransportNetwork::postMinCostFlow()
 
     std::map<Role, csp::RoleTimeline> minimalTimelines =  RoleTimeline::computeRoleTimelines(*mpMission.get(), getRoleDistribution());
 
-    std::cout << "RoleTimelines: " << std::endl
-        << RoleTimeline::toString(minimalTimelines, 4);
 
     for(size_t i = 0; i < mActiveRoleList.size(); ++i)
     {
@@ -1923,30 +1922,7 @@ std::string TransportNetwork::modelUsageToString() const
 
 std::string TransportNetwork::roleUsageToString() const
 {
-    std::stringstream ss;
-    ss << "Role usage:" << std::endl;
-    ss << std::setw(30) << std::right << "    FluentTimeResource: ";
-    for(size_t r = 0; r < mResourceRequirements.size(); ++r)
-    {
-        const FluentTimeResource& fts = mResourceRequirements[r];
-        /// construct string for proper alignment
-        std::string s = fts.getFluent()->getInstanceName();
-        s += "@[" + fts.getInterval().toString(0,true) + "]";
-
-        ss << std::setw(15) << std::left << s;
-    }
-    ss << std::endl;
-
-    for(size_t i = 0; i < mRoles.size(); ++i)
-    {
-        ss << std::setw(30) << std::left << mRoles[i].toString() << ": ";
-        for(size_t r = 0; r < mResourceRequirements.size(); ++r)
-        {
-            ss << std::setw(15) << mRoleUsage[r*mRoles.size() + i] << " ";
-        }
-        ss << std::endl;
-    }
-    return ss.str();
+    return Formatter::toString(mRoleUsage, mRoles, mResourceRequirements);
 }
 
 std::string TransportNetwork::toString(const std::vector<Gecode::IntVarArray>& timelines) const

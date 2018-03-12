@@ -105,6 +105,34 @@ std::string Formatter::toString(const std::vector<Gecode::SetVarArray>& array, s
     return ss.str();
 }
 
+
+std::string Formatter::toString(const Gecode::IntVarArray& roleUsage, const Role::List& roles, const FluentTimeResource::List& requirements)
+{
+    std::stringstream ss;
+    ss << "Role usage:" << std::endl;
+    ss << std::setw(40) << std::right << "    FluentTimeResource: ";
+    for(const FluentTimeResource& fts : requirements)
+    {
+        /// construct string for proper alignment
+        std::string s = fts.getFluent()->getInstanceName();
+        s += "@[" + fts.getInterval().toString(0,true) + "]";
+
+        ss << std::setw(15) << std::left << s;
+    }
+    ss << std::endl;
+
+    for(size_t i = 0; i < roles.size(); ++i)
+    {
+        ss << std::setw(40) << std::left << roles[i].toString() << ": ";
+        for(size_t r = 0; r < requirements.size(); ++r)
+        {
+            ss << std::setw(15) << roleUsage[r*roles.size() + i] << " ";
+        }
+        ss << std::endl;
+    }
+    return ss.str();
+}
+
 } // end namespace utils
 } // end namespace csp
 } // end namespace solvers
