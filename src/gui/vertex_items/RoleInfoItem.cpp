@@ -302,7 +302,7 @@ void RoleInfoItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
 }
 
-QGraphicsSvgItem* RoleInfoItem::getSvgItemForModel(const owlapi::model::IRI& iri, size_t height)
+QGraphicsSvgItem* RoleInfoItem::getSvgItemForModel(const owlapi::model::IRI& iri, size_t height, size_t width)
 {
     QString file = ":/resources/pictograms/pictogram-unknown.svg";
     if(!iri.empty())
@@ -318,7 +318,13 @@ QGraphicsSvgItem* RoleInfoItem::getSvgItemForModel(const owlapi::model::IRI& iri
 
     QGraphicsSvgItem* modelSvg = new QGraphicsSvgItem(file, this);
     int svgActualHeight = modelSvg->renderer()->defaultSize().height();
-    modelSvg->setScale(height*1.0/svgActualHeight);
+    int svgActualWidth = modelSvg->renderer()->defaultSize().width();
+
+    double heightScale = height*1.0/svgActualHeight;
+    double weightScale = width*1.0/svgActualWidth;
+    double scale = qMin(heightScale, weightScale);
+
+    modelSvg->setScale(scale);
     modelSvg->setToolTip(iri.toString().c_str());
     return modelSvg;
 }
@@ -332,7 +338,7 @@ QGraphicsProxyWidget* RoleInfoItem::addModelTable(const owlapi::model::IRI& mode
         )
 {
     // Make sure model svg is as high as the table
-    QGraphicsSvgItem* modelSvg = getSvgItemForModel(model, rowCount*defaultRowSize );
+    QGraphicsSvgItem* modelSvg = getSvgItemForModel(model, rowCount*defaultRowSize, 75 );
 
     size_t tableWidth = columnCount*defaultColumnSize + 3;
     size_t tableHeight = rowCount*defaultRowSize + 3;

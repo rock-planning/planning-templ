@@ -59,7 +59,7 @@ protected:
     /**
      *  Get the SVG Item for a particular agent model
      */
-    QGraphicsSvgItem* getSvgItemForModel(const owlapi::model::IRI& iri = owlapi::model::IRI(), size_t height = 50);
+    QGraphicsSvgItem* getSvgItemForModel(const owlapi::model::IRI& iri = owlapi::model::IRI(), size_t height = 50, size_t width = 75);
 
     /**
      * Add a model table
