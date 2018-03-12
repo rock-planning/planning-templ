@@ -1,6 +1,10 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+    <file>resources/pictograms/pictogram-unknown.svg</file>
     <file>resources/pictograms/pictogram-payload.svg</file>
+    <file>resources/pictograms/pictogram-basecamp.svg</file>
+    <file>resources/pictograms/pictogram-crex.svg</file>
+    <file>resources/pictograms/pictogram-coyoteiii.svg</file>
     <file>resources/pictograms/pictogram-sherpa.svg</file>
     <file>resources/pictograms/location.svg</file>
     <file>resources/pictograms/starttime.svg</file>
