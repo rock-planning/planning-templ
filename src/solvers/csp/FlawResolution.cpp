@@ -41,17 +41,13 @@ void FlawResolution::prepare(const std::vector<transshipment::Flaw>& flaws)
         switch(flaw.getViolation().getType())
         {
             case ga::ConstraintViolation::TransFlow:
-                //mResolutionOptions.push_back( ResolutionOption(flaw,0) );
+            case ga::ConstraintViolation::TotalTransFlow:
+                mResolutionOptions.push_back(ResolutionOption(flaw,0) );
                 break;
             case ga::ConstraintViolation::MinFlow:
-                mResolutionOptions.push_back( ResolutionOption(flaw,0) );
-                //mResolutionOptions.push_back( ResolutionOption(flaw,1) );
-                break;
-            case ga::ConstraintViolation::TotalTransFlow:
-                //mResolutionOptions.push_back(ResolutionOption(flaw,0) );
-                break;
             case ga::ConstraintViolation::TotalMinFlow:
                 //mResolutionOptions.push_back(ResolutionOption(flaw,0) );
+                //mResolutionOptions.push_back( ResolutionOption(flaw,1) );
                 break;
             default:
                 LOG_WARN_S << "Unknown flaw type";
@@ -67,7 +63,7 @@ void FlawResolution::prepare(const std::vector<transshipment::Flaw>& flaws)
 
     if(!indices.empty())
     {
-        numeric::Combination<size_t> combinations(indices, indices.size(), numeric::MAX);
+        numeric::Combination<size_t> combinations(indices, 1, numeric::MAX);
         do {
             Draw combination = combinations.current();
             mDraws.push_back(combination);
@@ -145,42 +141,43 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
     ga::ConstraintViolation::Type violationType = flaw.getViolation().getType();
     FluentTimeResource::List ftrs = getAffectedRequirements(flaw.getSpaceTime(),
             violationType, lastSpace.mResourceRequirements);
+
+    std::cout << "Apply resolution option for: " << flaw.toString(4) << std::endl;
     switch(violationType)
     {
-        case ga::ConstraintViolation::TransFlow:
-
+        //case ga::ConstraintViolation::TransFlow:
             //std::cout << "Transflow violation: resolver option #" << alternative << std::endl;
-            {
-                switch(alternative)
-                {
-                    case 0:
-                    {
-                        //std::cout
-                        //    << "    adding distiction constraint" << std::endl
-                        //    << "         distinction for role " << flaw.affectedRole().getModel() << std::endl
-                        //    << "         current space " << &currentSpace << std::endl
-                        //    << "         last space " << &lastSpace << std::endl
-                        //    << std::endl;
+            //{
+            //    switch(alternative)
+            //    {
+            //        case 0:
+            //        {
+            //            //std::cout
+            //            //    << "    adding distiction constraint" << std::endl
+            //            //    << "         distinction for role " << flaw.affectedRole().getModel() << std::endl
+            //            //    << "         current space " << &currentSpace << std::endl
+            //            //    << "         last space " << &lastSpace << std::endl
+            //            //    << std::endl;
 
-                        std::set<Role> uniqueRoles = MissionConstraints::getUniqueRoles(lastSpace.mRoleUsage,
-                                currentSpace.mRoles,
-                                currentSpace.mResourceRequirements,
-                                ftrs,
-                                flaw.affectedRole().getModel());
+            //            std::set<Role> uniqueRoles = MissionConstraints::getUniqueRoles(lastSpace.mRoleUsage,
+            //                    currentSpace.mRoles,
+            //                    currentSpace.mResourceRequirements,
+            //                    ftrs,
+            //                    flaw.affectedRole().getModel());
 
-                        constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(constraints::ModelConstraint::MIN_DISTINCT,
-                                flaw.affectedRole().getModel(),
-                                MissionConstraintManager::mapToSpaceTime(ftrs),
-                                uniqueRoles.size() + 1);
+            //            constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(constraints::ModelConstraint::MIN_DISTINCT,
+            //                    flaw.affectedRole().getModel(),
+            //                    MissionConstraintManager::mapToSpaceTime(ftrs),
+            //                    uniqueRoles.size() + 1);
 
-                        currentSpace.addConstraint( constraint );
-                        break;
-                    }
-                    default:
-                        break;
-                }
-            break;
-            }
+            //            currentSpace.addConstraint( constraint );
+            //            break;
+            //        }
+            //        default:
+            //            break;
+            //    }
+            //    break;
+            //}
 
         case ga::ConstraintViolation::MinFlow:
             std::cout << "Minflow violation: resolver option #" << alternative << std::endl;
@@ -245,11 +242,10 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                 }
             break;
             }
-        case ga::ConstraintViolation::TotalTransFlow:
+        case ga::ConstraintViolation::TransFlow:
+            std::cout << "Transflow violation: resolver option #" << alternative << std::endl;
             break;
-        case ga::ConstraintViolation::TotalMinFlow:
-            //std::cout << "TotalMinFlow violation: resolver option #" << alternative << std::endl;
-            //std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+        case ga::ConstraintViolation::TotalTransFlow:
             switch(alternative)
             {
                 case 0:
@@ -277,7 +273,12 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                             );
 
                     currentSpace.addConstraint(constraint);
-                    break;
+                break;
+            }
+            break;
+        case ga::ConstraintViolation::TotalMinFlow:
+            switch(alternative)
+            {
             }
             break;
         default:
@@ -303,7 +304,7 @@ std::vector< std::pair<FlawResolution::ResolutionOption, uint32_t> > FlawResolut
     {
         if(TransportNetwork::msInteractive)
         {
-            std::cout << "FlawResolution: try resolution options, existing cost" << existingCost << std::endl;
+            std::cout << "FlawResolution: try resolution options, existing cost: " << existingCost << std::endl;
             std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
         }
 
@@ -331,34 +332,30 @@ std::vector< std::pair<FlawResolution::ResolutionOption, uint32_t> > FlawResolut
         options.stop = Gecode::Search::Stop::time(30000);
         transportNetwork->setUseMasterSlave(false);
         Gecode::RBS<TransportNetwork, Gecode::DFS> searchEngine(transportNetwork, options);
-        TransportNetwork* best = NULL;
-        while(TransportNetwork* current = searchEngine.next())
-        {
-            delete best;
-            best = current;
-            break;
-        }
-        if(best)
+        TransportNetwork* solution = searchEngine.next();
+        if(solution)
         {
             std::cout << "FlawResolution: found improving flaw resolver" << std::endl;
-            std::cout << "    cost: " << best->cost() << std::endl;
+            std::cout << "    cost: " << solution->cost() << std::endl;
             std::cout << "    existing cost: " << existingCost << std::endl;
-            std::cout << "    remaining flaws: " << best->mNumberOfFlaws.val() << std::endl;
+            std::cout << "    remaining flaws: " << solution->mNumberOfFlaws.val() << std::endl;
             if(TransportNetwork::msInteractive)
             {
                 std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
             }
 
-            uint32_t delta = existingCost - (uint32_t) best->cost().val();
+            uint32_t delta = existingCost - (uint32_t) solution->cost().val();
             Evaluation evaluation(option, delta);
             improvingFlaws.push_back(evaluation);
-            if(best->mNumberOfFlaws.val() == 0)
+            if(solution->mNumberOfFlaws.val() == 0)
             {
                 improvingFlaws.clear();
                 improvingFlaws.push_back(evaluation);
+                // break when zero flaw solution has been found
+                break;
             }
         } else {
-            std::cout << "FlawResolution: no improving flaw resolver" << std::endl;
+            std::cout << "FlawResolution: no improving flaw resolver (no solution found with constraint included)" << std::endl;
             std::cout << "    cost: n/a" << std::endl;
             std::cout << "    existing cost: " << existingCost << std::endl;
             if(TransportNetwork::msInteractive)
@@ -366,7 +363,7 @@ std::vector< std::pair<FlawResolution::ResolutionOption, uint32_t> > FlawResolut
                 std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
             }
         }
-        delete best;
+        delete solution;
     }
     delete master;
     if(TransportNetwork::msInteractive)

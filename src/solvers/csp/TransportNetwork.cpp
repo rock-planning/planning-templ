@@ -189,7 +189,8 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
     FlawResolution::EvaluationList evalList = FlawResolution::selectBestResolution(*this, lastSpace, lastSpace.cost().val(), mFlawResolution.getResolutionOptions());
     if(evalList.empty())
     {
-        std::cout << "    # no applicable resolvers -- failing search" << std::endl;
+        std::cout << "    # no applicable resolvers better than " << lastSpace.cost().val() <<
+            "-- failing search" << std::endl;
         std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
 
         this->fail();
@@ -209,10 +210,7 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
 
     for(const FlawResolution::Evaluation& e : evalList)
     {
-        std::cout << "Requiring flaw which improves with delta: " << e.second;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
         mRequiredResolutionOptions.push_back( e.first );
-    //mRequiredResolutionOptions.insert(mRequiredResolutionOptions.begin(), resolutionOptions.begin(), resolutionOptions.end());
     }
 
     for(const FlawResolution::ResolutionOption& resolutionOption : mRequiredResolutionOptions)
@@ -260,6 +258,8 @@ void TransportNetwork::constrain(const Gecode::Space& lastSpace)
         std::cout << "    # cost: "<< lastTransportNetwork.mCost.val() << std::endl;
         std::cout << "    # flaws: "<< lastTransportNetwork.mMinCostFlowFlaws.size() << std::endl;
         std::cout << "    # resolution options: " << lastTransportNetwork.mFlawResolution.remainingDraws().size() << std::endl;
+        std::cout << "Current: " << std::endl;
+        std::cout << "    # cost: " << cost() << std::endl;
 
         std::cout << "Press ENTER to continue..." << std::endl;
         std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
@@ -291,7 +291,7 @@ void TransportNetwork::constrainSlave(const Gecode::Space& lastSpace)
         std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
     }
 
-    rel(*this, cost(), Gecode::IRT_LE, lastTransportNetwork.cost().val());
+    //rel(*this, cost(), Gecode::IRT_LE, lastTransportNetwork.cost().val());
 
     // Approach 1: BFS Style
     // Slaves have to provide optimal (zero flaw solutions)
@@ -555,7 +555,8 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Con
 
     // Limit roles to resource availability
     initializeRoleDistributionConstraints();
-    // Mission constraints
+
+    // Mission additional constraints
     applyMissionConstraints();
 
     // (C) Avoid computation of solutions that are redunant
@@ -1381,9 +1382,6 @@ std::vector<uint32_t> TransportNetwork::computeActiveRoles() const
             }
         }
     }
-    LOG_INFO_S << "Model usage: " << modelUsageToString();
-    LOG_INFO_S << "Role usage: " << roleUsageToString();
-
     return activeRoles;
 }
 
@@ -1727,9 +1725,10 @@ void TransportNetwork::postMinCostFlow()
 
     LOG_INFO_S << "Post MinCostFlow";
     save();
-
     std::map<Role, csp::RoleTimeline> minimalTimelines =  RoleTimeline::computeRoleTimelines(*mpMission.get(), getRoleDistribution());
 
+    //std::cout << "RoleTimelines: " << std::endl
+    //    << RoleTimeline::toString(minimalTimelines, 4);
 
     for(size_t i = 0; i < mActiveRoleList.size(); ++i)
     {
