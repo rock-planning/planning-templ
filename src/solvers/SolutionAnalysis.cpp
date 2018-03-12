@@ -491,6 +491,16 @@ Plan SolutionAnalysis::computePlan() const
         plan.add(role,path);
     }
 
+    graph_analysis::Vertex::PtrList openRequirements;
+    for(const FluentTimeResource& ftr : mResourceRequirements)
+    {
+        const Interval& i = ftr.getInterval();
+        SpaceTime::Network::tuple_t::Ptr tuple = mSolutionNetwork.tupleByKeys(ftr.getLocation(),
+                i.getFrom());
+        openRequirements.push_back(tuple);
+    }
+    plan.add(Role(), openRequirements);
+
     return plan;
 }
 

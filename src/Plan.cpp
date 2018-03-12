@@ -222,6 +222,18 @@ void Plan::computeGraph() const
         for(; cit != mRolebasedPlan.end(); ++cit)
         {
             const Role& role = cit->first;
+            const RoleBasedPlan::mapped_type& plan = cit->second;
+            RoleBasedPlan::mapped_type::const_iterator pit = plan.begin();
+
+            // Register unfulfilled requirements
+            if(isUnfulfilledRequirementMarker(role))
+            {
+                for(; pit != plan.end(); ++pit)
+                {
+                    mpBaseGraph->addVertex(*pit);
+                }
+                continue;
+            }
 
             // getTransportSystem
             organization_model::facades::Robot robot(role.getModel(), organizationModelAsk);
@@ -233,8 +245,6 @@ void Plan::computeGraph() const
             std::vector<std::string> roleSpecificPlan;
             uint32_t capacity = robot.getTransportCapacity();
 
-            const RoleBasedPlan::mapped_type& plan = cit->second;
-            RoleBasedPlan::mapped_type::const_iterator pit = plan.begin();
             graph_analysis::Vertex::Ptr previousWaypoint;
             for(; pit != plan.end(); ++pit)
             {
@@ -284,6 +294,11 @@ void Plan::computeGraph() const
         {
             const Role& role = cit->first;
             const RoleBasedPlan::mapped_type& plan = cit->second;
+
+            if(isUnfulfilledRequirementMarker(role))
+            {
+                continue;
+            }
 
             organization_model::facades::Robot robot(role.getModel(), organizationModelAsk);
             if(robot.isMobile())

@@ -124,6 +124,11 @@ public:
      */
     bool isLocalTransition(const graph_analysis::Vertex::Ptr& v0, const graph_analysis::Vertex::Ptr& v1) const;
 
+    /**
+     * Check if this role collects all missing requirements
+     */
+    bool isUnfulfilledRequirementMarker(const Role& role) const { return role == Role(); }
+
 private:
     Mission::Ptr mpMission;
     std::string mLabel;
