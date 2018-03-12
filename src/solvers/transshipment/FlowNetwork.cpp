@@ -188,7 +188,7 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
         LOG_INFO_S << "Process (time-sorted) timeline: " << roleTimeline.toString();
         const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
         std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
-        RoleInfo::Tag tag = RoleInfo::REQUIRED;
+        RoleInfo::Tag tag = RoleInfo::AVAILABLE;
         for(; fit != ftrs.end(); ++fit)
         {
             const FluentTimeResource& ftr = *fit;
@@ -200,6 +200,7 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
             endTuple->addRole(role, tag);
 
             // Find start node: Tuple of location and interval.getFrom()
+            // This is where the agent is available
             if(prevIntervalEnd)
             {
                 startTuple = mSpaceTimeNetwork.tupleByKeys(prevLocation, prevIntervalEnd);
@@ -227,7 +228,6 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
                         existingEdge->setWeight(capacity, 0 /*index of 'overall capacity'*/);
                     }
                 }
-            } else {
                 tag = RoleInfo::REQUIRED;
             }
 
