@@ -4,6 +4,7 @@
 #include <graph_analysis/WeightedEdge.hpp>
 #include <graph_analysis/GraphIO.hpp>
 #include <organization_model/facades/Robot.hpp>
+#include <graph_analysis/algorithms/ConstraintViolation.hpp>
 
 #include "../FluentTimeResource.hpp"
 #include "../../utils/Logger.hpp"
@@ -283,6 +284,12 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
     for(; vit != violations.end(); ++vit)
     {
         const ConstraintViolation& violation = *vit;
+        if(! (violation.getType() == graph_analysis::algorithms::ConstraintViolation::TotalTransFlow
+                    || violation.getType() == graph_analysis::algorithms::ConstraintViolation::TotalMinFlow) )
+        {
+            continue;
+        }
+
         // Map violation from multicommodity vertex back to SpaceTime::Network tuple
         Vertex::Ptr spaceTimePartnerVertex = mBipartiteGraph.getUniquePartner(violation.getVertex());
         SpaceTime::Network::tuple_t::Ptr tuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(spaceTimePartnerVertex);
