@@ -55,6 +55,16 @@ public:
     Status getStatus(const owlapi::model::IRI& model, uint32_t id) const;
 
     /**
+     * Get the tags for a role
+     */
+    std::set<std::string> getTags(const Role& role) const;
+
+    /**
+     * Check if the role has associated tags
+     */
+    bool hasTag(const Role& role) const;
+
+    /**
      * Retrieve a role if it exists, otherwise throw
      * \throw std::invalid_argument if role does not exist
      */
@@ -88,7 +98,7 @@ public:
 protected:
     mutable std::set<Role> mAllRoles;
     std::set<Role> mRoles;
-    mutable std::map<std::string, std::set<Role> > mTaggedRoles;
+    mutable std::map<std::string, Role::Set> mTaggedRoles;
 };
 
 }

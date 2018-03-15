@@ -142,6 +142,35 @@ RoleInfo::Status RoleInfo::getStatus(const owlapi::model::IRI& model, uint32_t i
     return UNKNOWN_STATUS;
 }
 
+std::set<std::string> RoleInfo::getTags(const Role& role) const
+{
+    std::set<std::string> tags;
+    for(const std::pair<std::string, Role::Set>& p : mTaggedRoles)
+    {
+        const std::string& tag = p.first;
+        const Role::Set& roles = p.second;
+        if(roles.end() != std::find(roles.begin(), roles.end(), role))
+        {
+            tags.insert(tag);
+        }
+    }
+    return tags;
+}
+
+bool RoleInfo::hasTag(const Role& role) const
+{
+    std::set<std::string> tags;
+    for(const std::pair<std::string, Role::Set>& p : mTaggedRoles)
+    {
+        const Role::Set& roles = p.second;
+        if(roles.end() != std::find(roles.begin(), roles.end(), role))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 const Role& RoleInfo::getRole(const owlapi::model::IRI& model, uint32_t id) const
 {
     Role::Set::const_iterator cit;
