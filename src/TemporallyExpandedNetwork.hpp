@@ -310,7 +310,7 @@ public:
         if(!startFound && !endFound)
         {
             throw std::invalid_argument("templ::TemporallyExpandedNetwork::getTimepoints: failed to identify timepoints"
-                    " for interval from '" << t_start->toString() << " to '" << t_end->toString());
+                    " for interval from '" + t_start->toString() + " to '" + t_end->toString());
         }
         return timepoints;
     }

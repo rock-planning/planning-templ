@@ -30,6 +30,7 @@ class RoleInfoTuple : public Tuple<A, B>, public virtual RoleInfo
 
 public:
     typedef shared_ptr< RoleInfoTuple<A,B> > Ptr;
+    typedef std::vector<Ptr> PtrList;
 
     static const graph_analysis::VertexRegistration< RoleInfoTuple<A,B> > msRoleInfoTupleRegistration;
 
