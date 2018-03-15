@@ -1458,17 +1458,16 @@ void TransportNetwork::postRoleAssignments()
 
     mActiveRoles = computeActiveRoles();
 
-    Role::List activeRoles;
 
     LOG_WARN_S << std::endl
         << mTimepoints << std::endl
         << symbols::constants::Location::toString(mLocations);
 
     assert(!mActiveRoles.empty());
-    std::vector<uint32_t>::const_iterator rit = mActiveRoles.begin();
-
     assert(mTimelines.empty());
 
+    Role::List activeRoles;
+    std::vector<uint32_t>::const_iterator rit = mActiveRoles.begin();
     for(; rit != mActiveRoles.end(); ++rit)
     {
         uint32_t roleIndex = *rit;
@@ -1611,11 +1610,6 @@ void TransportNetwork::postRoleAssignments()
 
     mActiveRoleList = activeRoles;
     assert(!mActiveRoleList.empty());
-    LOG_INFO_S << "Using active roles: " << Role::toString(activeRoles);
-
-    LOG_INFO_S << "Timelines after first propagation of requirements: " << std::endl
-        << Formatter::toString(mTimelines, numberOfFluents);
-
     // Construct the basic timeline
     //
     // Map role requirements back to activation in general network
@@ -1700,13 +1694,13 @@ void TransportNetwork::postMinCostFlow()
     save();
     std::map<Role, csp::RoleTimeline> minimalTimelines =  RoleTimeline::computeRoleTimelines(*mpMission.get(), getRoleDistribution());
 
-    //std::cout << "RoleTimelines: " << std::endl
-    //    << RoleTimeline::toString(minimalTimelines, 4);
-
+    std::map<Role, csp::RoleTimeline> activeMinimalTimelines;
     for(size_t i = 0; i < mActiveRoleList.size(); ++i)
     {
         LOG_WARN_S << "Active role: " << i << " of " << mActiveRoleList.size() << " " << mActiveRoleList[i].toString() << std::endl
             << Formatter::toString(mTimelines[i], mLocations.size());
+        const Role& role = mActiveRoleList[i];
+        activeMinimalTimelines[role] = minimalTimelines[role];
     }
 
     //assert(!timelines.empty());
@@ -1721,10 +1715,10 @@ void TransportNetwork::postMinCostFlow()
         }
 
         SpaceTime::Timelines spaceTimeTimelines = getTimelines();
-        std::pair<SpaceTime::Timelines, std::map<Role, csp::RoleTimeline> > key(spaceTimeTimelines, minimalTimelines);
+        std::pair<SpaceTime::Timelines, std::map<Role, csp::RoleTimeline> > key(spaceTimeTimelines, activeMinimalTimelines);
         transshipment::MinCostFlow minCostFlow(mpMission,
                 mTimepoints,
-                minimalTimelines,
+                activeMinimalTimelines,
                 spaceTimeTimelines);
 
         FlowSolutions::iterator it = msMinCostFlowSolutions.find(key);
