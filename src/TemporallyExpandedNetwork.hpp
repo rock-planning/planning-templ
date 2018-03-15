@@ -48,6 +48,7 @@ protected:
     typedef std::pair<value_t, timepoint_t> ValueTimePair;
     /// map allows to resolve from key-value --> tuple Ptr
     typedef std::map< ValueTimePair, typename tuple_t::Ptr > TupleMap;
+    typedef typename tuple_t::PtrList TuplePtrList;
     TupleMap mTupleMap;
 
 public:
@@ -67,7 +68,18 @@ public:
         }
     }
 
-    TemporallyExpandedNetwork(const ValueList& values, const TimePointList& timepoints, const graph_analysis::Edge::Ptr& locationTransitionEdge = graph_analysis::Edge::Ptr())
+    /**
+     * Constructor for a temporally expanded network from a set of values and
+     * timepoints
+     * \param values List of symbols that should be temporally qualified
+     * \param timepoints List of timepoints which are assumed to be sorted
+     * according to time
+     * \param locationTransitionEdge type of edge which is created for a
+     * location transition edge
+     */
+    TemporallyExpandedNetwork(const ValueList& values,
+            const TimePointList& timepoints,
+            const graph_analysis::Edge::Ptr& locationTransitionEdge = graph_analysis::Edge::Ptr())
         : mValues(values)
         , mTimepoints(timepoints)
         , mpLocalTransitionEdge(locationTransitionEdge)
@@ -136,6 +148,10 @@ public:
         }
     }
 
+    /**
+     * Avoid the need for serialization of the tuple map, and reconstruct it
+     * instead from the set of timepoints and fluent
+     */
     void reconstructTupleMap()
     {
         graph_analysis::VertexIterator::Ptr vertexIt = mpGraph->getVertexIterator();
@@ -166,6 +182,9 @@ public:
 
     /**
      * Retrieve a tuple (actually a graph vertex) by the given key tuple
+     * \param value
+     * \param timepoint
+     * \return tuple
      */
     typename tuple_t::Ptr tupleByKeys(const D0& value, const D1& timepoint) const
     {
@@ -262,6 +281,57 @@ public:
                     return timepoint == other;
                 });
         return std::distance(mTimepoints.begin(), cit);
+    }
+
+    /**
+     * Get all timepoints that are part of a given interval
+     */
+    TimePointList getTimepoints(const timepoint_t& t_start, const timepoint_t& t_end) const
+    {
+        TimePointList timepoints;
+        bool startFound = false;
+        bool endFound = false;
+        for(const timepoint_t& t : mTimepoints)
+        {
+            if(t->equals(t_start))
+            {
+                startFound = true;
+            }
+            if(startFound)
+            {
+                timepoints.push_back(t);
+            }
+            if(t->equals(t_end))
+            {
+                endFound = true;
+                break;
+            }
+        }
+        if(!startFound && !endFound)
+        {
+            throw std::invalid_argument("templ::TemporallyExpandedNetwork::getTimepoints: failed to identify timepoints"
+                    " for interval from '" << t_start->toString() << " to '" << t_end->toString());
+        }
+        return timepoints;
+    }
+
+    /**
+     * Get all tuples for a given interval and a given temporally
+     * expanded value
+     * \param t_start start timepoint of the interval
+     * \param t_end end timepoint of the interval
+     * \param value value (e.g. location symbol) which has a temporal expansion
+     * \return list of tuples pointers
+     */
+    TuplePtrList getTuples(const timepoint_t& t_start, const timepoint_t& t_end, const value_t& value) const
+    {
+        TuplePtrList tuples;
+        TimePointList timepoints = getTimepoints(t_start, t_end);
+        for(const timepoint_t& t : timepoints)
+        {
+            tuples.push_back( tupleByKeys(value,t) );
+        }
+        return tuples;
     }
 };
 
