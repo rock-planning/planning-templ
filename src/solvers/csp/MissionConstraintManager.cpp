@@ -8,6 +8,14 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
+void MissionConstraintManager::apply(const Constraint::PtrList& constraints,
+        TransportNetwork& transportNetwork)
+{
+    for(const Constraint::Ptr& constraint : constraints)
+    {
+        apply(constraint, transportNetwork);
+    }
+}
 void MissionConstraintManager::apply(const Constraint::Ptr& constraint,
         TransportNetwork& transportNetwork)
 {
@@ -174,12 +182,23 @@ FluentTimeResource::Set MissionConstraintManager::findAffected(const shared_ptr<
 
 std::vector<SpaceTime::SpaceIntervalTuple> MissionConstraintManager::mapToSpaceTime(const FluentTimeResource::List& ftrs)
 {
+    if(ftrs.empty())
+    {
+        throw std::invalid_argument("templ::solvers::csp::MissionConstraintManager::mapToSpaceTime: cannot process empty list of requirements");
+    }
+
     std::vector<SpaceTime::SpaceIntervalTuple> tuples;
     for(const FluentTimeResource& ftr : ftrs)
     {
         SpaceTime::SpaceIntervalTuple tuple(ftr.getLocation(), ftr.getInterval());
         tuples.push_back(tuple);
     }
+
+    if(tuples.empty())
+    {
+        throw std::runtime_error("templ::solvers::csp::MissionConstraintManager::mapToSpaceTime: failed to map fluent to space time: " + FluentTimeResource::toString(ftrs, 8));
+    }
+
     return tuples;
 }
 

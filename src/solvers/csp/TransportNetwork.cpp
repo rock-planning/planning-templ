@@ -186,8 +186,8 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
 
     namespace ga = graph_analysis::algorithms;
 
-    FlawResolution::EvaluationList evalList = FlawResolution::selectBestResolution(*this, lastSpace, lastSpace.cost().val(), mFlawResolution.getResolutionOptions());
-    if(evalList.empty())
+    Constraint::PtrList constraints = FlawResolution::selectBestResolution(*this, lastSpace, lastSpace.cost().val(), mFlawResolution.getResolutionOptions());
+    if(constraints.empty())
     {
         std::cout << "    # no applicable resolvers better than " << lastSpace.cost().val() <<
             "-- failing search" << std::endl;
@@ -208,41 +208,14 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
     // Goal: we want to record the benefit of fixing a flaw for a 'master'
     // solution
 
-    for(const FlawResolution::Evaluation& e : evalList)
+    for(const Constraint::Ptr& constraint : constraints)
     {
-        mRequiredResolutionOptions.push_back( e.first );
+        mConstraints.push_back(constraint);
     }
 
-    for(const FlawResolution::ResolutionOption& resolutionOption : mRequiredResolutionOptions)
-    {
-        FlawResolution::applyResolutionOption(*this, lastSpace, resolutionOption);
-
-        // Recompute unary resource usage since constraints have changed
-        enforceUnaryResourceUsage();
-
-        if(msInteractive)
-        {
-            std::cout << "END next():" << std::endl;
-            std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-        }
-
-
-    }
-
-    //if(msInteractive)
-    //{
-    //    std::cout << "Relax model and role usage" << std::endl;
-    //    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    //}
-    //Gecode::Rnd r(1U);
-    //Gecode::relax(*this, mModelUsage, lastSpace.mModelUsage, r, 0.7);
-    //Gecode::relax(*this, mRoleUsage, lastSpace.mRoleUsage, r, -1.7);
-
-    //std::cout << "Before relax status:" << roleUsageToString() << std::endl;
-    //std::cout << "After status:" << modelUsageToString() << std::endl;
-    //std::cout << "After status:" << roleUsageToString() << std::endl;
-    //std::cout << "Model Usage: " << mModelUsage;
-    //std::cout << "Role Usage: " << mRoleUsage;
+    MissionConstraintManager::apply(constraints, *this);
+    // Recompute unary resource usage since constraints have changed
+    enforceUnaryResourceUsage();
 }
 
 // Constrain function is called with the last solution found as argument (if a

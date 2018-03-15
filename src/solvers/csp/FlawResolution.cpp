@@ -130,7 +130,136 @@ bool FlawResolution::next(bool random) const
     return true;
 }
 
-void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::Space& lastSolution, const ResolutionOption& resolutionOption)
+Constraint::PtrList FlawResolution::selectBestResolution(Gecode::Space& space,
+        const Gecode::Space& lastSolution,
+        uint32_t existingCost,
+        const FlawResolution::ResolutionOptions& resolutionOptions)
+{
+    Constraint::PtrList constraints = translate(space, lastSolution, resolutionOptions);
+
+    const TransportNetwork& transportNetwork = dynamic_cast<const TransportNetwork&>(lastSolution);
+
+    double cost = transportNetwork.cost().val();
+    double improvedCost = cost;
+
+    EvaluationList evaluationList;
+    Constraint::PtrList testGroup;
+    for(size_t a = 0; a < constraints.size() -1; ++a)
+    {
+        testGroup.push_back( constraints[a] );
+
+        Evaluation eval = evaluate(space, lastSolution, testGroup);
+        if(eval.second >= cost)
+        {
+            continue;
+        }
+        evaluationList.push_back(eval);
+        improvedCost = eval.second;
+        if(improvedCost == 0)
+        {
+            return testGroup;
+        }
+
+        for(size_t b = 0; b < constraints.size(); ++b)
+        {
+            testGroup.push_back(constraints[b]);
+            if(eval.second >= cost)
+            {
+                testGroup.pop_back();
+            } else {
+                evaluationList.push_back(eval);
+                if(eval.second == 0)
+                {
+                    return testGroup;
+                }
+                improvedCost = eval.second;
+            }
+        }
+    }
+
+    std::sort(evaluationList.begin(), evaluationList.end(), [](const Evaluation& a, const Evaluation& b)
+            {
+                return a.second < b.second;
+            });
+
+    return evaluationList.front().first;
+}
+
+FlawResolution::Evaluation FlawResolution::evaluate(Gecode::Space& space,
+        const Gecode::Space& lastSolution,
+        const Constraint::PtrList& constraints)
+{
+    Gecode::Space* master = space.clone();
+    TransportNetwork* transportNetwork = dynamic_cast<TransportNetwork*>(master);
+    MissionConstraintManager::apply(constraints, *transportNetwork);
+
+    Gecode::Search::Options options;
+    options.threads = 1;
+    Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(1);
+    options.cutoff = c;
+    // p 172 "the value of nogoods_limit described to which depth limit
+    // no-goods should be extracted from the path of the search tree
+    // maintained by the search engine
+    options.nogoods_limit = 128;
+    // recomputation distance
+    //options.c_d = 30;
+    // adaptive recomputation distance
+    // options.a_d =
+    // default node cutoff
+    // options.node =
+    // default failure cutoff
+    // options.fail
+    options.stop = Gecode::Search::Stop::time(30000);
+    transportNetwork->setUseMasterSlave(false);
+    Gecode::RBS<TransportNetwork, Gecode::DFS> searchEngine(transportNetwork, options);
+    TransportNetwork* solution = searchEngine.next();
+    double cost = std::numeric_limits<double>::max();
+
+    if(solution)
+    {
+        cost = solution->cost().val();
+        delete solution;
+        delete master;
+    }
+
+    return Evaluation(constraints, cost);
+}
+
+FluentTimeResource::List FlawResolution::getAffectedRequirements(const SpaceTime::Point& spacetime,
+            graph_analysis::algorithms::ConstraintViolation::Type violationType,
+            const FluentTimeResource::List allRequirements)
+{
+    if(allRequirements.empty())
+    {
+        throw std::invalid_argument("templ::solvers::csp::FlawResolution::getAffectedRequirements: requirements list is empty");
+    }
+
+    FluentTimeResource::List affected;
+    for(const FluentTimeResource& ftr : allRequirements)
+    {
+        if(ftr.getLocation()->equals(spacetime.first))
+        {
+            if(ftr.getInterval().contains(spacetime.second))
+            {
+                affected.push_back(ftr);
+            }
+        }
+    }
+
+    if(affected.empty())
+    {
+        throw std::runtime_error("templ::solvers::csp::FlawResolution::getAffectedRequirements: failed"
+                " to identify requirement for spacetime: " + spacetime.first->toString() + " " + spacetime.second->toString() +
+                FluentTimeResource::toString(allRequirements, 8)
+                );
+    }
+
+    return affected;
+}
+
+Constraint::Ptr FlawResolution::translate(Gecode::Space& space,
+        const Gecode::Space& lastSolution,
+        const ResolutionOption& resolutionOption)
 {
     const transshipment::Flaw& flaw = resolutionOption.first;
     size_t alternative = resolutionOption.second;
@@ -142,43 +271,8 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
     FluentTimeResource::List ftrs = getAffectedRequirements(flaw.getSpaceTime(),
             violationType, lastSpace.mResourceRequirements);
 
-    std::cout << "Apply resolution option for: " << flaw.toString(4) << std::endl;
     switch(violationType)
     {
-        //case ga::ConstraintViolation::TransFlow:
-            //std::cout << "Transflow violation: resolver option #" << alternative << std::endl;
-            //{
-            //    switch(alternative)
-            //    {
-            //        case 0:
-            //        {
-            //            //std::cout
-            //            //    << "    adding distiction constraint" << std::endl
-            //            //    << "         distinction for role " << flaw.affectedRole().getModel() << std::endl
-            //            //    << "         current space " << &currentSpace << std::endl
-            //            //    << "         last space " << &lastSpace << std::endl
-            //            //    << std::endl;
-
-            //            std::set<Role> uniqueRoles = MissionConstraints::getUniqueRoles(lastSpace.mRoleUsage,
-            //                    currentSpace.mRoles,
-            //                    currentSpace.mResourceRequirements,
-            //                    ftrs,
-            //                    flaw.affectedRole().getModel());
-
-            //            constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(constraints::ModelConstraint::MIN_DISTINCT,
-            //                    flaw.affectedRole().getModel(),
-            //                    MissionConstraintManager::mapToSpaceTime(ftrs),
-            //                    uniqueRoles.size() + 1);
-
-            //            currentSpace.addConstraint( constraint );
-            //            break;
-            //        }
-            //        default:
-            //            break;
-            //    }
-            //    break;
-            //}
-
         case ga::ConstraintViolation::MinFlow:
             std::cout << "Minflow violation: resolver option #" << alternative << std::endl;
             {
@@ -197,35 +291,12 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                                     MissionConstraintManager::mapToSpaceTime(ftrs),
                                     uniqueRoles.size() + abs(flaw.getViolation().getDelta()) );
 
-                            std::cout
-                                << "    adding distiction constraint" << std::endl
-                                << "        additional distinction for: " << abs(flaw.getViolation().getDelta()) << " and role: " << flaw.affectedRole().toString() << std::endl
-                                << "        current space " << &currentSpace << std::endl
-                                << "        last space " << &lastSpace << std::endl
-                                << constraint->toString(8);
-
-
-                            currentSpace.addConstraint( constraint );
-
-                            break;
+                            return constraint;
                     }
                     case 1:
                     {
-                        std::cout << "    add model requirement: for min one transport provider" << std::endl;
-                        std::cout << "        at spacetime: " << std::endl
-                                << SpaceTime::toString(flaw.getSpaceTime(), 8);
-                        std::cout << "        Resulting requirements: " << std::endl;
-
-                        if(TransportNetwork::msInteractive)
-                        {
-                            std::cout << "Add function requirement: available resources are" << std::endl;
-                            std::cout << currentSpace.mResources << std::endl;
-                            std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-                        }
-
-
                         FluentTimeResource::List ftrs = getAffectedRequirements(flaw.getSpaceTime(),
-                            violationType, lastSpace.mResourceRequirements, true);
+                            violationType, lastSpace.mResourceRequirements);
 
                         constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(
                                 constraints::ModelConstraint::MIN_FUNCTION,
@@ -233,9 +304,8 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                                 MissionConstraintManager::mapToSpaceTime(ftrs),
                                 1
                                 );
+                        return constraint;
 
-                        currentSpace.addConstraint( constraint );
-                        break;
                     }
                     default:
                         break;
@@ -243,26 +313,13 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
             break;
             }
         case ga::ConstraintViolation::TransFlow:
-            std::cout << "Transflow violation: resolver option #" << alternative << std::endl;
             break;
         case ga::ConstraintViolation::TotalTransFlow:
             switch(alternative)
             {
                 case 0:
-                    std::cout << "    add model requirement: for transport provider" << std::endl;
-                    std::cout << "        for min items: " << flaw.getViolation().getDelta() << std::endl;
-                    std::cout << "        at spacetime: " << std::endl
-                            << SpaceTime::toString(flaw.getSpaceTime(),8);
-
-                    if(TransportNetwork::msInteractive)
-                    {
-                        std::cout << "Add function requirement: available resources are" << std::endl;
-                        std::cout << currentSpace.mResources << std::endl;
-                        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-                    }
-
                     FluentTimeResource::List ftrs = getAffectedRequirements(flaw.getSpaceTime(),
-                        violationType, lastSpace.mResourceRequirements, true);
+                        violationType, lastSpace.mResourceRequirements);
 
                     constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(
                             constraints::ModelConstraint::MIN_PROPERTY,
@@ -271,139 +328,33 @@ void FlawResolution::applyResolutionOption(Gecode::Space& space, const Gecode::S
                             flaw.getViolation().getInFlow() + abs(flaw.getViolation().getDelta()),
                             organization_model::vocabulary::OM::resolve("transportCapacity")
                             );
+                    return constraint;
 
-                    currentSpace.addConstraint(constraint);
-                break;
             }
             break;
         case ga::ConstraintViolation::TotalMinFlow:
-            switch(alternative)
-            {
-            }
             break;
         default:
             std::cout << "Unknown violation constraint while try resolution" << std::endl;
             break;
     }
+    throw std::invalid_argument("templ::solvers::csp::FlawResolution::translate: failed to converte flaw resolution option to constraint");
 }
 
-
-std::vector< std::pair<FlawResolution::ResolutionOption, uint32_t> > FlawResolution::selectBestResolution(Gecode::Space& space, const Gecode::Space& lastSolution, uint32_t existingCost, const FlawResolution::ResolutionOptions& resolutionOptions)
+Constraint::PtrList FlawResolution::translate(Gecode::Space& space,
+        const Gecode::Space& lastSolution,
+        const ResolutionOptions& resolutionOptions)
 {
-    Gecode::Space* master = space.clone();
-
-    if(TransportNetwork::msInteractive)
+    Constraint::PtrList constraints;
+    for(const ResolutionOption& option : resolutionOptions)
     {
-        std::cout << "FlawResolution: try finding best resolver: resolution options size " << resolutionOptions.size() << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
-
-    EvaluationList improvingFlaws;
-
-    for(ResolutionOption option : resolutionOptions)
-    {
-        if(TransportNetwork::msInteractive)
+        Constraint::Ptr constraint = translate(space, lastSolution, option);
+        if(constraint)
         {
-            std::cout << "FlawResolution: try resolution options, existing cost: " << existingCost << std::endl;
-            std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-        }
-
-        Gecode::Space* slave = master->clone();
-        TransportNetwork* transportNetwork = dynamic_cast<TransportNetwork*>(slave);
-
-        FlawResolution::applyResolutionOption(*transportNetwork, lastSolution, option);
-
-        Gecode::Search::Options options;
-        options.threads = 1;
-        Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(1);
-        options.cutoff = c;
-        // p 172 "the value of nogoods_limit described to which depth limit
-        // no-goods should be extracted from the path of the search tree
-        // maintained by the search engine
-        options.nogoods_limit = 128;
-        // recomputation distance
-        //options.c_d = 30;
-        // adaptive recomputation distance
-        // options.a_d =
-        // default node cutoff
-        // options.node =
-        // default failure cutoff
-        // options.fail
-        options.stop = Gecode::Search::Stop::time(30000);
-        transportNetwork->setUseMasterSlave(false);
-        Gecode::RBS<TransportNetwork, Gecode::DFS> searchEngine(transportNetwork, options);
-        TransportNetwork* solution = searchEngine.next();
-        if(solution)
-        {
-            std::cout << "FlawResolution: found improving flaw resolver" << std::endl;
-            std::cout << "    cost: " << solution->cost() << std::endl;
-            std::cout << "    existing cost: " << existingCost << std::endl;
-            std::cout << "    remaining flaws: " << solution->mNumberOfFlaws.val() << std::endl;
-            if(TransportNetwork::msInteractive)
-            {
-                std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-            }
-
-            uint32_t delta = existingCost - (uint32_t) solution->cost().val();
-            Evaluation evaluation(option, delta);
-            improvingFlaws.push_back(evaluation);
-            if(solution->mNumberOfFlaws.val() == 0)
-            {
-                improvingFlaws.clear();
-                improvingFlaws.push_back(evaluation);
-                // break when zero flaw solution has been found
-                break;
-            }
-        } else {
-            std::cout << "FlawResolution: no improving flaw resolver (no solution found with constraint included)" << std::endl;
-            std::cout << "    cost: n/a" << std::endl;
-            std::cout << "    existing cost: " << existingCost << std::endl;
-            if(TransportNetwork::msInteractive)
-            {
-                std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-            }
-        }
-        delete solution;
-    }
-    delete master;
-    if(TransportNetwork::msInteractive)
-    {
-        std::cout << "FlawResolution: done finding best resolver" << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
-
-    return improvingFlaws;
-}
-
-FluentTimeResource::List FlawResolution::getAffectedRequirements(const SpaceTime::Point& spacetime,
-            graph_analysis::algorithms::ConstraintViolation::Type violationType, const FluentTimeResource::List allRequirements, bool single)
-{
-    FluentTimeResource::List affected;
-    for(const FluentTimeResource& ftr : allRequirements)
-    {
-        if(ftr.getLocation() == spacetime.first && (ftr.getInterval().getFrom() == spacetime.second ||
-                ftr.getInterval().getTo() == spacetime.second))
-        {
-            affected.push_back(ftr);
+            constraints.push_back(constraint);
         }
     }
-    if(single)
-    {
-        return affected;
-    }
-
-    switch(violationType)
-    {
-        case ga::ConstraintViolation::MinFlow:
-        case ga::ConstraintViolation::TotalMinFlow:
-            break;
-        case ga::ConstraintViolation::TransFlow:
-        case ga::ConstraintViolation::TotalTransFlow:
-            break;
-        default:
-            break;
-    }
-    return affected;
+    return constraints;
 }
 
 } // end namespace csp

@@ -28,6 +28,13 @@ class MissionConstraintManager
 {
 public:
     /**
+     * Apply a list of generic constraints to a TransportNetowkr
+     * \param constraint list Constraints to apply
+     * \param transportNetwork TransportNetwork to apply the constraint to
+     */
+    static void apply(const Constraint::PtrList& constraints,
+            TransportNetwork& transportNetwork);
+    /**
      * Apply a generic constraint to a TransportNetwork
      * \param constraint Constraint to apply
      * \param transportNetwork TransportNetwork to apply the constraint to

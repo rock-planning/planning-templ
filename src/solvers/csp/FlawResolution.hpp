@@ -25,7 +25,7 @@ public:
     typedef std::vector<size_t> Draw;
     typedef std::vector< Draw > DrawList;
 
-    typedef std::pair<FlawResolution::ResolutionOption, uint32_t> Evaluation;
+    typedef std::pair<Constraint::PtrList, double> Evaluation;
     typedef std::vector<Evaluation> EvaluationList;
 
     FlawResolution();
@@ -46,8 +46,8 @@ public:
     ResolutionOptions current() const;
 
     static FluentTimeResource::List getAffectedRequirements(const SpaceTime::Point& timepoint,
-            graph_analysis::algorithms::ConstraintViolation::Type violationType, const FluentTimeResource::List allRequirements, bool single = false);
-
+            graph_analysis::algorithms::ConstraintViolation::Type violationType,
+            const FluentTimeResource::List allRequirements);
     /**
      * Return the list of resolution options
      */
@@ -74,10 +74,22 @@ public:
     static std::string toString(const ResolutionOptions& options);
     static std::string toString(const Draw& draw);
 
+    static Constraint::PtrList selectBestResolution(Gecode::Space& space,
+            const Gecode::Space& lastSolution,
+            uint32_t existingCost,
+            const FlawResolution::ResolutionOptions& resolutionOptions);
 
-    static void applyResolutionOption(Gecode::Space& space, const Gecode::Space& lastSolution, const ResolutionOption& resolutionOption);
+    static Evaluation evaluate(Gecode::Space& space,
+            const Gecode::Space& lastSolution,
+            const Constraint::PtrList& constraints);
 
-    static EvaluationList selectBestResolution(Gecode::Space& space, const Gecode::Space& lastSolution, uint32_t existingCost, const ResolutionOptions& resolutionOptions);
+    static Constraint::Ptr translate(Gecode::Space& space,
+            const Gecode::Space& lastSolution,
+            const ResolutionOption& resolutionOption);
+
+    static Constraint::PtrList translate(Gecode::Space& space,
+            const Gecode::Space& lastSolution,
+            const ResolutionOptions& resolutionOptions);
 
 private:
     mutable std::mt19937 mGenerator;
