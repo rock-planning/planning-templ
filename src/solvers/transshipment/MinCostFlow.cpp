@@ -25,7 +25,7 @@ MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
     , mSortedTimepoints(sortedTimepoints)
     , mTimelines(timelines)
     , mExpandedTimelines(expandedTimelines)
-    , mFlowNetwork(mission, timelines, expandedTimelines)
+    , mFlowNetwork(mission, mSortedTimepoints, timelines, expandedTimelines)
     , mSpaceTimeNetwork(mFlowNetwork.getSpaceTimeNetwork())
 {
     // Create virtual start and end depot vertices and connect them with the

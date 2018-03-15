@@ -26,10 +26,14 @@ class FlowNetwork
 public:
     /**
      * Default constructor of the flow network
+     * \param mission Mission to which this flow network is related
+     * \param sortedTimepoints List of sorted timepoints (which allows to create
+     * the temporally expanded network)
      * \param minimalTimelines The set of minimal requirement per role
      * \param expandedTimelines The set of additional requirements for roles
      */
     FlowNetwork(const Mission::Ptr& mission,
+        const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
         const std::map<Role, csp::RoleTimeline>& minimalTimelines,
         const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines());
 

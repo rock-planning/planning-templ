@@ -15,27 +15,15 @@ namespace solvers {
 namespace transshipment {
 
 FlowNetwork::FlowNetwork(const Mission::Ptr& mission,
+        const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
         const std::map<Role, csp::RoleTimeline>& timelines,
         const SpaceTime::Timelines& expandedTimelines)
     : mpMission(mission)
-    , mSpaceTimeNetwork(mpMission->getLocations(), mpMission->getTimepoints())
+    , mSpaceTimeNetwork(mpMission->getLocations(), sortedTimepoints)
     , mTimelines(timelines)
     , mExpandedTimelines(expandedTimelines)
 {
     assert(mpMission);
-
-    if(!mpMission->getTemporalConstraintNetwork()->isConsistent())
-    {
-        std::string filename = mpMission->getLogger()->filename("transport-network-temporally-constrained-network.dot");
-        graph_analysis::io::GraphIO::write(filename, mpMission->getTemporalConstraintNetwork()->getGraph());
-        LOG_DEBUG_S << "Written temporal constraint network to: " << filename;
-        LOG_DEBUG_S << "(e.g. view with 'xdot " << filename << "'" << ")";
-
-        throw std::runtime_error("templ::solvers::transshipment::FlowNetwork: "
-                "cannot create transport network from mission with inconsistent temporal constraint"
-                " network");
-    }
-
     initialize();
 }
 
@@ -181,40 +169,41 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
             << "    transport capacity: " << capacity << std::endl;
 
         namespace pa = templ::solvers::temporal::point_algebra;
-        pa::TimePoint::Ptr prevIntervalEnd;
-        co::Location::Ptr prevLocation;
-        SpaceTime::Network::tuple_t::Ptr startTuple, endTuple;
+        SpaceTime::Network::tuple_t::Ptr edgeSourceTuple, edgeTargetTuple;
 
         LOG_INFO_S << "Process (time-sorted) timeline: " << roleTimeline.toString();
         const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
         std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
-        RoleInfo::Tag tag = RoleInfo::AVAILABLE;
+        RoleInfo::Tag tag = RoleInfo::REQUIRED;
         for(; fit != ftrs.end(); ++fit)
         {
             const FluentTimeResource& ftr = *fit;
             symbols::constants::Location::Ptr location = ftr.getLocation();
             solvers::temporal::Interval interval = ftr.getInterval();
 
+            // Get all involved tuples
+            SpaceTime::Network::tuple_t::PtrList tuples = mSpaceTimeNetwork.getTuples(interval.getFrom(), interval.getTo(), location);
+            for(const SpaceTime::Network::tuple_t::Ptr& tuple : tuples)
+            {
+                tuple->addRole(role, tag);
+            }
+
+            if(updateRolesOnly)
+            {
+                continue;
+            }
+
             // create tuple if it does not exist?
-            endTuple = mSpaceTimeNetwork.tupleByKeys(location, interval.getFrom());
-            endTuple->addRole(role, tag);
+            edgeTargetTuple = tuples.front();
 
             // Find start node: Tuple of location and interval.getFrom()
             // This is where the agent is available
-            if(prevIntervalEnd)
+            if(edgeSourceTuple)
             {
-                startTuple = mSpaceTimeNetwork.tupleByKeys(prevLocation, prevIntervalEnd);
-                startTuple->addRole(role, tag);
-
-                if(updateRolesOnly)
-                {
-                    continue;
-                }
-
-                std::vector< RoleInfoWeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<RoleInfoWeightedEdge>(startTuple, endTuple);
+                std::vector< RoleInfoWeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<RoleInfoWeightedEdge>(edgeSourceTuple, edgeTargetTuple);
                 if(edges.empty())
                 {
-                    RoleInfoWeightedEdge::Ptr weightedEdge(new RoleInfoWeightedEdge(startTuple, endTuple, capacity));
+                    RoleInfoWeightedEdge::Ptr weightedEdge(new RoleInfoWeightedEdge(edgeSourceTuple, edgeTargetTuple, capacity));
                     mSpaceTimeNetwork.getGraph()->addEdge(weightedEdge);
                 } else if(edges.size() > 1)
                 {
@@ -228,11 +217,8 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
                         existingEdge->setWeight(capacity, 0 /*index of 'overall capacity'*/);
                     }
                 }
-                tag = RoleInfo::REQUIRED;
             }
-
-            prevIntervalEnd = interval.getTo();
-            prevLocation = location;
+            edgeSourceTuple = tuples.back();
         }
     }
 }
