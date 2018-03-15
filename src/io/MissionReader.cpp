@@ -198,7 +198,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                                 " and to '" + requirement.temporal.to + "'");
                     }
 
-                    LOG_WARN_S << "Handle: requirement: " << requirement.toString();
+                    LOG_DEBUG_S << "Handle: requirement: " << requirement.toString();
                     std::vector<ResourceRequirement>::const_iterator cit = requirement.resources.begin();
                     for(; cit != requirement.resources.end(); ++cit)
                     {
@@ -592,7 +592,7 @@ SpatioTemporalRequirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNode
             {
                 LOG_DEBUG_S << "Parse resources requirement";
                 requirement.resources = parseResourceRequirements(doc, requirementNode);
-                LOG_WARN_S << "Parsed resources requirement";
+                LOG_DEBUG_S << "Parsed resources requirement";
             }
             requirementNode = requirementNode->next;
         }
