@@ -74,6 +74,12 @@ public:
      */
     virtual std::string toString(uint32_t indent) const = 0;
 
+    /**
+     * Get string object for list of constraints
+     * \return string object
+     */
+    static std::string toString(const PtrList& constraints, size_t indent);
+
 private:
     Category mCategory;
 };

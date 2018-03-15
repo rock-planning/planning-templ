@@ -30,4 +30,16 @@ bool Constraint::operator==(const Constraint& other) const
     return mCategory == other.mCategory;
 }
 
+std::string Constraint::toString(const Constraint::PtrList& constraints, size_t indent)
+{
+    std::string hspace(indent,' ');
+    std::stringstream ss;
+    ss << hspace << "Constraints:" << std::endl;
+    for(const Constraint::Ptr& constraint : constraints)
+    {
+        ss << constraint->toString(indent + 4);
+    }
+    return ss.str();
+}
+
 } // end namespace templ
