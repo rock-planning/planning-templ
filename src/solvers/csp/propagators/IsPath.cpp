@@ -277,7 +277,7 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x
         uint32_t numberOfTimepoints, uint32_t numberOfFluents,
         int minPathLength, int maxPathLength)
 {
-    // Setup the basic contraints for the timeline
+    // Setup the basic constraints for the timeline
     // i.e. only edges from one timestep to the next are allowed
     for(size_t t = 0; t < numberOfTimepoints; ++t)
     {
@@ -298,6 +298,7 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x
             //v.exclude(home, 0, (t+1)*numberOfFluents - 1);
             //v.exclude(home, (t+2)*numberOfFluents, numberOfTimepoints*numberOfFluents);
 
+            // Edge activation and cardinality of the set correspond
             Gecode::cardinality(home, edgeActivation, cardinalities[l]);
         }
 
@@ -305,15 +306,16 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x
         // timepoint
         if(minPathLength > boost::numeric_cast<int>(t) )
         {
+            // sum of cardinality has to be 1 for the same timepoint
             Gecode::linear(home, cardinalities, Gecode::IRT_EQ, 1);
         } else if(maxPathLength < boost::numeric_cast<int>(numberOfTimepoints) && boost::numeric_cast<int>(t) > maxPathLength)
-        {//// Constraint the path length only if it makes sense
+        {// Constraint the path length only if it makes sense
             Gecode::linear(home, cardinalities, Gecode::IRT_EQ, 0);
-        //} else {
-        //    // Limit to one outgoing edge per timestep
-        //    // Less or equal cardinality of 1
-        //    // sum of cardinalities
-        //    Gecode::linear(home, cardinalities, Gecode::IRT_LQ, 1);
+        } else {
+            // Limit to one outgoing edge per timestep
+            // Less or equal cardinality of 1
+            // sum of cardinalities
+            Gecode::linear(home, cardinalities, Gecode::IRT_LQ, 1);
         }
     }
 
@@ -381,6 +383,7 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
     //    << "    waypoints: " << waypointsToString()
     //    << std::endl;
 
+    // process assignments
     while(!mAssignedTimepointIndices.empty())
     {
         int timepoint = mAssignedTimepointIndices.back();
@@ -416,7 +419,7 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
                 }
             }
             // There can be only one --
-            // which should not be needed since wit have established the
+            // which should not be needed since we have established the
             // linear constraint on cardinality already
             ModEvent ev = disableSametimeView(home, idx);
             if(ev == Gecode::ME_GEN_FAILED)
