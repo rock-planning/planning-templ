@@ -13,7 +13,8 @@ int main(int argc, char **argv)
 {
     // setting up qt application
     QApplication app(argc, argv);
-    app.setApplicationName("Templ");
+    app.setOrganizationName("Templ");
+    app.setApplicationName("Gui");
 
     Q_INIT_RESOURCE(resources);
 

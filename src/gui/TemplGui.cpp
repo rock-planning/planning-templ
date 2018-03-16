@@ -498,14 +498,14 @@ QMenu* TemplGui::createRecentFilesMenu()
         }
 
         QAction* clearRecentFiles = NULL;
-        if(name == "Mission")
+        if(name == "Missions")
         {
             clearRecentFiles = comm.addAction("Clear list", SLOT(clearRecentMissions()), style.standardIcon(QStyle::SP_TrashIcon), QKeySequence(Qt::ControlModifier & Qt::Key_C), tr("Clear recent files"));
-        } else if(name == "Solution")
+        } else if(name == "Solutions")
         {
             clearRecentFiles = comm.addAction("Clear list", SLOT(clearRecentSolutions()), style.standardIcon(QStyle::SP_TrashIcon), QKeySequence(Qt::ControlModifier & Qt::Key_C), tr("Clear recent files"));
         } else {
-            clearRecentFiles = comm.addAction("Clear list", SLOT(clearRecentFileList()), style.standardIcon(QStyle::SP_TrashIcon), QKeySequence(Qt::ControlModifier & Qt::Key_C), tr("Clear recent files"));
+            clearRecentFiles = comm.addAction("Clear list", SLOT(clearRecentGraphs()), style.standardIcon(QStyle::SP_TrashIcon), QKeySequence(Qt::ControlModifier & Qt::Key_C), tr("Clear recent files"));
         }
 
         recentFilesSubMenu->addSeparator();

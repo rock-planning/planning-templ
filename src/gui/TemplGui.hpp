@@ -99,7 +99,8 @@ private slots:
     void updateRecentFileActions();
     void updateRecentFileActions(const QString& label);
 
-    void clearRecentFileList(const QString& name = "Graphs");
+    void clearRecentFileList(const QString& name);
+    void clearRecentGraphs() { clearRecentFileList("Graphs"); }
     void clearRecentSolutions() { clearRecentFileList("Solutions"); }
     void clearRecentMissions() { clearRecentFileList("Missions"); }
 
