@@ -136,6 +136,11 @@ Constraint::PtrList FlawResolution::selectBestResolution(Gecode::Space& space,
         const FlawResolution::ResolutionOptions& resolutionOptions)
 {
     Constraint::PtrList constraints = translate(space, lastSolution, resolutionOptions);
+    if(constraints.empty())
+    {
+        throw std::invalid_argument("templ::solvers::csp::FlawResolution::selectBestResolution: "
+                " no constraints given");
+    }
 
     const TransportNetwork& transportNetwork = dynamic_cast<const TransportNetwork&>(lastSolution);
 
@@ -144,36 +149,24 @@ Constraint::PtrList FlawResolution::selectBestResolution(Gecode::Space& space,
 
     EvaluationList evaluationList;
     Constraint::PtrList testGroup;
-    for(size_t a = 0; a < constraints.size() -1; ++a)
+    for(size_t a = 0; a < constraints.size(); ++a)
     {
         testGroup.push_back( constraints[a] );
 
         Evaluation eval = evaluate(space, lastSolution, testGroup);
-        if(eval.second >= cost)
+        if(eval.second >= improvedCost)
         {
+            // remove constraint that deteriorated/did not improve the solution
+            testGroup.pop_back();
             continue;
+        } else {
+            evaluationList.push_back(eval);
+            improvedCost = eval.second;
         }
-        evaluationList.push_back(eval);
-        improvedCost = eval.second;
+
         if(improvedCost == 0)
         {
             return testGroup;
-        }
-
-        for(size_t b = 0; b < constraints.size(); ++b)
-        {
-            testGroup.push_back(constraints[b]);
-            if(eval.second >= cost)
-            {
-                testGroup.pop_back();
-            } else {
-                evaluationList.push_back(eval);
-                if(eval.second == 0)
-                {
-                    return testGroup;
-                }
-                improvedCost = eval.second;
-            }
         }
     }
 
@@ -246,10 +239,14 @@ FluentTimeResource::List FlawResolution::getAffectedRequirements(const SpaceTime
         }
     }
 
+    // if not affected requirement is found, then
+    // the flaw has not relevant with respect to the actual requirement of the
+    // mission
+    // hence no additional action should be required
     if(affected.empty())
     {
-        throw std::runtime_error("templ::solvers::csp::FlawResolution::getAffectedRequirements: failed"
-                " to identify requirement for spacetime: " + spacetime.first->toString() + " " + spacetime.second->toString() +
+        throw std::invalid_argument("templ::solvers::csp::FlawResolution::getAffectedRequirements: failed"
+                " to identify requirement for spacetime -- so no relevance: " + spacetime.first->toString() + " " + spacetime.second->toString() +
                 FluentTimeResource::toString(allRequirements, 8)
                 );
     }
@@ -348,10 +345,23 @@ Constraint::PtrList FlawResolution::translate(Gecode::Space& space,
     Constraint::PtrList constraints;
     for(const ResolutionOption& option : resolutionOptions)
     {
-        Constraint::Ptr constraint = translate(space, lastSolution, option);
-        if(constraint)
+        try {
+            Constraint::Ptr constraint = translate(space, lastSolution, option);
+            if(constraint)
+            {
+                Constraint::PtrList::const_iterator cit = std::find_if(constraints.begin(), constraints.end(), [constraint](const Constraint::Ptr& c)
+                        {
+                            return *c.get() == *constraint.get();
+                        });
+
+                if(cit == constraints.end())
+                {
+                    constraints.push_back(constraint);
+                }
+            }
+        } catch(const std::invalid_argument& e)
         {
-            constraints.push_back(constraint);
+            LOG_INFO_S << "Translation failed for irrelevant flaw: " << e.what();
         }
     }
     return constraints;
