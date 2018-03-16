@@ -76,8 +76,8 @@ private:
     QMenu* createRecentFilesMenu();
 
 private slots:
-    void importSolution() { importGraph("Solutions"); }
-    void importGraph(const QString& settingsLabel = "Graphs");
+    void importSolution() { importGraph("IOSolutions"); }
+    void importGraph(const QString& settingsLabel = "IOGraphs");
 
     void importMission() { }
 
@@ -91,18 +91,17 @@ private slots:
      * \param settingsLabel Label to separate the recentImportFileList under
      * different namespaces in QSettings
      */
-    void importRecentGraph(const QString& settingsLabel = "Graphs");
-
-    void importRecentSolution() { importRecentGraph("Solutions"); }
+    void importRecentGraph(const QString& settingsLabel = "IOGraphs");
+    void importRecentSolution() { importRecentGraph("IOSolutions"); }
     void importRecentMission();
 
     void updateRecentFileActions();
     void updateRecentFileActions(const QString& label);
 
     void clearRecentFileList(const QString& name);
-    void clearRecentGraphs() { clearRecentFileList("Graphs"); }
-    void clearRecentSolutions() { clearRecentFileList("Solutions"); }
-    void clearRecentMissions() { clearRecentFileList("Missions"); }
+    void clearRecentGraphs() { clearRecentFileList("IOGraphs"); }
+    void clearRecentSolutions() { clearRecentFileList("IOSolutions"); }
+    void clearRecentMissions() { clearRecentFileList("IOMissions"); }
 
     void setChecked(bool check) { std::cout << "CHECKED: " << check; }
 

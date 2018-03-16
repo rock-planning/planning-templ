@@ -243,14 +243,14 @@ void TemplGui::registerGraphElementTypes()
 
 void TemplGui::updateRecentFileActions()
 {
-    updateRecentFileActions("Solutions");
-    updateRecentFileActions("Missions");
-    updateRecentFileActions("Graphs");
+    updateRecentFileActions("IOSolutions");
+    updateRecentFileActions("IOMissions");
+    updateRecentFileActions("IOGraphs");
 }
 
 void TemplGui::updateRecentFileActions(const QString& label)
 {
-    QSettings settings(QCoreApplication::organizationName(), "IO" + label);
+    QSettings settings(QCoreApplication::organizationName(), label);
     QList<QAction*> recentFileActions = mpRecentFileActionsMap[label];
 
     QStringList files = settings.value("recentImportFileList").toStringList();
@@ -458,7 +458,7 @@ void TemplGui::exportScene()
 
 void TemplGui::clearRecentFileList(const QString& name)
 {
-    QSettings settings(QCoreApplication::organizationName(), "IO" + name);
+    QSettings settings(QCoreApplication::organizationName(), name);
     QStringList files;
     settings.setValue("recentImportFileList", files);
     updateRecentFileActions();
@@ -478,7 +478,7 @@ QMenu* TemplGui::createRecentFilesMenu()
     foreach(const QString& name, recentFileList)
     {
         QMenu* recentFilesSubMenu = new QMenu("&" + name);
-        QList<QAction*>& subMenuActionList = mpRecentFileActionsMap[name];
+        QList<QAction*>& subMenuActionList = mpRecentFileActionsMap["IO" + name];
 
         // Populate the recent files list
         for(int i = 0; i < MaxRecentFiles; ++i)
