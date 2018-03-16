@@ -82,15 +82,15 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     mpTimepointLabel->setPos(mpTimepointSvg->pos() + QPointF(xLabelOffset,0));
 
     // Add extra visualization
-    mpEllipse = new QGraphicsEllipseItem(-45,-45,40,40, this);
-    mpEllipse->setPos(mpRect->rect().bottomRight());
-    mpEllipse->setPen(QPen(Qt::gray));
+    //mpEllipse = new QGraphicsEllipseItem(-45,-45,40,40, this);
+    //mpEllipse->setPos(mpRect->rect().bottomRight());
+    //mpEllipse->setPen(QPen(Qt::gray));
     //mpEllipse->setBrush(QBrush(Qt::darkGray, Qt::NoBrush) );
 
-    mpEllipseText = new QGraphicsTextItem("0.95", this);
-    mpEllipseText->setPos(mpEllipse->pos() + (mpEllipse->boundingRect().center() - mpEllipseText->boundingRect().center()) );
-    mpEllipseText->setPlainText("0.95");
-    mpEllipseText->setDefaultTextColor(Qt::gray);
+    //mpEllipseText = new QGraphicsTextItem("0.95", this);
+    //mpEllipseText->setPos(mpEllipse->pos() + (mpEllipse->boundingRect().center() - mpEllipseText->boundingRect().center()) );
+    //mpEllipseText->setPlainText("0.95");
+    //mpEllipseText->setDefaultTextColor(Qt::gray);
 
 
     int yPos = 50;
