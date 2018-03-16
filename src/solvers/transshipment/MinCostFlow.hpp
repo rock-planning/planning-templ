@@ -34,7 +34,9 @@ public:
     MinCostFlow(const Mission::Ptr& mission,
             const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
             const std::map<Role, csp::RoleTimeline>& minimalTimelines,
-            const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines());
+            const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines(),
+            graph_analysis::algorithms::LPSolver::Type solverType = graph_analysis::algorithms::LPSolver::GLPK_SOLVER
+            );
 
 
     /**
@@ -144,6 +146,7 @@ private:
     SpaceTime::Network mSpaceTimeNetwork;
     // Store the mapping between flow graph and space time network
     graph_analysis::BipartiteGraph mBipartiteGraph;
+    graph_analysis::algorithms::LPSolver::Type mSolverType;
 };
 
 } // end namespace transshipment

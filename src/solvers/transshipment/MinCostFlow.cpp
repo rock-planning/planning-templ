@@ -20,13 +20,15 @@ namespace transshipment {
 MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
         const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
         const std::map<Role, csp::RoleTimeline>& timelines,
-        const SpaceTime::Timelines& expandedTimelines)
+        const SpaceTime::Timelines& expandedTimelines,
+            graph_analysis::algorithms::LPSolver::Type solverType)
     : mpMission(mission)
     , mSortedTimepoints(sortedTimepoints)
     , mTimelines(timelines)
     , mExpandedTimelines(expandedTimelines)
     , mFlowNetwork(mission, mSortedTimepoints, timelines, expandedTimelines)
     , mSpaceTimeNetwork(mFlowNetwork.getSpaceTimeNetwork())
+    , mSolverType(solverType)
 {
     // Create virtual start and end depot vertices and connect them with the
     // current start and end vertices
@@ -213,7 +215,7 @@ std::vector<Flaw> MinCostFlow::run(bool doThrow)
     setCommoditySupplyAndDemand();
     setDepotRestrictions(flowGraph, numberOfCommodities);
 
-    MultiCommodityMinCostFlow minCostFlow(flowGraph, numberOfCommodities, LPSolver::GLPK_SOLVER);
+    MultiCommodityMinCostFlow minCostFlow(flowGraph, numberOfCommodities, mSolverType);
     // LOGGING
     {
         std::string filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow-init.gexf");
@@ -221,14 +223,6 @@ std::vector<Flaw> MinCostFlow::run(bool doThrow)
     }
 
     std::string prefixPath = mpMission->getLogger()->filename("multicommodity-min-cost-flow");
-
-    //{
-    //    MultiCommodityMinCostFlow scipSolution(flowGraph, numberOfCommodities, LPSolver::SCIP_SOLVER);
-    //    algorithms::LPSolver::Status scipStatus = scipSolution.solve(prefixPath);
-    //    std::cout << "Scip based verification returned: " << algorithms::LPSolver::StatusTxt[scipStatus] << std::endl;
-
-    //}
-
     algorithms::LPSolver::Status status = minCostFlow.solve(prefixPath);
     switch(status)
     {
