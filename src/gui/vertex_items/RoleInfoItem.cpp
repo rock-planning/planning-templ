@@ -63,9 +63,9 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     assert(tuple);
 
     mpLabel = new QGraphicsTextItem(QString(""), this);
-    QFont font = mpLabel->font();
-    font.setBold(true);
-    mpLabel->setFont(font);
+    //QFont font = mpLabel->font();
+    //font.setBold(true);
+    //mpLabel->setFont(font);
 
     qreal fontSize = 25.0;
     int xLabelOffset = 25;
@@ -73,13 +73,19 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     mpLocationSvg->setScale(fontSize/ mpLocationSvg->renderer()->defaultSize().height());
     mpLocationSvg->setPos(0,-50);
     mpLocationLabel = new QGraphicsTextItem(QString(tuple->first()->getInstanceName().c_str()), this);
-    mpLocationLabel->setPos(mpLocationSvg->pos() + QPointF(xLabelOffset,0));
+    mpLocationLabel->setPos(mpLocationSvg->pos() + QPointF(xLabelOffset,-5));
 
     mpTimepointSvg = new QGraphicsSvgItem(":/resources/pictograms/timepoint.svg", this);
     mpTimepointSvg->setScale(fontSize/ mpTimepointSvg->renderer()->defaultSize().height());
     mpTimepointSvg->setPos(mpLocationSvg->pos() + QPoint(0,xLabelOffset + 3));
     mpTimepointLabel = new QGraphicsTextItem(QString(tuple->second()->getLabel().c_str()), this);
-    mpTimepointLabel->setPos(mpTimepointSvg->pos() + QPointF(xLabelOffset,0));
+    mpTimepointLabel->setPos(mpTimepointSvg->pos() + QPointF(xLabelOffset,-5));
+
+    QFont font = mpTimepointLabel->font();
+    font.setPointSize(15);
+    font.setBold(true);
+    mpLocationLabel->setFont(font);
+    mpTimepointLabel->setFont(font);
 
     // Add extra visualization
     //mpEllipse = new QGraphicsEllipseItem(-45,-45,40,40, this);
@@ -134,6 +140,7 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
             ss << "    " << r.toString() << std::endl;
         }
         mBorderPen.setColor(Qt::red);
+        mBorderPen.setStyle( Qt::DashLine);
     }
     Role::List superfluous = tuple->getRelativeComplement(RoleInfo::TagTxt[ RoleInfo::ASSIGNED ], RoleInfo::TagTxt[ RoleInfo::REQUIRED ]);
     if(!superfluous.empty())
@@ -393,7 +400,7 @@ QGraphicsProxyWidget* RoleInfoItem::addModelTable(const owlapi::model::IRI& mode
                     tableWidget->item(r,c)->setBackground(Qt::black);
                     break;
                 case RoleInfo::NOTREQUIRED_ASSIGNED:
-                    tableWidget->item(r,c)->setBackground(Qt::yellow);
+                    tableWidget->item(r,c)->setBackground(Qt::lightGray);
                     break;
                 case RoleInfo::REQUIRED_ASSIGNED:
                     tableWidget->item(r,c)->setBackground(Qt::green);
