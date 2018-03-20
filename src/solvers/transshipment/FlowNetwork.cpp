@@ -119,12 +119,18 @@ void FlowNetwork::initializeExpandedTimelines()
                 } else { // one edge -- sum up capacities of mobile systems
                     RoleInfoWeightedEdge::Ptr& existingEdge = edges[0];
                     double existingCapacity = existingEdge->getWeight();
-                    existingEdge->addRole(role, tag);
-
-                    if(existingCapacity < std::numeric_limits<RoleInfoWeightedEdge::value_t>::max())
+                    if(!existingEdge->hasRole(role, tag))
                     {
-                        capacity += existingCapacity;
-                        existingEdge->setWeight(capacity, 0 /*index of 'overall capacity'*/);
+                        existingEdge->addRole(role, tag);
+
+                        if(existingCapacity < std::numeric_limits<RoleInfoWeightedEdge::value_t>::max())
+                        {
+                            uint32_t newCapacity = existingCapacity + capacity;
+                            existingEdge->setWeight(newCapacity, 0 /*index of 'overall capacity'*/);
+                        }
+                    } else {
+                        throw std::runtime_error("templ::solvers::transshipment::FlowNetwork::initializeExpandedTimelines: Edge has already been assigned for role: "
+                                + role.toString());
                     }
                 }
             } else {
