@@ -86,7 +86,7 @@ struct MissionFixture
         TransportNetwork* solver = new TransportNetwork(mission);
         if(constraint)
         {
-            solver->addConstraint(constraint);
+            solver->addConstraint(constraint, *solver);
         }
         solve(solver, mission);
         delete solver;

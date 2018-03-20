@@ -175,6 +175,11 @@ Constraint::PtrList FlawResolution::selectBestResolution(Gecode::Space& space,
                 return a.second < b.second;
             });
 
+    if(evaluationList.empty())
+    {
+        return Constraint::PtrList();
+    }
+
     return evaluationList.front().first;
 }
 

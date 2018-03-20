@@ -210,10 +210,8 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
 
     for(const Constraint::Ptr& constraint : constraints)
     {
-        mConstraints.push_back(constraint);
+        addConstraint(constraint, *this);
     }
-
-    MissionConstraintManager::apply(constraints, *this);
     // Recompute unary resource usage since constraints have changed
     enforceUnaryResourceUsage();
 }
@@ -531,6 +529,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Con
 
     // Mission additional constraints
     applyMissionConstraints();
+    applyExtraConstraints();
 
     // (C) Avoid computation of solutions that are redunant
     // Gecode documentation says however in 8.10.2 that "Symmetry breaking by
@@ -862,6 +861,14 @@ void TransportNetwork::initializeRoleDistributionConstraints()
 void TransportNetwork::applyMissionConstraints()
 {
     for(const Constraint::Ptr& constraint : mpMission->getConstraints())
+    {
+        MissionConstraintManager::apply(constraint, *this);
+    }
+}
+
+void TransportNetwork::applyExtraConstraints()
+{
+    for(const Constraint::Ptr& constraint : mConstraints)
     {
         MissionConstraintManager::apply(constraint, *this);
     }
@@ -1201,11 +1208,10 @@ solvers::Session::Ptr TransportNetwork::run(const templ::Mission::Ptr& mission, 
     return session;
 }
 
-void TransportNetwork::addConstraint(const Constraint::Ptr& constraint)
+void TransportNetwork::addConstraint(const Constraint::Ptr& constraint, TransportNetwork& network)
 {
     mConstraints.push_back(constraint);
-
-    MissionConstraintManager::apply(constraint, *this);
+    MissionConstraintManager::apply(constraint, network);
 }
 
 Constraint::PtrList TransportNetwork::getAssignmentsAsConstraints() const
@@ -1677,7 +1683,7 @@ void TransportNetwork::postRoleAssignments()
     //branchTimelines(*this, mTimelines, mSupplyDemand);
     Gecode::branch(*this, &TransportNetwork::doPostMinCostFlow);
 
-//    Gecode::Gist::stopBranch(*this);
+    Gecode::Gist::stopBranch(*this);
 }
 
 
