@@ -374,9 +374,15 @@ protected:
     void initializeRoleDistributionConstraints();
 
     /**
-     * Apply all 'extra' mission constraints
+     * Apply all extra mission constraints that are part of the original
+     * mission specification
      */
     void applyMissionConstraints();
+
+    /**
+     * Apply all 'extra' constraints
+     */
+    void applyExtraConstraints();
 
     /**
      * Limit the usage of instances/roles to 1 for concurrent requirements
@@ -435,7 +441,7 @@ public:
     /**
      * Add a general constraint
      */
-    void addConstraint(const Constraint::Ptr& constraint);
+    void addConstraint(const Constraint::Ptr& constraint, TransportNetwork& network);
 
     /**
      * Get the current assignments as constraints
