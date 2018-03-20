@@ -998,6 +998,11 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             "flaws",
             "cost"});
 
+    if( configuration.getValueAs<bool>("TransportNetwork/use-transfer-location"))
+    {
+        mission->enableTransferLocation();
+    }
+
     /// Check if interactive mode should be used during the solution process
     TransportNetwork::msInteractive = configuration.getValueAs<bool>("TransportNetwork/search/interactive",false);
 

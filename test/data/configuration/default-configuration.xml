@@ -1,5 +1,6 @@
 <templ-configuration>
     <TransportNetwork>
+        <use-transfer-location>false</use-transfer-location>
         <search>
             <options>
                 <threads>1</threads>

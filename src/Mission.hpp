@@ -494,6 +494,11 @@ public:
      */
     void saveInputData(const std::string& path) const;
 
+    /**
+     * Enable the use of a transfer location
+     */
+    void enableTransferLocation() { requireConstant(mpTransferLocation); }
+
 protected:
     /**
      * Require a constant to be declared
