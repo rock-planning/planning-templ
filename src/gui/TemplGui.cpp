@@ -77,8 +77,8 @@ TemplGui::TemplGui()
     gridLayout->setColumnLabelFunction(bind(&TemplGui::getColumnLabel, std::placeholders::_1));
     gridLayout->setRowLabelFunction(bind(&TemplGui::getRowLabel, std::placeholders::_1));
     gridLayout->setSortRowLabelFunction(bind(&TemplGui::sortRowLabel, std::placeholders::_1, std::placeholders::_2));
-    gridLayout->setColumnScalingFactor(10.0);
-    gridLayout->setRowScalingFactor(10.0);
+    gridLayout->setColumnScalingFactor(7.0);
+    gridLayout->setRowScalingFactor(7.0);
 
     mpUi->tabWidget->addTab(mpMissionEditor,
                             mpMissionEditor->getClassName());
