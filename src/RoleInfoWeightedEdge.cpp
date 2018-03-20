@@ -29,9 +29,9 @@ std::string RoleInfoWeightedEdge::toString() const
     if(weight == std::numeric_limits<double>::max())
     {
         // inf
-        ss << "+inf" << std::endl; //"\u221E" << std::endl;
+        ss << "capacity: +inf" << std::endl; //"\u221E" << std::endl;
     } else {
-        ss << std::setprecision(2) << weight << std::endl;
+        ss << "capacity: " << std::setprecision(2) << weight << std::endl;
     }
     ss << RoleInfo::toString();
 

@@ -14,6 +14,7 @@ class RoleInfoWeightedEdge : public graph_analysis::WeightedEdge, public RoleInf
 {
 public:
     typedef shared_ptr<RoleInfoWeightedEdge> Ptr;
+    typedef std::vector<Ptr> PtrList;
 
     RoleInfoWeightedEdge();
 
