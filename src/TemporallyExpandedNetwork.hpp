@@ -329,7 +329,13 @@ public:
         TimePointList timepoints = getTimepoints(t_start, t_end);
         for(const timepoint_t& t : timepoints)
         {
-            tuples.push_back( tupleByKeys(value,t) );
+            try {
+                tuples.push_back( tupleByKeys(value,t) );
+            } catch(const std::exception& e)
+            {
+                // only the relevant and ones available are considered
+                LOG_DEBUG_S << "Query with unregistered key: " << e.what();
+            }
         }
         return tuples;
     }
