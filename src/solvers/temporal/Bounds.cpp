@@ -21,8 +21,8 @@ std::string Bounds::toString(size_t indent) const
 {
     std::string hspace(indent,' ');
     std::stringstream ss;
-    ss << "[" << getLowerBound();
-    ss << "," << getUpperBound() << "]";
+    ss << "[" << mLowerBound;
+    ss << "," << mUpperBound << "]";
     return ss.str();
 }
 
