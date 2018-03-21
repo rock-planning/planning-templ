@@ -54,11 +54,6 @@ double Cost::estimateTravelTime(const symbols::constants::Location::Ptr& from,
     {
         double time = distance / robot.getNominalVelocity();
         minTime = std::min(time, minTime);
-        LOG_WARN_S << "RoleSet: " << std::endl << Role::toString(coalition) << std::endl <<
-            " time " << minTime;
-    } else {
-        LOG_WARN_S << "Immobile RoleSet: " << std::endl << Role::toString(coalition) << std::endl <<
-            " time " << minTime;
     }
     return minTime;
 }
