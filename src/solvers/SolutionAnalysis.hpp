@@ -44,7 +44,7 @@ public:
 
     void analyse();
 
-    void save() const;
+    void save(const std::string& filename = "") const;
 
     double getQuality() const { return mQuality; }
     double getCost() const { return mCost; }
@@ -231,13 +231,7 @@ public:
     void computeSaftey();
 
 private:
-    /**
-     * Check solution with respect to the given requirement
-     */
-    void analyse(const solvers::FluentTimeResource& requirement);
-
     double degreeOfFulfillment(const solvers::FluentTimeResource& requirement);
-
 
     Mission::Ptr mpMission;
     SpaceTime::Network mSolutionNetwork;

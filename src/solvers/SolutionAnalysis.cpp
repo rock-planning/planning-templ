@@ -217,20 +217,15 @@ void SolutionAnalysis::analyse()
     mCost = alpha*mEfficacy + beta*mEfficiency + sigma*mMetricValue;
 }
 
-void SolutionAnalysis::save() const
+void SolutionAnalysis::save(const std::string& _filename) const
 {
-    std::string filename = mpMission->getLogger()->filename("final_plan.gexf");
-    graph_analysis::io::GraphIO::write(filename, mPlan.getGraph());
-}
+    std::string filename = _filename;
+    if(filename.empty())
+    {
+        filename = mpMission->getLogger()->filename("final_plan.gexf");
+    }
 
-void SolutionAnalysis::analyse(const solvers::FluentTimeResource& ftr)
-{
-    double d = degreeOfFulfillment(ftr);
-    // Main spatio temporal requirement
-    // needs to be checked upon fulfillment
-    //
-    // -- partial fulfillment or full fulfillment --
-    //std::vector<solvers::FluentTimeResource& ftr = solution.collectRelated(ftr);
+    graph_analysis::io::GraphIO::write(filename, mPlan.getGraph());
 }
 
 double SolutionAnalysis::degreeOfFulfillment(const solvers::FluentTimeResource& ftr)
