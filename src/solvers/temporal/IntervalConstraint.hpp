@@ -76,7 +76,7 @@ public:
      * Add a new interval
      * \param newInterval
      */
-    void addInterval(const Bounds& newInterval) { mIntervals.push_back(newInterval); }
+    void addInterval(const Bounds& newInterval);
 
     /**
      * Get the intervals

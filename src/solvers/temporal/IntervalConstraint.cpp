@@ -31,9 +31,18 @@ std::string IntervalConstraint::toString(uint32_t indent) const
 {
     std::string hspace(indent,' ');
     std::stringstream ss;
-    ss << hspace << "Interval Constraint: from " << getSourceVertex()->toString() << " to " << getTargetVertex()->toString() << std::endl;
+    ss << hspace << "Interval Constraint: from '" << getSourceVertex()->toString() << "' to '" << getTargetVertex()->toString() << "'" <<  std::endl;
     ss << hspace << "    " << serializeBounds();
         return ss.str();
+}
+
+void IntervalConstraint::addInterval(const Bounds& newInterval)
+{
+    // check if interval already exists
+    if( mIntervals.end() == std::find(mIntervals.begin(), mIntervals.end(), newInterval))
+    {
+        mIntervals.push_back(newInterval);
+    }
 }
 
 
@@ -43,9 +52,9 @@ bool IntervalConstraint::checkInterval(const Bounds& x)
     for(; it != mIntervals.end(); ++it)
     {
         if (it->getLowerBound() == x.getLowerBound() && it->getUpperBound() == x.getUpperBound())
-                {
-                    return true;
-                }
+        {
+            return true;
+        }
     }
     return false;
 }
@@ -66,7 +75,6 @@ std::string IntervalConstraint::serializeBounds() const
     for(const Bounds& bound : mIntervals)
     {
         ss << "[";
-        ss << 0;
         ss << bound.getLowerBound();
         ss << ",";
         ss << bound.getUpperBound();
