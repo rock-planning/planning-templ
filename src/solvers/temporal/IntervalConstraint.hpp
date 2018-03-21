@@ -85,6 +85,11 @@ public:
     const std::vector<Bounds>& getIntervals() const { return mIntervals; }
 
     /**
+     * Get the lowest bound
+     */
+    double getLowerBound() const;
+
+    /**
      * Get number of intervals of this constraint
      * \returns the number of intervals of an interval constraint
      */

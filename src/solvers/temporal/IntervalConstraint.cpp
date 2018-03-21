@@ -93,6 +93,16 @@ void IntervalConstraint::deserializeBounds(const std::string& blob)
     }
 }
 
+double IntervalConstraint::getLowerBound() const
+{
+    double minimum = std::numeric_limits<double>::max();
+    for(const Bounds& bounds : mIntervals)
+    {
+        minimum = std::min(minimum, bounds.getLowerBound());
+    }
+    return minimum;
+}
+
 } // end namespace temporal
 } // end namespace solvers
 } // end namespace templ
