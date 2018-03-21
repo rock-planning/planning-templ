@@ -5,9 +5,11 @@
 #include "../SpaceTime.hpp"
 #include "Solution.hpp"
 #include "FluentTimeResource.hpp"
+#include "../Configuration.hpp"
 #include "../Plan.hpp"
 #include "temporal/TemporalConstraintNetwork.hpp"
 #include <organization_model/Metric.hpp>
+#include <organization_model/Heuristics.hpp>
 
 namespace templ {
 namespace solvers {
@@ -37,7 +39,8 @@ public:
      * \see SpaceTime::Network
      */
     SolutionAnalysis(const Mission::Ptr& mission, const SpaceTime::Network& solution,
-            organization_model::metrics::Type metricType = organization_model::metrics::REDUNDANCY);
+            organization_model::metrics::Type metricType = organization_model::metrics::REDUNDANCY,
+            Configuration configuration = Configuration());
 
     void analyse();
 
@@ -46,6 +49,8 @@ public:
     double getQuality() const { return mQuality; }
     double getCost() const { return mCost; }
     double getMetricValue() const { return mMetricValue; }
+    double getEfficacy() const { return getCost(); }
+    double getReconfigurationCost() const { return mReconfigurationCost; }
 
     organization_model::Metric::Ptr getMetric() const { return mpMetric; }
 
@@ -172,9 +177,12 @@ public:
      * Provide a quantification on the transition times for this planner
      * this update the Time Distance Graph
      */
-    void quantifyTime() const;
+    void quantifyTime();
 
-    void quantifyMetric() const;
+    /**
+     * Quantify the overall metric (redundancy)
+     */
+    void quantifyMetric();
 
     // End annotiation functions
 
@@ -187,10 +195,40 @@ public:
 
     /**
      * Compute a plan for all robot systems
+     * The empty role will be used to collect all requirements as
+     * openRequirements
      */
     Plan computePlan() const;
 
     graph_analysis::BaseGraph::Ptr getTimeDistanceGraph() const { return mpTimeDistanceGraph; }
+
+    /**
+     * Compute efficacy as function of satisfiability
+     \f[
+         E = \frac{1}{|STR|} \sum_{s\inSTR} sat(s)
+     \f]
+     * The resulting value can be retrieve with getEfficiency
+     */
+    void computeEfficacy();
+
+    /**
+     * Compute efficiency as overall energy cost
+     */
+    void computeEfficiency();
+
+    /**
+     * Compute reconfiguration cost for all reconfigurations
+     * involved in the process
+     */
+    void computeReconfigurationCost();
+
+    /**
+     * Compute the reconfiguration cost at one vertex
+     * (RoleInfoTuple connected with RoleInfoWeightedEdge)
+     */
+    double computeReconfigurationCost(const graph_analysis::Vertex::Ptr& vertex);
+
+    void computeSaftey();
 
 private:
     /**
@@ -210,11 +248,22 @@ private:
 
     mutable graph_analysis::BaseGraph::Ptr mpTimeDistanceGraph;
 
-    double mQuality;
     double mCost;
+    double mTimeHorizonInS;
+
+    double mQuality;
     double mMetricValue;
+    double mEfficacy;
+    /// The overall cost of the mission
+    double mEfficiency;
+    double mReconfigurationCost;
+    /// The cost per role
+    std::map<Role, double> mEfficiencyPerRole;
 
     organization_model::Metric::Ptr mpMetric;
+    organization_model::Heuristics mHeuristics;
+
+    Configuration mConfiguration;
 
 };
 
