@@ -29,7 +29,7 @@ public:
 
     Mission::Ptr getMission() const { return mpMission; }
 
-    const RoleBasedPlan& getRoleBasePlan() const { return mRolebasedPlan; }
+    const RoleBasedPlan& getRoleBasedPlan() const { return mRolebasedPlan; }
 
 
     /**
