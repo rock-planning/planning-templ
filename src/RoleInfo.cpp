@@ -19,6 +19,13 @@ std::map<RoleInfo::Tag, std::string> RoleInfo::TagTxt =
 }
  ;
 
+std::map<RoleInfo::Attribute, std::string> RoleInfo::AttributeTxt =
+{{ RoleInfo::UNKNOWN_ATTRIBUTE, "UNKNOWN ATTRIBUTE"},
+ { RoleInfo::SAFETY, "safety"},
+ { RoleInfo::RECONFIGURATION_COST, "reconfiguration cost"},
+}
+ ;
+
 RoleInfo::RoleInfo()
     : mRoles()
     , mTaggedRoles()
@@ -254,6 +261,27 @@ void RoleInfo::clear()
     mAllRoles.clear();
     mRoles.clear();
     mTaggedRoles.clear();
+}
+
+void RoleInfo::setAttribute(const std::string& attributeName, double value)
+{
+    mAttributes[attributeName] = value;
+}
+
+bool RoleInfo::hasAttribute(const std::string& attributeName) const
+{
+    return mAttributes.count(attributeName);
+}
+
+double RoleInfo::getAttribute(const std::string& attributeName) const
+{
+    std::map<std::string, double>::const_iterator cit = mAttributes.find(attributeName);
+    if(cit != mAttributes.end())
+    {
+        return cit->second;
+    }
+    throw std::invalid_argument("templ::RoleInfo::getAttribute: no attribute '"
+            + attributeName + "' found");
 }
 
 } // end namespace templ

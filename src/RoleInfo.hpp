@@ -31,7 +31,14 @@ public:
         NOTREQUIRED_AVAILABLE, // BLACK
     };
 
+    enum Attribute {
+        UNKNOWN_ATTRIBUTE,
+        SAFETY,
+        RECONFIGURATION_COST
+    };
+
     static std::map<Tag, std::string> TagTxt;
+    static std::map<Attribute, std::string> AttributeTxt;
 
     RoleInfo();
 
@@ -95,10 +102,23 @@ public:
 
     std::string toString(uint32_t indent = 0) const;
 
+    void setAttribute(Attribute attribute, double value) { setAttribute(AttributeTxt[attribute], value); }
+    /**
+     * Allow to set attributes
+     */
+    void setAttribute(const std::string& attributeName, double value);
+
+    bool hasAttribute(Attribute attribute) const { return hasAttribute(AttributeTxt[attribute]); }
+    bool hasAttribute(const std::string& attributeName) const;
+
+    double getAttribute(Attribute attribute) const { return getAttribute(AttributeTxt[attribute]); }
+    double getAttribute(const std::string& attributeName) const;
+
 protected:
     mutable std::set<Role> mAllRoles;
     std::set<Role> mRoles;
     mutable std::map<std::string, Role::Set> mTaggedRoles;
+    std::map<std::string, double> mAttributes;
 };
 
 }

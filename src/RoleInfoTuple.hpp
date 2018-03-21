@@ -117,6 +117,22 @@ public:
         iarch >> mTaggedRoles;
     }
 
+    std::string serializeRoleInfoAttributes()
+    {
+        std::stringstream ss;
+        boost::archive::text_oarchive oarch(ss);
+        oarch << mAttributes;
+        return ss.str();
+    }
+
+    void deserializeRoleInfoAttributes(const std::string& s)
+    {
+        std::stringstream ss;
+        ss << s;
+        boost::archive::text_iarchive iarch(ss);
+        iarch >> mAttributes;
+    }
+
     // Todo: for registration to work the particular VertexRegistration for this
     // type must be added to the source cpp file
     virtual void registerAttributes(graph_analysis::VertexTypeManager* vManager) const override
@@ -129,6 +145,10 @@ public:
                    (graph_analysis::io::AttributeSerializationCallbacks::serialize_func_t)&RoleInfoTuple::serializeTaggedRoles,
                    (graph_analysis::io::AttributeSerializationCallbacks::deserialize_func_t)&RoleInfoTuple::deserializeTaggedRoles,
                    (graph_analysis::io::AttributeSerializationCallbacks::print_func_t)&RoleInfoTuple::serializeTaggedRoles);
+        vManager->registerAttribute(getClassName(), "role_info_attributes",
+                   (graph_analysis::io::AttributeSerializationCallbacks::serialize_func_t)&RoleInfoTuple::serializeRoleInfoAttributes,
+                   (graph_analysis::io::AttributeSerializationCallbacks::deserialize_func_t)&RoleInfoTuple::deserializeRoleInfoAttributes,
+                   (graph_analysis::io::AttributeSerializationCallbacks::print_func_t)&RoleInfoTuple::serializeRoleInfoAttributes);
 
         vManager->registerAttribute(getClassName(), "tuple",
                 (graph_analysis::io::AttributeSerializationCallbacks::serialize_func_t)
