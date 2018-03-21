@@ -387,7 +387,7 @@ QualitativeTimePointConstraint::Ptr QualitativeTemporalConstraintNetwork::getDir
         QualitativeTimePointConstraint::Ptr constraint = addQualitativeConstraint(dynamic_pointer_cast<TimePoint>(i), dynamic_pointer_cast<TimePoint>(j), QualitativeTimePointConstraint::Universal);
         return constraint;
     } else {
-        assert(edgesIJ.size() == 1);
+        //assert(edgesIJ.size() == 1);
         QualitativeTimePointConstraint::Ptr constraint = dynamic_pointer_cast<QualitativeTimePointConstraint>(edgesIJ[0]);
         if(!constraint)
         {
@@ -437,7 +437,7 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getBi
         throw std::runtime_error("QualitativeTimePointConstraint::getBidirectionalConstraintType: IJ - JI with inconsistent constraints: '" + i->toString() + "' - '" + j->toString());
     }
 
-   LOG_INFO_S << "Checking bidirectional type for: " << i->toString() << " -- " << j->toString();
+   LOG_DEBUG_S << "Checking bidirectional type for: " << i->toString() << " -- " << j->toString();
     QualitativeTimePointConstraint::Type intersectionType = QualitativeTimePointConstraint::getIntersection(constraintTypeIJ, constraintTypeJI_sym);
 
    LOG_DEBUG_S << "Intersection of IJ (" << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << ")"
