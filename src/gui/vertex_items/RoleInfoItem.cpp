@@ -71,7 +71,7 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     int xLabelOffset = 25;
     mpLocationSvg = new QGraphicsSvgItem(":/resources/pictograms/location.svg", this);
     mpLocationSvg->setScale(fontSize/ mpLocationSvg->renderer()->defaultSize().height());
-    mpLocationSvg->setPos(0,-50);
+    mpLocationSvg->setPos(-50,-50);
     mpLocationLabel = new QGraphicsTextItem(QString(tuple->first()->getInstanceName().c_str()), this);
     mpLocationLabel->setPos(mpLocationSvg->pos() + QPointF(xLabelOffset,-5));
 
@@ -87,19 +87,41 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     mpLocationLabel->setFont(font);
     mpTimepointLabel->setFont(font);
 
-    // Add extra visualization
-    //mpEllipse = new QGraphicsEllipseItem(-45,-45,40,40, this);
-    //mpEllipse->setPos(mpRect->rect().bottomRight());
-    //mpEllipse->setPen(QPen(Qt::gray));
-    //mpEllipse->setBrush(QBrush(Qt::darkGray, Qt::NoBrush) );
+    int yPos = 40;
+    int yOffset = 40;
+    fontSize = 20.0;
+    QPointF prevItemPos = mpTimepointSvg->pos();
+    QPointF prevItemLabelPos = mpTimepointLabel->pos();
+    if(tuple->hasAttribute(RoleInfo::SAFETY))
+    {
+        double safety = tuple->getAttribute(RoleInfo::SAFETY);
+        mpSafetySvg = new QGraphicsSvgItem(":/resources/pictograms/safety.svg", this);
+        mpSafetySvg->setScale(fontSize/ mpSafetySvg->renderer()->defaultSize().height());
+        mpSafetySvg->setPos(prevItemPos + QPoint(5, yOffset+3));
+        mpSafetyLabel = new QGraphicsTextItem(QString::number(safety,'f',2), this);
+        mpSafetyLabel->setPos(prevItemLabelPos + QPointF(0,yOffset+3));
+        yPos += 20;
 
-    //mpEllipseText = new QGraphicsTextItem("0.95", this);
-    //mpEllipseText->setPos(mpEllipse->pos() + (mpEllipse->boundingRect().center() - mpEllipseText->boundingRect().center()) );
-    //mpEllipseText->setPlainText("0.95");
-    //mpEllipseText->setDefaultTextColor(Qt::gray);
+        prevItemPos = mpSafetySvg->pos();
+        prevItemLabelPos = mpSafetyLabel->pos();
+        yOffset = 20;
+    }
 
+    if(tuple->hasAttribute(RoleInfo::RECONFIGURATION_COST))
+    {
+        double reconfigurationCost = tuple->getAttribute(RoleInfo::RECONFIGURATION_COST);
+        mpReconfigurationSvg = new QGraphicsSvgItem(":/resources/pictograms/reconfiguration.svg", this);
+        mpReconfigurationSvg->setScale(fontSize/mpReconfigurationSvg->renderer()->defaultSize().height());
+        mpReconfigurationSvg->setPos(prevItemPos + QPoint(-10, yOffset + 3));
+        mpReconfigurationLabel = new QGraphicsTextItem(QString::number(reconfigurationCost), this);
+        mpReconfigurationLabel->setPos(prevItemLabelPos + QPointF(0,yOffset+3));
+        yPos += 20;
 
-    int yPos = 50;
+        prevItemPos = mpReconfigurationSvg->pos();
+        prevItemLabelPos = mpReconfigurationLabel->pos();
+        yOffset = 20;
+    }
+
     Role::TypeMap typeMap = Role::toTypeMap( tuple->getAllRoles());
     for(const Role::TypeMap::value_type& v : typeMap)
     {
@@ -168,6 +190,7 @@ void RoleInfoItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* opti
 {
     // we want a rectangle with round edges
     painter->setRenderHint(QPainter::Antialiasing);
+    painter->setRenderHint(QPainter::HighQualityAntialiasing, true);
     QPainterPath path;
     path.addRoundedRect(childrenBoundingRect(),15,15);
     painter->setPen(mBorderPen);

@@ -89,6 +89,11 @@ private:
     QGraphicsSvgItem* mpTimepointSvg;
     QGraphicsTextItem* mpTimepointLabel;
 
+    QGraphicsSvgItem* mpSafetySvg;
+    QGraphicsTextItem* mpSafetyLabel;
+    QGraphicsSvgItem* mpReconfigurationSvg;
+    QGraphicsTextItem* mpReconfigurationLabel;
+
     QPen mBorderPen;
 
     /** convert the current scenePos of the item to smth like "(23, -14)" */

@@ -10,5 +10,7 @@
     <file>resources/pictograms/starttime.svg</file>
     <file>resources/pictograms/endtime.svg</file>
     <file>resources/pictograms/timepoint.svg</file>
+    <file>resources/pictograms/safety.svg</file>
+    <file>resources/pictograms/reconfiguration.svg</file>
 </qresource>
 </RCC>
