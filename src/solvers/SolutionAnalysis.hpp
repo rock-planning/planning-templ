@@ -60,6 +60,13 @@ public:
     double getMetricValue(const FluentTimeResource& ftr) const;
 
     /**
+     * Get the metric value for minimum requirement and minimum available
+     * resources
+     */
+    double getMetricValue(const organization_model::ModelPool& minRequired,
+            const organization_model::ModelPool& minAvailable) const;
+
+    /**
      * Retrieve the list of required roles / all roles that are involved in this
      * problem
      *

@@ -69,8 +69,13 @@ double SolutionAnalysis::getMetricValue(const FluentTimeResource& ftr) const
 
     LOG_INFO_S << ftr.getLocation()->toString() << " " << ftr.getInterval().toString() << std::endl
         << "Min required: " << minRequired.toString(4)
-        << "Min minAvailable " << minAvailable.toString(4);
+        << "Min minAvailable: " << minAvailable.toString(4);
 
+    return getMetricValue(minRequired, minAvailable);
+}
+
+double SolutionAnalysis::getMetricValue(const ModelPool& minRequired, const ModelPool& minAvailable) const
+{
     return mpMetric->computeSharedUse(minRequired, minAvailable);
 }
 
@@ -472,20 +477,17 @@ void SolutionAnalysis::quantifyTime()
 void SolutionAnalysis::quantifyMetric()
 {
     mMetricValue = 1.0;
+    temporal::point_algebra::TimePoint::PtrList timepoints = mSolutionNetwork.getTimepoints();
     for(const FluentTimeResource& ftr : mResourceRequirements)
     {
+        SpaceTime::Network::tuple_t::PtrList tuples = mSolutionNetwork.getTuples(ftr.getInterval().getFrom(),
+                ftr.getInterval().getTo(),
+                ftr.getLocation());
+
+        // Set max value for start location
+        double value = 1.0;
         try {
-            double value = getMetricValue(ftr);
-
-            SpaceTime::Network::tuple_t::PtrList tuples = mSolutionNetwork.getTuples(ftr.getInterval().getFrom(),
-                    ftr.getInterval().getTo(),
-                    ftr.getLocation());
-
-            for(const SpaceTime::Network::tuple_t::Ptr& tuple : tuples)
-            {
-                tuple->setAttribute(RoleInfo::SAFETY, value);
-            }
-
+            value = getMetricValue(ftr);
             mMetricValue = std::min(value, mMetricValue);
             LOG_INFO_S << "Metric: " << value << std::endl
                 << "    at: " << ftr.getLocation()->toString() << std::endl
@@ -494,14 +496,43 @@ void SolutionAnalysis::quantifyMetric()
 
         } catch(const std::exception& e)
         {
-            LOG_WARN_S << "Metric: requirements not fulfilled" << std::endl
-                << "    at: " << ftr.getLocation()->toString() << std::endl
-                << "    over: " <<  std::endl
-                << ftr.getInterval().toString(8) << std::endl
-                << e.what();
+            if(ftr.getInterval().getFrom()->equals(timepoints.front()))
+            {
+                LOG_INFO_S << "Metric: not all resources from start depot used:" << std::endl
+                    << "    at: " << ftr.getLocation()->toString() << std::endl
+                    << "    over: " <<  std::endl
+                    << ftr.getInterval().toString(8) << std::endl
+                    << e.what();
 
-            mMetricValue = 0.0;
-            return;
+            } else {
+                LOG_WARN_S << "Metric: requirements not fulfilled" << std::endl
+                    << "    at: " << ftr.getLocation()->toString() << std::endl
+                    << "    over: " <<  std::endl
+                    << ftr.getInterval().toString(8) << std::endl
+                    << e.what();
+                mMetricValue = 0.0;
+                return;
+            }
+        }
+
+        for(const SpaceTime::Network::tuple_t::Ptr& tuple : tuples)
+        {
+            tuple->setAttribute(RoleInfo::SAFETY, value);
+        }
+    }
+
+    VertexIterator::Ptr vertexIt = mSolutionNetwork.getGraph()->getVertexIterator();
+    while(vertexIt->next())
+    {
+        RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(vertexIt->current());
+        if(!roleInfo->hasAttribute(RoleInfo::SAFETY))
+        {
+            ModelPool modelPool = Role::getModelPool( roleInfo->getAllRoles() );
+            if(!modelPool.empty())
+            {
+                double value = getMetricValue(modelPool, modelPool);
+                roleInfo->setAttribute(RoleInfo::SAFETY, value);
+            }
         }
     }
 }
@@ -662,19 +693,25 @@ double SolutionAnalysis::computeReconfigurationCost(const Vertex::Ptr& vertex)
     }
 
     double cost = 0.0;
-    if(!in.empty())
+    try {
+        if(!in.empty())
+        {
+            cost += mHeuristics.getReconfigurationCost(in, actualRequirement);
+            LOG_DEBUG_S << "Reconfiguration: from: " << Agent::toString(in,4)
+                << "to: " << Agent::toString(actualRequirement, 4)
+                << "with cost: " << cost;
+        }
+        if(!out.empty())
+        {
+            cost += mHeuristics.getReconfigurationCost(actualRequirement, out);
+            LOG_DEBUG_S << "Reconfiguration: from: " << Agent::toString(actualRequirement,4)
+                << "to: " << Agent::toString(out, 4)
+                << "with cost: " << cost;
+        }
+    } catch(const std::invalid_argument& e)
     {
-        cost += mHeuristics.getReconfigurationCost(in, actualRequirement);
-        LOG_DEBUG_S << "Reconfiguration: from: " << Agent::toString(in,4)
-            << "to: " << Agent::toString(actualRequirement, 4)
-            << "with cost: " << cost;
-    }
-    if(!out.empty())
-    {
-        cost += mHeuristics.getReconfigurationCost(actualRequirement, out);
-        LOG_DEBUG_S << "Reconfiguration: from: " << Agent::toString(actualRequirement,4)
-            << "to: " << Agent::toString(out, 4)
-            << "with cost: " << cost;
+        LOG_WARN_S << "Failed to compute reconfiguration cost at: " << vertex->toString();
+        throw;
     }
     return cost;
 }
