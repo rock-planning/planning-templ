@@ -73,6 +73,11 @@ public:
 
     static const Role& getLocalTransitionRole() { return msLocationTransitionRole; }
 
+    /**
+     * Get all roles that are associate with this capacity edge
+     */
+    const Role::Set& getAllRoles() const;
+
 protected:
     virtual graph_analysis::Edge* getClone() const override { return new CapacityLink(*this); }
 
@@ -87,6 +92,7 @@ protected:
 
 private:
     Role::Set mProviders;
+    mutable Role::Set mAllRoles;
     uint32_t mMaxCapacity;
     std::map<Role, uint32_t> mAvailableCapacities;
     std::map<Role, uint32_t> mUsedCapacity;

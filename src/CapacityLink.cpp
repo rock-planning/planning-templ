@@ -10,7 +10,7 @@ namespace templ {
 
 const graph_analysis::EdgeRegistration<CapacityLink> CapacityLink::msRegistration;
 
-Role CapacityLink::msLocationTransitionRole = Role(0,owlapi::model::IRI("http://rock-robotics.org/2014/07/local-transition#"));
+Role CapacityLink::msLocationTransitionRole = Role(0,owlapi::model::IRI("http://rock-robotics.org/2014/07/internal-role#local-transition"));
 
 CapacityLink::CapacityLink()
     : graph_analysis::Edge()
@@ -118,6 +118,27 @@ uint32_t CapacityLink::getUsedCapacity() const
         capacity += cit->second;
     }
     return capacity;
+}
+
+const Role::Set& CapacityLink::getAllRoles() const
+{
+    if(mAllRoles.empty() && !(mProviders.empty() && mUsedCapacity.empty()))
+    {
+        for(const Role& r : mProviders)
+        {
+            if(r != msLocationTransitionRole)
+            {
+                mAllRoles.insert(r);
+            }
+        }
+
+        for(const std::pair<Role, uint32_t>& p : mUsedCapacity)
+        {
+            mAllRoles.insert(p.first);
+        }
+    }
+
+    return mAllRoles;
 }
 
 std::string CapacityLink::serializeProviders() const
