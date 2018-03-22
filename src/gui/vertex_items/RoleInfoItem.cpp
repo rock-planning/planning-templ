@@ -23,6 +23,22 @@ namespace templ {
 namespace gui {
 namespace vertex_items {
 
+RoleInfoItemDelegate::RoleInfoItemDelegate(QObject* parent)
+    : QItemDelegate(parent)
+{}
+
+
+void RoleInfoItemDelegate::paint(QPainter* painter,
+        const QStyleOptionViewItem& option,
+        const QModelIndex& index) const
+{
+    QItemDelegate::paint(painter, option, index);
+    QPen pen(Qt::black);
+    pen.setWidth(3.0);
+    painter->setPen(pen);
+    painter->drawRect(option.rect);
+}
+
 RoleInfoItem::RoleInfoItem()
     : VertexItemBase()
     , mpLabel(0)
@@ -68,7 +84,8 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     //mpLabel->setFont(font);
 
     qreal fontSize = 25.0;
-    int xLabelOffset = 25;
+    int yOffset = 25;
+    int xLabelOffset = 30;
     mpLocationSvg = new QGraphicsSvgItem(":/resources/pictograms/location.svg", this);
     mpLocationSvg->setScale(fontSize/ mpLocationSvg->renderer()->defaultSize().height());
     mpLocationSvg->setPos(-50,-50);
@@ -77,7 +94,7 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
 
     mpTimepointSvg = new QGraphicsSvgItem(":/resources/pictograms/timepoint.svg", this);
     mpTimepointSvg->setScale(fontSize/ mpTimepointSvg->renderer()->defaultSize().height());
-    mpTimepointSvg->setPos(mpLocationSvg->pos() + QPoint(0,xLabelOffset + 3));
+    mpTimepointSvg->setPos(mpLocationSvg->pos() + QPoint(0,yOffset + 3));
     mpTimepointLabel = new QGraphicsTextItem(QString(tuple->second()->getLabel().c_str()), this);
     mpTimepointLabel->setPos(mpTimepointSvg->pos() + QPointF(xLabelOffset,-5));
 
@@ -88,10 +105,12 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
     mpTimepointLabel->setFont(font);
 
     int yPos = 40;
-    int yOffset = 40;
-    fontSize = 20.0;
+    yOffset = 40;
+    fontSize = 25.0;
     QPointF prevItemPos = mpTimepointSvg->pos();
     QPointF prevItemLabelPos = mpTimepointLabel->pos();
+
+    font.setPointSize(15);
     if(tuple->hasAttribute(RoleInfo::SAFETY))
     {
         double safety = tuple->getAttribute(RoleInfo::SAFETY);
@@ -102,9 +121,11 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
         mpSafetyLabel->setPos(prevItemLabelPos + QPointF(0,yOffset+3));
         yPos += 20;
 
+        mpSafetyLabel->setFont(font);
+
         prevItemPos = mpSafetySvg->pos();
         prevItemLabelPos = mpSafetyLabel->pos();
-        yOffset = 20;
+        yOffset = fontSize;
     }
 
     if(tuple->hasAttribute(RoleInfo::RECONFIGURATION_COST))
@@ -117,18 +138,24 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
         mpReconfigurationLabel->setPos(prevItemLabelPos + QPointF(0,yOffset+3));
         yPos += 20;
 
+        mpReconfigurationLabel->setFont(font);
+
         prevItemPos = mpReconfigurationSvg->pos();
         prevItemLabelPos = mpReconfigurationLabel->pos();
-        yOffset = 20;
+        yOffset = fontSize;
     }
 
     Role::TypeMap typeMap = Role::toTypeMap( tuple->getAllRoles());
     for(const Role::TypeMap::value_type& v : typeMap)
     {
+        int numberOfRows = 4;
+        int numberOfColumns = 4;
+        int sizeOfRow = 20;
+        int sizeOfColumn = 20;
         addModelTable(v.first, 0, yPos,
-                5, 5,
-                12, 12);
-        yPos += 5*12 + 5;
+                numberOfColumns, numberOfRows,
+                sizeOfRow, sizeOfColumn);
+        yPos += numberOfRows*sizeOfRow + 5;
     }
 
     // now that all the children are there, we use their bounding-rect to
@@ -375,8 +402,10 @@ QGraphicsProxyWidget* RoleInfoItem::addModelTable(const owlapi::model::IRI& mode
 
     // row x cols
     QTableWidget* tableWidget = new QTableWidget(rowCount, columnCount);
+    tableWidget->setItemDelegate(new RoleInfoItemDelegate());
+    tableWidget->setShowGrid(false);
     QString style;
-    style += " QTableWidget { background-color: transparent; gridline-color: gray; border-style: none; border: 2px solid gray; }";
+    style += "QTableWidget { background-color: transparent; border-style: solid; border: 3px solid black; border-radius:4px;}";
 
     tableWidget->setStyleSheet(style);
     tableWidget->setGeometry(QRect(0,0,tableWidth, tableHeight));
@@ -412,10 +441,11 @@ QGraphicsProxyWidget* RoleInfoItem::addModelTable(const owlapi::model::IRI& mode
 
             if(status == RoleInfo::UNKNOWN_STATUS)
             {
-                continue;
+                tableWidget->item(r,c)->setToolTip(QString("empty"));
+            } else {
+                tableWidget->item(r,c)->setToolTip(QString(model.getFragment().c_str()) + "_" + QString::number(id));
             }
 
-            tableWidget->item(r,c)->setToolTip(QString(model.getFragment().c_str()) + "_" + QString::number(id));
 
             switch(status)
             {
@@ -432,6 +462,7 @@ QGraphicsProxyWidget* RoleInfoItem::addModelTable(const owlapi::model::IRI& mode
                     tableWidget->item(r,c)->setBackground(Qt::red);
                     break;
                 default:
+                    tableWidget->item(r,c)->setBackground(Qt::white);
                     break;
             }
         }

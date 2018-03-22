@@ -21,8 +21,11 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
     , mArrowSize(10)
 {
 
+    QPen pen(Qt::black);
+    pen.setWidth(3.0);
+
     mpFillBar = new QGraphicsRectItem(getEdgePath()->pos().x()-10, getEdgePath()->pos().y()+125, 10, 100, this);
-    mpFillBar->setPen( QPen(Qt::black) );
+    mpFillBar->setPen( pen );
     mpFillBar->setBrush(QBrush(Qt::white));
 
     double consumptionInPercent = 0;
@@ -33,7 +36,7 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
     }
 
     mpFillStatus = new QGraphicsRectItem(getEdgePath()->pos().x()-10, getEdgePath()->pos().y()+125, 10, consumptionInPercent*100, this);
-    mpFillStatus->setPen( QPen(Qt::black) );
+    mpFillStatus->setPen(pen);
     mpFillStatus->setBrush(QBrush(Qt::black));
 
     setFlag(ItemIsMovable, false);

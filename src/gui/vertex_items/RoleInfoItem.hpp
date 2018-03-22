@@ -5,12 +5,22 @@
 #include <QGraphicsSvgItem>
 #include <QGraphicsProxyWidget>
 #include <QPen>
+#include <QItemDelegate>
 
 #include <owlapi/model/IRI.hpp>
 
 namespace templ {
 namespace gui {
 namespace vertex_items {
+
+class RoleInfoItemDelegate : public QItemDelegate
+{
+    public:
+        RoleInfoItemDelegate(QObject* parent = NULL);
+        void paint(QPainter* painter,
+                const QStyleOptionViewItem& option,
+                const QModelIndex& index) const;
+};
 
 /**
  * Simplest possible implementation of a VertexItemBase
