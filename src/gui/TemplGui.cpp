@@ -59,17 +59,19 @@ namespace gui {
 TemplGui::TemplGui()
     : QMainWindow()
     , mpUi(new Ui::TemplGui)
-    , mpBaseGraph(graph_analysis::BaseGraph::getInstance())
-    , mpQBaseGraph(new graph_analysis::gui::QBaseGraph(mpBaseGraph))
-    , mpBaseGraphView(new graph_analysis::gui::BaseGraphView(mpBaseGraph, this))
-    , mpMissionEditor(new MissionEditor(this))
-    , mpMissionView(new MissionView(this))
-    , mpOntologyView(new OntologyView(this))
+    , mpMissionEditor(0)
+    , mpMissionView(0)
+    , mpOntologyView(0)
 {
     mpUi->setupUi(this);
-
     mpUi->tabWidget->clear();
-    mpUi->tabWidget->addTab(mpBaseGraphView, "Solution View");
+    mpUi->tabWidget->setTabsClosable(true);
+    mpUi->tabWidget->setMovable(true);
+
+    connect(mpUi->tabWidget,SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
+
+    openOntologyView(); //MissionEditor();
+    openMissionEditor();
 
     GraphLayoutManager* layoutManager = GraphLayoutManager::getInstance();
     GraphLayout::Ptr layout = layoutManager->getGraphLayout("grid-layout-default");
@@ -79,25 +81,6 @@ TemplGui::TemplGui()
     gridLayout->setSortRowLabelFunction(bind(&TemplGui::sortRowLabel, std::placeholders::_1, std::placeholders::_2));
     gridLayout->setColumnScalingFactor(7.0);
     gridLayout->setRowScalingFactor(7.0);
-
-    mpUi->tabWidget->addTab(mpMissionEditor,
-                            mpMissionEditor->getClassName());
-    mpUi->tabWidget->addTab(mpMissionView,
-                            "Mission View");
-    mpUi->tabWidget->addTab(mpOntologyView,
-                            mpOntologyView->getClassName());
-    mpUi->tabWidget->setCurrentWidget(mpMissionEditor);
-
-    // and show both' widgets status-messages on the statusbar. this simply
-    // assumes that only the one in the front is sending updates. otherwise
-    // they would interleave...
-    connect(mpBaseGraphView, SIGNAL(currentStatus(QString, int)),
-            mpUi->statusbar, SLOT(showMessage(QString, int)));
-    connect(mpMissionEditor, SIGNAL(currentStatus(QString, int)),
-            mpUi->statusbar, SLOT(showMessage(QString, int)));
-
-    //connect(mpQBaseGraph, SIGNAL(graphChanged()),
-    //        this, SLOT(updateVisualization()));
 
     createMenus();
 
@@ -127,6 +110,26 @@ void TemplGui::createMenus()
 
     // BEGIN FILE
     QMenu* fileMenu = new QMenu(QObject::tr("&File"));
+    QMenu* newMenu = new QMenu(QObject::tr("&New"));
+    QAction* actionMissionEditor = comm.addAction("Mission Editor",
+                                                    SLOT(openMissionEditor()),
+                                                    style->standardIcon(QStyle::SP_FileIcon),
+                                                    QKeySequence( QKeySequence::Open & Qt::Key_E),
+                                                    tr("Open mission editor"));
+    QAction* actionMissionView = comm.addAction("Mission View",
+                                                    SLOT(openMissionView()),
+                                                    style->standardIcon(QStyle::SP_FileIcon),
+                                                    QKeySequence( QKeySequence::Open & Qt::Key_E),
+                                                    tr("Open mission view"));
+    QAction* actionOntologyView = comm.addAction("Ontology View",
+                                                    SLOT(openOntologyView()),
+                                                    style->standardIcon(QStyle::SP_FileIcon),
+                                                    QKeySequence( QKeySequence::Open & Qt::Key_E),
+                                                    tr("Open ontology view"));
+    newMenu->addAction(actionMissionEditor);
+    newMenu->addAction(actionMissionView);
+    newMenu->addAction(actionOntologyView);
+    fileMenu->addMenu(newMenu);
 
     QMenu* importMenu = new QMenu(QObject::tr("&Import"));
     QAction *actionImport = comm.addAction("Import Graph", SLOT(importGraph()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open ), tr("Import graph from file"));
@@ -282,29 +285,38 @@ void TemplGui::importGraph(const QString& settingsLabel)
     activateGraph(graph);
 }
 
-void TemplGui::activateGraph(graph_analysis::BaseGraph::Ptr& graph)
+void TemplGui::activateGraph(graph_analysis::BaseGraph::Ptr& graph, const QString& tabLabel)
 {
+    graph_analysis::gui::BaseGraphView* view = new graph_analysis::gui::BaseGraphView(graph, this);
     if(graph)
     {
-        //updateVisualization();
-        mpBaseGraphView->clearVisualization();
-        mpBaseGraph = graph;
+        view->refresh();
+        view->updateVisualization();
+        view->applyLayout("dot");
+        view->updateVisualization();
 
-        delete mpQBaseGraph;
-        mpQBaseGraph = new QBaseGraph(mpBaseGraph);
-        mpBaseGraphView->setGraph(mpBaseGraph);
-        mpBaseGraphView->refresh();
-        mpBaseGraphView->updateVisualization();
-        mpBaseGraphView->applyLayout("dot");
-        mpBaseGraphView->updateVisualization();
+        connect(view, SIGNAL(currentStatus(QString, int)),
+                mpUi->statusbar, SLOT(showMessage(QString, int)));
+
+        mpUi->tabWidget->addTab(view, tabLabel);
+        mBaseGraphViews.push_back(view);
     } else {
         qDebug() << "Failed to activate graph";
     }
+
+
 }
 
 void TemplGui::exportGraph()
 {
-    graph_analysis::gui::dialogs::IODialog::exportGraph(mpBaseGraphView->graph());
+    using namespace graph_analysis::gui;
+    BaseGraphView* view = getCurrentBaseGraphView();
+    if(view)
+    {
+        graph_analysis::gui::dialogs::IODialog::exportGraph(view->graph());
+    } else {
+        QMessageBox::warning(this, tr("Templ"), tr("No active tab with a graph"));
+    }
 }
 
 void TemplGui::importRecentGraph(const QString& settingsLabel)
@@ -315,7 +327,7 @@ void TemplGui::importRecentGraph(const QString& settingsLabel)
         qDebug() << "Importing file from: " << action->data().toString();
         graph_analysis::BaseGraph::Ptr graph = graph_analysis::gui::dialogs::IODialog::importGraph(this, action->data().toString(), settingsLabel);
 
-        activateGraph(graph);
+        activateGraph(graph, "Graph");
     }
 }
 
@@ -326,23 +338,34 @@ void TemplGui::importRecentMission()
 
 void TemplGui::clearView()
 {
-    mpBaseGraphView->clearVisualization();
+    using namespace graph_analysis::gui;
+    BaseGraphView* view = getCurrentBaseGraphView();
+    if(view)
+    {
+        view->clearVisualization();
+    } else {
+        QMessageBox::warning(this, tr("Templ"), tr("No active tab with a graph"));
+    }
 }
 
 void TemplGui::selectLayout()
 {
-    if(mpUi->tabWidget->currentWidget() == mpBaseGraphView)
+    using namespace graph_analysis::gui;
+    BaseGraphView* view = getCurrentBaseGraphView();
+    if(view)
     {
         bool ok;
         QString desiredLayout = QInputDialog::getItem(this, tr("Select Layout"),
-                                    tr("select a layout:"), mpBaseGraphView->getSupportedLayouts(),
+                                    tr("select a layout:"), view->getSupportedLayouts(),
                                     0, false, &ok);
         if(ok)
         {
-            mpBaseGraphView->applyLayout(desiredLayout.toStdString());
+            view->applyLayout(desiredLayout.toStdString());
         }
+        updateVisualization();
+    } else {
+        QMessageBox::warning(this, tr("Templ"), tr("No active tab with a graph"));
     }
-    updateVisualization();
 }
 
 void TemplGui::customizeGridLayout()
@@ -350,23 +373,41 @@ void TemplGui::customizeGridLayout()
     graph_analysis::gui::dialogs::GridLayout::execute();
 }
 
-void TemplGui::on_tabWidget_currentChanged(int index)
-{
-    // When the tab changed, we want to update the widget
-    this->updateVisualization();
-}
-
 void TemplGui::updateVisualization()
 {
     // Call the current tab widget's update function
-    if (mpUi->tabWidget->currentWidget() == mpBaseGraphView)
+    graph_analysis::gui::BaseGraphView* view = getCurrentBaseGraphView();
+    if(view)
     {
-        assert(mpBaseGraphView);
-        mpBaseGraphView->updateVisualization();
+        view->updateVisualization();
     } else if (mpUi->tabWidget->currentWidget() == mpMissionEditor)
     {
         mpMissionEditor->update();
     }
+}
+
+void TemplGui::closeTab(int tabIndex)
+{
+    using namespace graph_analysis::gui;
+    QWidget* widget = mpUi->tabWidget->widget(tabIndex);
+    BaseGraphView* view = qobject_cast<BaseGraphView*>(widget);
+    if(view)
+    {
+        std::vector<BaseGraphView*>::iterator it = std::find(mBaseGraphViews.begin(), mBaseGraphViews.end(), view);
+        mBaseGraphViews.erase(it);
+    }
+    if(qobject_cast<MissionView*>(widget))
+    {
+        mpMissionView = NULL;
+    } else if(qobject_cast<MissionEditor*>(widget))
+    {
+        mpMissionEditor = NULL;
+    } else if(qobject_cast<OntologyView*>(widget))
+    {
+        mpOntologyView = NULL;
+    }
+
+    delete widget;
 }
 
 std::string TemplGui::getColumnLabel(const graph_analysis::Vertex::Ptr& vertex)
@@ -453,7 +494,13 @@ void TemplGui::sortRowLabel(const graph_analysis::BaseGraph::Ptr& graph, graph_a
 
 void TemplGui::exportScene()
 {
-    graph_analysis::gui::dialogs::IODialog::exportScene(this->mpBaseGraphView->scene(), this);
+    graph_analysis::gui::BaseGraphView* view = getCurrentBaseGraphView();
+    if(view)
+    {
+        graph_analysis::gui::dialogs::IODialog::exportScene(view->scene(), this);
+    } else {
+        QMessageBox::warning(this, tr("Templ"), tr("No active tab with a graph"));
+    }
 }
 
 void TemplGui::clearRecentFileList(const QString& name)
@@ -521,7 +568,61 @@ QMenu* TemplGui::createRecentFilesMenu()
 
     connect(recentFilesMenu, SIGNAL(aboutToShow()), this, SLOT(updateRecentFileActions()));
     return recentFilesMenu;
+}
 
+graph_analysis::gui::BaseGraphView* TemplGui::getCurrentBaseGraphView() const
+{
+    return qobject_cast<graph_analysis::gui::BaseGraphView*>(mpUi->tabWidget->currentWidget());
+}
+
+void TemplGui::openMissionEditor()
+{
+    if(mpMissionEditor)
+    {
+        QMessageBox::warning(this, "Templ", "Mission editor is already opened");
+    } else {
+        mpMissionEditor = new MissionEditor(this);
+        mpUi->tabWidget->addTab(mpMissionEditor,
+                                mpMissionEditor->getClassName());
+        mpUi->tabWidget->setCurrentWidget(mpMissionEditor);
+
+        // and show both' widgets status-messages on the statusbar. this simply
+        // assumes that only the one in the front is sending updates. otherwise
+        // they would interleave...
+        connect(mpMissionEditor, SIGNAL(currentStatus(QString, int)),
+                mpUi->statusbar, SLOT(showMessage(QString, int)));
+    }
+}
+
+void TemplGui::openMissionView()
+{
+    if(mpMissionView)
+    {
+        QMessageBox::warning(this, "Templ", "Mission view is already opened");
+    } else {
+        mpMissionView = new MissionView(this);
+        mpUi->tabWidget->addTab(mpMissionView,
+                                "Mission View");
+        mpUi->tabWidget->setCurrentWidget(mpMissionView);
+        // and show both' widgets status-messages on the statusbar. this simply
+        // assumes that only the one in the front is sending updates. otherwise
+        // they would interleave...
+        connect(mpMissionView, SIGNAL(currentStatus(QString, int)),
+                mpUi->statusbar, SLOT(showMessage(QString, int)));
+    }
+}
+
+void TemplGui::openOntologyView()
+{
+    if(mpOntologyView)
+    {
+        QMessageBox::warning(this, "Templ", "Ontology view is already opened");
+    } else {
+        mpOntologyView = new OntologyView(this);
+        mpUi->tabWidget->addTab(mpOntologyView,
+                                mpOntologyView->getClassName());
+        mpUi->tabWidget->setCurrentWidget(mpOntologyView);
+    }
 }
 
 } // end namespace gui

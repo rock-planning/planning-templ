@@ -35,14 +35,8 @@ private:
     // gui elements
     Ui::TemplGui* mpUi;
 
-    // The actual base graph
-    graph_analysis::BaseGraph::Ptr mpBaseGraph;
-
-    // the Qt integration of the basegraph where the subwidgets will work upon
-    graph_analysis::gui::QBaseGraph* mpQBaseGraph;
-
     // the subwigets, present in this window
-    graph_analysis::gui::BaseGraphView* mpBaseGraphView;
+    std::vector<graph_analysis::gui::BaseGraphView*> mBaseGraphViews;
 
     /// Store recent file actions list -- allow for additional set of
     QMap<QString, QList<QAction*> > mpRecentFileActionsMap;
@@ -66,7 +60,7 @@ private:
 
     QString strippedName(const QString& fullFileName);
 
-    void activateGraph(graph_analysis::BaseGraph::Ptr& graph);
+    void activateGraph(graph_analysis::BaseGraph::Ptr& graph, const QString& tabLabel = "Graph");
 
     static std::string getColumnLabel(const graph_analysis::Vertex::Ptr& vertex);
     static std::string getRowLabel(const graph_analysis::Vertex::Ptr& vertex);
@@ -74,6 +68,8 @@ private:
     static void sortRowLabel(const graph_analysis::BaseGraph::Ptr& graph, graph_analysis::gui::layouts::GridLayout::ColumnLabels& labels);
 
     QMenu* createRecentFilesMenu();
+
+    graph_analysis::gui::BaseGraphView* getCurrentBaseGraphView() const;
 
 private slots:
     void importSolution() { importGraph("IOSolutions"); }
@@ -108,7 +104,11 @@ private slots:
 
     /*Connected to QBaseGraph*/
     void updateVisualization();
-    void on_tabWidget_currentChanged(int index);
+    void closeTab(int tabIndex);
+
+    void openMissionEditor();
+    void openMissionView();
+    void openOntologyView();
 
 };
 
