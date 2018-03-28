@@ -22,7 +22,8 @@
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-        <maxCardinality>25</maxCardinality>
+        <!--<maxCardinality>25</maxCardinality>-->
+        <maxCardinality>16</maxCardinality>-->
     </resource>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#BaseCamp</model>
@@ -126,7 +127,8 @@
             </resource>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-                <minCardinality>25</minCardinality>
+                <!--<minCardinality>25</minCardinality>-->
+                <minCardinality>16</minCardinality>
             </resource>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#BaseCamp</model>
