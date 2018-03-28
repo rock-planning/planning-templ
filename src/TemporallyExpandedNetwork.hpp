@@ -10,6 +10,7 @@
 #include <graph_analysis/io/GraphvizWriter.hpp>
 #include <graph_analysis/io/GraphvizGridStyle.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
+#include <base-logging/Logging.hpp>
 #include "solvers/temporal/point_algebra/TimePoint.hpp"
 #include "Tuple.hpp"
 
