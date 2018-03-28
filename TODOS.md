@@ -156,5 +156,33 @@
             </rdfs:subClassOf>
         </owl:Class>
 
+
+## Further development
+  - payload-items have to be moved to locations, where no system is initially
+  moving towards
+    -- feature-req: iterative repair, e.g., fix by adding a transport service requirement to
+    this location if no initial solution can be found [ONGOING RESTRUCTURING OF SEARCH]
+  - add CardinalityConstraints on functionality in order to allow for a quantification of the functionality -- e.g. for transport add a min capacity for payload transport or similar
+
+  - allow for threading, i.e. start search per thread
+
+  - use A* based search using the violations for a distance to a proper solution
+
+  - compute safety metric (here: redundancy level) for individual transitions
+    -- feature-req: compute metric with respect to the required functionality (along the
+    timeline)
+    -- howto: compute timeline per role --> compute sum of services --> compute
+    metric along one the timeline with respect to this sum of services
+
+  - strengthen individual transitions, i.e., improve metric by recipe
+    -- feature-req: iterative planning, e.g., fix by adding a dedicated
+    requirement (for a payload) to boost the redundancy
+    -- check what contributes most to the metric with respect
+       to the required functionality (along the timeline)
+
+  - compute plans for individual systems
+    -- feature-req: compute duration of activities, assign time bounds
+
+  - identify critical path
      
 
