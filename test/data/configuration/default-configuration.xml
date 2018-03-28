@@ -6,17 +6,17 @@
                 <threads>1</threads>
                 <cutoff>2</cutoff>
                 <nogoods_limit>128</nogoods_limit>
-                <computation_distance>2</computation_distance>
+                <computation_distance>15</computation_distance>
                 <adaptive_computation_distance>8</adaptive_computation_distance>
                 <timeout_in_ms>3600000</timeout_in_ms><!-- stop cutoff -->
                 <model-usage>
                     <afc-decay>0.95</afc-decay>
                 </model-usage>
                 <role-usage>
-                    <force-min>true</force-min><!-- enforce minimum role usage -->
+                    <force-min>false</force-min><!-- enforce minimum role usage -->
                     <mobile>
                         <bounded>true</bounded><!-- if force min is deactivated then optionally use bounded with given bound -->
-                        <bound-offset>0</bound-offset>
+                        <bound-offset>2</bound-offset>
                     </mobile>
                     <immobile>
                         <bounded>true</bounded><!-- if force min is deactivated then optionally use bounded with given bound -->
@@ -25,12 +25,25 @@
                     <!-- todo: consider random upper bound -->
                     <afc-decay>0.95</afc-decay>
                 </role-usage>
-                <master-slave>true</master-slave><!-- allow to improve solution using a master-slave approach applying flaw resolvers -->
+                <master-slave>false</master-slave><!-- allow to improve solution using a master-slave approach applying flaw resolvers -->
                 <hill-climbing>true</hill-climbing><!-- allow only increasingly better solutions, by constrain in master constrain function -->
                 <timeline-brancher>
                     <afc-decay>0.95</afc-decay>
                     <supply-demand>true</supply-demand>
                 </timeline-brancher>
+                <!-- SCIP or GLKPK -->
+                <lpsolver>GLPK</lpsolver>
+                <cost-function>
+                    <efficacy>
+                        <weight>1.0</weight>
+                    </efficacy>
+                    <efficiency>
+                        <weight>1.0</weight>
+                    </efficiency>
+                    <safety>
+                        <weight>1.0</weight>
+                    </safety>
+                </cost-function>
             </options>
             <interactive>true</interactive>
         </search>
