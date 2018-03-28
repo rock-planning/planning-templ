@@ -3,8 +3,9 @@
   This planner is dedicated to solve temporal planning with reconfigurable multi-robot systems
   </description>
   <author>Thomas Roehr/thomas.roehr@dfki.de</author>
+  <maintainer>Thomas Roehr/thomas.roehr@dfki.de</maintainer>
   <license></license>
-  <url>http://</url>
+  <url>https://git.hb.dfki.de:dfki-planning/templ</url>
   <logo>http://</logo>
   <depend package="base/cmake" />
   <depend package="base/types" />
@@ -14,4 +15,19 @@
   <depend package="libxml2" />
   <!-- cartographic library -->
   <depend package="proj" />
+  <keywords>
+      <keyword>planning</keyword>
+      <keyword>mission planning</keyword>
+      <keyword>reconfigurable multi-robot system</keyword>
+  </keywords>
+  <stage>0</stage>
+  <use>single project</use>
+  <activity>active</activity>
+  <classifiers>
+      <classifier>c++</classifier>
+      <classifier>rock</classifier>
+      <classifier>owl</classifier>
+      <classifier>multiagent</classifier>
+      <classifier>csp</classifier>
+  </classifiers>
 </package>
