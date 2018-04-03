@@ -170,7 +170,6 @@ rock_library(templ
         DataPropertyAssignment.hpp
         Mission.hpp
         constraints/ModelConstraint.hpp
-        MissionPlanner.hpp
         Plan.hpp
         io/MissionReader.hpp
         io/MissionWriter.hpp
