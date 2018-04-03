@@ -171,6 +171,7 @@ rock_library(templ
         Mission.hpp
         constraints/ModelConstraint.hpp
         Plan.hpp
+        SharedPtr.hpp
         io/MissionReader.hpp
         io/MissionWriter.hpp
         io/MissionRequirements.hpp
