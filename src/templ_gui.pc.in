@@ -4,9 +4,9 @@ libdir=${prefix}/lib
 includedir=${prefix}/include
 
 Name: @TARGET_NAME@
-Description: @PROJECT_DESCRIPTION@
+Description: TemPl Graphical User Interface Libraries
 Version: @PROJECT_VERSION@
-Requires: templ_moft
+Requires: templ
 Libs: -L${libdir} -l@TARGET_NAME@ @PKGCONFIG_LIBS@
 Cflags: -I${includedir} @PKGCONFIG_CFLAGS@
 

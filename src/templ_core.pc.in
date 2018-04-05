@@ -4,9 +4,9 @@ libdir=${prefix}/lib
 includedir=${prefix}/include
 
 Name: @TARGET_NAME@
-Description: @PROJECT_DESCRIPTION@
+Description: TemPl Core Functionality
 Version: @PROJECT_VERSION@
-Requires: templ_moft
+Requires:
 Libs: -L${libdir} -l@TARGET_NAME@ @PKGCONFIG_LIBS@
 Cflags: -I${includedir} @PKGCONFIG_CFLAGS@
 
