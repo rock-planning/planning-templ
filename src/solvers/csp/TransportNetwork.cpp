@@ -485,7 +485,7 @@ TransportNetwork::TransportNetwork()
     , mAsk()
 {}
 
-TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const Configuration& configuration)
+TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const qxcfg::Configuration& configuration)
     : Gecode::Space()
     , Solver(Solver::CSP_TRANSPORT_NETWORK)
     , mpMission(mission)
@@ -984,7 +984,7 @@ Gecode::Space* TransportNetwork::copy()
     return new TransportNetwork(*this);
 }
 
-std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const Configuration& configuration)
+std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const qxcfg::Configuration& configuration)
 {
     SolutionList solutions;
     mission->validateForPlanning();
@@ -1198,7 +1198,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
     return solutions;
 }
 
-solvers::Session::Ptr TransportNetwork::run(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const Configuration& configuration)
+solvers::Session::Ptr TransportNetwork::run(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const qxcfg::Configuration& configuration)
 {
     Session::Ptr session = make_shared<Session>(mission);
     SolutionList solutionList = TransportNetwork::solve(mission, minNumberOfSolutions, configuration);

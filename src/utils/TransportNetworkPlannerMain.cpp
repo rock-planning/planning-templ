@@ -72,7 +72,7 @@ int main(int argc, char** argv)
     printf("Base Mission:\n %s\n",mission->toString().c_str());
 
 
-    Configuration configuration(configurationFilename);
+    qxcfg::Configuration configuration(configurationFilename);
     std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission,minimumNumberOfSolutions, configuration);
     if(solutions.empty())
     {

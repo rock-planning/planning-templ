@@ -2,9 +2,9 @@
 #include <libxml/encoding.h>
 #include <base-logging/Logging.hpp>
 #include <sstream>
-#include "../../../utils/XMLUtils.hpp"
+#include <qxcfg/utils/XMLUtils.hpp>
 
-using namespace templ::utils;
+using namespace qxcfg::utils;
 
 namespace templ {
 namespace solvers {

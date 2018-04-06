@@ -1,8 +1,8 @@
 #ifndef TEMPL_SOLVERS_SOLVER_HPP
 #define TEMPL_SOLVERS_SOLVER_HPP
 
+#include <qxcfg/Configuration.hpp>
 #include "../SharedPtr.hpp"
-#include "../Configuration.hpp"
 #include "Session.hpp"
 #include "StoppingCriteria.hpp"
 
@@ -24,7 +24,7 @@ public:
 
     virtual Session::Ptr run(const Mission::Ptr& mission,
             uint32_t minNumberOfSolutions = 0,
-            const Configuration& configuration = Configuration()) = 0;
+            const qxcfg::Configuration& configuration = qxcfg::Configuration()) = 0;
 
 protected:
     Solver();

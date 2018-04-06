@@ -8,8 +8,8 @@
 #include <gecode/search.hh>
 
 #include <organization_model/OrganizationModelAsk.hpp>
+#include <qxcfg/Configuration.hpp>
 
-#include "../../Configuration.hpp"
 #include "../../Mission.hpp"
 #include "../FluentTimeResource.hpp"
 #include "../Solver.hpp"
@@ -222,7 +222,7 @@ protected:
     FlawResolution::ResolutionOptions mRequiredResolutionOptions;
 
     /// Configuration object
-    Configuration mConfiguration;
+    qxcfg::Configuration mConfiguration;
 
     /// Flag to control the interactive mode
     static bool msInteractive;
@@ -403,7 +403,7 @@ public:
     /**
      * Construct CSP-based solver for a particular mission
      */
-    TransportNetwork(const templ::Mission::Ptr& mission, const Configuration& configuration = Configuration());
+    TransportNetwork(const templ::Mission::Ptr& mission, const qxcfg::Configuration& configuration = qxcfg::Configuration());
 
     /**
      * Search support
@@ -424,7 +424,7 @@ public:
      * \param minNumberOfSolutions Minimum number of solutions
      * \param configuration Configuration for this planning instance
      */
-    static SolutionList solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions = 0, const Configuration& configuration = Configuration());
+    static SolutionList solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions = 0, const qxcfg::Configuration& configuration = qxcfg::Configuration());
 
     /**
      * Get the solution of this Gecode::Space instance
@@ -436,7 +436,7 @@ public:
      */
     static void saveSolution(const Solution& solution, const Mission::Ptr& mission);
 
-    solvers::Session::Ptr run(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const Configuration& configuration);
+    solvers::Session::Ptr run(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const qxcfg::Configuration& configuration);
 
     /**
      * Add a general constraint

@@ -4,7 +4,6 @@ find_package(Boost REQUIRED system filesystem serialization program_options)
 set(CMAKE_AUTORCC ON)
 rock_library(templ_core
     SOURCES
-        Configuration.cpp
         Constraint.cpp
         ConstraintNetwork.cpp
         RoleInfo.cpp
@@ -26,9 +25,7 @@ rock_library(templ_core
         utils/CSVLogger.cpp
         utils/CartographicMapping.cpp
         utils/Logger.cpp
-        utils/XMLUtils.cpp
     HEADERS
-        Configuration.hpp
         Constraint.hpp
         ConstraintNetwork.hpp
         Role.hpp
@@ -54,7 +51,6 @@ rock_library(templ_core
         utils/CSVLogger.hpp
         utils/CartographicMapping.hpp
         utils/Logger.hpp
-        utils/XMLUtils.hpp
     LIBS ${Boost_LIBRARIES}
         proj
     DEPS_PKGCONFIG graph_analysis
@@ -64,6 +60,7 @@ rock_library(templ_core
         libxml-2.0
         base-types
         eigen3
+        qxcfg
 )
 
 # Master of time

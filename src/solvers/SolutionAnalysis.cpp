@@ -19,7 +19,7 @@ namespace solvers {
 SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
         const SpaceTime::Network& solution,
         organization_model::metrics::Type metricType,
-        Configuration configuration)
+        qxcfg::Configuration configuration)
     : mpMission(mission)
     , mSolutionNetwork(solution)
     , mTimepointComparator(mission->getTemporalConstraintNetwork())

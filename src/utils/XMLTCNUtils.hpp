@@ -2,7 +2,7 @@
 #define TEMPL_UTILS_XMLTCN_UTILS_HPP
 
 #include <vector>
-#include "XMLUtils.hpp"
+#include <qxcfg/utils/XMLUtils.hpp>
 #include "../io/MissionRequirements.hpp"
 #include "../solvers/temporal/TemporalConstraintNetwork.hpp"
 

@@ -5,6 +5,7 @@
 #include <boost/lexical_cast.hpp>
 
 using namespace templ::utils;
+using namespace qxcfg::utils;
 namespace pa = templ::solvers::temporal::point_algebra;
 
 namespace templ {

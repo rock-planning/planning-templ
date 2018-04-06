@@ -13,6 +13,7 @@
   <depend package="multiagent/organization_model" />
   <depend package="knowledge_reasoning/gqr" />
   <depend package="libxml2" />
+  <depend package="tools/qxcfg" />
   <!-- cartographic library -->
   <depend package="proj" />
   <keywords>

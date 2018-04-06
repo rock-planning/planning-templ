@@ -1,12 +1,12 @@
 #include "MissionWriter.hpp"
-#include "../utils/XMLUtils.hpp"
+#include <qxcfg/utils/XMLUtils.hpp>
 #include "../solvers/FluentTimeResource.hpp"
 #include "../solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp"
 #include "../solvers/temporal/IntervalConstraint.hpp"
 #include "../io/MissionRequirements.hpp"
 #include "../constraints/ModelConstraint.hpp"
 
-using namespace templ::utils;
+using namespace qxcfg::utils;
 using namespace templ::solvers;
 namespace pa = templ::solvers::temporal::point_algebra;
 

@@ -16,6 +16,7 @@
 #include "../solvers/temporal/IntervalConstraint.hpp"
 
 using namespace templ::utils;
+using namespace qxcfg::utils;
 
 namespace templ {
 namespace io {

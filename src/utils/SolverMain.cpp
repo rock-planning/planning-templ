@@ -92,7 +92,7 @@ int main(int argc, char** argv)
     printf("Base Mission:\n %s\n",mission->toString().c_str());
 
 
-    Configuration configuration(configurationFilename);
+    qxcfg::Configuration configuration(configurationFilename);
     solvers::Solver::Ptr solver = solvers::Solver::getInstance(solverType);
     solvers::Session::Ptr session = solver->run(mission,minimumNumberOfSolutions, configuration);
     solvers::Solution::List solutions = session->getSolutions();

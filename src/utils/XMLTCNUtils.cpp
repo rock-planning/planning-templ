@@ -2,6 +2,8 @@
 #include <base-logging/Logging.hpp>
 #include <boost/lexical_cast.hpp>
 
+using namespace qxcfg::utils;
+
 namespace templ {
 namespace utils {
 

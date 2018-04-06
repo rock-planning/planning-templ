@@ -1,11 +1,11 @@
 #ifndef TEMP_SOLVERS_SOLUTION_ANALYSIS_HPP
 #define TEMP_SOLVERS_SOLUTION_ANALYSIS_HPP
 
+#include <qxcfg/Configuration.hpp>
 #include "../Mission.hpp"
 #include "../SpaceTime.hpp"
 #include "Solution.hpp"
 #include "FluentTimeResource.hpp"
-#include "../Configuration.hpp"
 #include "../Plan.hpp"
 #include "temporal/TemporalConstraintNetwork.hpp"
 #include <organization_model/Metric.hpp>
@@ -40,7 +40,7 @@ public:
      */
     SolutionAnalysis(const Mission::Ptr& mission, const SpaceTime::Network& solution,
             organization_model::metrics::Type metricType = organization_model::metrics::REDUNDANCY,
-            Configuration configuration = Configuration());
+            qxcfg::Configuration configuration = qxcfg::Configuration());
 
     void analyse();
 
@@ -264,7 +264,7 @@ private:
     organization_model::Metric::Ptr mpMetric;
     organization_model::Heuristics mHeuristics;
 
-    Configuration mConfiguration;
+    qxcfg::Configuration mConfiguration;
 
 };
 
