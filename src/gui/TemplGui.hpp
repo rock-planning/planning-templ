@@ -5,6 +5,8 @@
 #include <QMainWindow>
 #include <graph_analysis/gui/QBaseGraph.hpp>
 #include <graph_analysis/gui/layouts/GridLayout.hpp>
+#include <qxcfg/Configuration.hpp>
+#include <QProcess>
 
 namespace Ui {
     class TemplGui;
@@ -47,6 +49,11 @@ private:
     MissionView* mpMissionView;
     OntologyView* mpOntologyView;
 
+    /// General configuration
+    qxcfg::Configuration mConfiguration;
+
+    QProcess* mpProcess;
+
     void notifyAll();
 
     void registerGraphElementTypes();
@@ -74,8 +81,7 @@ private:
 private slots:
     void importSolution() { importGraph("IOSolutions"); }
     void importGraph(const QString& settingsLabel = "IOGraphs");
-
-    void importMission() { }
+    void importMission();
 
     void exportGraph();
     void selectLayout();
@@ -110,6 +116,12 @@ private slots:
     void openMissionView();
     void openOntologyView();
 
+    // Planner
+    void runPlanner();
+    void stopPlanner();
+    void loadConfiguration(const QString& settingsLabel = "Configuration");
+    void editConfiguration();
+    void logOutput();
 };
 
 } // end namespace gui

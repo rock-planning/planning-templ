@@ -22,10 +22,12 @@
 #include <QPrintDialog>
 #include <QSvgGenerator>
 #include <QPalette>
+#include <QScrollBar>
 
 #include <QDockWidget>
 #include <QTableWidget>
 #include <QFileSystemModel>
+#include <QProcess>
 
 #include <base-logging/Logging.hpp>
 
@@ -62,11 +64,14 @@ TemplGui::TemplGui()
     , mpMissionEditor(0)
     , mpMissionView(0)
     , mpOntologyView(0)
+    , mConfiguration()
 {
     mpUi->setupUi(this);
     mpUi->tabWidget->clear();
     mpUi->tabWidget->setTabsClosable(true);
     mpUi->tabWidget->setMovable(true);
+
+    mConfiguration.setValue("templ-gui/min_solutions","2");
 
     connect(mpUi->tabWidget,SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
@@ -119,12 +124,12 @@ void TemplGui::createMenus()
     QAction* actionMissionView = comm.addAction("Mission View",
                                                     SLOT(openMissionView()),
                                                     style->standardIcon(QStyle::SP_FileIcon),
-                                                    QKeySequence( QKeySequence::Open & Qt::Key_E),
+                                                    QKeySequence( QKeySequence::Open & Qt::Key_M),
                                                     tr("Open mission view"));
     QAction* actionOntologyView = comm.addAction("Ontology View",
                                                     SLOT(openOntologyView()),
                                                     style->standardIcon(QStyle::SP_FileIcon),
-                                                    QKeySequence( QKeySequence::Open & Qt::Key_E),
+                                                    QKeySequence( QKeySequence::Open & Qt::Key_O),
                                                     tr("Open ontology view"));
     newMenu->addAction(actionMissionEditor);
     newMenu->addAction(actionMissionView);
@@ -160,6 +165,22 @@ void TemplGui::createMenus()
     QAction *gridLayoutAction = comm.addAction("Customize GridLayout", SLOT(customizeGridLayout()), style->standardIcon(QStyle::SP_FileDialogListView), QKeySequence(Qt::ControlModifier & Qt::Key_G), tr("Customize grid layout"));
     viewMenu->addAction(gridLayoutAction);
     // END View
+    //
+
+    // BEGIN Planning
+    QMenu* planningMenu = new QMenu(QObject::tr("&Planning"));
+    QAction* runPlanner = comm.addAction("Run planner", SLOT(runPlanner()), style->standardIcon(QStyle::SP_MediaPlay), QKeySequence(Qt::ControlModifier + Qt::Key_P), tr("Run planner"));
+    QAction* stopPlanner = comm.addAction("Stop planner", SLOT(stopPlanner()), style->standardIcon(QStyle::SP_MediaStop), QKeySequence(Qt::ControlModifier + Qt::Key_H), tr("Stop planner"));
+    QAction* loadConfiguration = comm.addAction("Load configuration", SLOT(loadConfiguration()), style->standardIcon(QStyle::SP_FileDialogDetailedView), QKeySequence(Qt::ControlModifier & Qt::Key_L & Qt::Key_C));
+    QAction* editConfiguration = comm.addAction("Edit configuration", SLOT(editConfiguration()), style->standardIcon(QStyle::SP_FileDialogDetailedView), QKeySequence(Qt::ControlModifier & Qt::Key_E & Qt::Key_C));
+
+
+    planningMenu->addAction(runPlanner);
+    planningMenu->addAction(stopPlanner);
+    planningMenu->addAction(loadConfiguration);
+    planningMenu->addAction(editConfiguration);
+
+    // END Planning
 
     // BEGIN Windows
     // BEGIN Windows->Dockable Dialogs
@@ -190,12 +211,15 @@ void TemplGui::createMenus()
     QMenuBar *bar = menuBar();
     bar->addMenu(fileMenu);
     bar->addMenu(viewMenu);
+    bar->addMenu(planningMenu);
     bar->addMenu(windowsMenu);
 
     QToolBar* toolBar = new QToolBar("Toolbar");
     toolBar->addAction(actionImport);
     toolBar->addAction(actionExport);
     toolBar->addAction(selectLayout);
+    toolBar->addAction(runPlanner);
+    toolBar->addAction(stopPlanner);
     toolBar->setFloatable(true);
     addToolBar(toolBar);
 
@@ -283,6 +307,24 @@ void TemplGui::importGraph(const QString& settingsLabel)
             QString(),
             settingsLabel);
     activateGraph(graph);
+}
+
+void TemplGui::importMission()
+{
+    MissionView* missionView = qobject_cast<templ::gui::MissionView*>(mpUi->tabWidget->currentWidget());
+    if(missionView)
+    {
+        missionView->loadMission("Templ");
+
+        int tabIndex = mpUi->tabWidget->indexOf(missionView);
+        mpUi->tabWidget->setTabToolTip(tabIndex, missionView->getFilename());
+        mpUi->tabWidget->setTabWhatsThis(tabIndex, missionView->getFilename());
+
+        QFileInfo fileInfo(missionView->getFilename());
+        mpUi->tabWidget->setTabText(tabIndex, QString("MissionView: ") + fileInfo.baseName());
+    } else {
+        openMissionView();
+    }
 }
 
 void TemplGui::activateGraph(graph_analysis::BaseGraph::Ptr& graph, const QString& tabLabel)
@@ -596,20 +638,17 @@ void TemplGui::openMissionEditor()
 
 void TemplGui::openMissionView()
 {
-    if(mpMissionView)
-    {
-        QMessageBox::warning(this, "Templ", "Mission view is already opened");
-    } else {
-        mpMissionView = new MissionView(this);
-        mpUi->tabWidget->addTab(mpMissionView,
-                                "Mission View");
-        mpUi->tabWidget->setCurrentWidget(mpMissionView);
-        // and show both' widgets status-messages on the statusbar. this simply
-        // assumes that only the one in the front is sending updates. otherwise
-        // they would interleave...
-        connect(mpMissionView, SIGNAL(currentStatus(QString, int)),
-                mpUi->statusbar, SLOT(showMessage(QString, int)));
-    }
+    MissionView* missionView = new MissionView;
+    mpUi->tabWidget->addTab(missionView,
+                            "Mission View");
+    mpUi->tabWidget->setCurrentWidget(missionView);
+    // and show both' widgets status-messages on the statusbar. this simply
+    // assumes that only the one in the front is sending updates. otherwise
+    // they would interleave...
+    connect(missionView, SIGNAL(currentStatus(QString, int)),
+            mpUi->statusbar, SLOT(showMessage(QString, int)));
+
+    importMission();
 }
 
 void TemplGui::openOntologyView()
@@ -623,6 +662,95 @@ void TemplGui::openOntologyView()
                                 mpOntologyView->getClassName());
         mpUi->tabWidget->setCurrentWidget(mpOntologyView);
     }
+}
+
+void TemplGui::runPlanner()
+{
+    QString program = "templ-transport_network_planner";
+    QStringList arguments;
+
+    // Get current configuration
+    arguments << "--configuration";
+    std::string path = mConfiguration.saveTemp("templ-gui-config");
+    arguments << QString(path.c_str());
+
+    MissionView* missionView = qobject_cast<templ::gui::MissionView*>(mpUi->tabWidget->currentWidget());
+    if(!missionView)
+    {
+        QMessageBox::warning(this, "Templ", "No active mission view selected for plan execution");
+        return;
+    }
+
+    // Get current mission
+    arguments << "--mission";
+    arguments << missionView->getFilename();
+
+    arguments << "--min_solutions";
+    arguments << QString( mConfiguration.getValue("templ-gui/min_solutions","2").c_str() );
+
+    arguments << "--interactive";
+    arguments << "false";
+
+    qDebug() << "Arguments: " << arguments;
+
+    QProcess* myProcess = new QProcess(this);
+    mpProcess = myProcess;
+
+    connect(myProcess, SIGNAL(readyReadStandardOutput()),
+            this, SLOT(logOutput()));
+
+    myProcess->start(program, arguments);
+    if(!myProcess->waitForStarted())
+    {
+        QMessageBox::warning(this, "Templ", "Failed to start planner");
+    } else {
+        qDebug() << "Planner started";
+    }
+}
+
+void TemplGui::stopPlanner()
+{
+
+}
+
+void TemplGui::loadConfiguration(const QString& settingsLabel)
+{
+    QSettings settings(QCoreApplication::organizationName(), settingsLabel);
+    QString dir = QDir::currentPath();
+
+    QString dirValue = settings.value("recentConfigurationImportDir").toString();
+    if(!dirValue.isEmpty())
+    {
+        dir = dirValue;
+    }
+
+    QString filename = QFileDialog::getOpenFileName(
+        this, tr("Load configuration description"),
+        dir,
+        tr("Configuration File (*.qxcfg *.xml)"));
+
+    if(!filename.isEmpty())
+    {
+        QFileInfo fileinfo(filename);
+        settings.setValue("recentConfigurationImportDir", fileinfo.absolutePath());
+
+        try {
+            mConfiguration = qxcfg::Configuration(filename.toStdString());
+        } catch(const std::exception& e)
+        {
+            QMessageBox::warning(this, "Templ", QString("Configuration: failed to load file --") + QString(e.what()));
+        }
+    }
+}
+
+void TemplGui::editConfiguration()
+{
+}
+
+void TemplGui::logOutput()
+{
+    QString output(mpProcess->readAll());
+    mpUi->textBrowser->append(output);
 }
 
 } // end namespace gui

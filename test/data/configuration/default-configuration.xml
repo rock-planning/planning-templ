@@ -45,7 +45,7 @@
                     </safety>
                 </cost-function>
             </options>
-            <interactive>true</interactive>
+            <interactive>false</interactive>
         </search>
     </TransportNetwork>
 </templ-configuration>

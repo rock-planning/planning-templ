@@ -33,6 +33,7 @@ public:
 private:
     QStandardItem* mpItem;
     Mission::Ptr mpMission;
+    QString mFilename;
 
 
     void updateVisualization();
@@ -52,11 +53,13 @@ public slots:
     void on_removeConstraintButton_clicked();
 
     // Loading/Storing Missions
-    void on_loadMissionButton_clicked();
+    void loadMission(const QString& settingsLabel ="");
 
     void on_saveButton_clicked();
     void on_updateButton_clicked();
     void on_clearButton_clicked();
+
+    const QString& getFilename() const { return mFilename; }
 
 };
 

@@ -9,6 +9,8 @@
 #include <QProcessEnvironment>
 #include <QtDebug>
 #include <QLabel>
+#include <QSettings>
+#include <QCoreApplication>
 
 // Rock specific includes
 #include <base-logging/Logging.hpp>
@@ -34,23 +36,41 @@ void MissionView::updateVisualization()
 {
 }
 
-void MissionView::on_loadMissionButton_clicked()
+void MissionView::loadMission(const QString& settingsLabel)
 {
+    QSettings settings(QCoreApplication::organizationName(), settingsLabel);
+    QString dir = QDir::currentPath();
+
+    QString dirValue = settings.value("recentMissionImportDir").toString();
+    if(!dirValue.isEmpty())
+    {
+        dir = dirValue;
+    }
+
     QString filename = QFileDialog::getOpenFileName(
         this, tr("Load mission description"),
-        QDir::currentPath(),
+        dir,
         tr("Mission Description File (*.mdf *.xml)"));
 
     if(!filename.isEmpty())
     {
-        Mission mission = templ::io::MissionReader::fromFile(filename.toStdString());
-        mpMission = Mission::Ptr(new Mission(mission));
+        mFilename = filename;
+        QFileInfo fileinfo(filename);
+        settings.setValue("recentMissionImportDir", fileinfo.absolutePath());
 
-        loadXML(filename);
-        expandAll();
-        show();
+        try {
+            Mission mission = templ::io::MissionReader::fromFile(filename.toStdString());
+            mpMission = Mission::Ptr(new Mission(mission));
 
-        refreshView();
+            loadXML(filename);
+            expandAll();
+            show();
+
+            refreshView();
+        } catch(const std::exception& e)
+        {
+            QMessageBox::warning(this, "Templ", QString("MissionView: failed to load file --") + QString(e.what()));
+        }
     }
 }
 

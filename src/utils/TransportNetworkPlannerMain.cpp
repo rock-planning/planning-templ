@@ -17,6 +17,7 @@ int main(int argc, char** argv)
         ("configuration", po::value<std::string>(), "Path to the search configuration file")
         ("om", po::value<std::string>(), "IRI of the organization model (optional)")
         ("min_solutions", po::value<size_t>(), "Minimum number of solutions (optional)")
+        ("interactive", po::value<bool>(), "Set interactive mode (optional, otherwise setting from configuration file is used)")
         ;
 
     po::variables_map vm;
@@ -73,6 +74,20 @@ int main(int argc, char** argv)
 
 
     qxcfg::Configuration configuration(configurationFilename);
+    // Make sure the configuration is set according to the command line
+    // parameter if selected, otherwise use the info from the configuration file
+    if(vm.count("interactive"))
+    {
+        bool interactive = vm["interactive"].as<bool>();
+        if(interactive)
+        {
+            configuration.setValue("TransportNetwork/search/interactive", "true");
+        } else {
+            configuration.setValue("TransportNetwork/search/interactive", "false");
+        }
+    }
+
+
     std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission,minimumNumberOfSolutions, configuration);
     if(solutions.empty())
     {
