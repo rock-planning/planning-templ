@@ -119,7 +119,8 @@ private slots:
     // Planner
     void runPlanner();
     void stopPlanner();
-    void loadConfiguration(const QString& settingsLabel = "Configuration");
+    void loadConfiguration(const QString& filename = "",
+            const QString& settingsLabel = "Configuration");
     void editConfiguration();
     void logOutput();
 };

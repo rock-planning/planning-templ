@@ -72,6 +72,13 @@ TemplGui::TemplGui()
     mpUi->tabWidget->setMovable(true);
 
     mConfiguration.setValue("templ-gui/min_solutions","2");
+    // Load any recent configuration file if available
+    QSettings settings(QCoreApplication::organizationName());
+    QVariant variant = settings.value("recentConfigurationFile");
+    if(!variant.isNull())
+    {
+        loadConfiguration(variant.toString());
+    }
 
     connect(mpUi->tabWidget,SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
@@ -713,26 +720,30 @@ void TemplGui::stopPlanner()
 
 }
 
-void TemplGui::loadConfiguration(const QString& settingsLabel)
+void TemplGui::loadConfiguration(const QString& filename,
+        const QString& settingsLabel)
 {
     QSettings settings(QCoreApplication::organizationName(), settingsLabel);
-    QString dir = QDir::currentPath();
-
-    QString dirValue = settings.value("recentConfigurationImportDir").toString();
-    if(!dirValue.isEmpty())
+    if(filename.isEmpty() || !QFileInfo(filename).exists())
     {
-        dir = dirValue;
-    }
+        QString dir = QDir::currentPath();
 
-    QString filename = QFileDialog::getOpenFileName(
-        this, tr("Load configuration description"),
-        dir,
-        tr("Configuration File (*.qxcfg *.xml)"));
+        QString dirValue = settings.value("recentConfigurationFile").toString();
+        if(!dirValue.isEmpty())
+        {
+            dir = dirValue;
+        }
+
+        QString filename = QFileDialog::getOpenFileName(
+            this, tr("Load configuration"),
+            dir,
+            tr("Configuration File (*.qxcfg *.xml)"));
+    }
 
     if(!filename.isEmpty())
     {
         QFileInfo fileinfo(filename);
-        settings.setValue("recentConfigurationImportDir", fileinfo.absolutePath());
+        settings.setValue("recentConfigurationFile", fileinfo.absolutePath());
 
         try {
             mConfiguration = qxcfg::Configuration(filename.toStdString());
