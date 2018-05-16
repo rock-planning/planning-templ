@@ -25,6 +25,12 @@ QualitativeTimePoint::Ptr QualitativeTimePoint::getInstance(const TimePoint::Lab
 
 void QualitativeTimePoint::addAlias(const TimePoint::Label& label)
 {
+    // No empty label allowed
+    if(label.empty())
+    {
+        return;
+    }
+
     if(!isAlias(label))
     {
         mAliases.push_back(label);
@@ -43,7 +49,6 @@ bool QualitativeTimePoint::isAlias(const TimePoint::Label& label) const
 bool QualitativeTimePoint::operator==(const QualitativeTimePoint& other) const
 {
     // since addAlias does sorting, no need to sort here
-
     // result
     std::vector<TimePoint::Label> intersection(other.mAliases.size() + mAliases.size());
     std::vector<TimePoint::Label>::iterator it;
