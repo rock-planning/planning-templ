@@ -34,17 +34,18 @@ void TemporalConstraintNetworkBase::addConstraints(const temporal::QualitativeTe
     EdgeIterator::Ptr edgeIt = tcn.getGraph()->getEdgeIterator();
     while(edgeIt->next())
     {
-        point_algebra::QualitativeTimePointConstraint::Ptr constraint = dynamic_pointer_cast<point_algebra::QualitativeTimePointConstraint>(edgeIt->current());
+        Edge::Ptr edge = edgeIt->current();
+        point_algebra::QualitativeTimePointConstraint::Ptr constraint = dynamic_pointer_cast<point_algebra::QualitativeTimePointConstraint>(edge);
         if(!constraint)
         {
-            throw std::runtime_error("templ::solvers::csp::TemporalConstraintNetwork: encountered an edge which is not a QualitativeTimePointConstraint");
+            throw std::runtime_error("templ::solvers::csp::TemporalConstraintNetwork: encountered an edge which is not a QualitativeTimePointConstraint" + edge->toString());
         }
 
         size_t sourceIdx = getVertexIdx( constraint->getSourceVertex(), mVertices );
         size_t targetIdx = getVertexIdx( constraint->getTargetVertex(), mVertices );
 
-        LOG_DEBUG_S << "Add constraint: " << point_algebra::QualitativeTimePointConstraint::TypeTxt[constraint->getType() ] << " from: " << sourceIdx << " to: " << targetIdx << std::endl
-            << constraint->getSourceVertex()->toString() << " --> " << constraint->getTargetVertex()->toString();
+        LOG_DEBUG_S << "Add constraint: " << point_algebra::QualitativeTimePointConstraint::TypeTxt[constraint->getType() ] << " from: " << constraint->getSourceVertex()->toString() <<
+            " (idx: " << sourceIdx << ") " << " --> " << constraint->getTargetVertex()->toString() << " (idx: " << targetIdx << ")";
 
 
         switch(constraint->getType())
