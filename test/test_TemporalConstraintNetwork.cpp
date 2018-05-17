@@ -162,4 +162,51 @@ BOOST_AUTO_TEST_CASE(io_non_overlapping_intervals)
     BOOST_REQUIRE_MESSAGE( !comparator.lessThan(timepoints["t9"], timepoints["t0"]), "not t9 < t0");
 }
 
+BOOST_AUTO_TEST_CASE(comparator_validation)
+{
+    using namespace templ::solvers::temporal;
+    using namespace templ::solvers::temporal::point_algebra;
+
+    using namespace graph_analysis;
+
+    QualitativeTemporalConstraintNetwork::Ptr tpc(new QualitativeTemporalConstraintNetwork());
+    typedef QualitativeTimePointConstraint QTPC;
+
+    QualitativeTimePoint::Ptr t0 = make_shared<QualitativeTimePoint>("t0");
+    QualitativeTimePoint::Ptr t1 = make_shared<QualitativeTimePoint>("t1");
+    QualitativeTimePoint::Ptr t2 = make_shared<QualitativeTimePoint>("t2");
+    QualitativeTimePoint::Ptr t3 = make_shared<QualitativeTimePoint>("t3");
+    QualitativeTimePoint::Ptr t4 = make_shared<QualitativeTimePoint>("t4");
+    QualitativeTimePoint::Ptr t5 = make_shared<QualitativeTimePoint>("t5");
+    QualitativeTimePoint::Ptr t6 = make_shared<QualitativeTimePoint>("t6");
+    QualitativeTimePoint::Ptr t7 = make_shared<QualitativeTimePoint>("t7");
+    QualitativeTimePoint::Ptr t8 = make_shared<QualitativeTimePoint>("t8");
+
+    TimePoint::PtrList timepoints = { t0, t1, t2, t3, t4, t5, t6, t7, t8 };
+
+    tpc->addQualitativeConstraint(t1, t0, QTPC::Greater);
+    tpc->addQualitativeConstraint(t2, t1, QTPC::Greater);
+    tpc->addQualitativeConstraint(t3, t2, QTPC::Greater);
+    tpc->addQualitativeConstraint(t4, t3, QTPC::Greater);
+    tpc->addQualitativeConstraint(t5, t4, QTPC::Greater);
+    tpc->addQualitativeConstraint(t6, t5, QTPC::Greater);
+    tpc->addQualitativeConstraint(t7, t6, QTPC::Greater);
+    tpc->addQualitativeConstraint(t8, t7, QTPC::Greater);
+
+    point_algebra::TimePointComparator comparator(tpc);
+    for(size_t i = 0; i < timepoints.size() -1; ++i)
+    {
+        TimePoint::Ptr ti = timepoints[i];
+        for(size_t j = i+1; j < timepoints.size(); ++j)
+        {
+            TimePoint::Ptr tj = timepoints[j];
+
+            BOOST_REQUIRE_MESSAGE(comparator.lessThan(ti, tj), "Expected " << ti->toString()
+                    << " lessThan " << tj->toString());
+            BOOST_REQUIRE_MESSAGE(!comparator.greaterThan(ti, tj), "Expected " << ti->toString()
+                    << " not greaterThan " << tj->toString());
+        }
+    }
+
+}
 BOOST_AUTO_TEST_SUITE_END()

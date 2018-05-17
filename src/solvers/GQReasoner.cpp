@@ -53,7 +53,7 @@ GQReasoner::~GQReasoner()
 
 bool GQReasoner::isConsistent(const temporal::QualitativeTemporalConstraintNetwork& qtcn)
 {
-    GQReasoner paReasoner("point", qtcn.getGraph(), temporal::point_algebra::QualitativeTimePointConstraint::Ptr(new temporal::point_algebra::QualitativeTimePointConstraint()));
+    GQReasoner paReasoner("point", qtcn.getGraph(), make_shared<temporal::point_algebra::QualitativeTimePointConstraint>());
     if(paReasoner.getPrimarySolution() != graph_analysis::BaseGraph::Ptr())
     {
         return true;
@@ -144,7 +144,7 @@ void GQReasoner::translateGraph()
                 constraint->getTargetVertex()->getId(mpGraph->getId()),relation);
         }
     }
-    
+
     LOG_DEBUG_S << "Translating graph completed";
 }
 

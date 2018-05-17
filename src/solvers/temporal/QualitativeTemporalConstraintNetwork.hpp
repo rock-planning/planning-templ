@@ -23,6 +23,8 @@ public:
     typedef shared_ptr<QualitativeTemporalConstraintNetwork> Ptr;
     typedef std::pair<graph_analysis::Vertex::Ptr, graph_analysis::Vertex::Ptr> VertexPair;
 
+    enum ValidationAlgorithm { TCN_GECODE, TCN_GQR, TCN_INCREMENTAL, TCN_BEEK_MANAK };
+
     /**
      * Constraint validation for a triangle relation
      * s - o
@@ -66,10 +68,13 @@ public:
      */
     void removeQualitativeConstraint(const point_algebra::QualitativeTimePointConstraint::Ptr& constraint);
 
-    /** Check 3-path consistency withing the constraint graph
+    /** Check consistency withing the constraint graph
      * \return true if graph is consistent, false otherwise
      */
     bool isConsistent();
+
+
+    bool isConsistent(ValidationAlgorithm algorithm);
 
     /**
      * Check the consistency of a triangle of vertices
@@ -123,6 +128,12 @@ public:
     ConstraintValidationResult getConstraintType(const graph_analysis::Vertex::Ptr& s, const graph_analysis::Vertex::Ptr& o, const graph_analysis::Vertex::Ptr& t);
 
     virtual void setConsistentNetwork(const graph_analysis::BaseGraph::Ptr& graph);
+
+    /**
+     * Compact multiple constraint, which are on one edge
+     * \throws if the compacted constrainted will be empty, i.e. is inconsistent
+     */
+    void compactConstraint(const point_algebra::TimePoint::Ptr& t1, const point_algebra::TimePoint::Ptr& t2);
 
 protected:
     virtual ConstraintNetwork* getClone() const { return new QualitativeTemporalConstraintNetwork(*this); }

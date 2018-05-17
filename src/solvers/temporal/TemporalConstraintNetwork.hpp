@@ -24,6 +24,7 @@ protected:
 
 public:
     typedef shared_ptr<TemporalConstraintNetwork> Ptr;
+    typedef std::map<point_algebra::TimePoint::Ptr, double> Assignment;
 
     TemporalConstraintNetwork();
     virtual ~TemporalConstraintNetwork();
@@ -63,6 +64,13 @@ public:
      * Check if the temporal constraint network is consistent
      */
     virtual bool isConsistent() { throw std::runtime_error("templ::solvers::temporal::TemporalConstraintNetwork::isConsistent is not implemented"); }
+
+    /**
+     * \brief Transform this temporal constraint network into a Simple Temporal Problem (STP)
+     * assuming conjunctive intervals (in contrast to stp() assuming dijunctive)
+     * \details STN with upper-lower bounds for conjunctive intervals
+     */
+    void stpWithConjunctiveIntervals();
 
     /**
      * \brief Transform this temporal constraint network into a Simple Temporal Problem (STP)
@@ -157,6 +165,19 @@ public:
      * order
      */
     point_algebra::TimePoint::PtrList getTimepoints() const;
+
+    /**
+     * Get the list of lower bounds as assignment
+     */
+    static Assignment getAssignment(const graph_analysis::BaseGraph::Ptr& distanceGraph,
+            const point_algebra::TimePoint::PtrList& timepoints);
+
+    /**
+     * Get the maximum assignment as time horizon
+     */
+    static double getTimeHorizon(const Assignment& assignment);
+
+
 
 protected:
     virtual ConstraintNetwork* getClone() const { return new TemporalConstraintNetwork(*this); }

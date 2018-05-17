@@ -106,6 +106,11 @@ public:
      */
     virtual void registerAttributes(graph_analysis::EdgeTypeManager*) const override;
 
+    /**
+     * Merge bounds from another interval constraint
+     */
+    void appendBounds(const IntervalConstraint& other);
+
 protected:
 
     /// Make sure cloning works for this constraint

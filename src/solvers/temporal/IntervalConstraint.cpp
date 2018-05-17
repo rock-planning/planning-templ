@@ -111,6 +111,11 @@ double IntervalConstraint::getLowerBound() const
     return minimum;
 }
 
+void IntervalConstraint::appendBounds(const IntervalConstraint& other)
+{
+    mIntervals.insert(mIntervals.begin(), other.mIntervals.begin(), other.mIntervals.end());
+}
+
 } // end namespace temporal
 } // end namespace solvers
 } // end namespace templ

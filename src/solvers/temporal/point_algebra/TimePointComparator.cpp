@@ -65,9 +65,22 @@ bool TimePointComparator::greaterThan(const TimePoint::Ptr& t0, const TimePoint:
             throw std::runtime_error("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: comparing qualitive timepoints, but not QualitativeTimePointConstraintNetwork given to comparator");
         }
 
+        graph_analysis::Edge::PtrList existingEdges = mpTemporalConstraintNetwork->getGraph()->getEdges(t0,t1);
         QualitativeTimePointConstraint::Ptr constraint = mpTemporalConstraintNetwork->addQualitativeConstraint(t0, t1, point_algebra::QualitativeTimePointConstraint::Greater);
         bool consistent = mpTemporalConstraintNetwork->isConsistent();
-        mpTemporalConstraintNetwork->removeQualitativeConstraint(constraint);
+
+        // Remove temporary addition
+        graph_analysis::Edge::PtrList tempEdges = mpTemporalConstraintNetwork->getGraph()->getEdges(t0,t1);
+        for(const graph_analysis::Edge::Ptr& e : tempEdges)
+        {
+            mpTemporalConstraintNetwork->getGraph()->removeEdge(e);
+        }
+
+        // Restore previous status
+        for(const graph_analysis::Edge::Ptr& e : existingEdges)
+        {
+            mpTemporalConstraintNetwork->getGraph()->addEdge(e);
+        }
         return consistent;
     } else {
         throw std::invalid_argument("templ::solvers::temporal::point_algebra::TimePointComparator::greaterThan: cannot compare this type of TimePoints");

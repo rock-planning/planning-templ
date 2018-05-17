@@ -43,36 +43,7 @@ QualitativeTimePointConstraint::Ptr QualitativeTemporalConstraintNetwork::addQua
         throw std::runtime_error("templ::solvers::temporal::QualitativeTimePointConstraint::addQualitativeConstraint: cannot add constraint on identical timepoints");
     }
 
-    // compact existing edges
-    try {
-        std::vector<Edge::Ptr> edgesIJ = getGraph()->getEdges(t1,t2);
-        if(!edgesIJ.empty())
-        {
-            std::vector<Edge::Ptr>::const_iterator eit = edgesIJ.begin();
-            for(; eit != edgesIJ.end(); ++eit)
-            {
-                QualitativeTimePointConstraint::Ptr constraint = dynamic_pointer_cast<QualitativeTimePointConstraint>(*eit);
-                QualitativeTimePointConstraint::Type existingType;
-                if(constraint)
-                {
-                    existingType = constraint->getType();
-                    // merge with existing
-                    constraintType = QualitativeTimePointConstraint::getIntersection(existingType, constraintType);
-                }
-                getGraph()->removeEdge(*eit);
-            }
-        }
-    } catch(const std::runtime_error& e)
-    {
-        // timepoints not yet registered
-    }
-
-
-    if(constraintType == QualitativeTimePointConstraint::Empty)
-    {
-        LOG_WARN_S << "The following constraint will be added, invalidating the network: from: " << t1->toString()
-            << " to " << t2->toString() << ": " << QualitativeTimePointConstraint::TypeTxt[_constraintType];
-    }
+    compactConstraint(t1,t2);
 
     QualitativeTimePointConstraint::Ptr constraint = QualitativeTimePointConstraint::create(t1, t2, constraintType);
     LOG_DEBUG_S << "Adding QualitativeTimePointConstraint: " << constraint->toString(4);
@@ -90,15 +61,28 @@ void QualitativeTemporalConstraintNetwork::removeQualitativeConstraint(const poi
 
 bool QualitativeTemporalConstraintNetwork::isConsistent()
 {
-    return csp::TemporalConstraintNetwork::isConsistent(*this);
+    return isConsistent(TCN_GECODE);
+}
 
-    //try {
-    //    return incrementalPathConsistency();
-    //    //return pathConsistency_BeekManak();
-    //} catch(const std::runtime_error& e)
-    //{
-    //    return false;
-    //}
+bool QualitativeTemporalConstraintNetwork::isConsistent(ValidationAlgorithm algorithm)
+{
+    try {
+        switch(algorithm)
+        {
+            case TCN_GECODE:
+                return csp::TemporalConstraintNetwork::isConsistent(*this);
+            case TCN_INCREMENTAL:
+                return incrementalPathConsistency();
+            case TCN_BEEK_MANAK:
+                return pathConsistency_BeekManak();
+            default:
+                throw std::invalid_argument("templ::solvers::temporal::QualitativeTemporalConstraintNetwork::isConsistent: given algorithm not supported");
+        }
+    } catch(const std::runtime_error& e)
+    {
+        return false;
+    }
+
 }
 
 bool QualitativeTemporalConstraintNetwork::pathConsistency_BeekManak()
@@ -472,6 +456,46 @@ void QualitativeTemporalConstraintNetwork::setConsistentNetwork(const graph_anal
 {
     mUpdatedConstraints.clear();
     TemporalConstraintNetwork::setConsistentNetwork(baseGraph);
+}
+
+void QualitativeTemporalConstraintNetwork::compactConstraint(const TimePoint::Ptr& t1,
+        const TimePoint::Ptr& t2)
+{
+    // compact existing edges
+    try {
+        std::vector<Edge::Ptr> edgesIJ = getGraph()->getEdges(t1,t2);
+        QualitativeTimePointConstraint::Type constraintType = QualitativeTimePointConstraint::Universal;
+
+        if(!edgesIJ.empty())
+        {
+            std::vector<Edge::Ptr>::const_iterator eit = edgesIJ.begin();
+            for(; eit != edgesIJ.end(); ++eit)
+            {
+                QualitativeTimePointConstraint::Ptr constraint = dynamic_pointer_cast<QualitativeTimePointConstraint>(*eit);
+                QualitativeTimePointConstraint::Type existingType;
+                if(constraint)
+                {
+                    existingType = constraint->getType();
+                    // merge with existing
+                    constraintType = QualitativeTimePointConstraint::getIntersection(existingType, constraintType);
+                }
+                getGraph()->removeEdge(*eit);
+            }
+
+            if(constraintType == QualitativeTimePointConstraint::Empty)
+            {
+                throw std::runtime_error("QualitativeTimePointConstraint::compactConstraint: compacting leads to inconsistency");
+            }
+
+            QualitativeTimePointConstraint::Ptr constraint = QualitativeTimePointConstraint::create(t1, t2, constraintType);
+            LOG_DEBUG_S << "Adding compact QualitativeTimePointConstraint: " << constraint->toString(4);
+            TemporalConstraintNetwork::addConstraint(constraint);
+        }
+    } catch(const std::runtime_error& e)
+    {
+        LOG_INFO_S << "Timepoint not registered: not compacting";
+        // timepoints not yet registered
+    }
 }
 
 } // end namespace temporal
