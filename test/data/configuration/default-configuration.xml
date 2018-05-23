@@ -1,6 +1,8 @@
 <templ-configuration>
     <TransportNetwork>
         <use-transfer-location>false</use-transfer-location>
+        <!-- default is false -->
+        <intervals-nooverlap>false</intervals-nooverlap>
         <search>
             <options>
                 <threads>1</threads>
@@ -26,12 +28,13 @@
                     <afc-decay>0.95</afc-decay>
                 </role-usage>
                 <master-slave>false</master-slave><!-- allow to improve solution using a master-slave approach applying flaw resolvers -->
-                <hill-climbing>true</hill-climbing><!-- allow only increasingly better solutions, by constrain in master constrain function -->
+                <!-- default is false -->
+                <hill-climbing>false</hill-climbing><!-- allow only increasingly better solutions, by constrain in master constrain function -->
                 <timeline-brancher>
                     <afc-decay>0.95</afc-decay>
-                    <supply-demand>true</supply-demand>
+                    <supply-demand>false</supply-demand>
                 </timeline-brancher>
-                <!-- SCIP or GLKPK -->
+                <!-- SCIP or GLPK -->
                 <lpsolver>GLPK</lpsolver>
                 <cost-function>
                     <efficacy>
