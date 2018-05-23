@@ -552,7 +552,8 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const qxc
     // one without gaps before we proceed
     Gecode::Rnd temporalNetworkRnd;
     temporalNetworkRnd.hw();
-    Gecode::assign(*this, mQualitativeTimepoints, Gecode::INT_ASSIGN_RND(temporalNetworkRnd));
+    //Gecode::assign(*this, mQualitativeTimepoints, Gecode::INT_ASSIGN_RND(temporalNetworkRnd));
+    Gecode::branch(*this, mQualitativeTimepoints, Gecode::INT_VAR_RND(temporalNetworkRnd), Gecode::INT_VAL_MIN());
     Gecode::branch(*this, &TransportNetwork::doPostTemporalConstraints);
 
     // For each requirement add the min/max and extensional constraints
