@@ -54,12 +54,21 @@ public:
 
     const std::set<Role>& getRoles(const Tag& tag) const;
 
+    const std::set<Role> getRoles(const std::set<Tag>& tags) const;
+
     const std::set<Role>& getAllRoles() const;
 
     /**
      * Get the status a particular role
      */
     Status getStatus(const owlapi::model::IRI& model, uint32_t id) const;
+
+    Status getStatus(const Role& r) const { return getStatus(r.getModel(), r.getId()); }
+
+    /**
+     * Get all stati of role, which this RoleInfo object contains
+     */
+    std::set<Status> getStati() const;
 
     /**
      * Get the tags for a role
@@ -92,6 +101,8 @@ public:
      * Get intersection between tag0 and tag1 set
      */
     Role::List getIntersection(const std::string& tag0, const std::string& tag1) const;
+
+    static Role::List getIntersection(const Role::Set& set0, const Role::Set& set1);
 
     /**
      * Get the symmetric difference between tag0 and tag1 set

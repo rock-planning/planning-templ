@@ -63,6 +63,17 @@ const std::set<Role>& RoleInfo::getRoles(const Tag& tag) const
     return getRoles( TagTxt[tag] );
 }
 
+const std::set<Role> RoleInfo::getRoles(const std::set<Tag>& tags) const
+{
+    std::set<Role> roles;
+    for(const Tag& t : tags)
+    {
+        const std::set<Role>& tagRoles = getRoles( t );
+        roles.insert(tagRoles.begin(), tagRoles.end());
+    }
+    return roles;
+}
+
 
 bool RoleInfo::hasRole(const Role& role, const std::string& tag) const
 {
@@ -147,6 +158,17 @@ RoleInfo::Status RoleInfo::getStatus(const owlapi::model::IRI& model, uint32_t i
         // role unknown
     }
     return UNKNOWN_STATUS;
+}
+
+std::set<RoleInfo::Status> RoleInfo::getStati() const
+{
+    std::set<RoleInfo::Status> stati;
+    Role::Set roles = getAllRoles();
+    for(const Role& role : roles)
+    {
+        stati.insert( getStatus(role) );
+    }
+    return stati;
 }
 
 std::set<std::string> RoleInfo::getTags(const Role& role) const
@@ -234,6 +256,19 @@ Role::List RoleInfo::getIntersection(const std::string& tag0, const std::string&
     it = std::set_intersection(tag0Roles.begin(), tag0Roles.end(),
             tag1Roles.begin(),
             tag1Roles.end(), result.begin());
+
+    result.resize(it - result.begin());
+    return result;
+}
+
+Role::List RoleInfo::getIntersection(const Role::Set& set0, const Role::Set& set1)
+{
+    Role::List result(set0.size() + set1.size());
+    Role::List::iterator it;
+
+    it = std::set_intersection(set0.begin(), set0.end(),
+            set1.begin(),
+            set1.end(), result.begin());
 
     result.resize(it - result.begin());
     return result;
