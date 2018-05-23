@@ -542,6 +542,12 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const qxc
     // Initialize constraint network after mQualitativeTimepoints has been
     // properly constructed -- otherwise we will trigger segfaults
     mTemporalConstraintNetwork = TemporalConstraintNetworkBase(*mpMission->getQualitativeTemporalConstraintNetwork(),*this, mQualitativeTimepoints);
+
+    bool nooverlap = mConfiguration.getValueAs<bool>("TransportNetwork/intervals-nooverlap",false);
+    if(nooverlap)
+    {
+        mTemporalConstraintNetwork.addNoOverlap(mIntervals, *this, mQualitativeTimepoints);
+    }
     // makeing sure we get a fully assigned temporal constraint network, i.e.
     // one without gaps before we proceed
     Gecode::Rnd temporalNetworkRnd;
