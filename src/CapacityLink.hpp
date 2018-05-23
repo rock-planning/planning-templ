@@ -32,7 +32,7 @@ public:
     virtual std::string toString(uint32_t indent = 0) const override;
 
     /**
-     * Add a user of this capacity link
+     * Add a user of this capacity link, with a given consumption
      */
     void addConsumer(const Role& role, uint32_t capacity = 1);
 
