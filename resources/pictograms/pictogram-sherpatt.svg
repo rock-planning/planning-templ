@@ -10,7 +10,7 @@
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="981.61285"
-   height="855.54773"
+   height="956.97632"
    id="svg5521"
    version="1.1"
    inkscape:version="0.91 r13725"
@@ -27,11 +27,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="364.87395"
-     inkscape:cy="700.079"
+     inkscape:zoom="0.70000002"
+     inkscape:cx="610.38782"
+     inkscape:cy="400.72101"
      inkscape:document-units="px"
-     inkscape:current-layer="g4356"
+     inkscape:current-layer="g5064"
      showgrid="false"
      inkscape:window-width="1920"
      inkscape:window-height="1056"
@@ -58,7 +58,7 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-32.61107,43.536508)">
+     transform="translate(-32.61107,144.96508)">
     <g
        id="g3788-01"
        transform="matrix(-0.29867488,0,0,-0.30001212,1048.3717,209.16752)"
@@ -72,8 +72,8 @@
         <g
            id="g4356">
           <ellipse
-             cy="0.078750297"
-             cx="351.73901"
+             cy="-1.3498211"
+             cx="690.31042"
              inkscape:export-ydpi="600"
              inkscape:export-xdpi="600"
              inkscape:export-filename="C:\Users\roehr\Desktop\PhD_Retreat\pictogram-sherpa.png"
@@ -97,8 +97,8 @@
              style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:5.98685503;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
              sodipodi:type="arc" />
           <ellipse
-             cy="-23.56888"
-             cx="562.46906"
+             cy="-124.99745"
+             cx="849.61188"
              inkscape:export-ydpi="600"
              inkscape:export-xdpi="600"
              inkscape:export-filename="C:\Users\roehr\Desktop\PhD_Retreat\pictogram-sherpa.png"
@@ -107,8 +107,8 @@
              rx="18.212919"
              ry="18.294462" />
           <ellipse
-             cy="100.07878"
-             cx="649.36078"
+             cy="-1.3497906"
+             cx="936.5036"
              inkscape:export-ydpi="600"
              inkscape:export-xdpi="600"
              inkscape:export-filename="C:\Users\roehr\Desktop\PhD_Retreat\pictogram-sherpa.png"
@@ -122,19 +122,18 @@
              inkscape:export-filename="C:\Users\roehr\Desktop\PhD_Retreat\pictogram-sherpa.png"
              inkscape:connector-curvature="0"
              id="path4361"
-             d="M 350.75401,0.07879451 563.45415,-24.997447 651.33088,100.36039"
-             style="fill:none;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-             sodipodi:nodetypes="ccc" />
+             d="M 687.89686,-1.349781 852.02557,-124.99745 941.33088,1.074677"
+             style="fill:none;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
           <path
              sodipodi:open="true"
              sodipodi:type="arc"
              style="fill:none;stroke:#000000;stroke-width:18.20003891;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
              id="path2989-9"
-             sodipodi:cx="-649.36072"
-             sodipodi:cy="-167.53024"
+             sodipodi:cx="-936.50354"
+             sodipodi:cy="-66.101677"
              sodipodi:rx="41.387806"
              sodipodi:ry="41.573109"
-             d="m -607.97291,-167.53024 a 41.387806,41.573109 0 0 1 -20.69391,36.00337 41.387806,41.573109 0 0 1 -41.3878,-1e-5 41.387806,41.573109 0 0 1 -20.6939,-36.00336"
+             d="m -895.11573,-66.101677 a 41.387806,41.573109 0 0 1 -20.69391,36.003369 41.387806,41.573109 0 0 1 -41.3878,-1e-6 41.387806,41.573109 0 0 1 -20.69391,-36.00337"
              sodipodi:start="0"
              sodipodi:end="3.1415927"
              transform="scale(-1,-1)" />
@@ -144,9 +143,8 @@
              inkscape:export-filename="C:\Users\roehr\Desktop\PhD_Retreat\pictogram-sherpa.png"
              inkscape:connector-curvature="0"
              id="path4717"
-             d="M 513.43848,263.65163 353.39923,2.8054161"
-             style="fill:none;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-             sodipodi:nodetypes="cc" />
+             d="M 514.11351,250.79449 692.72419,-8.623155"
+             style="fill:none;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
           <path
              sodipodi:end="6.0721701"
              sodipodi:start="6.0740643"
@@ -159,12 +157,18 @@
              style="fill:none;stroke:#000000;stroke-width:12;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
              sodipodi:type="arc"
              sodipodi:open="true" />
+          <ellipse
+             ry="18.294462"
+             rx="18.212919"
+             id="path4287-8-92"
+             style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:3.34633088;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             cx="200.338"
+             cy="524.75891" />
           <path
              inkscape:connector-curvature="0"
              id="path4741"
-             d="M 321.02092,478.69413 254.18027,560.90591 135.16929,711.44267"
-             style="fill:none;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-             sodipodi:nodetypes="ccc" />
+             d="M 321.02092,478.69413 202.7517,522.33448 135.16929,711.44267"
+             style="fill:none;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
           <ellipse
              ry="18.294462"
              rx="18.212919"
@@ -185,12 +189,19 @@
              style="fill:none;stroke:#000000;stroke-width:12;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
              sodipodi:type="arc"
              sodipodi:open="true" />
+          <ellipse
+             ry="18.294462"
+             rx="18.212919"
+             transform="scale(-1,1)"
+             id="path4287-8-92-2"
+             style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:3.34633088;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             cx="-846.49701"
+             cy="522.87378" />
           <path
              inkscape:connector-curvature="0"
              id="path4741-6"
-             d="m 725.81411,476.80895 c 65.10528,75.064 125.10723,154.18201 185.85163,232.74854"
-             style="fill:none;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-             sodipodi:nodetypes="cc" />
+             d="m 725.81411,476.80895 118.26922,43.64035 67.58241,189.10819"
+             style="fill:none;stroke:#000000;stroke-width:8;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
           <ellipse
              ry="18.294462"
              rx="18.212919"
