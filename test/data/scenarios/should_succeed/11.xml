@@ -1,17 +1,33 @@
 <mission>
-<name>test one immobile system deployment</name>
+<name>TransTerrA</name>
 <description>    
-    Immobile system needs one transport service -- part of the backtracking
+    The icaps mission, but adapted.
+    All resources are available at the starting position: lander.
+    Payloads are required at two locations: b1, b2, were two mobile systems
+    are expected as well.
+
 </description>
 <organization_model>http://www.rock-robotics.org/2015/12/projects/TransTerrA</organization_model>
 <resources>
     <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+        <maxCardinality>10</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#CREX</model>
         <maxCardinality>2</maxCardinality>
     </resource>
     <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+        <maxCardinality>3</maxCardinality>
+    </resource>
+    <resource>
         <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-        <maxCardinality>4</maxCardinality>
+        <maxCardinality>25</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#BaseCamp</model>
+        <maxCardinality>5</maxCardinality>
     </resource>
 </resources>
 <constants>
@@ -84,25 +100,59 @@
                 <id>lander</id>
             </location>
         </spatial-requirement>
-
-        <!-- when it is required / mixing qualitative and quantitative
-        information -->
         <temporal-requirement type="persistence-condition | event" >
             <from>t0</from>
             <to>t1</to>
         </temporal-requirement>
         <resource-requirement>
             <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+            <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+                <minCardinality>10</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#CREX</model>
                 <minCardinality>2</minCardinality>
             </resource>
             <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+                <minCardinality>3</minCardinality>
+            </resource>
+            <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-                <minCardinality>2</minCardinality>
+                <minCardinality>25</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#BaseCamp</model>
+                <minCardinality>5</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>
     <requirement id="1">
+        <spatial-requirement>
+            <location>
+                <id>lander</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement type="persistence-condition | event" >
+            <from>t5</from>
+            <to>t10</to>
+        </temporal-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>3</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement id="2">
         <spatial-requirement>
             <location>
                 <id>b1</id>
@@ -114,20 +164,28 @@
         </temporal-requirement>
         <resource-requirement>
             <resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</model>
                 <minCardinality>1</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>3</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement id="2">
+    <requirement id="3">
         <spatial-requirement>
             <location>
-                <id>b2</id>
+                <id>b1</id>
             </location>
         </spatial-requirement>
         <temporal-requirement type="persistence-condition | event" >
-            <from>t4</from>
-            <to>t5</to>
+            <from>t3</from>
+            <to>t14</to>
         </temporal-requirement>
         <resource-requirement>
             <resource>
@@ -136,10 +194,56 @@
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement id="3">
+    <requirement id="4">
         <spatial-requirement>
             <location>
-                <id>b3</id>
+                <id>b2</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement type="persistence-condition | event" >
+            <from>t2</from>
+            <to>t3</to>
+        </temporal-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#LogisticHubProvider</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>3</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement id="5">
+        <spatial-requirement>
+            <location>
+                <id>b1</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t4</from>
+            <to>t7</to>
+        </temporal-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#BaseCamp</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement id="6">
+        <spatial-requirement>
+            <location>
+                <id>b4</id>
             </location>
         </spatial-requirement>
         <temporal-requirement type="persistence-condition | event" >
@@ -148,16 +252,20 @@
         </temporal-requirement>
         <resource-requirement>
             <resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider</model>
                 <minCardinality>1</minCardinality>
             </resource>
             <resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider</model>
                 <minCardinality>1</minCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>6</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement id="4">
+    <requirement id="7">
         <spatial-requirement>
             <location>
                 <id>b4</id>
@@ -170,28 +278,41 @@
         <resource-requirement>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
-                <minCardinality>1</minCardinality>
+                <minCardinality>3</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement id="5">
+    <requirement id="8">
         <spatial-requirement>
             <location>
-                <id>b5</id>
+                <id>b6</id>
             </location>
         </spatial-requirement>
         <temporal-requirement type="persistence-condition | event" >
-            <from>t6</from>
-            <to>t11</to>
+            <from>t10</from>
+            <to>t14</to>
         </temporal-requirement>
         <resource-requirement>
             <resource>
                 <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
                 <minCardinality>1</minCardinality>
             </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement id="9">
+        <spatial-requirement>
+            <location>
+                <id>b7</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement type="persistence-condition | event" >
+            <from>t12</from>
+            <to>t14</to>
+        </temporal-requirement>
+        <resource-requirement>
             <resource>
-                <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
-                <minCardinality>1</minCardinality>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>3</minCardinality>
             </resource>
         </resource-requirement>
     </requirement>
@@ -213,6 +334,7 @@
         <greaterThan lval="t14" rval="t13" />
     </temporal-constraints>
 </constraints>
+
 </mission>
 
 
