@@ -281,6 +281,9 @@ rock_executable(templ-mission_generator
     DEPS templ_benchmark
 )
 
+rock_executable(templ-bm-tcn utils/TCNBenchmark.cpp
+    DEPS templ)
+
 rock_library(templ_gui
     HEADERS
         gui/TemplGui.hpp
