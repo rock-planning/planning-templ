@@ -30,6 +30,8 @@ public:
         return "templ::gui::MissionView";
     }
 
+    Mission::Ptr getMission() const { return mpMission; }
+
 private:
     QStandardItem* mpItem;
     Mission::Ptr mpMission;
@@ -52,8 +54,11 @@ public slots:
     void on_addConstraintButton_clicked();
     void on_removeConstraintButton_clicked();
 
-    // Loading/Storing Missions
-    void loadMission(const QString& settingsLabel ="");
+    /**
+     *  Loading/Storing Missions
+     *  \return True, when mission was loaded, false otherwise
+     */
+    bool loadMission(const QString& settingsLabel ="IOMission", const QString& filename = "");
 
     void on_saveButton_clicked();
     void on_updateButton_clicked();

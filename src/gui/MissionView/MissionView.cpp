@@ -36,42 +36,68 @@ void MissionView::updateVisualization()
 {
 }
 
-void MissionView::loadMission(const QString& settingsLabel)
+bool MissionView::loadMission(const QString& settingsLabel, const QString& _filename)
 {
     QSettings settings(QCoreApplication::organizationName(), settingsLabel);
     QString dir = QDir::currentPath();
 
-    QString dirValue = settings.value("recentMissionImportDir").toString();
+    QString dirValue = settings.value("recentImportDir").toString();
     if(!dirValue.isEmpty())
     {
         dir = dirValue;
     }
 
-    QString filename = QFileDialog::getOpenFileName(
+    QString filename;
+    qDebug() << "MissionView: loadMission with: " << _filename;
+
+    if(_filename.isEmpty() || !QFileInfo(_filename).exists())
+    {
+        filename = QFileDialog::getOpenFileName(
         this, tr("Load mission description"),
         dir,
         tr("Mission Description File (*.mdf *.xml)"));
+        if(filename.isEmpty())
+        {
+            return false;
+        }
+    } else {
+        filename = _filename;
+    }
 
     if(!filename.isEmpty())
     {
+        // update recent files list
+        QStringList files = settings.value("recentImportFileList").toStringList();
+        files.removeAll(filename);
+        files.prepend(filename);
+        while(files.size() > 10)
+        {
+            files.removeLast();
+        }
+        settings.setValue("recentImportFileList", files);
+        // end update recent files list
+
         mFilename = filename;
         QFileInfo fileinfo(filename);
-        settings.setValue("recentMissionImportDir", fileinfo.absolutePath());
+        settings.setValue("recentImportDir", fileinfo.absolutePath());
 
         try {
             Mission mission = templ::io::MissionReader::fromFile(filename.toStdString());
             mpMission = Mission::Ptr(new Mission(mission));
+            mpMission->prepareTimeIntervals();
 
             loadXML(filename);
             expandAll();
             show();
 
             refreshView();
+            return true;
         } catch(const std::exception& e)
         {
             QMessageBox::warning(this, "Templ", QString("MissionView: failed to load file --") + QString(e.what()));
         }
     }
+    return false;
 }
 
 void MissionView::on_saveButton_clicked()

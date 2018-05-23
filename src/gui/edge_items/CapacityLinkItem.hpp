@@ -3,6 +3,7 @@
 
 #include <graph_analysis/gui/EdgeItemBase.hpp>
 #include "../../CapacityLink.hpp"
+#include "../../RoleInfoWeightedEdge.hpp"
 #include <QGraphicsRectItem>
 
 namespace templ {
@@ -44,6 +45,12 @@ protected:
     EdgeItemBase* createNewItem(graph_analysis::gui::GraphWidget* graphWidget,
                 const graph_analysis::Edge::Ptr& edge,
                 QGraphicsItem* parent) const;
+
+
+    /**
+     * Convert an existing weighted edge to a capacity link
+     */
+    CapacityLink::Ptr toCapacityLink(const RoleInfoWeightedEdge::Ptr& roleInfo);
 
 
 };

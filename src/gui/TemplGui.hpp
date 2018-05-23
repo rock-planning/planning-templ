@@ -7,6 +7,7 @@
 #include <graph_analysis/gui/layouts/GridLayout.hpp>
 #include <qxcfg/Configuration.hpp>
 #include <QProcess>
+#include <organization_model/OrganizationModel.hpp>
 
 namespace Ui {
     class TemplGui;
@@ -33,6 +34,8 @@ public:
     TemplGui();
     ~TemplGui();
 
+    static organization_model::OrganizationModel::Ptr getOrganizationModel() { return mpsOrganizationModel; }
+
 private:
     // gui elements
     Ui::TemplGui* mpUi;
@@ -53,6 +56,8 @@ private:
     qxcfg::Configuration mConfiguration;
 
     QProcess* mpProcess;
+
+    static organization_model::OrganizationModel::Ptr mpsOrganizationModel;
 
     void notifyAll();
 
@@ -79,9 +84,12 @@ private:
     graph_analysis::gui::BaseGraphView* getCurrentBaseGraphView() const;
 
 private slots:
-    void importSolution() { importGraph("IOSolutions"); }
+    void importSolution(const QString& settingsLabel ="IOSolutions",
+            const QString& filename = "");
+    void importMission(const QString& settingsLabel = "IOMissions",
+            const QString& filename = "");
     void importGraph(const QString& settingsLabel = "IOGraphs");
-    void importMission();
+    void importOrganizationModel();
 
     void exportGraph();
     void selectLayout();
@@ -94,8 +102,10 @@ private slots:
      * different namespaces in QSettings
      */
     void importRecentGraph(const QString& settingsLabel = "IOGraphs");
-    void importRecentSolution() { importRecentGraph("IOSolutions"); }
+    void importRecentSolution();
     void importRecentMission();
+    void importRecentOrganizationModel();
+    void importRecentConfiguration();
 
     void updateRecentFileActions();
     void updateRecentFileActions(const QString& label);
@@ -104,6 +114,7 @@ private slots:
     void clearRecentGraphs() { clearRecentFileList("IOGraphs"); }
     void clearRecentSolutions() { clearRecentFileList("IOSolutions"); }
     void clearRecentMissions() { clearRecentFileList("IOMissions"); }
+    void clearRecentConfigurations() { clearRecentFileList("IOConfiguration"); }
 
     void setChecked(bool check) { std::cout << "CHECKED: " << check; }
 
@@ -113,14 +124,14 @@ private slots:
     void closeTab(int tabIndex);
 
     void openMissionEditor();
-    void openMissionView();
+    void openMissionView(const QString& settingsLabel = "IOMissions", const QString& filename = "");
     void openOntologyView();
 
     // Planner
     void runPlanner();
     void stopPlanner();
     void loadConfiguration(const QString& filename = "",
-            const QString& settingsLabel = "Configuration");
+            const QString& settingsLabel = "IOConfiguration");
     void editConfiguration();
     void logOutput();
 };

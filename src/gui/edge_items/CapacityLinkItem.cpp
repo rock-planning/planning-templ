@@ -6,7 +6,18 @@
 #include <iostream>
 #include <iomanip>
 #include <QSettings>
+#include <QFileDialog>
+#include <QCoreApplication>
 #include <QtCore/qmath.h>
+#include <QDebug>
+
+#include <organization_model/OrganizationModel.hpp>
+#include <organization_model/OrganizationModelAsk.hpp>
+#include <organization_model/ModelPool.hpp>
+
+#include "../TemplGui.hpp"
+#include "../../SpaceTime.hpp"
+
 
 using namespace graph_analysis::gui;
 
@@ -34,18 +45,27 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
     {
        consumptionInPercent = capacityLink->getConsumptionLevel();
     }
+    RoleInfoWeightedEdge::Ptr weightedEdge = dynamic_pointer_cast<RoleInfoWeightedEdge>(getEdge());
+    if(weightedEdge)
+    {
+        capacityLink = toCapacityLink(weightedEdge);
+        consumptionInPercent = capacityLink->getConsumptionLevel();
+    }
 
-    mpFillStatus = new QGraphicsRectItem(getEdgePath()->pos().x()-10, getEdgePath()->pos().y()+125, 10, consumptionInPercent*100, this);
-    mpFillStatus->setPen(pen);
-    mpFillStatus->setBrush(QBrush(Qt::black));
+    if(capacityLink)
+    {
+        mpFillStatus = new QGraphicsRectItem(getEdgePath()->pos().x()-10, getEdgePath()->pos().y()+125, 10, consumptionInPercent*100, this);
+        mpFillStatus->setPen(pen);
+        mpFillStatus->setBrush(QBrush(Qt::black));
 
-    setFlag(ItemIsMovable, false);
+        setFlag(ItemIsMovable, false);
 
-    mpLabel = new QGraphicsTextItem("", this);
-    // Make sure label is drawn on top of any edge that is might overlap with
-    getEdgePath()->stackBefore(mpLabel);
-    mpFillBar->stackBefore(mpLabel);
-    mpFillStatus->stackBefore(mpLabel);
+        mpLabel = new QGraphicsTextItem("", this);
+        // Make sure label is drawn on top of any edge that is might overlap with
+        getEdgePath()->stackBefore(mpLabel);
+        mpFillBar->stackBefore(mpLabel);
+        mpFillStatus->stackBefore(mpLabel);
+    }
 }
 
 CapacityLinkItem::~CapacityLinkItem()
@@ -118,6 +138,49 @@ EdgeItemBase* CapacityLinkItem::createNewItem(graph_analysis::gui::GraphWidget* 
         QGraphicsItem* parent) const
 {
     return new CapacityLinkItem(graphWidget, edge, parent);
+}
+
+CapacityLink::Ptr CapacityLinkItem::toCapacityLink(const RoleInfoWeightedEdge::Ptr& roleInfo)
+{
+    CapacityLink::Ptr capacityLink = make_shared<CapacityLink>();
+    SpaceTime::Network::tuple_t::Ptr from = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(roleInfo->getSourceVertex());
+    SpaceTime::Network::tuple_t::Ptr to = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(roleInfo->getTargetVertex());
+    if(!from || !to)
+    {
+        return capacityLink;
+    }
+
+    std::set<RoleInfo::Tag> tags = { RoleInfo::ASSIGNED, RoleInfo::AVAILABLE };
+    Role::Set fromRoles = from->getRoles(tags);
+    Role::Set toRoles = to->getRoles(tags);
+    Role::List transitionRoles = RoleInfo::getIntersection(fromRoles, toRoles);
+
+    if(from->first() == to->first())
+    {
+        capacityLink->addProvider( CapacityLink::getLocalTransitionRole(), std::numeric_limits<uint32_t>::max() );
+    }
+
+    organization_model::ModelPool pool;
+    for(const Role& r : transitionRoles)
+    {
+        pool[r.getModel()] = 1;
+    }
+
+    organization_model::OrganizationModel::Ptr om = TemplGui::getOrganizationModel();
+    organization_model::OrganizationModelAsk ask(om, pool);
+
+    for(const Role& r : transitionRoles)
+    {
+        organization_model::facades::Robot robot(r.getModel(), ask);
+        if(robot.isMobile())
+        {
+            capacityLink->addProvider(r, robot.getTransportCapacity());
+        } else {
+            capacityLink->addConsumer(r, robot.getTransportDemand());
+        }
+    }
+
+    return capacityLink;
 }
 
 } // end namespace edge_items

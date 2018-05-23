@@ -49,6 +49,7 @@
 #include "../gui/edge_items/CapacityLinkItem.hpp"
 #include "../gui/vertex_items/RoleInfoItem.hpp"
 #include "../solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
+#include "../solvers/SolutionAnalysis.hpp"
 #include "models/AgentStyleModel.hpp"
 #include "widgets/PenStyle.hpp"
 
@@ -57,6 +58,8 @@ using namespace graph_analysis::gui;
 
 namespace templ {
 namespace gui {
+
+organization_model::OrganizationModel::Ptr TemplGui::mpsOrganizationModel;
 
 TemplGui::TemplGui()
     : QMainWindow()
@@ -147,10 +150,12 @@ void TemplGui::createMenus()
     QAction *actionImport = comm.addAction("Import Graph", SLOT(importGraph()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open ), tr("Import graph from file"));
     QAction *actionImportSolution = comm.addAction("Import Solution", SLOT(importSolution()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open & Qt::Key_S ), tr("Import solution from file"));
     QAction *actionImportMission = comm.addAction("Import Mission", SLOT(importMission()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open & Qt::Key_M ), tr("Import solution from file"));
+    QAction *actionImportOrganizationModel = comm.addAction("Import Organization Model", SLOT(importOrganizationModel()), style->standardIcon(QStyle::SP_FileIcon)        , QKeySequence( QKeySequence::Open & Qt::Key_O ), tr("Import organization model from file"));
 
     importMenu->addAction(actionImport);
     importMenu->addAction(actionImportSolution);
     importMenu->addAction(actionImportMission);
+    importMenu->addAction(actionImportOrganizationModel);
     fileMenu->addMenu(importMenu);
 
     QAction *actionExport = comm.addAction("Export", SLOT(exportGraph()), style->standardIcon(QStyle::SP_DialogSaveButton), QKeySequence( QKeySequence::SaveAs), tr("Export graph to file"));
@@ -259,7 +264,7 @@ void TemplGui::registerGraphElementTypes()
     {
         {
             RoleInfoWeightedEdge::Ptr e(new RoleInfoWeightedEdge());
-            eManager->registerVisualization(e->getClassName(), new edge_items::RoleInfoItem());
+            eManager->registerVisualization(e->getClassName(), new edge_items::CapacityLinkItem()); //RoleInfoItem());
         }
         {
             CapacityLink::Ptr e(new CapacityLink());
@@ -280,13 +285,21 @@ void TemplGui::updateRecentFileActions()
     updateRecentFileActions("IOSolutions");
     updateRecentFileActions("IOMissions");
     updateRecentFileActions("IOGraphs");
+    updateRecentFileActions("IOConfiguration");
 }
 
 void TemplGui::updateRecentFileActions(const QString& label)
 {
     QSettings settings(QCoreApplication::organizationName(), label);
+    if( !mpRecentFileActionsMap.count(label) )
+    {
+        QMessageBox::warning(this, "Templ", "Update recent file actions failing for label " + label + " please inform developer");
+        return;
+    }
     QList<QAction*> recentFileActions = mpRecentFileActionsMap[label];
 
+    // The subproperty: recentImportFileList will be dynamically interpreted to
+    // populate the recent files menu
     QStringList files = settings.value("recentImportFileList").toStringList();
     int numRecentFiles = qMin(files.size(), (int) MaxRecentFiles);
     for(int i = 0; i < numRecentFiles; ++i)
@@ -316,12 +329,49 @@ void TemplGui::importGraph(const QString& settingsLabel)
     activateGraph(graph);
 }
 
-void TemplGui::importMission()
+void TemplGui::importSolution(const QString& settingsLabel, const QString& filename)
+{
+    qDebug() << "Import solution from " << filename;
+    graph_analysis::BaseGraph::Ptr graph = graph_analysis::gui::dialogs::IODialog::importGraph(this,
+            filename,
+            settingsLabel);
+    if(!graph)
+    {
+        qDebug() << "Import solution failed for" << filename;
+        return;
+    }
+
+    MissionView* missionView = qobject_cast<templ::gui::MissionView*>(mpUi->tabWidget->currentWidget());
+    if(missionView && missionView->getMission())
+    {
+        Mission::Ptr mission = missionView->getMission();
+        SpaceTime::Network network = SpaceTime::Network::fromGraph(graph,
+                mission->getLocations(), mission->getTimepoints());
+        solvers::SolutionAnalysis sa(mission, network);
+        sa.analyse();
+        graph = sa.getSolutionNetwork().getGraph();
+    } else {
+        QMessageBox::warning(this, "Templ", QString("No active mission view, will import solution as graph without annotations"));
+    }
+
+    if(!mpsOrganizationModel)
+    {
+        QMessageBox::warning(this, "Templ", QString("No active organization model -- please select one"));
+        importOrganizationModel();
+    }
+
+    activateGraph(graph);
+}
+
+void TemplGui::importMission(const QString& settingsLabel, const QString& filename)
 {
     MissionView* missionView = qobject_cast<templ::gui::MissionView*>(mpUi->tabWidget->currentWidget());
     if(missionView)
     {
-        missionView->loadMission("Templ");
+        if(!missionView->loadMission(settingsLabel, filename))
+        {
+            return;
+        }
 
         int tabIndex = mpUi->tabWidget->indexOf(missionView);
         mpUi->tabWidget->setTabToolTip(tabIndex, missionView->getFilename());
@@ -329,8 +379,41 @@ void TemplGui::importMission()
 
         QFileInfo fileInfo(missionView->getFilename());
         mpUi->tabWidget->setTabText(tabIndex, QString("MissionView: ") + fileInfo.baseName());
+
+        // Update organization model upon import
+        // TODO: use global session setup/active mission to import solution?
+        mpsOrganizationModel = missionView->getMission()->getOrganizationModel();
     } else {
-        openMissionView();
+        openMissionView(settingsLabel, filename);
+    }
+
+}
+
+void TemplGui::importOrganizationModel()
+{
+    QSettings settings(QCoreApplication::organizationName(), "organization_model");
+    QString iriSetting = settings.value("iri").toString();
+
+    QString filename = QFileDialog::getOpenFileName(
+        this, tr("Load organization model"),
+        QDir::currentPath(),
+        tr("Organization Model File (*.xml *.owl)"));
+
+    mpsOrganizationModel = organization_model::OrganizationModel::getInstance(filename.toStdString());
+
+    settings.setValue("iri", mpsOrganizationModel->ontology()->getIRI().toString().c_str());
+}
+
+void TemplGui::importRecentOrganizationModel()
+{
+    QSettings settings(QCoreApplication::organizationName(), "organization_model");
+    QString iriSetting = settings.value("iri").toString();
+    if(iriSetting.isEmpty())
+    {
+        QMessageBox::warning(this, "Templ", QString("OrganizationModel: not recent model detected"));
+    } else {
+        owlapi::model::IRI iri(iriSetting.toStdString());
+        mpsOrganizationModel = organization_model::OrganizationModel::getInstance(iri);
     }
 }
 
@@ -382,7 +465,35 @@ void TemplGui::importRecentGraph(const QString& settingsLabel)
 
 void TemplGui::importRecentMission()
 {
-    qDebug() << "Importing missions is not supported yet";
+    QAction *action = qobject_cast<QAction*>(sender());
+    if(action)
+    {
+        QString filename = action->data().toString();
+        qDebug() << "Importing mission file from: " << filename;
+        importMission("IOMissions", filename);
+    }
+}
+
+void TemplGui::importRecentSolution()
+{
+    QAction *action = qobject_cast<QAction*>(sender());
+    if(action)
+    {
+        QString filename = action->data().toString();
+        qDebug() << "Importing solution from: " << filename;
+        importSolution("IOSolutions", filename);
+    }
+}
+
+void TemplGui::importRecentConfiguration()
+{
+    QAction *action = qobject_cast<QAction*>(sender());
+    if(action)
+    {
+        QString filename = action->data().toString();
+        qDebug() << "Importing configuration file from: " << filename;
+        loadConfiguration(filename, "IOConfiguration");
+    }
 }
 
 void TemplGui::clearView()
@@ -570,6 +681,7 @@ QMenu* TemplGui::createRecentFilesMenu()
     recentFileList.append("Graphs");
     recentFileList.append("Missions");
     recentFileList.append("Solutions");
+    recentFileList.append("Configuration");
 
     foreach(const QString& name, recentFileList)
     {
@@ -582,12 +694,15 @@ QMenu* TemplGui::createRecentFilesMenu()
             QAction* action = new QAction(this);
             action->setVisible(false);
             subMenuActionList.push_back(action);
-            if(name == "Mission")
+            if(name == "Missions")
             {
                 connect(action, SIGNAL(triggered()), this, SLOT(importRecentMission()));
             } else if(name == "Solutions")
             {
                 connect(action, SIGNAL(triggered()), this, SLOT(importRecentSolution()));
+            } else if(name == "Configuration")
+            {
+                connect(action, SIGNAL(triggered()), this, SLOT(importRecentConfiguration()));
             } else {
                 connect(action, SIGNAL(triggered()), this, SLOT(importRecentGraph()));
             }
@@ -600,6 +715,9 @@ QMenu* TemplGui::createRecentFilesMenu()
         } else if(name == "Solutions")
         {
             clearRecentFiles = comm.addAction("Clear list", SLOT(clearRecentSolutions()), style.standardIcon(QStyle::SP_TrashIcon), QKeySequence(Qt::ControlModifier & Qt::Key_C), tr("Clear recent files"));
+        } else if(name == "Configuration")
+        {
+            clearRecentFiles = comm.addAction("Clear list", SLOT(clearRecentConfigurations()), style.standardIcon(QStyle::SP_TrashIcon), QKeySequence(Qt::ControlModifier & Qt::Key_C), tr("Clear recent files"));
         } else {
             clearRecentFiles = comm.addAction("Clear list", SLOT(clearRecentGraphs()), style.standardIcon(QStyle::SP_TrashIcon), QKeySequence(Qt::ControlModifier & Qt::Key_C), tr("Clear recent files"));
         }
@@ -634,16 +752,10 @@ void TemplGui::openMissionEditor()
         mpUi->tabWidget->addTab(mpMissionEditor,
                                 mpMissionEditor->getClassName());
         mpUi->tabWidget->setCurrentWidget(mpMissionEditor);
-
-        // and show both' widgets status-messages on the statusbar. this simply
-        // assumes that only the one in the front is sending updates. otherwise
-        // they would interleave...
-        connect(mpMissionEditor, SIGNAL(currentStatus(QString, int)),
-                mpUi->statusbar, SLOT(showMessage(QString, int)));
     }
 }
 
-void TemplGui::openMissionView()
+void TemplGui::openMissionView(const QString& settingsLabel, const QString& filename)
 {
     MissionView* missionView = new MissionView;
     mpUi->tabWidget->addTab(missionView,
@@ -655,7 +767,7 @@ void TemplGui::openMissionView()
     connect(missionView, SIGNAL(currentStatus(QString, int)),
             mpUi->statusbar, SLOT(showMessage(QString, int)));
 
-    importMission();
+    importMission(settingsLabel, filename);
 }
 
 void TemplGui::openOntologyView()
@@ -720,21 +832,22 @@ void TemplGui::stopPlanner()
 
 }
 
-void TemplGui::loadConfiguration(const QString& filename,
+void TemplGui::loadConfiguration(const QString& _filename,
         const QString& settingsLabel)
 {
     QSettings settings(QCoreApplication::organizationName(), settingsLabel);
+    QString filename = _filename;
     if(filename.isEmpty() || !QFileInfo(filename).exists())
     {
         QString dir = QDir::currentPath();
 
-        QString dirValue = settings.value("recentConfigurationFile").toString();
+        QString dirValue = settings.value("recentImportFileList").toString();
         if(!dirValue.isEmpty())
         {
             dir = dirValue;
         }
 
-        QString filename = QFileDialog::getOpenFileName(
+        filename = QFileDialog::getOpenFileName(
             this, tr("Load configuration"),
             dir,
             tr("Configuration File (*.qxcfg *.xml)"));
@@ -743,10 +856,19 @@ void TemplGui::loadConfiguration(const QString& filename,
     if(!filename.isEmpty())
     {
         QFileInfo fileinfo(filename);
-        settings.setValue("recentConfigurationFile", fileinfo.absolutePath());
+        // update recent files list
+        QStringList files = settings.value("recentImportFileList").toStringList();
+        files.removeAll(filename);
+        files.prepend(filename);
+        while(files.size() > 10)
+        {
+            files.removeLast();
+        }
+        settings.setValue("recentImportFileList", files);
 
         try {
             mConfiguration = qxcfg::Configuration(filename.toStdString());
+            qDebug() << "Loaded configuration: " << mConfiguration.toString().c_str();
         } catch(const std::exception& e)
         {
             QMessageBox::warning(this, "Templ", QString("Configuration: failed to load file --") + QString(e.what()));
