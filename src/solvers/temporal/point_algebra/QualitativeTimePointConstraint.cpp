@@ -383,8 +383,9 @@ std::string QualitativeTimePointConstraint::toString(uint32_t indent) const
 {
     std::string hspace(indent,' ');
     std::stringstream ss;
-    ss << SimpleConstraint::toString(indent) << std::endl;
-    ss << hspace << "relation:" << TypeTxt[getType()] << std::endl;
+    ss << hspace << getSourceVariable()->getLabel();
+    ss << " " << TypeTxt[getType()] << " ";
+    ss << getTargetVariable()->getLabel();
     return ss.str();
 }
 
