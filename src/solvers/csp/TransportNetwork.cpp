@@ -1001,6 +1001,10 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
     /// Allow to log the final results into a csv file
     CSVLogger csvLogger({"session",
+            "overall-runtime",
+            "solution-runtime",
+            "solution-runtime-mean",
+            "solution-runtime-stdev",
             "solution-found",
             "solution-stopped",
             "propagate",
@@ -1068,8 +1072,16 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
         TransportNetwork* best = NULL;
         //try {
             int i = 0;
+            base::Time allStart = base::Time::now();
+            base::Time start = allStart;
+            base::Time allElapsed;
+            base::Time elapsed;
+            numeric::Stats<double> stats;
             while(TransportNetwork* current = searchEngine.next())
             {
+                allElapsed = (base::Time::now() - allStart);
+                elapsed = (base::Time::now() - start);
+                stats.update(elapsed.toSeconds());
                 delete best;
                 best = current;
 
@@ -1083,6 +1095,10 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
                 std::cout << std::endl;
 
                 csvLogger.addToRow(current->mpMission->getLogger()->getSessionId(),"session");
+                csvLogger.addToRow(allElapsed.toSeconds(), "overall-runtime");
+                csvLogger.addToRow(elapsed.toSeconds(), "solution-runtime");
+                csvLogger.addToRow(stats.mean(), "solution-runtime-mean");
+                csvLogger.addToRow(stats.stdev(), "solution-runtime-stdev");
                 csvLogger.addToRow(searchEngine.stopped(), "solution-stopped");
                 csvLogger.addToRow(searchEngine.statistics().propagate, "propagate");
                 csvLogger.addToRow(searchEngine.statistics().fail, "fail");
@@ -1127,6 +1143,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
                         break;
                     }
                 }
+                start = base::Time::now();
             }
 
             std::cout << "Solution Search" << std::endl;
@@ -1143,6 +1160,10 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             std::cout << std::setw(15) << "    restart " << searchEngine.statistics().restart << std::endl;
             std::cout << std::setw(15) << "    nogood " << searchEngine.statistics().nogood << std::endl;
             csvLogger.addToRow(-1,"session");
+            csvLogger.addToRow(allElapsed.toSeconds(), "overall-runtime");
+            csvLogger.addToRow(elapsed.toSeconds(), "solution-runtime");
+            csvLogger.addToRow(stats.mean(), "solution-runtime-mean");
+            csvLogger.addToRow(stats.stdev(), "solution-runtime-stdev");
             csvLogger.addToRow(searchEngine.stopped(), "solution-stopped");
             csvLogger.addToRow(searchEngine.statistics().propagate, "propagate");
             csvLogger.addToRow(searchEngine.statistics().fail, "fail");
