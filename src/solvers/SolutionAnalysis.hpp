@@ -8,8 +8,7 @@
 #include "FluentTimeResource.hpp"
 #include "../Plan.hpp"
 #include "temporal/TemporalConstraintNetwork.hpp"
-#include <organization_model/Metric.hpp>
-#include <organization_model/Heuristics.hpp>
+#include <organization_model/Analyser.hpp>
 
 namespace templ {
 namespace solvers {
@@ -39,8 +38,13 @@ public:
      * \see SpaceTime::Network
      */
     SolutionAnalysis(const Mission::Ptr& mission, const SpaceTime::Network& solution,
-            organization_model::metrics::Type metricType = organization_model::metrics::REDUNDANCY,
             qxcfg::Configuration configuration = qxcfg::Configuration());
+
+    SolutionAnalysis(const Mission::Ptr& mission,
+            const graph_analysis::BaseGraph::Ptr& graph,
+            qxcfg::Configuration configuration = qxcfg::Configuration());
+
+    void updateAnalyser();
 
     void analyse();
 
@@ -48,22 +52,24 @@ public:
 
     double getQuality() const { return mQuality; }
     double getCost() const { return mCost; }
-    double getMetricValue() const { return mMetricValue; }
+    double getSafety() const { return mSafety; }
     double getEfficacy() const { return getCost(); }
     double getReconfigurationCost() const { return mReconfigurationCost; }
-
-    organization_model::Metric::Ptr getMetric() const { return mpMetric; }
+    double getTravelledDistance() const { return mTraveledDistance; }
 
     /**
      * Get the metrics, e.g., redundancy of the fluent time resource
      */
-    double getMetricValue(const FluentTimeResource& ftr) const;
+    double getSafety(const FluentTimeResource& ftr) const;
+
+    double getSafety(const FluentTimeResource& ftr,
+            const SpaceTime::Network::tuple_t::Ptr& tuple) const;
 
     /**
      * Get the metric value for minimum requirement and minimum available
      * resources
      */
-    double getMetricValue(const organization_model::ModelPool& minRequired,
+    double getSafety(const organization_model::ModelPool& minRequired,
             const organization_model::ModelPool& minAvailable) const;
 
     /**
@@ -143,6 +149,8 @@ public:
      */
     organization_model::ModelPool getMinAvailableResources(const FluentTimeResource& ftr) const;
 
+    organization_model::ModelPool getMinAvailableResources(const SpaceTime::Network::tuple_t::Ptr& tuple) const;
+
     /**
      * Get the maximum number of available resources for the given fluent time
      * resource definition
@@ -172,12 +180,18 @@ public:
      */
     std::vector<organization_model::ModelPool> getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::Interval& interval) const;
 
+    organization_model::ModelPool getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::point_algebra::TimePoint::Ptr& timepoint) const;
     /**
      * Compute a hypergraph
      * The hypergaph contains a number of RoleInfoVertex (as HyperEdge)
      * which are linked to by 'requires' Edges from existing edges
      */
     graph_analysis::BaseGraph::Ptr toHyperGraph();
+
+    /**
+     * Get the solution network
+     */
+    const SpaceTime::Network& getSolutionNetwork() const { return mSolutionNetwork; }
 
     // Annotation functions
     /**
@@ -186,12 +200,7 @@ public:
      */
     void quantifyTime();
 
-    /**
-     * Quantify the overall metric (redundancy)
-     */
-    void quantifyMetric();
-
-    // End annotiation functions
+    // End annotation functions
 
     /**
      * Get the set of available resources
@@ -233,9 +242,13 @@ public:
      * Compute the reconfiguration cost at one vertex
      * (RoleInfoTuple connected with RoleInfoWeightedEdge)
      */
-    double computeReconfigurationCost(const graph_analysis::Vertex::Ptr& vertex);
+    double computeReconfigurationCost(const graph_analysis::Vertex::Ptr& vertex,
+            const graph_analysis::BaseGraph::Ptr& graph);
 
-    void computeSaftey();
+    void computeSafety();
+
+    std::string getRowDescriptor() const;
+    std::string toRow() const;
 
 private:
     double degreeOfFulfillment(const solvers::FluentTimeResource& requirement);
@@ -249,20 +262,25 @@ private:
 
     mutable graph_analysis::BaseGraph::Ptr mpTimeDistanceGraph;
 
+    double mAlpha;
+    double mBeta;
+    double mSigma;
+
     double mCost;
+    solvers::temporal::TemporalConstraintNetwork::Assignment mTimeAssignment;
     double mTimeHorizonInS;
 
     double mQuality;
-    double mMetricValue;
+    double mSafety;
     double mEfficacy;
     /// The overall cost of the mission
     double mEfficiency;
+    double mTraveledDistance;
     double mReconfigurationCost;
     /// The cost per role
     std::map<Role, double> mEfficiencyPerRole;
 
-    organization_model::Metric::Ptr mpMetric;
-    organization_model::Heuristics mHeuristics;
+    organization_model::Analyser mAnalyser;
 
     qxcfg::Configuration mConfiguration;
 
