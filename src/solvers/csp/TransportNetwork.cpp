@@ -1826,7 +1826,7 @@ void TransportNetwork::postMinCostFlow()
     } catch(const std::runtime_error& e)
     {
         // Min cost flow optimization
-        std::cout << "Could not find solution: " << e.what() << std::endl;
+        std::cout << "templ::solvers::csp::TransportNetwork: could not find solution: " << e.what() << std::endl;
         this->fail();
         return;
     }
