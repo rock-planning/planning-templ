@@ -235,6 +235,18 @@ public:
         return network;
     }
 
+    static TemporallyExpandedNetwork<D0,D1,TUPLE, EDGE_TYPE> fromGraph(const graph_analysis::BaseGraph::Ptr& graph, const std::vector<D0>& values, const std::vector<D1>& timepoints)
+    {
+        TemporallyExpandedNetwork network;
+        network.mpGraph = graph;
+
+        network.mValues = values;
+        network.mTimepoints = timepoints;
+        network.reconstructTupleMap();
+
+        return network;
+    }
+
     const ValueTimePair& getValueTimePair(const typename tuple_t::Ptr& searchTuple) const
     {
         typename TupleMap::const_iterator cit = mTupleMap.begin();
