@@ -1,0 +1,123 @@
+<!-- <!xml version="1.0"?> -->
+<mission xmlns="http://www.rock-robotics.org/missions#"
+    xmlns:om="http://www.rock-robotics.org/2014/01/om-schema#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+>
+<name>Immobile and mobile system deployment</name>
+<description>    
+    Immobile system needs a transport, but the mobile system is not dedicated to transport the 
+    device, additional add duration constraints for the set of intervals
+</description>
+<organization_model>http://www.rock-robotics.org/2015/12/projects/TransTerrA</organization_model>
+<resources>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#SherpaTT</model>
+        <maxCardinality>1</maxCardinality>
+    </resource>
+    <resource>
+        <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+        <maxCardinality>1</maxCardinality>
+    </resource>
+</resources>
+<constants>
+    <location>
+        <id>lander</id>
+        <x>0</x>
+        <y>0</y>
+        <z>0</z>
+    </location>
+    <location>
+        <id>base1</id>
+        <x>2</x>
+        <y>0</y>
+        <z>0</z>
+    </location>
+    <location>
+        <id>base2</id>
+        <x>0</x>
+        <y>2</y>
+        <z>3</z>
+    </location>
+</constants>
+<requirements>
+    <requirement id='0'>
+        <spatial-requirement>
+            <location>
+                <id>lander</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t0</from>
+            <to>t1</to>
+        </temporal-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+                <minCardinality>1</minCardinality>
+                <maxCardinality>1</maxCardinality>
+            </resource>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>1</minCardinality>
+                <maxCardinality>1</maxCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement id='1'>
+        <spatial-requirement>
+            <location>
+                <id>base1</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t2</from>
+            <to>t3</to>
+        </temporal-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Payload</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement id='2'>
+        <spatial-requirement>
+            <location>
+                <id>base2</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t4</from>
+            <to>t5</to>
+        </temporal-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+</requirements>
+<constraints>
+    <temporal-constraints>
+        <duration min="50" >
+            <from>t0</from>
+            <to>t1</to>
+        </duration>
+        <duration min="3600" >
+            <from>t3</from>
+            <to>t4</to>
+        </duration>
+        <duration min="3600" >
+            <from>t4</from>
+            <to>t5</to>
+        </duration>
+        <greaterThan lval="t2" rval="t1" />
+        <greaterThan lval="t3" rval="t2" />
+        <greaterThan lval="t4" rval="t3" />
+        <greaterThan lval="t5" rval="t4" />
+    </temporal-constraints>
+</constraints>
+</mission>
+
+
