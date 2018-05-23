@@ -1753,13 +1753,11 @@ void TransportNetwork::postMinCostFlow()
             std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
         }
 
-        std::string solver = mConfiguration.getValueAs<std::string>("TransportNetwork/search/options/lpsolver");
+        std::string solver = mConfiguration.getValueAs<std::string>("TransportNetwork/search/options/lpsolver","SCIP");
         graph_analysis::algorithms::LPSolver::Type solverType = graph_analysis::algorithms::LPSolver::GLPK_SOLVER;
         if(solver == "SCIP")
         {
             solverType = graph_analysis::algorithms::LPSolver::SCIP_SOLVER;
-            std::cout << "SCIP Selected: Press ENTER to continue..." << std::endl;
-            std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
         }
 
         SpaceTime::Timelines spaceTimeTimelines = getTimelines();
