@@ -1,6 +1,7 @@
 #include "TransportNetwork.hpp"
 #include <base-logging/Logging.hpp>
 #include <numeric/Combinatorics.hpp>
+#include <numeric/Stats.hpp>
 #include <gecode/minimodel.hh>
 #include <gecode/set.hh>
 #include <gecode/gist.hh>
