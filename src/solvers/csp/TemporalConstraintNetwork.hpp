@@ -4,6 +4,7 @@
 #include <gecode/set.hh>
 #include <gecode/search.hh>
 #include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
+#include <templ/solvers/temporal/Interval.hpp>
 
 namespace templ {
 namespace solvers {
@@ -42,6 +43,13 @@ public:
      * Add constraints
      */
     void addConstraints(const temporal::QualitativeTemporalConstraintNetwork& tcn,
+            Gecode::Space& space,
+            Gecode::IntVarArray& timepoints);
+
+    /**
+     * Add not overlap for given interval
+     */
+    void addNoOverlap(const temporal::Interval::List& intervals,
             Gecode::Space& space,
             Gecode::IntVarArray& timepoints);
 

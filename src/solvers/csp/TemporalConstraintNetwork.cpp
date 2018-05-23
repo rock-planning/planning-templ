@@ -1,6 +1,7 @@
 #include "TemporalConstraintNetwork.hpp"
 #include "../../solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp"
 #include <base-logging/Logging.hpp>
+#include <gecode/minimodel.hh>
 
 using namespace graph_analysis;
 using namespace templ::solvers::temporal;
@@ -77,6 +78,40 @@ void TemporalConstraintNetworkBase::addConstraints(const temporal::QualitativeTe
                 break;
         }
     }
+}
+
+void TemporalConstraintNetworkBase::addNoOverlap(const temporal::Interval::List& intervals,
+        Gecode::Space& space,
+        Gecode::IntVarArray& timepoints)
+{
+    for(size_t i = 0; i < intervals.size()-1; ++i)
+    {
+        const Interval& interval = intervals[i];
+
+        size_t sourceIdx = getVertexIdx( interval.getFrom(), mVertices );
+        size_t targetIdx = getVertexIdx( interval.getTo(), mVertices );
+
+        for(size_t a = i+1; a < intervals.size(); ++a)
+        {
+            const Interval& intervalA = intervals[a];
+
+            size_t sourceIdxA = getVertexIdx( intervalA.getFrom(), mVertices );
+            size_t targetIdxA = getVertexIdx( intervalA.getTo(), mVertices );
+
+            Gecode::BoolVar b0 = Gecode::expr(space, (timepoints[targetIdxA] < timepoints[sourceIdx]));
+            Gecode::BoolVar b1 = Gecode::expr(space, (timepoints[targetIdx] < timepoints[sourceIdxA]));
+            Gecode::rel(space, b0 ^ b1);
+
+
+            if(space.failed())
+            {
+                LOG_WARN_S << "Adding interval constraint failed space:";
+                return;
+            }
+
+        }
+    }
+
 }
 
 bool TemporalConstraintNetworkBase::isConsistent(const temporal::QualitativeTemporalConstraintNetwork& tcn)
