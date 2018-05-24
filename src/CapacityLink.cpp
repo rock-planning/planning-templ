@@ -68,8 +68,9 @@ void CapacityLink::addProvider(const Role& role, uint32_t capacity)
     if(capacity == std::numeric_limits<uint32_t>::max() || mMaxCapacity == std::numeric_limits<uint32_t>::max())
     {
         mMaxCapacity = std::numeric_limits<uint32_t>::max();
+    } else {
+        mMaxCapacity += capacity;
     }
-    mMaxCapacity += capacity;
 }
 
 void CapacityLink::addConsumer(const Role& role, uint32_t capacity)
