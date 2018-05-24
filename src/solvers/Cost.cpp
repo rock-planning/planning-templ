@@ -43,6 +43,10 @@ double Cost::estimateTravelTime(const symbols::constants::Location::Ptr& from,
     assert(!coalition.empty());
 
     double distance = (from->getPosition() - to->getPosition()).norm();
+    if(distance < 1E06)
+    {
+        return 0;
+    }
 
     organization_model::ModelPool modelPool = Role::getModelPool(coalition);
     organization_model::OrganizationModelAsk ask(mpOrganizationModel, modelPool, true);
