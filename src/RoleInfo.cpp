@@ -74,6 +74,17 @@ const std::set<Role> RoleInfo::getRoles(const std::set<Tag>& tags) const
     return roles;
 }
 
+organization_model::ModelPool RoleInfo::getModelPool(const std::set<Tag>& tags) const
+{
+    std::set<Role> roles = getRoles(tags);
+
+    organization_model::ModelPool agentPool;
+    for(const Role& r : roles)
+    {
+        agentPool[r.getModel()] += 1;
+    }
+    return agentPool;
+}
 
 bool RoleInfo::hasRole(const Role& role, const std::string& tag) const
 {

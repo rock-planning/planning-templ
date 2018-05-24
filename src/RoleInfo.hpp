@@ -56,6 +56,8 @@ public:
 
     const std::set<Role> getRoles(const std::set<Tag>& tags) const;
 
+    organization_model::ModelPool getModelPool(const std::set<Tag>& tags) const;
+
     const std::set<Role>& getAllRoles() const;
 
     /**
