@@ -128,6 +128,7 @@ rock_library(templ
         solvers/Solver.cpp
         solvers/Session.cpp
         solvers/FluentTimeResource.cpp
+        io/LatexWriter.cpp
         io/MissionReader.cpp
         io/MissionWriter.cpp
         io/MissionRequirements.cpp
@@ -169,6 +170,7 @@ rock_library(templ
         constraints/ModelConstraint.hpp
         Plan.hpp
         SharedPtr.hpp
+        io/LatexWriter.hpp
         io/MissionReader.hpp
         io/MissionWriter.hpp
         io/MissionRequirements.hpp

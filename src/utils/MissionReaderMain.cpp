@@ -1,4 +1,5 @@
 #include "../io/MissionReader.hpp"
+#include "../io/LatexWriter.hpp"
 #include "../solvers/FluentTimeResource.hpp"
 
 #include <graph_analysis/GraphIO.hpp>
@@ -15,6 +16,7 @@ int main(int argc, char** argv)
         ("help","describe arguments")
         ("file", po::value<std::string>(), "Path to the mission specification")
         ("om", po::value<std::string>(), "IRI of the organization model (optional)")
+        ("latex", po::value<std::string>(), "write as latex code")
         ;
 
     po::variables_map vm;
@@ -45,11 +47,17 @@ int main(int argc, char** argv)
     }
 
     mission->prepareTimeIntervals();
+    if(vm.count("latex"))
+    {
+        std::cout << io::LatexWriter::toLatex(mission);
+        return 0;
+    }
 
     std::cout << mission->toString() << std::endl;
 
     std::vector<solvers::FluentTimeResource> ftrs = Mission::getResourceRequirements(mission);
     std::cout << solvers::FluentTimeResource::toString(ftrs) << std::endl;
+
 
 
     std::string dotFilename = "/tmp/templ-mission-relations.dot";
