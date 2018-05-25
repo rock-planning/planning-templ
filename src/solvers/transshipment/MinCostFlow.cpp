@@ -38,7 +38,7 @@ MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
     for(; rit != mTimelines.end(); ++rit)
     {
         const Role& role = rit->first;
-        organization_model::facades::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
+        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mpMission->getOrganizationModelAsk());
         if(!robot.isMobile()) // only immobile systems are relevant
         {
             // Allow to later map roles back from index

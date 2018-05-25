@@ -79,7 +79,7 @@ void FlowNetwork::initializeExpandedTimelines()
         // Check if this item is mobile, i.e. change the location
         // WARNING: this is currently domain specific based on using the dataProperty payloadTransportCapacity
         //
-        organization_model::facades::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
+        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mpMission->getOrganizationModelAsk());
         if(!robot.isMobile())
         {
             continue;
@@ -168,7 +168,7 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
         // Check if this item is mobile, i.e. change change the location
         // WARNING: this is domain specific
         // transportCapacity
-        organization_model::facades::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
+        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mpMission->getOrganizationModelAsk());
         if(!robot.isMobile())
         {
             continue;

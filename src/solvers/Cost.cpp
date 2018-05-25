@@ -5,8 +5,8 @@
 namespace templ {
 namespace solvers {
 
-Cost::Cost(const organization_model::OrganizationModel::Ptr& organizationModel)
-    : mpOrganizationModel(organizationModel)
+Cost::Cost(const organization_model::OrganizationModelAsk& organizationModelAsk)
+    : mOrganizationModelAsk(organizationModelAsk)
 {
 }
 
@@ -49,11 +49,10 @@ double Cost::estimateTravelTime(const symbols::constants::Location::Ptr& from,
     }
 
     organization_model::ModelPool modelPool = Role::getModelPool(coalition);
-    organization_model::OrganizationModelAsk ask(mpOrganizationModel, modelPool, true);
 
     // Identify system that should be used for the transport
     double minTime = std::numeric_limits<double>::max();
-    organization_model::facades::Robot robot(modelPool, ask);
+    organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(modelPool, mOrganizationModelAsk);
     if( robot.isMobile())
     {
         double time = distance / robot.getNominalVelocity();

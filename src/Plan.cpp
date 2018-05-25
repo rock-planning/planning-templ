@@ -236,7 +236,8 @@ void Plan::computeGraph() const
             }
 
             // getTransportSystem
-            organization_model::facades::Robot robot(role.getModel(), organizationModelAsk);
+            using namespace organization_model::facades;
+            Robot robot = Robot::getInstance(role.getModel(), organizationModelAsk);
             if(!robot.isMobile())
             {
                 continue;

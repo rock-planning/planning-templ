@@ -814,7 +814,7 @@ void SolutionAnalysis::computeEfficiency()
             continue;
         }
         //const Vertex::PtrList& plan = v.second;
-        facades::Robot robot(role.getModel(), mpMission->getOrganizationModelAsk());
+        facades::Robot robot = facades::Robot::getInstance(role.getModel(), mpMission->getOrganizationModelAsk());
         double efficiency = robot.estimatedEnergyCostFromTime(mTimeHorizonInS);
 
         mEfficiencyPerRole[role] = efficiency;

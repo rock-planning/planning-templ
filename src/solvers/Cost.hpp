@@ -2,7 +2,7 @@
 #define TEMPL_SOLVERS_COST_HPP
 
 #include "../symbols/constants/Location.hpp"
-#include <organization_model/OrganizationModel.hpp>
+#include <organization_model/OrganizationModelAsk.hpp>
 #include "../Role.hpp"
 
 namespace templ {
@@ -11,7 +11,7 @@ namespace solvers {
 class Cost
 {
 public:
-    Cost(const organization_model::OrganizationModel::Ptr& organizationModel);
+    Cost(const organization_model::OrganizationModelAsk& organizationModelAsk);
 
     /**
      * Compute the travel distance from a given path using the norm of the
@@ -36,7 +36,7 @@ public:
         const CoalitionStructure& to);
 
 private:
-    organization_model::OrganizationModel::Ptr mpOrganizationModel;
+    organization_model::OrganizationModelAsk mOrganizationModelAsk;
 };
 
 } // end namespace solvers
