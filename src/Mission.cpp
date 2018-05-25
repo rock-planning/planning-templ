@@ -95,7 +95,7 @@ void Mission::refresh()
     mModels.clear();
 
     mModels = mModelPool.getModels();
-    mRoles = Role::createAtomicAgents(mModelPool);
+    mRoles = Role::toList(mModelPool);
 
     // Update the ask object based on the model pool and applying the functional
     // saturation bound
