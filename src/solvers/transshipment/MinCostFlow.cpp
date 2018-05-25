@@ -307,6 +307,8 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
 
     transshipment::Flaw::List transitionFlaws = mFlowNetwork.getInvalidTransitions();
     flaws.insert(flaws.begin(), transitionFlaws.begin(), transitionFlaws.end());
+
+
     return flaws;
 }
 
@@ -343,6 +345,21 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
 
                 dynamic_pointer_cast<SpaceTime::Network::tuple_t>(sourceLocation)->addRole(role, RoleInfo::ASSIGNED);
                 dynamic_pointer_cast<SpaceTime::Network::tuple_t>(targetLocation)->addRole(role, RoleInfo::ASSIGNED);
+
+                Edge::PtrList edges = mSpaceTimeNetwork.getGraph()->getEdges(sourceLocation, targetLocation);
+                if(edges.empty())
+                {
+                    throw std::runtime_error("templ::solvers::transshipment::MinCostFlow::updateRoles: "
+                            " no edge in corresponding SpaceTime Network");
+
+                } else if(edges.size() > 1)
+                {
+                    throw std::runtime_error("templ::solvers::transshipment::MinCostFlow::updateRoles: "
+                            " multi-edge in corresponding SpaceTime Network");
+                } else {
+                    RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(edges.back());
+                    roleInfo->addRole(role, RoleInfo::ASSIGNED);
+                }
             }
         }
     }
