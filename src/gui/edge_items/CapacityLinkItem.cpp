@@ -30,6 +30,7 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
                                QGraphicsItem* parent)
     : EdgeItemBase(graphWidget, edge, parent)
     , mArrowSize(10)
+    , mMarkedAsInvalid(false)
 {
 
     QPen pen(Qt::black);
@@ -50,6 +51,13 @@ CapacityLinkItem::CapacityLinkItem(graph_analysis::gui::GraphWidget* graphWidget
     {
         capacityLink = toCapacityLink(weightedEdge);
         consumptionInPercent = capacityLink->getConsumptionLevel();
+
+        std::set<RoleInfo::Tag> tags = { RoleInfo::INFEASIBLE };
+        Role::Set transitionRoles = weightedEdge->getRoles(tags);
+        if(!transitionRoles.empty())
+        {
+            mMarkedAsInvalid = true;
+        }
     }
 
     if(capacityLink)
@@ -81,11 +89,32 @@ int CapacityLinkItem::type() const
 void CapacityLinkItem::adjustEdgePositioning()
 {
     /// Allow setting via widget
-    QSettings settings("templ","gui");
-    QPen pen = settings.value("editor/edge/pen").value<QPen>();
+    QSettings settings(QCoreApplication::organizationName(),"GUI");
+    QVariant v = settings.value("editor/edge/pen/default");
+    QPen pen;
+    if(v == QVariant())
+    {
+        pen.setColor(Qt::black);
+        pen.setWidth(3.0);
+        pen.setStyle(Qt::SolidLine);
+    } else {
+        pen = v.value<QPen>();
+    }
+
+    if(mMarkedAsInvalid)
+    {
+        QVariant v = settings.value("editor/edge/pen/error");
+        if(v == QVariant())
+        {
+            pen.setColor(Qt::red);
+            pen.setWidth(3.0);
+            pen.setStyle(Qt::DashLine);
+        } else {
+            pen = v.value<QPen>();
+        }
+    }
 
     prepareGeometryChange();
-
     drawBezierEdge();
 
     drawArrowHead(mArrowSize*qSqrt(pen.width()), pen.brush(), QPen(pen.brush().color()));

@@ -11,7 +11,7 @@ Flaw::Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
     SpaceTime::Point at
     )
     : mViolation(violation)
-    , mSpacetime(at)
+    , mFromSpacetime(at)
 {
     mAffectedRoles.push_back(role);
 }
@@ -22,7 +22,18 @@ Flaw::Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
     )
     : mViolation(violation)
     , mAffectedRoles(roles)
-    , mSpacetime(at)
+    , mFromSpacetime(at)
+{}
+
+Flaw::Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
+    const Role::List& roles,
+    SpaceTime::Point from,
+    SpaceTime::Point to
+    )
+    : mViolation(violation)
+    , mAffectedRoles(roles)
+    , mFromSpacetime(from)
+    , mToSpacetime(to)
 {}
 
 const Role& Flaw::affectedRole() const
@@ -60,7 +71,13 @@ std::string Flaw::toString(size_t indent) const
     }
     ss << mViolation.toString(indent + 8) << std::endl;
     ss << hspace << "    context:" << std::endl;
-    ss << hspace << "    " << SpaceTime::toString(mSpacetime);
+    if(isVertexFlaw())
+    {
+        ss << hspace << "    at:" << SpaceTime::toString(mFromSpacetime);
+    } else {
+        ss << hspace << "    from:" << SpaceTime::toString(mFromSpacetime);
+        ss << hspace << "    to:" << SpaceTime::toString(mToSpacetime);
+    }
     return ss.str();
 }
 

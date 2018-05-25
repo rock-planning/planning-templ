@@ -1,9 +1,10 @@
 #ifndef TEMPL_SOLVERS_TRANSSHIPMENT_FLOW_NETWORK_HPP
 #define TEMPL_SOLVERS_TRANSSHIPMENT_FLOW_NETWORK_HPP
 
-#include <templ/Mission.hpp>
-#include <templ/SpaceTime.hpp>
-#include <templ/solvers/csp/RoleTimeline.hpp>
+#include "../../Mission.hpp"
+#include "../../SpaceTime.hpp"
+#include "../csp/RoleTimeline.hpp"
+#include "Flaw.hpp"
 
 namespace templ {
 namespace solvers {
@@ -59,6 +60,12 @@ public:
 
     void save(const std::string& filename = "");
 
+    /**
+     * Check feasibility of a transition for the given
+     * agent
+     */
+    transshipment::Flaw::List getInvalidTransitions() const;
+
 protected:
     /**
      * check if expanded or minimal timelines shall be used for initialization
@@ -84,6 +91,9 @@ private:
 
     std::map<Role, csp::RoleTimeline> mTimelines;
     SpaceTime::Timelines mExpandedTimelines;
+
+    /// Allow to check valid transitions
+    organization_model::Resource::Set mMoveToResource;
 };
 
 

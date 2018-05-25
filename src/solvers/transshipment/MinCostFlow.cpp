@@ -305,6 +305,8 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
         flaws.push_back(flaw);
     }
 
+    transshipment::Flaw::List transitionFlaws = mFlowNetwork.getInvalidTransitions();
+    flaws.insert(flaws.begin(), transitionFlaws.begin(), transitionFlaws.end());
     return flaws;
 }
 

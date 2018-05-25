@@ -16,6 +16,8 @@ namespace transshipment {
 class Flaw
 {
 public:
+    typedef std::vector<Flaw> List;
+
     Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
         const Role& role,
         SpaceTime::Point at);
@@ -23,6 +25,11 @@ public:
     Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
         const Role::List& roles,
         SpaceTime::Point at);
+
+    Flaw(const graph_analysis::algorithms::ConstraintViolation& violation,
+        const Role::List& roles,
+        SpaceTime::Point from,
+        SpaceTime::Point to);
 
     std::string toString(size_t indent = 0) const;
 
@@ -35,18 +42,28 @@ public:
     const csp::RoleTimeline& getRoleTimeline() const { return mRoleTimeline; }
     void setRoleTimeline(const csp::RoleTimeline& timeline) { mRoleTimeline = timeline; }
 
-    const SpaceTime::Point& getSpaceTime() const { return mSpacetime; }
-    void setSpaceTime(const SpaceTime::Point& stp) { mSpacetime = stp; }
+    const SpaceTime::Point& getSpaceTime() const { return mFromSpacetime; }
+    void setSpaceTime(const SpaceTime::Point& stp) { mFromSpacetime = stp; }
+
+    const SpaceTime::Point& getFromSpaceTime() const { return mFromSpacetime; }
+    void setFromSpaceTime(const SpaceTime::Point& stp) { mFromSpacetime = stp; }
+
+    const SpaceTime::Point& getToSpaceTime() const { return mToSpacetime; }
+    void setToSpaceTime(const SpaceTime::Point& stp) { mToSpacetime = stp; }
 
     const std::string& getDescription() const { return mDescription; }
     void setDescription(const std::string& description) { mDescription = description; }
+
+    bool isVertexFlaw() const { return !isEdgeFlaw(); }
+    bool isEdgeFlaw() const { return  mFromSpacetime.second && mToSpacetime.second; }
 
 private:
     graph_analysis::algorithms::ConstraintViolation mViolation;
     Role::List mAffectedRoles;
     csp::RoleTimeline mRoleTimeline;
 
-    SpaceTime::Point mSpacetime;
+    SpaceTime::Point mFromSpacetime;
+    SpaceTime::Point mToSpacetime;
 
     std::string mDescription;
 

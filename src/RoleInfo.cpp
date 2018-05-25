@@ -12,10 +12,11 @@
 namespace templ {
 
 std::map<RoleInfo::Tag, std::string> RoleInfo::TagTxt =
-{{ RoleInfo::UNKNOWN, "UNKNOWN"},
+{{ RoleInfo::UNKNOWN, "UNKNOWN TAG"},
  { RoleInfo::ASSIGNED, "assigned"},
  { RoleInfo::REQUIRED, "required"},
- { RoleInfo::AVAILABLE, "available" }
+ { RoleInfo::AVAILABLE, "available" },
+ { RoleInfo::INFEASIBLE, "infeasible" }
 }
  ;
 

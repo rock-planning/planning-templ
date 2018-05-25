@@ -1,4 +1,5 @@
 #include "FlowNetwork.hpp"
+
 #include <organization_model/facades/Robot.hpp>
 #include <graph_analysis/GraphIO.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
@@ -22,9 +23,13 @@ FlowNetwork::FlowNetwork(const Mission::Ptr& mission,
     , mSpaceTimeNetwork(mpMission->getLocations(), sortedTimepoints)
     , mTimelines(timelines)
     , mExpandedTimelines(expandedTimelines)
+    , mMoveToResource()
 {
     assert(mpMission);
     initialize();
+
+    using namespace organization_model;
+    mMoveToResource.insert( Resource(vocabulary::OM::resolve("MoveTo")) );
 }
 
 void FlowNetwork::save(const std::string& path)
@@ -227,6 +232,55 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
             edgeSourceTuple = tuples.back();
         }
     }
+}
+
+transshipment::Flaw::List FlowNetwork::getInvalidTransitions() const
+{
+    organization_model::OrganizationModelAsk ask = mpMission->getOrganizationModelAsk();
+
+    transshipment::Flaw::List flaws;
+    double feasibilityCheckTimeout = 1;
+
+    EdgeIterator::Ptr edgeIt =  mSpaceTimeNetwork.getGraph()->getEdgeIterator();
+    while(edgeIt->next())
+    {
+        RoleInfoWeightedEdge::Ptr roleInfo = dynamic_pointer_cast<RoleInfoWeightedEdge>(edgeIt->current());
+        if(roleInfo)
+        {
+            if(roleInfo->getWeight() < std::numeric_limits<uint32_t>::max())
+            {
+                Role::Set roles = roleInfo->getRoles({ RoleInfo::ASSIGNED });
+                organization_model::ModelPool pool = roleInfo->getModelPool( { RoleInfo::ASSIGNED } );
+
+                organization_model::ModelPool::List coalitionStructure = ask.findFeasibleCoalitionStructure(pool, mMoveToResource, feasibilityCheckTimeout);
+                if( coalitionStructure.empty() )
+                {
+                    std::cout << "Infeasible coalition for transition: " << pool.toString(4) << std::endl
+                        << "    number of instances: " << pool.numberOfInstances() << std::endl;
+
+                    using namespace graph_analysis::algorithms;
+                    ConstraintViolation v(MultiCommodityEdge::Ptr(),
+                            std::set<uint32_t>(), 0, 0,0, ConstraintViolation::TotalTransFlow);
+
+                    SpaceTime::Network::tuple_t::Ptr from = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(roleInfo->getSourceVertex());
+                    SpaceTime::Network::tuple_t::Ptr to = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(roleInfo->getTargetVertex());
+
+                    Flaw flaw(v, Role::List(roles.begin(), roles.end()),
+                            from->getPair(), to->getPair());
+                    flaws.push_back(flaw);
+
+                    for(const Role& r : roles)
+                    {
+                        roleInfo->addRole(r, RoleInfo::INFEASIBLE);
+                    }
+                } else {
+                    std::cout << "Feasible transition: " << pool.toString(4) << std::endl;
+                }
+            }
+        }
+    }
+
+    return flaws;
 }
 
 } // end namespace transsshipment

@@ -18,7 +18,8 @@ public:
     enum Tag { UNKNOWN,
         ASSIGNED = 1,
         REQUIRED,
-        AVAILABLE
+        AVAILABLE,
+        INFEASIBLE
     };
 
     // assigned (according to current solution -- CSP step)
@@ -28,7 +29,7 @@ public:
         REQUIRED_ASSIGNED,   // GREEN
         REQUIRED_UNASSIGNED, // RED  infeasible csp / min cost flow, but might still be an overall feasible solution (due to compensation through other)
         NOTREQUIRED_ASSIGNED,   // YELLOW
-        NOTREQUIRED_AVAILABLE, // BLACK
+        NOTREQUIRED_AVAILABLE // BLACK
     };
 
     enum Attribute {

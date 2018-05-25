@@ -39,6 +39,8 @@ protected:
     /// Representation of th filling for the fill bar
     QGraphicsRectItem* mpFillStatus;
 
+    bool mMarkedAsInvalid;
+
     void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
 
