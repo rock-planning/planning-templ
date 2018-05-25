@@ -117,6 +117,8 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
         mpSafetySvg = new QGraphicsSvgItem(":/resources/pictograms/safety.svg", this);
         mpSafetySvg->setScale(fontSize/ mpSafetySvg->renderer()->defaultSize().height());
         mpSafetySvg->setPos(prevItemPos + QPoint(5, yOffset+3));
+        // simulate floor rounding
+        safety = static_cast<int>(100*safety)/100.0;
         mpSafetyLabel = new QGraphicsTextItem(QString::number(safety,'f',2), this);
         mpSafetyLabel->setPos(prevItemLabelPos + QPointF(0,yOffset+3));
         yPos += 20;
