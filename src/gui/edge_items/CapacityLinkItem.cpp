@@ -200,7 +200,8 @@ CapacityLink::Ptr CapacityLinkItem::toCapacityLink(const RoleInfoWeightedEdge::P
 
     for(const Role& r : transitionRoles)
     {
-        organization_model::facades::Robot robot(r.getModel(), ask);
+        using namespace organization_model::facades;
+        Robot robot = Robot::getInstance(r.getModel(), ask);
         if(robot.isMobile())
         {
             capacityLink->addProvider(r, robot.getTransportCapacity());
