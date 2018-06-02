@@ -650,6 +650,12 @@ void TemplGui::sortRowLabel(const graph_analysis::BaseGraph::Ptr& graph, graph_a
 
                 return comparator.lessThan(tp0, tp1);
             });
+
+
+    for(const std::string& label : labels)
+    {
+        qDebug() << "Sorted row labels: " << label.c_str();
+    }
 }
 
 void TemplGui::exportScene()
@@ -812,14 +818,19 @@ void TemplGui::runPlanner()
 
     qDebug() << "Arguments: " << arguments;
 
-    QProcess* myProcess = new QProcess(this);
-    mpProcess = myProcess;
+    // Kill any already running process before starting a new one
+    if(mpProcess && mpProcess->state() == QProcess::Running)
+    {
+        qDebug() << "Killing running process before starting a new planning process";
+        mpProcess->kill();
+    }
 
-    connect(myProcess, SIGNAL(readyReadStandardOutput()),
+    mpProcess = new QProcess(this);
+    connect(mpProcess, SIGNAL(readyReadStandardOutput()),
             this, SLOT(logOutput()));
 
-    myProcess->start(program, arguments);
-    if(!myProcess->waitForStarted())
+    mpProcess->start(program, arguments);
+    if(!mpProcess->waitForStarted())
     {
         QMessageBox::warning(this, "Templ", "Failed to start planner");
     } else {
@@ -829,7 +840,13 @@ void TemplGui::runPlanner()
 
 void TemplGui::stopPlanner()
 {
-
+    if(mpProcess && mpProcess->state() == QProcess::Running)
+    {
+        qDebug() << "Killing current planning process";
+        mpProcess->kill();
+    } else {
+        qDebug() << "No running planning process";
+    }
 }
 
 void TemplGui::loadConfiguration(const QString& _filename,

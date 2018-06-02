@@ -413,8 +413,20 @@ std::string SolutionAnalysis::toRow() const
     return ss.str();
 }
 
+
+bool SolutionAnalysis::isStartDepotRequirement(const FluentTimeResource& ftr) const
+{
+    return ftr.getInterval().getFrom()->equals(mTimepoints.front());
+}
+
 double SolutionAnalysis::degreeOfFulfillment(const solvers::FluentTimeResource& ftr)
 {
+    // Ignore start requirements
+    if(isStartDepotRequirement(ftr))
+    {
+        return 1.0;
+    }
+
     ModelPoolDelta delta = getMinMissingResourceRequirements(ftr);
     if(delta.isNegative())
     {
@@ -658,41 +670,43 @@ void SolutionAnalysis::computeSafety()
 
         for(const SpaceTime::Network::tuple_t::Ptr& tuple : tuples)
         {
-
-            // Set max value for start location
             double value = 1.0;
-            try {
-                value = getSafety(ftr, tuple);
-                mSafety = std::min(value, mSafety);
-                LOG_INFO_S << "Metric: " << value << std::endl
-                    << "    at: " << tuple->first()->toString() << std::endl;
-
-            } catch(const std::exception& e)
+            // Ignore redundancy at starting depot
+            if(!isStartDepotRequirement(ftr) && ignoreStartDepot)
             {
-                if(ftr.getInterval().getFrom()->equals(timepoints.front()))
+                try {
+                    value = getSafety(ftr, tuple);
+                    mSafety = std::min(value, mSafety);
+                    LOG_INFO_S << "Metric: " << value << std::endl
+                        << "    at: " << tuple->first()->toString() << std::endl;
+
+                } catch(const std::exception& e)
                 {
-                    LOG_INFO_S << "Metric: not all resources from start depot used:" << std::endl
-                        << "    at: " << ftr.getLocation()->toString() << std::endl
-                        << "    over: " <<  std::endl
-                        << ftr.getInterval().toString(8) << std::endl
-                        << e.what();
-
-                    ModelPool minAvailable = getMinAvailableResources(ftr);
-                    ModelPool agentPool = mpMission->getOrganizationModelAsk().allowSubclasses(minAvailable, vocabulary::OM::Actor());
-                    if(!minAvailable.empty())
+                    if(isStartDepotRequirement(ftr))
                     {
-                        value = getSafety(agentPool, agentPool);
-                    } else {
-                        value = 0;
-                    }
+                        LOG_INFO_S << "Metric: not all resources from start depot used:" << std::endl
+                            << "    at: " << ftr.getLocation()->toString() << std::endl
+                            << "    over: " <<  std::endl
+                            << ftr.getInterval().toString(8) << std::endl
+                            << e.what();
 
-                } else {
-                    LOG_WARN_S << "Metric: requirements not fulfilled" << std::endl
-                        << "    at: " << ftr.getLocation()->toString() << std::endl
-                        << "    over: " <<  std::endl
-                        << ftr.getInterval().toString(8) << std::endl
-                        << e.what();
-                    value = 0.0;
+                        ModelPool minAvailable = getMinAvailableResources(ftr);
+                        ModelPool agentPool = mpMission->getOrganizationModelAsk().allowSubclasses(minAvailable, vocabulary::OM::Actor());
+                        if(!minAvailable.empty())
+                        {
+                            value = getSafety(agentPool, agentPool);
+                        } else {
+                            value = 0;
+                        }
+
+                    } else {
+                        LOG_WARN_S << "Metric: requirements not fulfilled" << std::endl
+                            << "    at: " << ftr.getLocation()->toString() << std::endl
+                            << "    over: " <<  std::endl
+                            << ftr.getInterval().toString(8) << std::endl
+                            << e.what();
+                        value = 0.0;
+                    }
                 }
             }
 

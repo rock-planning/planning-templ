@@ -250,6 +250,8 @@ public:
     std::string getRowDescriptor() const;
     std::string toRow() const;
 
+    bool isStartDepotRequirement(const FluentTimeResource& ftr) const;
+
 private:
     double degreeOfFulfillment(const solvers::FluentTimeResource& requirement);
 
