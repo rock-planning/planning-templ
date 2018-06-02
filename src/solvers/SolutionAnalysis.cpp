@@ -345,13 +345,14 @@ SolutionAnalysis::MinMaxModelPools SolutionAnalysis::getRequiredResources(const 
 void SolutionAnalysis::analyse()
 {
     mPlan = computePlan();
+    computeReconfigurationCost();
     quantifyTime();
-    //updateAnalyser();
+    mTimepoints = mSolutionNetwork.getTimepoints();
 
+    //updateAnalyser();
     // a collect all requirements of the mission -- as translated from the
     // persistence conditions
     computeEfficacy();
-    computeReconfigurationCost();
     computeEfficiency();
     computeSafety();
 
@@ -576,7 +577,7 @@ void SolutionAnalysis::quantifyTime()
 {
     using namespace solvers::temporal;
     TemporalConstraintNetwork tcn;
-    Cost cost(mpMission->getOrganizationModel());
+    Cost cost(mpMission->getOrganizationModelAsk());
 
     double travelDistance;
 
@@ -610,9 +611,13 @@ void SolutionAnalysis::quantifyTime()
 
         double minTravelTime = cost.estimateTravelTime(sourceLocation, targetLocation, roles);
         LOG_DEBUG_S << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
-            << " from: " << sourceTuple->toString() << " to: " << targetTuple->toString()
+            << " from: " << sourceLocation->toString() << " to: " << targetLocation->toString()
             << std::endl
             << "Estimated travelDistance: " << distance;
+        std::cout << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
+            << " from: " << sourceLocation->toString() << " to: " << targetLocation->toString()
+            << std::endl
+            << "Estimated travelDistance: " << distance << std::endl;
 
         travelDistance += distance;
 
@@ -624,7 +629,17 @@ void SolutionAnalysis::quantifyTime()
                 );
 
         // Compute the required transition time
-        Bounds bounds(minTravelTime, std::numeric_limits<double>::max());
+        RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(sourceTuple);
+        double reconfigurationCost = 0;
+        try {
+            roleInfo->getAttribute(RoleInfo::RECONFIGURATION_COST);
+        } catch(const std::exception& e)
+        {
+            LOG_WARN_S << "No reconfiguration cost for " << roleInfo->toString(4);
+        }
+
+        double requiredTime = minTravelTime + reconfigurationCost;
+        Bounds bounds(requiredTime, std::numeric_limits<double>::max());
         intervalConstraint->addInterval(bounds);
         tcn.addIntervalConstraint(intervalConstraint);
 
@@ -658,7 +673,7 @@ void SolutionAnalysis::quantifyTime()
     mTraveledDistance = travelDistance;
 }
 
-void SolutionAnalysis::computeSafety()
+void SolutionAnalysis::computeSafety(bool ignoreStartDepot)
 {
     mSafety = 1.0;
     temporal::point_algebra::TimePoint::PtrList timepoints = mSolutionNetwork.getTimepoints();
@@ -829,10 +844,10 @@ void SolutionAnalysis::computeEfficiency()
         }
         //const Vertex::PtrList& plan = v.second;
         facades::Robot robot = facades::Robot::getInstance(role.getModel(), mpMission->getOrganizationModelAsk());
-        double efficiency = robot.estimatedEnergyCostFromTime(mTimeHorizonInS);
+        double efficiencyInkWh = robot.estimatedEnergyCostFromTime(mTimeHorizonInS)/(3600*1000);
 
-        mEfficiencyPerRole[role] = efficiency;
-        mEfficiency += efficiency;
+        mEfficiencyPerRole[role] = efficiencyInkWh;
+        mEfficiency += efficiencyInkWh;
     }
 }
 
@@ -884,10 +899,10 @@ double SolutionAnalysis::computeReconfigurationCost(const Vertex::Ptr& vertex, c
     while(outEdgeIt->next())
     {
         Edge::Ptr edge = outEdgeIt->current();
-        CapacityLink::Ptr outEdge = dynamic_pointer_cast<CapacityLink>(edge);
-        if(outEdge)
+        CapacityLink::Ptr outAgents = dynamic_pointer_cast<CapacityLink>(edge);
+        if(outAgents)
         {
-            Role::Set allRoles = outEdge->getAllRoles();
+            Role::Set allRoles = outAgents->getAllRoles();
             Agent outAgent(allRoles);
             out.insert(outAgent);
         }

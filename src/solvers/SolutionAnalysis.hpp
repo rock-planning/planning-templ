@@ -228,13 +228,13 @@ public:
     void computeEfficacy();
 
     /**
-     * Compute efficiency as overall energy cost
+     * Compute efficiency as overall energy cost in Wh
      */
     void computeEfficiency();
 
     /**
      * Compute reconfiguration cost for all reconfigurations
-     * involved in the process
+     * involved in the process in time required for reconfiguration
      */
     void computeReconfigurationCost();
 
@@ -245,7 +245,12 @@ public:
     double computeReconfigurationCost(const graph_analysis::Vertex::Ptr& vertex,
             const graph_analysis::BaseGraph::Ptr& graph);
 
-    void computeSafety();
+    /**
+     * Compute the safety of the plan
+     * \param ignoreStartDepot if set to true, safety at the starting location
+     * (as assignments) is always assumed to be maximum
+     */
+    void computeSafety(bool ignoreStartDepot = true);
 
     std::string getRowDescriptor() const;
     std::string toRow() const;
@@ -260,6 +265,8 @@ private:
     Plan mPlan;
 
     std::vector<solvers::FluentTimeResource> mResourceRequirements;
+
+    solvers::temporal::point_algebra::TimePoint::PtrList mTimepoints;
     solvers::temporal::point_algebra::TimePointComparator mTimepointComparator;
 
     mutable graph_analysis::BaseGraph::Ptr mpTimeDistanceGraph;
@@ -285,7 +292,6 @@ private:
     organization_model::Analyser mAnalyser;
 
     qxcfg::Configuration mConfiguration;
-
 };
 
 } // end namespace solvers
