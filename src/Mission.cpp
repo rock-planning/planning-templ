@@ -29,7 +29,7 @@ Mission::Mission(const organization_model::OrganizationModel::Ptr& om, const std
     , mOrganizationModelAsk(om)
     , mName(name)
     , mpTransferLocation(new symbols::constants::Location("transfer-location"))
-    , mpLogger(new Logger())
+    , mpLogger(new utils::Logger())
 {
     // add all functionalities (which could be requested)
     //

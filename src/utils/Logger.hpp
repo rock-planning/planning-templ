@@ -6,6 +6,7 @@
 #include <templ/SharedPtr.hpp>
 
 namespace templ {
+namespace utils {
 
 class Mission;
 
@@ -59,5 +60,6 @@ private:
     uint32_t mSessionId;
 };
 
+} // end namespace utils
 } // end namespace templ
 #endif // TEMPL_LOGGER_HPP

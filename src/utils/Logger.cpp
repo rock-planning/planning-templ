@@ -4,6 +4,7 @@
 #include <base-logging/Logging.hpp>
 
 namespace templ {
+namespace utils {
 
 Logger::Logger(const base::Time& time, const std::string& baseDirectory, bool useSessions)
     : mTime(time)
@@ -38,4 +39,5 @@ std::string Logger::getBasePath() const
 }
 
 
+} // end namespace utils
 } // end namespace templ

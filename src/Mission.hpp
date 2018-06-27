@@ -299,13 +299,13 @@ public:
      * Set the logger that is associated with this mission object
      * \param logger Logger instance
      */
-    void setLogger(const Logger::Ptr& logger) { mpLogger = logger; }
+    void setLogger(const utils::Logger::Ptr& logger) { mpLogger = logger; }
 
     /**
      * Get the logger that is associated with this mission
      * \return logger
      */
-    Logger::Ptr getLogger() const { return mpLogger; }
+    utils::Logger::Ptr getLogger() const { return mpLogger; }
 
     /**
      * The path to the scenario file that was used to load this mission file
@@ -567,7 +567,7 @@ private:
     symbols::constants::Location::Ptr mpTransferLocation;
 
     std::string mScenarioFile;
-    Logger::Ptr mpLogger;
+    utils::Logger::Ptr mpLogger;
 
     /// Particular overrides to set/override the properties of the agents
     /// This allows to facilitate the managment of VRP benchmark files
