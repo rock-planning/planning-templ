@@ -184,37 +184,50 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
         }
         for(const owlapi::model::IRI& model : models)
         {
-            XMLUtils::startElement(writer, "resource");
-
-            XMLUtils::startElement(writer, "model");
-            XMLUtils::writeString(writer, model.toString());
-            XMLUtils::endElement(writer); // end model;
+            size_t minCardinality = 0;
+            size_t maxCardinality = std::numeric_limits<size_t>::max();
 
             // minCardinalities
             organization_model::ModelPool::const_iterator minIt =  ftr.getMinCardinalities().find(model);
             if(minIt != ftr.getMinCardinalities().end())
             {
-                std::stringstream sm;
-                sm << minIt->second;
-                XMLUtils::startElement(writer, "minCardinality");
-                XMLUtils::writeString(writer, sm.str());
-                XMLUtils::endElement(writer); // end minCardinality
+                minCardinality = minIt->second;
             }
-
             organization_model::ModelPool::const_iterator maxIt =  ftr.getMaxCardinalities().find(model);
             if(maxIt != ftr.getMaxCardinalities().end())
             {
                 if(maxIt->second != std::numeric_limits<size_t>::max())
                 {
-                    std::stringstream sm;
-                    sm << maxIt->second;
-                    XMLUtils::startElement(writer, "maxCardinality");
-                    XMLUtils::writeString(writer, sm.str());
-                    XMLUtils::endElement(writer); // end maxCardinality
+                    maxCardinality = maxIt->second;
                 }
             }
 
-            XMLUtils::endElement(writer); // end resource
+            size_t modelBound = mission.getAvailableResources().getValue(model,
+                    std::numeric_limits<size_t>::max());
+            if(minCardinality > 0 || maxCardinality < modelBound)
+            {
+                XMLUtils::startElement(writer, "resource");
+                XMLUtils::startElement(writer, "model");
+                XMLUtils::writeString(writer, model.toString());
+                XMLUtils::endElement(writer); // end model;
+
+                std::stringstream sm;
+                sm << minCardinality;
+                XMLUtils::startElement(writer, "minCardinality");
+                XMLUtils::writeString(writer, sm.str());
+                XMLUtils::endElement(writer); // end minCardinality
+
+                if(maxCardinality < modelBound)
+                {
+                    std::stringstream smax;
+                    smax << maxIt->second;
+                    XMLUtils::startElement(writer, "maxCardinality");
+                    XMLUtils::writeString(writer, smax.str());
+                    XMLUtils::endElement(writer); // end maxCardinality
+                }
+
+                XMLUtils::endElement(writer); // end resource
+            }
         }
         XMLUtils::endElement(writer); // end resource-requirement
         XMLUtils::endElement(writer); // end requirement
