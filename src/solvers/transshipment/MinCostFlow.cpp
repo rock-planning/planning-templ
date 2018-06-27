@@ -22,7 +22,8 @@ MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
         const std::map<Role, csp::RoleTimeline>& timelines,
         const SpaceTime::Timelines& expandedTimelines,
             graph_analysis::algorithms::LPSolver::Type solverType)
-    : mpMission(mission)
+    : mAsk(mission->getOrganizationModelAsk())
+    , mpLogger(mission->getLogger())
     , mSortedTimepoints(sortedTimepoints)
     , mTimelines(timelines)
     , mExpandedTimelines(expandedTimelines)
@@ -38,7 +39,45 @@ MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
     for(; rit != mTimelines.end(); ++rit)
     {
         const Role& role = rit->first;
-        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mpMission->getOrganizationModelAsk());
+        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mAsk);
+        if(!robot.isMobile()) // only immobile systems are relevant
+        {
+            // Allow to later map roles back from index
+            mCommoditiesRoles.push_back(role);
+        }
+    }
+    if(mCommoditiesRoles.empty())
+    {
+        LOG_WARN_S << "No immobile systems, thus no commodities to be routed";
+    }
+}
+
+MinCostFlow::MinCostFlow(const organization_model::OrganizationModelAsk& ask,
+        const utils::Logger::Ptr& logger,
+        const symbols::constants::Location::PtrList locations,
+        const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
+        const SpaceTime::Timelines& timelines,
+        const SpaceTime::Timelines& expandedTimelines,
+            graph_analysis::algorithms::LPSolver::Type solverType)
+    : mAsk(ask)
+    , mpLogger(logger)
+    , mSortedTimepoints(sortedTimepoints)
+    , mTimelines()
+    , mSpaceTimelines(timelines)
+    , mExpandedTimelines(expandedTimelines)
+    , mFlowNetwork(ask, locations, mSortedTimepoints, expandedTimelines)
+    , mSpaceTimeNetwork(mFlowNetwork.getSpaceTimeNetwork())
+    , mSolverType(solverType)
+{
+    // Create virtual start and end depot vertices and connect them with the
+    // current start and end vertices
+    SpaceTime::injectVirtualStartAndEnd(mSpaceTimeNetwork);
+
+    std::map<Role, SpaceTime::Timeline>::const_iterator rit = mSpaceTimelines.begin();
+    for(; rit != mSpaceTimelines.end(); ++rit)
+    {
+        const Role& role = rit->first;
+        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mAsk);
         if(!robot.isMobile()) // only immobile systems are relevant
         {
             // Allow to later map roles back from index
@@ -164,6 +203,29 @@ void MinCostFlow::setCommoditySupplyAndDemand()
             }
         }
     } // end for role timelines
+
+    for(std::pair<Role, SpaceTime::Timeline> p : mSpaceTimelines)
+    {
+        const Role& role = p.first;
+        const SpaceTime::Timeline& timeline = p.second;
+
+        // The list of commodities roles is initialized in the constructor and
+        // contains the list of immobile units
+        std::vector<Role>::const_iterator cit = std::find(mCommoditiesRoles.begin(), mCommoditiesRoles.end(), role);
+        if(cit != mCommoditiesRoles.end())
+        {
+            size_t commodityId = cit - mCommoditiesRoles.begin();
+            setSupplyDemand(SpaceTime::getHorizonStartTuple(),commodityId, role, 1);
+            setSupplyDemand(SpaceTime::getHorizonEndTuple(),commodityId, role, -1);
+
+            for(size_t i = 0; i < timeline.size(); ++i)
+            {
+                // todo update constraint for all that are assigned inbetween
+                SpaceTime::Network::tuple_t::Ptr currentTuple = mSpaceTimeNetwork.tupleByKeys(timeline[i].first, timeline[i].second);
+                setMinTransFlow(currentTuple, commodityId, role, 1);
+            }
+        }
+    } // end for role timelines
 }
 
 void MinCostFlow::setDepotRestrictions(const graph_analysis::BaseGraph::Ptr& flowGraph,
@@ -218,11 +280,11 @@ std::vector<Flaw> MinCostFlow::run(bool doThrow)
     MultiCommodityMinCostFlow minCostFlow(flowGraph, numberOfCommodities, mSolverType);
     // LOGGING
     {
-        std::string filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow-init.gexf");
+        std::string filename  = mpLogger->filename("multicommodity-min-cost-flow-init.gexf");
         graph_analysis::io::GraphIO::write(filename, flowGraph);
     }
 
-    std::string prefixPath = mpMission->getLogger()->filename("multicommodity-min-cost-flow");
+    std::string prefixPath = mpLogger->filename("multicommodity-min-cost-flow");
     algorithms::LPSolver::Status status = minCostFlow.solve(prefixPath);
     switch(status)
     {
@@ -244,16 +306,16 @@ std::vector<Flaw> MinCostFlow::run(bool doThrow)
 
     // LOGGING
     {
-        std::string filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow-final-flow.gexf");
+        std::string filename  = mpLogger->filename("multicommodity-min-cost-flow-final-flow.gexf");
         graph_analysis::io::GraphIO::write(filename, flowGraph);
 
-        filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow.gexf");
+        filename  = mpLogger->filename("multicommodity-min-cost-flow.gexf");
         minCostFlow.save(filename);
 
-        filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow-problem.cplex");
+        filename  = mpLogger->filename("multicommodity-min-cost-flow-problem.cplex");
         minCostFlow.saveProblem(filename);
 
-        filename  = mpMission->getLogger()->filename("multicommodity-min-cost-flow.solution");
+        filename  = mpLogger->filename("multicommodity-min-cost-flow.solution");
         minCostFlow.saveSolution(filename);
     }
 
@@ -307,7 +369,6 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
 
     transshipment::Flaw::List transitionFlaws = mFlowNetwork.getInvalidTransitions();
     flaws.insert(flaws.begin(), transitionFlaws.begin(), transitionFlaws.end());
-
 
     return flaws;
 }

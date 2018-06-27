@@ -38,6 +38,14 @@ public:
             graph_analysis::algorithms::LPSolver::Type solverType = graph_analysis::algorithms::LPSolver::GLPK_SOLVER
             );
 
+    MinCostFlow(const organization_model::OrganizationModelAsk& ask,
+            const utils::Logger::Ptr& logger,
+            const symbols::constants::Location::PtrList locations,
+            const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
+            const SpaceTime::Timelines& minimalTimelines,
+            const SpaceTime::Timelines& expandedTimelines,
+            graph_analysis::algorithms::LPSolver::Type solverType = graph_analysis::algorithms::LPSolver::GLPK_SOLVER
+            );
 
     /**
      * Run the min cost flow optimization and return the list of flaws found in
@@ -136,9 +144,11 @@ protected:
     uint32_t getInitialSetupCost(uint32_t commodity) const { return 0; }
 
 private:
-    Mission::Ptr mpMission;
+    organization_model::OrganizationModelAsk mAsk;
+    utils::Logger::Ptr mpLogger;
     temporal::point_algebra::TimePoint::PtrList mSortedTimepoints;
     std::map<Role, csp::RoleTimeline> mTimelines;
+    std::map<Role, SpaceTime::Timeline> mSpaceTimelines;
     SpaceTime::Timelines mExpandedTimelines;
     std::vector<Role> mCommoditiesRoles;
 

@@ -20,7 +20,8 @@ FlowNetwork::FlowNetwork(const Mission::Ptr& mission,
         const std::map<Role, csp::RoleTimeline>& timelines,
         const SpaceTime::Timelines& expandedTimelines)
     : mpMission(mission)
-    , mSpaceTimeNetwork(mpMission->getLocations(), sortedTimepoints)
+    , mSpaceTimeNetwork(mission->getLocations(), sortedTimepoints)
+    , mAsk(mission->getOrganizationModelAsk())
     , mTimelines(timelines)
     , mExpandedTimelines(expandedTimelines)
     , mMoveToResource()
@@ -32,12 +33,33 @@ FlowNetwork::FlowNetwork(const Mission::Ptr& mission,
     mMoveToResource.insert( Resource(vocabulary::OM::resolve("MoveTo")) );
 }
 
+FlowNetwork::FlowNetwork(const organization_model::OrganizationModelAsk& ask,
+        const symbols::constants::Location::PtrList locations,
+        const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
+        const SpaceTime::Timelines& expandedTimelines)
+    : mSpaceTimeNetwork(locations, sortedTimepoints)
+    , mAsk(ask)
+    , mTimelines()
+    , mExpandedTimelines(expandedTimelines)
+    , mMoveToResource()
+{
+    initialize();
+
+    using namespace organization_model;
+    mMoveToResource.insert( Resource(vocabulary::OM::resolve("MoveTo")) );
+}
+
 void FlowNetwork::save(const std::string& path)
 {
     std::string filename = path;
     if(filename.empty())
     {
-        filename = mpMission->getLogger()->filename("transhipment-flow-network.gexf");
+        if(mpMission)
+        {
+            filename = mpMission->getLogger()->filename("transhipment-flow-network.gexf");
+        } else {
+            filename = "/tmp/transhipment-flow-network.gexf";
+        }
     }
     using namespace graph_analysis::io;
 
@@ -79,7 +101,7 @@ void FlowNetwork::initializeExpandedTimelines()
         // Check if this item is mobile, i.e. change the location
         // WARNING: this is currently domain specific based on using the dataProperty payloadTransportCapacity
         //
-        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mpMission->getOrganizationModelAsk());
+        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mAsk);
         if(!robot.isMobile())
         {
             continue;
@@ -168,7 +190,7 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
         // Check if this item is mobile, i.e. change change the location
         // WARNING: this is domain specific
         // transportCapacity
-        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mpMission->getOrganizationModelAsk());
+        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mAsk);
         if(!robot.isMobile())
         {
             continue;
@@ -234,17 +256,17 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
     }
 }
 
-transshipment::Flaw::List FlowNetwork::getInvalidTransitions() const
+transshipment::Flaw::List FlowNetwork::getInvalidTransitions(double feasibilityCheckTimeoutInS) const
 {
-    organization_model::OrganizationModelAsk ask = mpMission->getOrganizationModelAsk();
+    organization_model::OrganizationModelAsk ask = mAsk;
 
     transshipment::Flaw::List flaws;
-    double feasibilityCheckTimeout = 1;
 
     EdgeIterator::Ptr edgeIt =  mSpaceTimeNetwork.getGraph()->getEdgeIterator();
     while(edgeIt->next())
     {
-        RoleInfoWeightedEdge::Ptr roleInfo = dynamic_pointer_cast<RoleInfoWeightedEdge>(edgeIt->current());
+        Edge::Ptr edge = edgeIt->current();
+        RoleInfoWeightedEdge::Ptr roleInfo = dynamic_pointer_cast<RoleInfoWeightedEdge>(edge);
         if(roleInfo)
         {
             if(roleInfo->getWeight() < std::numeric_limits<uint32_t>::max())
@@ -252,12 +274,13 @@ transshipment::Flaw::List FlowNetwork::getInvalidTransitions() const
                 Role::Set roles = roleInfo->getRoles({ RoleInfo::ASSIGNED });
                 organization_model::ModelPool pool = roleInfo->getModelPool( { RoleInfo::ASSIGNED } );
 
-                organization_model::ModelPool::List coalitionStructure = ask.findFeasibleCoalitionStructure(pool, mMoveToResource, feasibilityCheckTimeout);
+                LOG_INFO_S << "Checking for infeasible coalition on transition:"
+                    << edge->toString(4);
+                organization_model::ModelPool::List coalitionStructure = ask.findFeasibleCoalitionStructure(pool, mMoveToResource, feasibilityCheckTimeoutInS);
                 if( coalitionStructure.empty() )
                 {
-                    std::cout << "Infeasible coalition for transition: " << pool.toString(4) << std::endl
-                        << "    number of instances: " << pool.numberOfInstances() << std::endl;
-
+                    LOG_WARN_S << "Infeasible coalition detected for transition"
+                        << edge->toString(4);
                     using namespace graph_analysis::algorithms;
                     ConstraintViolation v(MultiCommodityEdge::Ptr(),
                             std::set<uint32_t>(), 0, 0,0, ConstraintViolation::TotalTransFlow);
@@ -274,7 +297,8 @@ transshipment::Flaw::List FlowNetwork::getInvalidTransitions() const
                         roleInfo->addRole(r, RoleInfo::INFEASIBLE);
                     }
                 } else {
-                    std::cout << "Feasible transition: " << pool.toString(4) << std::endl;
+                    LOG_INFO_S << "Feasible coalition detected for transition"
+                        << edge->toString(4);
                 }
             }
         }

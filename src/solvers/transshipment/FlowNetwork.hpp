@@ -38,6 +38,18 @@ public:
         const std::map<Role, csp::RoleTimeline>& minimalTimelines,
         const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines());
 
+    /**
+     * \param ask
+     * \param sortedTimepoints List of sorted timepoints (which allows to create
+     * the temporally expanded network)
+     * \param minimalTimelines The set of minimal requirement per role
+     * \param expandedTimelines The set of additional requirements for roles
+     */
+    FlowNetwork(const organization_model::OrganizationModelAsk& ask,
+        const symbols::constants::Location::PtrList locations,
+        const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
+        const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines());
+
     const Mission::Ptr& getMission() const { return mpMission; }
 
     /**
@@ -64,7 +76,7 @@ public:
      * Check feasibility of a transition for the given
      * agent
      */
-    transshipment::Flaw::List getInvalidTransitions() const;
+    transshipment::Flaw::List getInvalidTransitions(double feasibilityCheckTimeoutInS = 1) const;
 
 protected:
     /**
@@ -88,6 +100,7 @@ protected:
 private:
     Mission::Ptr mpMission;
     SpaceTime::Network mSpaceTimeNetwork;
+    organization_model::OrganizationModelAsk mAsk;
 
     std::map<Role, csp::RoleTimeline> mTimelines;
     SpaceTime::Timelines mExpandedTimelines;
