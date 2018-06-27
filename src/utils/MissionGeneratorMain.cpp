@@ -12,8 +12,8 @@ int main(int argc, char**argv)
     po::options_description description("allowed options");
     description.add_options()
         ("help","describe arguments")
-        ("om", po::value<std::string>(), "IRI of the organization model (optional)")
         ("vrp", po::value<std::string>(), "Path to vrp file for conversion")
+        ("config", po::value<std::string>(), "Path to configuration file for generation")
         ("output", po::value<std::string>(), "Output file to generate -- default is /tmp/mission.xml")
         ;
 
@@ -26,7 +26,14 @@ int main(int argc, char**argv)
         std::cout << description << std::endl;
         exit(1);
     }
+    std::string configurationFile;
+    if(vm.count("config"))
+    {
+        configurationFile = vm["config"].as<std::string>();
+    }
 
+    benchmark::MissionGenerator* missionGenerator = 0;
+    Mission::Ptr mission;
     if(vm.count("vrp"))
     {
         using namespace templ::benchmark;
@@ -34,9 +41,16 @@ int main(int argc, char**argv)
         benchmark::io::GoldenReader reader;
         VRPProblem vrp = reader.read(vrpFile);
 
-        Mission::Ptr mission = MissionGenerator::convert(vrp);
+        mission = MissionGenerator::convert(vrp);
         std::cout << "Converted mission" << std::endl;
 
+    } else {
+        missionGenerator = new benchmark::MissionGenerator(configurationFile);
+        mission = missionGenerator->generate();
+    }
+
+    if(mission)
+    {
         std::string filename = "/tmp/mission.xml";
         if(vm.count("output"))
         {
@@ -46,5 +60,7 @@ int main(int argc, char**argv)
         templ::io::MissionWriter::write(filename, *mission);
         std::cout << "Written mission to: " << filename << std::endl;
     }
+
+    delete missionGenerator;
 }
 
