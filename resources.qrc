@@ -2,6 +2,7 @@
 <qresource>
     <file>resources/pictograms/pictogram-unknown.svg</file>
     <file>resources/pictograms/pictogram-payload.svg</file>
+    <file>resources/pictograms/pictogram-payloadsoilsampler.svg</file>
     <file>resources/pictograms/pictogram-basecamp.svg</file>
     <file>resources/pictograms/pictogram-crex.svg</file>
     <file>resources/pictograms/pictogram-coyoteiii.svg</file>
