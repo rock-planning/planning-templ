@@ -288,7 +288,7 @@ private:
     void postTemporalConstraints();
 
     static void doPostMinMaxConstraints(Gecode::Space& home);
-    static void doPostExtensionalContraints(Gecode::Space& home);
+    static void doPostExtensionalConstraints(Gecode::Space& home);
 
     static void doPostRoleAssignments(Gecode::Space& home);
     void postRoleAssignments();

@@ -562,7 +562,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const qxc
     Gecode::branch(*this, &TransportNetwork::doPostMinMaxConstraints);
 
     // Allow only composite agents, i.e. combinations of models, that provide a particular functionality
-    Gecode::branch(*this, &TransportNetwork::doPostExtensionalContraints);
+    Gecode::branch(*this, &TransportNetwork::doPostExtensionalConstraints);
 
     Gecode::IntAFC modelUsageAfc(*this, mModelUsage, 0.99);
     double modelAfcDecay = mConfiguration.getValueAs<double>("TransportNetwork/search/options/model-usage/afc-decay",0.95);
@@ -1457,7 +1457,7 @@ void TransportNetwork::doPostMinMaxConstraints(Gecode::Space& home)
     static_cast<TransportNetwork&>(home).initializeMinMaxConstraints();
 }
 
-void TransportNetwork::doPostExtensionalContraints(Gecode::Space& home)
+void TransportNetwork::doPostExtensionalConstraints(Gecode::Space& home)
 {
     static_cast<TransportNetwork&>(home).addExtensionalConstraints();
 }
