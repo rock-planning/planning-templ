@@ -87,6 +87,11 @@ BOOST_AUTO_TEST_CASE(ult)
     tcn.upperLowerTightening();
     BaseGraph::Ptr graph = tcn.getDistanceGraph();
 
+    std::string dotFilename = "/tmp/templ-test-post-ult.dot";
+    graph_analysis::io::GraphIO::write(dotFilename, tcn.getDistanceGraph());
+    BOOST_TEST_MESSAGE("Dot file written to: " << dotFilename);
+
+
     IntervalConstraint::Ptr e0(new IntervalConstraint(v0,v1));
     e0->addInterval(Bounds(10,20));
     e0->addInterval(Bounds(30,40));
@@ -110,9 +115,15 @@ BOOST_AUTO_TEST_CASE(ult)
     expected.addIntervalConstraint(e4);
     expected.addIntervalConstraint(e5);
 
+    dotFilename = "/tmp/templ-test-expected-ult.dot";
+    graph_analysis::io::GraphIO::write(dotFilename, expected.getDistanceGraph());
+    BOOST_TEST_MESSAGE("Dot file written to: " << dotFilename);
+
+
 //  check if the expected result and the actual result are the same
     bool ok = expected.equals(graph);
-    BOOST_REQUIRE_MESSAGE(ok, "Expected: 1, Actual: " << ok);
+    BOOST_REQUIRE_MESSAGE(ok, "Expected graph equality -- but graphs are different");
+
 }
 
 BOOST_AUTO_TEST_CASE(io)
@@ -209,4 +220,6 @@ BOOST_AUTO_TEST_CASE(comparator_validation)
     }
 
 }
+
+
 BOOST_AUTO_TEST_SUITE_END()
