@@ -639,10 +639,9 @@ void TransportNetwork::initializeMinMaxConstraints()
                 for(size_t mi = 0; mi < mAvailableModels.size(); ++mi)
                 {
                     Gecode::IntVar v = resourceDistribution(mi, requirementIndex);
-
+                    uint32_t minCardinality = 0;
                     {
                         // default min requirement is 0 for a model
-                        uint32_t minCardinality = 0;
                         /// Consider resource cardinality constraint
                         /// Check what is set for the given model
                         LOG_DEBUG_S << "Check min cardinality for " << mAvailableModels[mi];
@@ -650,7 +649,7 @@ void TransportNetwork::initializeMinMaxConstraints()
                         if(cardinalityIt != fts.getMinCardinalities().end())
                         {
                             minCardinality = cardinalityIt->second;
-                            LOG_DEBUG_S << "Found resource cardinality constraint: " << std::endl
+                            LOG_DEBUG_S << "Found resource minimum cardinality constraint: " << std::endl
                                 << "    " << mAvailableModels[mi] << ": minCardinality " << minCardinality;
                         }
                         constraintMatrix.setMin(requirementIndex, mi, minCardinality);
@@ -660,15 +659,21 @@ void TransportNetwork::initializeMinMaxConstraints()
                     uint32_t maxCardinality = mModelPool[ mAvailableModels[mi] ];
                     // setting the upper bound for this model and this service
                     // based on what the model pool can provide
-                    LOG_DEBUG_S << "requirement: " << requirementIndex
-                        << ", model: " << mi
-                        << " IRT_GQ 0 IRT_LQ: " << maxCardinality;
                     constraintMatrix.setMax(requirementIndex, mi, maxCardinality);
                     rel(*this, v, Gecode::IRT_LQ, maxCardinality);
+
+
+                    LOG_DEBUG_S << "requirement: " << requirementIndex
+                        << ", model: " << mi
+                        << " IRT_GQ " << minCardinality << ", IRT_LQ: " << maxCardinality;
                 }
 
                 // there can be no empty assignment for resource requirement
                 rel(*this, sum( resourceDistribution.row(requirementIndex) ) > 0);
+                if(this->failed())
+                {
+                    LOG_WARN_S << "Encountered an empty assignment for a resource requirement";
+                }
 
                 // This can be equivalently modelled using a linear constraint
                 // Gecode::IntArgs c(mAvailableModels.size());
