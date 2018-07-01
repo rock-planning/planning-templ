@@ -179,7 +179,7 @@ organization_model::ModelPool SolutionAnalysis::getMinAvailableResources(const F
     ModelPool minAvailableResources = organization_model::Algebra::min( availableResources);
 
     // Infer functionality from this set of resources
-    OrganizationModelAsk ask(mpMission->getOrganizationModel(),
+    OrganizationModelAsk ask = OrganizationModelAsk::getInstance(mpMission->getOrganizationModel(),
             minAvailableResources,
             true);
     // Creating model pool from available functionalities
