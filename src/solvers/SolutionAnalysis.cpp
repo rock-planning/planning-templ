@@ -935,7 +935,7 @@ double SolutionAnalysis::computeReconfigurationCost(const Vertex::Ptr& vertex, c
         }
     } catch(const std::invalid_argument& e)
     {
-        LOG_WARN_S << "Failed to compute reconfiguration cost at: " << vertex->toString();
+        LOG_WARN_S << "Failed to compute reconfiguration cost at: " << vertex->toString() << e.what();
         throw;
     }
     return cost;
