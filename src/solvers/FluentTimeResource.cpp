@@ -1,6 +1,7 @@
 #include "FluentTimeResource.hpp"
 #include <organization_model/Algebra.hpp>
 #include <base-logging/Logging.hpp>
+#include <numeric/Combinatorics.hpp>
 #include "../utils/Index.hpp"
 #include <iostream>
 #include <algorithm>
@@ -239,7 +240,7 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
     // to as a result order all intervals overlapping with the smallest unit
     // will be concurrent
     // use sorted fluents, check overlap of the first interval with rest
-    // and thus step through each interval an the potentially overlapping one
+    // and thus step through each interval and the potentially overlapping one
     // [a_s -------------------------------a_e]
     // [b_s --- b_e]
     //                      [c_s  --- c_e]
@@ -248,30 +249,122 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
     //                 [e_s --- e_e]
 
     std::vector<List> mutualExclusive;
-    for(size_t a = 0; a < requirements.size(); ++a)
+    std::vector< std::vector<std::string> > processedConcurrent;
+    for(size_t a = 0; a < requirements.size();++a)
     {
         const FluentTimeResource& ftrA = requirements[a];
 
+        std::vector<std::string> concurrentEncoded;;
         List concurrent;
-        concurrent.push_back(ftrA);
-        bool hasConcurrentIntervals = false;
         for(size_t b = a + 1; b < requirements.size(); ++b)
         {
             const FluentTimeResource& ftrB = requirements[b];
-
-            // Time overlap
-            if(ftrA.getLocation() != ftrB.getLocation())
+            if(FluentTimeResource::areMutualExclusive(ftrA, ftrB))
             {
-                if(ftrA.getInterval().overlaps(ftrB.getInterval()))
-                {
-                    hasConcurrentIntervals = true;
-                    concurrent.push_back(ftrB);
-                }
+                concurrent.push_back(ftrB);
+                concurrentEncoded.push_back(ftrB.getQualificationString());
+            } else {
+                break;
             }
         }
-        if(hasConcurrentIntervals)
+
+        if(concurrent.empty())
         {
-            mutualExclusive.push_back(concurrent);
+            mutualExclusive.push_back({ ftrA });
+            continue;
+        } else {
+            bool alreadyProcessed = false;
+            std::sort(concurrentEncoded.begin(), concurrentEncoded.end());
+            for(std::vector<std::string>& processed : processedConcurrent)
+            {
+                if(std::includes(processed.begin(), processed.end(),
+                        concurrentEncoded.begin(),
+                        concurrentEncoded.end()) )
+                {
+                    // already processed so ignore this one
+                    alreadyProcessed = true;
+                }
+            }
+            if(alreadyProcessed)
+            {
+                continue;
+            } else {
+                processedConcurrent.push_back(concurrentEncoded);
+            }
+        }
+
+        std::cout << "Concurrent: for " << std::endl;
+        std::cout << "    " << ftrA.getInterval().toString() <<
+             ftrA.getLocation()->toString() << std::endl;
+        for(FluentTimeResource ftr : concurrent)
+        {
+            std::cout << "    " << ftr.getInterval().toString() <<
+                ftr.getLocation()->toString() << std::endl;
+        }
+
+        // Now concurrent, but not necessarily mutual exclusive intervals
+        // are identified, e.g.
+        // (l0,[t0,t1]) - (l1,[t0,t1]) - (l1,[t1,t2])
+        // so check on full mutual exclusion on this subset
+        std::vector<List> mutexGroups;
+        mutexGroups.push_back( { concurrent.back() });
+        concurrent.pop_back();
+        while(!concurrent.empty())
+        {
+            FluentTimeResource ftrC = concurrent.back();
+            concurrent.pop_back();
+
+            std::vector<List> extraGroups;
+            for(List& requirementList : mutexGroups)
+            {
+                std::cout << "Requirements list of size: " <<
+                    concurrent.size() << std::endl;
+                List tmpMutualExclusive;
+                bool newGroup = false;
+                for(FluentTimeResource& ftr : requirementList)
+                {
+                    // create a new mutex group when this requirement
+                    // is not mutual exclusive with all(!) requirement that
+                    // are part of the current group
+                    if(!FluentTimeResource::areMutualExclusive(ftr,ftrC))
+                    {
+                        tmpMutualExclusive.push_back(ftrC);
+                        extraGroups.push_back(tmpMutualExclusive);
+                        std::cout << "New group of size: " <<
+                            tmpMutualExclusive.size() << std::endl;
+                        newGroup = true;
+                        break;
+                    }
+                    tmpMutualExclusive.push_back(ftr);
+                }
+
+                if(!newGroup)
+                {
+                    std::cout << "Add to existing group of size " <<
+                        requirementList.size() << std::endl;
+                    requirementList.push_back(ftrC);
+                }
+            }
+            for(List list : extraGroups)
+            {
+                mutexGroups.push_back(list);
+            }
+        }
+
+        for(List c : mutexGroups)
+        {
+            c.push_back(ftrA);
+            mutualExclusive.push_back(c);
+        }
+    }
+
+    for(List l : mutualExclusive)
+    {
+        std::cout << "Exclusive" << std::endl;
+        for(FluentTimeResource ftr : l)
+        {
+            std::cout << "    " << ftr.getInterval().toString() <<
+                ftr.getLocation()->toString() << std::endl;
         }
     }
     return mutualExclusive;
@@ -455,6 +548,27 @@ void FluentTimeResource::updateSatisficingCardinalities()
     // thus update the max cardinalities
     satisficingCardinalities = organization_model::Algebra::min(mMaxCardinalities, mSatisficingCardinalities);
     satisficingCardinalities = organization_model::Algebra::max(mMinCardinalities, mSatisficingCardinalities);
+}
+
+bool FluentTimeResource::areMutualExclusive(const FluentTimeResource& ftrA, const FluentTimeResource& ftrB)
+{
+    if(ftrA.getLocation() != ftrB.getLocation())
+    {
+        if(ftrA.getInterval().overlaps(ftrB.getInterval()))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::string FluentTimeResource::getQualificationString() const
+{
+    std::stringstream ss;
+    ss << "(" << getLocation()->getInstanceName() << ",";
+    ss << "[" << getInterval().getFrom()->getLabel();
+    ss << "," << getInterval().getTo()->getLabel() << "])";
+    return ss.str();
 }
 
 } // end namespace solvers

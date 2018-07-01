@@ -267,6 +267,15 @@ public:
      */
     void updateSatisficingCardinalities();
 
+    /**
+     */
+    static bool areMutualExclusive(const FluentTimeResource& a , const FluentTimeResource& b);
+
+    /**
+     * Get qualification string as: (location,[fromTime,toTime])
+     */
+    std::string getQualificationString() const;
+
 private:
     /// Allow to map between indexes and symbols
     Mission::Ptr mpMission;
