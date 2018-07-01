@@ -221,7 +221,7 @@ Mission::Ptr MissionGenerator::sampleFromNetwork(const SpaceTime::Network& netwo
         mission->addConstant(location);
     }
 
-    // Prepare initial locations
+    // Prepare starting locations
     for(size_t l = 0; l < locations.size(); ++l)
     {
         Location::Ptr location = locations[l];
@@ -251,7 +251,7 @@ Mission::Ptr MissionGenerator::sampleFromNetwork(const SpaceTime::Network& netwo
         SpaceTime::RoleInfoSpaceTimeTuple::Ptr fromTuple =
             dynamic_pointer_cast<SpaceTime::RoleInfoSpaceTimeTuple>(edge->getSourceVertex());
         SpaceTime::RoleInfoSpaceTimeTuple::Ptr toTuple =
-            dynamic_pointer_cast<SpaceTime::RoleInfoSpaceTimeTuple>(edge->getSourceVertex());
+            dynamic_pointer_cast<SpaceTime::RoleInfoSpaceTimeTuple>(edge->getTargetVertex());
 
         if(fromTuple->second() == timepoints[0] || toTuple->second() ==
                 timepoints[0])
@@ -259,7 +259,14 @@ Mission::Ptr MissionGenerator::sampleFromNetwork(const SpaceTime::Network& netwo
             continue;
         }
 
-        if(*fromTuple->first() != *toTuple->first())
+        if(fromTuple->first() != toTuple->first())
+        {
+            continue;
+        }
+        organization_model::ModelPool agentPool =
+            dynamic_pointer_cast<RoleInfoWeightedEdge>(edge)->getModelPool({
+                    RoleInfo::ASSIGNED, RoleInfo::AVAILABLE });
+        if(agentPool.isNull())
         {
             continue;
         }
@@ -269,36 +276,52 @@ Mission::Ptr MissionGenerator::sampleFromNetwork(const SpaceTime::Network& netwo
     }
 
     // Sample from the rest
-    size_t minCount = relevantEdges.size()*mSamplingDensity;
-    while(minCount > 0)
+    size_t total = relevantEdges.size()*std::min(mSamplingDensity,1.0);
+    size_t minCount = total;
+    while(minCount > 0 && !relevantEdges.empty())
     {
-        size_t edgeIdx = rand() % minCount;
+        size_t edgeIdx = relevantEdges.size() - 1;
+        if(mSamplingDensity < 1.0)
+        {
+            edgeIdx = rand() % relevantEdges.size();
+        }
+
         const Edge::Ptr& edge = relevantEdges[edgeIdx];
+        RoleInfoWeightedEdge::Ptr stEdge =
+            dynamic_pointer_cast<RoleInfoWeightedEdge>(edge);
+
         SpaceTime::RoleInfoSpaceTimeTuple::Ptr fromTuple =
             dynamic_pointer_cast<SpaceTime::RoleInfoSpaceTimeTuple>(edge->getSourceVertex());
         SpaceTime::RoleInfoSpaceTimeTuple::Ptr toTuple =
             dynamic_pointer_cast<SpaceTime::RoleInfoSpaceTimeTuple>(edge->getTargetVertex());
+        relevantEdges.erase(relevantEdges.begin() + edgeIdx);
 
-        organization_model::ModelPool agentPool = fromTuple->getModelPool({ RoleInfo::ASSIGNED, RoleInfo::AVAILABLE});
+        organization_model::ModelPool agentPool = stEdge->getModelPool({
+                RoleInfo::ASSIGNED, RoleInfo::AVAILABLE});
+
         try {
             for(const std::pair<owlapi::model::IRI, size_t>& v : agentPool)
             {
-                std::cout << "min " << fromTuple->first()->toString() << " " <<
-                    fromTuple->second()->toString() << std::endl;
-
                 mission->addResourceLocationCardinalityConstraint(fromTuple->first(),
                         fromTuple->second(),
                         toTuple->second(),
                         v.first,
                         v.second,
                         owlapi::model::OWLCardinalityRestriction::MIN);
+
+                LOG_DEBUG_S << "Sample drawn from network: # " << minCount << "/" <<
+                    total << std::endl
+                    << "    " << fromTuple->first()->toString() << " " << fromTuple->second()->toString() << std::endl
+                    << "    " << toTuple->first()->toString() << " " << toTuple->second()->toString() << std::endl
+                    << "    " << v.first << " " << v.second << std::endl
+                    << agentPool.toString(4);
             }
+            --minCount;
         } catch(...)
         {
             // retry
             continue;
         }
-        --minCount;
     }
 
     solvers::temporal::TemporalConstraintNetwork::Ptr tcn = mission->getTemporalConstraintNetwork();
@@ -429,36 +452,45 @@ SpaceTime::Network MissionGenerator::generateNetwork()
             if(!robot.isMobile())
             {
                 SpaceTime::Timeline timeline;
-                Location::PtrList candidateLocations = locations;
+                SpaceTime::RoleInfoSpaceTimeTuple::PtrList path;
+                Location::PtrList candidateLocations;
                 for(size_t t = 0; t < timepoints.size(); ++t)
                 {
+                    if(t == 0)
+                    {
+                        // prepare the (re)start
+                        candidateLocations = locations;
+                        timeline.clear();
+                        path.clear();
+                    }
+                    // select a location for this timepoint
                     size_t locationIdx = rand() %
                         static_cast<size_t>(candidateLocations.size());
                     Location::Ptr location = candidateLocations[locationIdx];
-                    timeline.push_back(SpaceTime::Point(location,
-                                    timepoints[t]));
 
-                    Location::PtrList candidates;
                     SpaceTime::RoleInfoSpaceTimeTuple::Ptr vertex = network.tupleByKeys(location, timepoints[t]);
-                    vertex->addRole(role, RoleInfo::ASSIGNED);
-                    // Prepare next round
+                    path.push_back(vertex);
+                    timeline.push_back(SpaceTime::Point(location, timepoints[t]));
+
+                    // Check if this is a dead end and restart if necessary
                     Edge::PtrList edges = network.getGraph()->getOutEdges(vertex);
-                    if(edges.empty() && timepoints.size() -1 != t)
+                    if(edges.empty() && timepoints.size()-1 != t)
                     {
                         std::cout << "Restart adding immobile agent role: " <<
                             role.toString() << std::endl;
                         t = 0;
-                        candidateLocations = locations;
                         continue;
                     }
 
+                    Location::PtrList candidates;
                     for(const Edge::Ptr& e : edges)
                     {
                         SpaceTime::Network::value_t value = network.getValue(
                                 dynamic_pointer_cast<SpaceTime::Network::tuple_t>(e->getTargetVertex()));
 
                         // validate if the transitions is actually possible
-                        if(location == value) // trivially true for same location
+                        // trivially true for a transition from/to the same location
+                        if(location == value)
                         {
                             candidates.push_back(value);
                         } else {
@@ -481,6 +513,13 @@ SpaceTime::Network MissionGenerator::generateNetwork()
                     candidateLocations = candidates;
                 }
 
+                // Update the vertices with this role after identification of a
+                // valid path
+                for(SpaceTime::RoleInfoSpaceTimeTuple::Ptr& vertex : path)
+                {
+                    vertex->addRole(role, RoleInfo::ASSIGNED);
+                }
+
                 timelinesWithImmobile[role] = timeline;
             }
         }
@@ -491,13 +530,19 @@ SpaceTime::Network MissionGenerator::generateNetwork()
                     timepoints,
                     timelinesWithImmobile,
                     timelines,
-                    graph_analysis::algorithms::LPSolver::GLPK_SOLVER);
+                    graph_analysis::algorithms::LPSolver::SCIP_SOLVER);
 
-        std::vector<solvers::transshipment::Flaw> flaws = minCostFlow.run(true);
-        if(flaws.empty())
+        try {
+            std::vector<solvers::transshipment::Flaw> flaws = minCostFlow.run(true);
+            if(flaws.empty())
+            {
+                generatedNetwork =
+                    minCostFlow.getFlowNetwork().getSpaceTimeNetwork();
+                break;
+            }
+        } catch(const std::runtime_error& e)
         {
-            generatedNetwork =
-                minCostFlow.getFlowNetwork().getSpaceTimeNetwork();
+            LOG_WARN_S << "No solution found: " << e.what();
             break;
         }
     }
