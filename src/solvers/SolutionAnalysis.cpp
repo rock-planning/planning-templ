@@ -854,18 +854,27 @@ void SolutionAnalysis::computeEfficiency()
 void SolutionAnalysis::computeReconfigurationCost()
 {
     double totalReconfigurationCost = 0.0;
-    VertexIterator::Ptr vertexIt = mSolutionNetwork.getGraph()->getVertexIterator();
+    // TODO: Adapt to mSolutionNetwork -- after annotating the network
+    VertexIterator::Ptr vertexIt = mPlan.getGraph()->getVertexIterator();
     while(vertexIt->next())
     {
         Vertex::Ptr vertex = vertexIt->current();
         double reconfigurationCost = 0;
 
         RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(vertex);
-        if(roleInfo && !roleInfo->getAllRoles().empty())
+        if(!roleInfo)
         {
-            reconfigurationCost = computeReconfigurationCost(vertex, mSolutionNetwork.getGraph());
+            throw std::runtime_error("templ::solvers::SolutionAnalysis::computeReconfigurationCost: failed to cast to RoleInfo."
+                    " Class of node is " + vertex->getClassName());
+        } else if(!roleInfo->getAllRoles().empty())
+        {
+            try {
+                reconfigurationCost = computeReconfigurationCost(vertex, mPlan.getGraph());
+            } catch(const std::exception& e)
+            {
+                // handle unfulfilled requirements
+            }
             roleInfo->setAttribute(RoleInfo::RECONFIGURATION_COST, reconfigurationCost);
-            LOG_WARN_S << "Reconfiguration cost: " << reconfigurationCost << " at " << vertex->toString();
         }
 
         totalReconfigurationCost += reconfigurationCost;
