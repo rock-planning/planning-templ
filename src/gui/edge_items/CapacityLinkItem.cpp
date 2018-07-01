@@ -196,7 +196,7 @@ CapacityLink::Ptr CapacityLinkItem::toCapacityLink(const RoleInfoWeightedEdge::P
     }
 
     organization_model::OrganizationModel::Ptr om = TemplGui::getOrganizationModel();
-    organization_model::OrganizationModelAsk ask(om, pool);
+    organization_model::OrganizationModelAsk ask = organization_model::OrganizationModelAsk::getInstance(om, pool);
 
     for(const Role& r : transitionRoles)
     {
