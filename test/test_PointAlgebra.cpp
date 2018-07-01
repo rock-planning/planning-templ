@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(bidirectional_constraint_type)
     base::Time start = base::Time::now();
     std::vector<Vertex::Ptr> vertices = tcn->getGraph()->getAllVertices();
 
-    Vertex::Ptr source = vertices[10]; 
+    Vertex::Ptr source = vertices[10];
     Vertex::Ptr target = vertices[50];
 
     int i = 0;
@@ -210,7 +210,7 @@ BOOST_AUTO_TEST_CASE(complete)
     tcn->addQualitativeConstraint(t0, t1, QTPC::Greater);
     tcn->addQualitativeConstraint(t1, t2, QTPC::Greater);
     tcn->addQualitativeConstraint(t2, t1, QTPC::Greater);
-    
+
     BOOST_REQUIRE_THROW(tcn->incrementalPathConsistency(), std::runtime_error);
 }
 
@@ -256,7 +256,7 @@ BOOST_AUTO_TEST_CASE(inconsistency_0)
     tcn->addQualitativeConstraint(t0, t1, QTPC::Greater);
     tcn->addQualitativeConstraint(t1, t2, QTPC::Greater);
     tcn->addQualitativeConstraint(t2, t1, QTPC::Greater);
-    
+
     bool consistent = tcn->isConsistent();
     tcn->save("/tmp/templ-test-point_algebra-inconsistency_0-test");
     BOOST_REQUIRE_MESSAGE(!consistent, "Temporal constraint network is inconsistent");
@@ -289,6 +289,37 @@ BOOST_AUTO_TEST_CASE(inconsistency_1)
 
     tcn->save("/tmp/test-point_algebra-consistency-test-pre");
 
+
+    bool consistent = tcn->isConsistent();
+    BOOST_REQUIRE_MESSAGE(!consistent, "Temporal constraint network is inconsistent");
+}
+
+BOOST_AUTO_TEST_CASE(inconsistency_benchmark)
+{
+    using namespace templ::solvers::temporal::point_algebra;
+    QualitativeTemporalConstraintNetwork::Ptr tcn(new QualitativeTemporalConstraintNetwork());
+
+    QualitativeTimePoint::Ptr t0(new QualitativeTimePoint("t0"));
+    QualitativeTimePoint::Ptr t1(new QualitativeTimePoint("t1"));
+    QualitativeTimePoint::Ptr t2(new QualitativeTimePoint("t2"));
+    QualitativeTimePoint::Ptr t3(new QualitativeTimePoint("t3"));
+    QualitativeTimePoint::Ptr t4(new QualitativeTimePoint("t4"));
+    QualitativeTimePoint::Ptr t5(new QualitativeTimePoint("t5"));
+    QualitativeTimePoint::Ptr t6(new QualitativeTimePoint("t6"));
+    QualitativeTimePoint::Ptr t7(new QualitativeTimePoint("t7"));
+    QualitativeTimePoint::Ptr t8(new QualitativeTimePoint("t8"));
+
+    tcn->addQualitativeConstraint(t1, t0, QTPC::Greater);
+    tcn->addQualitativeConstraint(t2, t1, QTPC::Greater);
+    tcn->addQualitativeConstraint(t3, t2, QTPC::Greater);
+    tcn->addQualitativeConstraint(t4, t3, QTPC::Greater);
+    tcn->addQualitativeConstraint(t5, t4, QTPC::Greater);
+    tcn->addQualitativeConstraint(t6, t5, QTPC::Greater);
+    tcn->addQualitativeConstraint(t7, t6, QTPC::Greater);
+    tcn->addQualitativeConstraint(t8, t7, QTPC::Greater);
+    tcn->addQualitativeConstraint(t5, t1, QTPC::Less);
+
+    tcn->save("/tmp/test-point_algebra-consistency-test-pre");
 
     bool consistent = tcn->isConsistent();
     BOOST_REQUIRE_MESSAGE(!consistent, "Temporal constraint network is inconsistent");
