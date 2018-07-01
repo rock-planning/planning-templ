@@ -462,7 +462,7 @@ SpaceTime::Network::tuple_t::Ptr SolutionAnalysis::getToTuple(const FluentTimeRe
 organization_model::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequirements(const solvers::FluentTimeResource& ftr) const
 {
     ModelPool requiredResources = getMinResourceRequirements(ftr);
-    ModelPool maxAvailableResources = getMaxAvailableResources(ftr);
+    ModelPool maxAvailableResources = getMinAvailableResources(ftr);
 
     // Infer functionality from this set of resources
     OrganizationModelAsk ask(mpMission->getOrganizationModel(),
