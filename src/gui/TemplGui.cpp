@@ -49,6 +49,7 @@
 #include "../gui/edge_items/CapacityLinkItem.hpp"
 #include "../gui/vertex_items/RoleInfoItem.hpp"
 #include "../solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
+#include "../solvers/csp/TemporalConstraintNetwork.hpp"
 #include "../solvers/SolutionAnalysis.hpp"
 #include "models/AgentStyleModel.hpp"
 #include "widgets/PenStyle.hpp"
@@ -598,64 +599,35 @@ void TemplGui::sortRowLabel(const graph_analysis::BaseGraph::Ptr& graph, graph_a
     using namespace templ::solvers;
     using namespace templ::solvers::temporal;
 
+    // We can assume that edges always point forward in time -- thus the
+    // network implicitly defined the temporal network
     QualitativeTemporalConstraintNetwork::Ptr qtcn(new QualitativeTemporalConstraintNetwork());
 
-    // Get the start vertices (which have no incoming vertices)
-    std::vector<Vertex::Ptr> vertices;
-    VertexIterator::Ptr vertexIt = graph->getVertexIterator();
-    while(vertexIt->next())
+    size_t edgeCount = graph->size();
+    EdgeIterator::Ptr edgeIt = graph->getEdgeIterator();
+    while(edgeIt->next())
     {
-        Vertex::Ptr vertex = vertexIt->current();
-        if(graph->getInEdges(vertex).empty())
-        {
-            vertices.push_back(vertex);
-        }
-    }
+        Edge::Ptr edge = edgeIt->current();
 
-    // In the temporal network a forward edge can only be between this and the
-    // next timepoint
-    // Thus, trying to infer the timepoint network from the existing
-    // relationship to construct a QualitativeTemporalConstraintNetwork
-    while(!vertices.empty())
+        // Add the temporal constraint
+        SpaceTime::SpaceTimeTuple::Ptr sourceTuple =
+            dynamic_pointer_cast<SpaceTime::SpaceTimeTuple>(edge->getSourceVertex());
+        SpaceTime::SpaceTimeTuple::Ptr targetTuple =
+            dynamic_pointer_cast<SpaceTime::SpaceTimeTuple>(edge->getTargetVertex());
+        qtcn->addQualitativeConstraint(sourceTuple->second(),
+                targetTuple->second(), point_algebra::QualitativeTimePointConstraint::Less);
+    }
+    assert(csp::TemporalConstraintNetworkBase::isConsistent(*qtcn));
+
+    point_algebra::TimePoint::PtrList sortedTimepoints =
+        csp::TemporalConstraintNetworkBase::getSortedList(*qtcn);
+
+    graph_analysis::gui::layouts::GridLayout::RowLabels sortedLabels;
+    for(point_algebra::TimePoint::Ptr& tp : sortedTimepoints)
     {
-        Vertex::Ptr vertex = vertices.back();
-        vertices.pop_back();
-
-        SpaceTime::SpaceTimeTuple::Ptr sourceTuple = dynamic_pointer_cast<SpaceTime::SpaceTimeTuple>(vertex);
-        if(sourceTuple)
-        {
-            // Get the outgoing edges
-            EdgeIterator::Ptr edgeIt = graph->getOutEdgeIterator(vertex);
-            while(edgeIt->next())
-            {
-                Vertex::Ptr targetVertex = edgeIt->current()->getTargetVertex();
-                vertices.push_back(targetVertex);
-
-                // Add the temporal constraint
-                SpaceTime::SpaceTimeTuple::Ptr targetTuple = dynamic_pointer_cast<SpaceTime::SpaceTimeTuple>(targetVertex);
-                qtcn->addQualitativeConstraint(sourceTuple->second(),
-                        targetTuple->second(), point_algebra::QualitativeTimePointConstraint::Less);
-            }
-        }
+        sortedLabels.push_back(tp->getLabel());
     }
-    assert(qtcn->isConsistent());
-    point_algebra::TimePointComparator comparator(qtcn);
-
-    // Now that we have the temporal constraint network, we can sort the labels,
-    // using the temporal relationships
-    std::sort( labels.begin(), labels.end(), [comparator](const std::string& t0, const std::string& t1)
-            {
-                point_algebra::TimePoint::Ptr tp0 = comparator.getTemporalConstraintNetwork()->getTimePoint(t0);
-                point_algebra::TimePoint::Ptr tp1 = comparator.getTemporalConstraintNetwork()->getTimePoint(t1);
-
-                return comparator.lessThan(tp0, tp1);
-            });
-
-
-    for(const std::string& label : labels)
-    {
-        qDebug() << "Sorted row labels: " << label.c_str();
-    }
+    labels = sortedLabels;
 }
 
 void TemplGui::exportScene()
