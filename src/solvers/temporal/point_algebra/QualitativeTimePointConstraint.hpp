@@ -56,6 +56,18 @@ public:
             const Variable::Ptr& target,
             Type constraintType);
 
+    /**
+     * Get referenced timepoint interpreted as lvalue (left hand value) of the corresponding
+     * constraint
+     */
+    TimePoint::Ptr getLVal() const { return dynamic_pointer_cast<TimePoint>( getSourceVariable() ); }
+
+    /**
+     * Get referenced timepoint interpreted as rvalue (right hand value) of the corresponding
+     * constraint
+     */
+    TimePoint::Ptr getRVal() const { return dynamic_pointer_cast<TimePoint>( getTargetVariable() ); }
+
     static QualitativeTimePointConstraint::Ptr getSymmetric(const QualitativeTimePointConstraint::Ptr& constraint);
 
     /**
