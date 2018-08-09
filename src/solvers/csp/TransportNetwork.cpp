@@ -821,7 +821,8 @@ void TransportNetwork::initializeRoleDistributionConstraints()
                     LOG_DEBUG_S << "Constraint general role usage: " << std::endl
                         << "     " << mAvailableModels[modelIndex].toString() << "# <= " << maxCardinality;
                     // Limit mobile / immobile systems
-                    organization_model::facades::Robot robot(mAvailableModels[modelIndex], mAsk);
+                    using namespace organization_model::facades;
+                    Robot robot = Robot::getInstance(mAvailableModels[modelIndex], mAsk);
                     if(robot.isMobile())
                     {
 
@@ -1702,7 +1703,8 @@ void TransportNetwork::postRoleAssignments()
         propagators::isPath(*this, mTimelines[i], mActiveRoleList[i].toString(), numberOfTimepoints, mLocations.size());
 
         // Only branch on the mobile systems
-        organization_model::facades::Robot robot(mActiveRoleList[i].getModel(), mAsk);
+        using namespace organization_model::facades;
+        Robot robot = Robot::getInstance(mActiveRoleList[i].getModel(), mAsk);
         if(robot.isMobile())
         {
             Gecode::SetAFC timelineUsageAfc(*this, mTimelines[i], timelineAfcDecay);
