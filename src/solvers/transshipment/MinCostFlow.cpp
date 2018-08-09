@@ -50,6 +50,7 @@ MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
     {
         LOG_WARN_S << "No immobile systems, thus no commodities to be routed";
     }
+    mInitialSetupCost = std::vector<double>(mCommoditiesRoles.size(), 1.0);
 }
 
 MinCostFlow::MinCostFlow(const organization_model::OrganizationModelAsk& ask,
@@ -88,6 +89,7 @@ MinCostFlow::MinCostFlow(const organization_model::OrganizationModelAsk& ask,
     {
         LOG_WARN_S << "No immobile systems, thus no commodities to be routed";
     }
+    mInitialSetupCost = std::vector<double>(mCommoditiesRoles.size(), 1.0);
 }
 
 BaseGraph::Ptr MinCostFlow::createFlowGraph(uint32_t commodities)
@@ -140,15 +142,15 @@ BaseGraph::Ptr MinCostFlow::createFlowGraph(uint32_t commodities)
             if(isHorizonStart)
             {
                 multicommodityEdge->setCommodityCost(i, std::numeric_limits<uint32_t>::max());
-                multicommodityEdge->setCommodityCapacityUpperBound(i, 0);
                 // disable to selective enable through setDepotRestrictions
-            } if(isHorizonEnd)
+                multicommodityEdge->setCommodityCapacityUpperBound(i, 0);
+            }
+            if(isHorizonEnd)
             {
                 multicommodityEdge->setCommodityCost(i, 0);
             }
-            {
-                multicommodityEdge->setCommodityCapacityUpperBound(i, bound);
-            }
+
+            multicommodityEdge->setCommodityCapacityUpperBound(i, bound);
         }
         flowGraph->addEdge(multicommodityEdge);
     }

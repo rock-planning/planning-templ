@@ -137,11 +137,17 @@ protected:
             );
 
     /**
+     * Allow to define the initial setup cost for a particular commodity
+     */
+    void setInitialSetupCost(uint32_t commodity, double cost) { mInitialSetupCost[commodity] = cost; }
+
+    /**
      * Allow to retrieve the initial setup cost to be set for the optimization
      * problem
+     * Initial setup cost should not be zero
      * \return intial setup cost
      */
-    uint32_t getInitialSetupCost(uint32_t commodity) const { return 0; }
+    uint32_t getInitialSetupCost(uint32_t commodity) const { return mInitialSetupCost[commodity]; }
 
 private:
     organization_model::OrganizationModelAsk mAsk;
@@ -151,6 +157,7 @@ private:
     std::map<Role, SpaceTime::Timeline> mSpaceTimelines;
     SpaceTime::Timelines mExpandedTimelines;
     std::vector<Role> mCommoditiesRoles;
+    std::vector<double> mInitialSetupCost;
 
     FlowNetwork mFlowNetwork;
     SpaceTime::Network mSpaceTimeNetwork;
