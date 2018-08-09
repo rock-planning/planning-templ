@@ -340,7 +340,9 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
     {
         const ConstraintViolation& violation = *vit;
         if(! (violation.getType() == graph_analysis::algorithms::ConstraintViolation::TotalTransFlow
-                    || violation.getType() == graph_analysis::algorithms::ConstraintViolation::TotalMinFlow) )
+                    || violation.getType() == graph_analysis::algorithms::ConstraintViolation::TotalMinFlow
+                    || violation.getType() ==
+                    graph_analysis::algorithms::ConstraintViolation::FlowBalance) )
         {
             continue;
         }
