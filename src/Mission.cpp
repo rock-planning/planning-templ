@@ -168,6 +168,17 @@ void Mission::prepareTimeIntervals()
         uniqueTimepoints.insert( interval.getTo() );
     }
 
+    // Account for extra timepoints
+    for(const Constraint::Ptr& c : mConstraints)
+    {
+        if(c->getCategory() == Constraint::TEMPORAL_QUALITATIVE)
+        {
+            point_algebra::QualitativeTimePointConstraint::Ptr qtpc = dynamic_pointer_cast<point_algebra::QualitativeTimePointConstraint>(c);
+            uniqueTimepoints.insert(qtpc->getLVal());
+            uniqueTimepoints.insert(qtpc->getRVal());
+        }
+    }
+
     mTimePoints.clear();
     mTimePoints.insert(mTimePoints.begin(), uniqueTimepoints.begin(), uniqueTimepoints.end());
 }
