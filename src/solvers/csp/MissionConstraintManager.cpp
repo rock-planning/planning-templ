@@ -167,7 +167,8 @@ FluentTimeResource::Set MissionConstraintManager::findAffected(const shared_ptr<
         {
             if(ftr.getLocation() == spaceInterval.first())
             {
-                if(ftr.getInterval() == spaceInterval.second())
+                if(ftr.getInterval() == spaceInterval.second() ||
+                        SpaceTime::isFullMissionInterval(spaceInterval.second()))
                 {
                     affected.insert(ftr);
                 }

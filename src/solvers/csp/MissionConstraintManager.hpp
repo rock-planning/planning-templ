@@ -66,8 +66,10 @@ public:
 
 private:
     /** Find all FluentTimeResource which are related to a Constraint
-     * \param constraint
-     * \param ftrs
+     * \param constraint Constraint that contains the requirement references
+     * (which can point to either a location or spatio-time intervals)
+     * \param ftrs List of fluent time resources that have to be considered for
+     * this mission
      * \todo Find better place for this functionality
      * \return List of FluentTimeResource which contains only the one related to the constraint
      */
