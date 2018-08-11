@@ -52,6 +52,12 @@ public:
     static std::string toString(const List& list, uint32_t indent = 0);
 
     /**
+     * Compute only the spatio-temporal qualification for identification of the
+     * set of intervals
+     */
+    static std::string toQualificationStringList(const List& list, uint32_t indent = 0);
+
+    /**
      * Set the mission that is associated with this FluentTimeResource instance
      */
     void setMission(const Mission::Ptr& mission) { mpMission = mission; }
@@ -192,12 +198,32 @@ public:
     /**
      *
      */
-    static void sortForMutualExclusion(List& requirements);
+    static void sortForMutualExclusion(List& requirements,
+            temporal::point_algebra::TimePointComparator tpc);
 
     /**
-     * Get the mutual exclusive set of requirements
+     * Get the mutual exclusive set of requirements,
+     * two requirements a mutually exclusive, when they refer to different
+     * locations and their time interval overlaps
      */
-    static std::vector<List> getMutualExclusive(const List& requirements);
+    static std::vector<List> getMutualExclusive(const List& requirements,
+            temporal::point_algebra::TimePointComparator tpc
+            );
+
+    /**
+     * Get overlapping requirement,
+     * requirements overlap, when they refer to the same location
+     * and their time interval overlaps
+     */
+    static std::vector<List> getOverlapping(const List& requirements,
+            temporal::point_algebra::TimePointComparator tpc
+            );
+
+    /**
+     * Test if functionalities are required
+     * \return true if functionalities are required
+     */
+    bool hasFunctionalityConstraint() const;
 
     /**
      * Get the set of functionalities this FluentTimeResource requires
@@ -269,7 +295,13 @@ public:
 
     /**
      */
-    static bool areMutualExclusive(const FluentTimeResource& a , const FluentTimeResource& b);
+    static bool areMutualExclusive(const FluentTimeResource& a , const FluentTimeResource& b,
+            temporal::point_algebra::TimePointComparator tpc
+            );
+
+    static bool areOverlapping(const FluentTimeResource& a , const FluentTimeResource& b,
+            temporal::point_algebra::TimePointComparator tpc
+            );
 
     /**
      * Get qualification string as: (location,[fromTime,toTime])

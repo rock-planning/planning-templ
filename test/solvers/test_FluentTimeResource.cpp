@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(sorting)
     Interval i3(t5,t6, tpc);
 
     Interval::List expected = { i0,i2,i3,i1 };
-    FluentTimeResource::sortForMutualExclusion(requirements);
+    FluentTimeResource::sortForMutualExclusion(requirements, tpc);
 
     Interval::List actual;
     for(const FluentTimeResource& ftr : requirements)
@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(mutually_exclusive)
     std::vector<Interval::List> expected = { a,b,c};
 
     std::vector<Interval::List> actual;
-    std::vector<FluentTimeResource::List> mutuallyExclusiveSets = FluentTimeResource::getMutualExclusive(requirements);
+    std::vector<FluentTimeResource::List> mutuallyExclusiveSets = FluentTimeResource::getMutualExclusive(requirements, tpc);
     for(const FluentTimeResource::List& concurrent : mutuallyExclusiveSets)
     {
         BOOST_TEST_MESSAGE("MutualExclusive: ");

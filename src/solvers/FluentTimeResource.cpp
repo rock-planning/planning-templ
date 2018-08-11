@@ -210,12 +210,12 @@ std::vector< FluentTimeResource::List > FluentTimeResource::getConcurrent(const 
     return concurrentFts;
 }
 
-void FluentTimeResource::sortForMutualExclusion(List& requirements)
+void FluentTimeResource::sortForMutualExclusion(List& requirements,
+        temporal::point_algebra::TimePointComparator tpc)
 {
-    std::sort(requirements.begin(), requirements.end(), [](const FluentTimeResource& a,
+    std::sort(requirements.begin(), requirements.end(), [tpc](const FluentTimeResource& a,
                 const FluentTimeResource& b)
             {
-                const solvers::temporal::point_algebra::TimePointComparator& tpc = a.getInterval().getTimePointComparator();
                 if( tpc.lessThan(a.getInterval().getTo(),(b.getInterval().getTo())) )
                 {
                     return true;
@@ -227,10 +227,12 @@ void FluentTimeResource::sortForMutualExclusion(List& requirements)
             });
 }
 
-std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(const List& _requirements)
+std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(const List& _requirements,
+        temporal::point_algebra::TimePointComparator tpc
+        )
 {
     List requirements = _requirements;
-    sortForMutualExclusion(requirements);
+    sortForMutualExclusion(requirements, tpc);
 
     // Todo: check keyword 'edge finding'
 
@@ -259,7 +261,7 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
         for(size_t b = a + 1; b < requirements.size(); ++b)
         {
             const FluentTimeResource& ftrB = requirements[b];
-            if(FluentTimeResource::areMutualExclusive(ftrA, ftrB))
+            if(FluentTimeResource::areMutualExclusive(ftrA, ftrB, tpc))
             {
                 concurrent.push_back(ftrB);
                 concurrentEncoded.push_back(ftrB.getQualificationString());
@@ -293,14 +295,12 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
             }
         }
 
-        std::cout << "Concurrent: for " << std::endl;
-        std::cout << "    " << ftrA.getInterval().toString() <<
-             ftrA.getLocation()->toString() << std::endl;
-        for(FluentTimeResource ftr : concurrent)
-        {
-            std::cout << "    " << ftr.getInterval().toString() <<
-                ftr.getLocation()->toString() << std::endl;
-        }
+        LOG_DEBUG_S << "Reference interval: " << std::endl
+              << "   "
+                  << ftrA.getQualificationString()
+                  << std::endl
+              << "    is concurrent with:" <<  std::endl
+              << FluentTimeResource::toQualificationStringList(concurrent, 8);
 
         // Now concurrent, but not necessarily mutual exclusive intervals
         // are identified, e.g.
@@ -317,8 +317,6 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
             std::vector<List> extraGroups;
             for(List& requirementList : mutexGroups)
             {
-                std::cout << "Requirements list of size: " <<
-                    concurrent.size() << std::endl;
                 List tmpMutualExclusive;
                 bool newGroup = false;
                 for(FluentTimeResource& ftr : requirementList)
@@ -326,12 +324,10 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
                     // create a new mutex group when this requirement
                     // is not mutual exclusive with all(!) requirement that
                     // are part of the current group
-                    if(!FluentTimeResource::areMutualExclusive(ftr,ftrC))
+                    if(!FluentTimeResource::areMutualExclusive(ftr,ftrC, tpc))
                     {
                         tmpMutualExclusive.push_back(ftrC);
                         extraGroups.push_back(tmpMutualExclusive);
-                        std::cout << "New group of size: " <<
-                            tmpMutualExclusive.size() << std::endl;
                         newGroup = true;
                         break;
                     }
@@ -340,8 +336,6 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
 
                 if(!newGroup)
                 {
-                    std::cout << "Add to existing group of size " <<
-                        requirementList.size() << std::endl;
                     requirementList.push_back(ftrC);
                 }
             }
@@ -357,17 +351,66 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
             mutualExclusive.push_back(c);
         }
     }
+    return mutualExclusive;
+}
 
-    for(List l : mutualExclusive)
+
+std::vector<FluentTimeResource::List> FluentTimeResource::getOverlapping(const List& _requirements,
+        temporal::point_algebra::TimePointComparator tpc
+        )
+{
+    List requirements = _requirements;
+    sortForMutualExclusion(requirements, tpc);
+
+    // Take advantage of a specially ordered list:
+    // based on (1) earlier end point means <= true,
+    // earlier start time means <= true,
+    // to as a result order all intervals overlapping with the smallest unit
+    // will be concurrent
+    // use sorted fluents, check overlap of the first interval with rest
+    // and thus step through each interval and the potentially overlapping one
+    // [a_s -------------------------------a_e]
+    // [b_s --- b_e]
+    //                      [c_s  --- c_e]
+    //                                      [d_s ---- d_e]
+    //
+    //                 [e_s --- e_e]
+
+    std::vector<List> overlapping;
+    std::vector< std::vector<std::string> > processedConcurrent;
+    for(size_t a = 0; a < requirements.size();++a)
     {
-        std::cout << "Exclusive" << std::endl;
-        for(FluentTimeResource ftr : l)
+        const FluentTimeResource& ftrA = requirements[a];
+
+        std::vector<std::string> concurrentEncoded;;
+        List concurrent;
+        for(size_t b = a + 1; b < requirements.size(); ++b)
         {
-            std::cout << "    " << ftr.getInterval().toString() <<
-                ftr.getLocation()->toString() << std::endl;
+            const FluentTimeResource& ftrB = requirements[b];
+            if(FluentTimeResource::areOverlapping(ftrA, ftrB, tpc))
+            {
+                concurrent.push_back(ftrB);
+            } else {
+                // due to the sorting we can stop here, since no
+                // other interval will overlap
+                break;
+            }
         }
     }
-    return mutualExclusive;
+    return overlapping;
+}
+
+bool FluentTimeResource::hasFunctionalityConstraint() const
+{
+    for(const organization_model::Resource& resource : mRequiredResources)
+    {
+        if( mpMission->getOrganizationModelAsk().ontology().isSubClassOf(resource.getModel(),
+                    organization_model::vocabulary::OM::Functionality()))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 organization_model::Resource::Set FluentTimeResource::getRequiredResources() const
@@ -550,11 +593,33 @@ void FluentTimeResource::updateSatisficingCardinalities()
     satisficingCardinalities = organization_model::Algebra::max(mMinCardinalities, mSatisficingCardinalities);
 }
 
-bool FluentTimeResource::areMutualExclusive(const FluentTimeResource& ftrA, const FluentTimeResource& ftrB)
+bool FluentTimeResource::areMutualExclusive(const FluentTimeResource& ftrA,
+            const FluentTimeResource& ftrB,
+            temporal::point_algebra::TimePointComparator tpc)
 {
     if(ftrA.getLocation() != ftrB.getLocation())
     {
-        if(ftrA.getInterval().overlaps(ftrB.getInterval()))
+        if(tpc.hasIntervalOverlap(ftrA.getInterval().getFrom(),
+                    ftrA.getInterval().getTo(),
+                    ftrB.getInterval().getFrom(),
+                    ftrB.getInterval().getTo()))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool FluentTimeResource::areOverlapping(const FluentTimeResource& ftrA,
+            const FluentTimeResource& ftrB,
+            temporal::point_algebra::TimePointComparator tpc)
+{
+    if(ftrA.getLocation() == ftrB.getLocation())
+    {
+        if(tpc.hasIntervalOverlap(ftrA.getInterval().getFrom(),
+                    ftrA.getInterval().getTo(),
+                    ftrB.getInterval().getFrom(),
+                    ftrB.getInterval().getTo()))
         {
             return true;
         }
@@ -568,6 +633,17 @@ std::string FluentTimeResource::getQualificationString() const
     ss << "(" << getLocation()->getInstanceName() << ",";
     ss << "[" << getInterval().getFrom()->getLabel();
     ss << "," << getInterval().getTo()->getLabel() << "])";
+    return ss.str();
+}
+
+std::string FluentTimeResource::toQualificationStringList(const List& list, uint32_t indent)
+{
+    std::string hspace(indent,' ');
+    std::stringstream ss;
+    for(const FluentTimeResource& ftr : list)
+    {
+        ss << hspace << ftr.getQualificationString() << std::endl;
+    }
     return ss.str();
 }
 
