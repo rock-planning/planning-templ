@@ -166,4 +166,10 @@ void SpaceTime::injectVirtualStartAndEnd(SpaceTime::Network& network)
     }
 }
 
+bool SpaceTime::isFullMissionInterval(const solvers::temporal::Interval& interval)
+{
+    return interval.getFrom() == SpaceTime::getHorizonStart() &&
+        interval.getTo() == SpaceTime::getHorizonEnd();
+}
+
 } // end namespace templ

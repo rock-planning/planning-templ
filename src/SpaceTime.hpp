@@ -112,6 +112,13 @@ public:
      */
     static void injectVirtualStartAndEnd(SpaceTime::Network& network);
 
+    /**
+     * Test whether interval starts at start horizon and ends at end horizon of,
+     * i.e. covers the full mission
+     * \return true if the full mission is covered, false otherwise
+     */
+    static bool isFullMissionInterval(const solvers::temporal::Interval& interval);
+
 private:
     static SpaceTime::Network::tuple_t::Ptr msHorizonStartTuple;
     static SpaceTime::Network::tuple_t::Ptr msHorizonEndTuple;
