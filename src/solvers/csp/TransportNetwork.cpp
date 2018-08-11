@@ -7,6 +7,7 @@
 #include <gecode/gist.hh>
 #include <gecode/search.hh>
 
+#include <iterator>
 #include <iomanip>
 #include <fstream>
 #include <Eigen/Dense>
@@ -21,6 +22,7 @@
 #include "ConstraintMatrix.hpp"
 #include "branchers/TimelineBrancher.hpp"
 #include "propagators/IsPath.hpp"
+#include "propagators/InEdgesRestriction.hpp"
 #include "propagators/IsValidTransportEdge.hpp"
 #include "propagators/MultiCommodityFlow.hpp"
 #include "utils/Formatter.hpp"
@@ -885,6 +887,88 @@ void TransportNetwork::applyExtraConstraints()
     for(const Constraint::Ptr& constraint : mConstraints)
     {
         MissionConstraintManager::apply(constraint, *this);
+    }
+}
+
+void TransportNetwork::applyAccessConstraints(ListOfAdjacencyLists& timelines,
+        size_t numberOfTimepoints,
+        size_t numberOfLocations,
+        const Role::List& roles)
+{
+    // Location access contraints -- currently restricted to a single model
+    using namespace organization_model;
+    std::map<symbols::constants::Location::Ptr, std::pair<organization_model::ModelPool, organization_model::ModelPool> >
+        locationMinMax;
+
+    Constraint::PtrList constraints = mpMission->getConstraints();
+    constraints.insert(constraints.begin(),mConstraints.begin(), mConstraints.end());
+
+    for(const Constraint::Ptr& constraint : constraints)
+    {
+        if(constraint->getCategory() == Constraint::MODEL)
+        {
+            constraints::ModelConstraint::Ptr modelConstraint =
+                dynamic_pointer_cast<constraints::ModelConstraint>(constraint);
+
+            using namespace templ::constraints;
+            ModelPool min;
+            min[modelConstraint->getModel()] = 0;
+            ModelPool max;
+            max[modelConstraint->getModel()] = std::numeric_limits<size_t>::max();
+
+            switch(modelConstraint->getModelConstraintType())
+            {
+                case ModelConstraint::MIN_ACCESS:
+                    min[modelConstraint->getModel()] = modelConstraint->getValue();
+                    break;
+                case ModelConstraint::MAX_ACCESS:
+                    max[modelConstraint->getModel()] = modelConstraint->getValue();
+                    break;
+
+                default:
+                    continue;
+            }
+
+            for(const SpaceTime::SpaceIntervalTuple& t :
+                    modelConstraint->getSpaceIntervalTuples())
+            {
+                if(SpaceTime::isFullMissionInterval(t.second()))
+                {
+                    locationMinMax[t.first()] = std::pair<ModelPool, ModelPool>(min,max);
+                }
+            }
+        }
+    }
+
+    for(const std::pair<symbols::constants::Location::Ptr, std::pair<ModelPool, ModelPool> >& p : locationMinMax)
+    {
+        ListOfAdjacencyLists selectedTimelines;
+        // Get all models that are a subclass of the given
+        owlapi::model::IRI model = p.second.first.begin()->first;
+        size_t min = p.second.first.begin()->second;
+        size_t max = p.second.second.begin()->second;
+
+        for(size_t i = 0; i < roles.size(); ++i)
+        {
+            if(mAsk.ontology().isSubClassOf( roles[i].getModel(), model ))
+            {
+                selectedTimelines.push_back(timelines[i]);
+            }
+        }
+
+        symbols::constants::Location::PtrList::const_iterator cit =  std::find(mLocations.begin(), mLocations.end(), p.first);
+        assert(cit != mLocations.end());
+        size_t locationIdx = cit - mLocations.begin();
+
+        propagators::restrictInEdges(*this,
+                selectedTimelines,
+                numberOfTimepoints,
+                numberOfLocations,
+                locationIdx,
+                min,
+                max,
+                // we assume ther is only one model
+                p.first->toString() + "-" + model.toString());
     }
 }
 

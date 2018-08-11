@@ -385,6 +385,14 @@ protected:
     void applyExtraConstraints();
 
     /**
+     * Apply access constraints
+     */
+    void applyAccessConstraints(ListOfAdjacencyLists& timelines,
+            size_t numberOfTimepoints,
+            size_t numberOfLocations,
+            const Role::List& roles);
+
+    /**
      * Limit the usage of instances/roles to 1 for concurrent requirements
      *
      * That guarantees that one role can only be use at a time

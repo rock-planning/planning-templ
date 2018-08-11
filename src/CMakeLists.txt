@@ -150,6 +150,8 @@ rock_library(templ
         solvers/csp/Types.cpp
         solvers/csp/branchers/SetNGL.cpp
         solvers/csp/branchers/TimelineBrancher.cpp
+        solvers/csp/propagators/Idx.cpp
+        solvers/csp/propagators/InEdgesRestriction.cpp
         solvers/csp/propagators/IsPath.cpp
         solvers/csp/propagators/IsValidTransportEdge.cpp
         solvers/csp/propagators/MultiCommodityFlow.cpp
@@ -195,6 +197,8 @@ rock_library(templ
         solvers/csp/Types.hpp
         solvers/csp/branchers/SetNGL.hpp
         solvers/csp/branchers/TimelineBrancher.hpp
+        solvers/csp/propagators/Idx.hpp
+        solvers/csp/propagators/InEdgesRestriction.hpp
         solvers/csp/propagators/IsPath.hpp
         solvers/csp/propagators/IsValidTransportEdge.hpp
         solvers/csp/propagators/MultiCommodityFlow.hpp

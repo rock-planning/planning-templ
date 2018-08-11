@@ -147,6 +147,8 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
         LOG_INFO_S << "Found root node: " << rootNode->name;
 
         std::map<size_t, SpaceTime::SpaceIntervalTuple> requirementIntervalMap;
+        std::map<std::string, SpaceTime::SpaceIntervalTuple> locationIntervalMap;
+
         xmlNodePtr firstLevelChild = rootNode->xmlChildrenNode;
         while(firstLevelChild != NULL)
         {
@@ -249,7 +251,10 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
             } else if(XMLUtils::nameMatches(firstLevelChild, "constraints"))
             {
                 LOG_DEBUG_S << "Found first level node: 'constraints' ";
-                Constraints constraints = parseConstraints(doc, firstLevelChild, requirementIntervalMap);
+                Constraints constraints = parseConstraints(doc, firstLevelChild,
+                        requirementIntervalMap,
+                        locationIntervalMap
+                        );
 
                 for(const constraints::ModelConstraint& modelConstraint : constraints.model)
                 {
@@ -291,10 +296,26 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                 std::set<Constant::Ptr>::const_iterator cit = constants.begin();
                 for(; cit != constants.end(); ++cit)
                 {
-                    mission.addConstant(*cit);
+                    Constant::Ptr constant = *cit;
+                    symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(constant);
+                    mission.addConstant(constant);
+
+                    // Allows locations to be registered as bundle requirement
+                    if(constant->getConstantType() == Constant::LOCATION)
+                    {
+                        symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(constant);
+                        std::string constantName = constant->getInstanceName();
+                        solvers::temporal::Interval interval = solvers::temporal::Interval(
+                            SpaceTime::getHorizonStart(),
+                            SpaceTime::getHorizonEnd(),
+                            mission.getTemporalConstraintNetwork());
+
+                        locationIntervalMap[constantName] =
+                            SpaceTime::SpaceIntervalTuple(location,interval);
+
+                    }
                 }
             }
-
             firstLevelChild = firstLevelChild->next;
         }
 
@@ -700,7 +721,8 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
 
 templ::io::Constraints MissionReader::parseConstraints(xmlDocPtr doc,
         xmlNodePtr current,
-        const std::map<size_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap)
+        const std::map<size_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap,
+        const std::map<std::string, SpaceTime::SpaceIntervalTuple>& locationIntervalMap)
 {
     LOG_DEBUG_S << "Parsing: " << current->name;
     templ::io::Constraints constraints;
@@ -713,14 +735,18 @@ templ::io::Constraints MissionReader::parseConstraints(xmlDocPtr doc,
             constraints.temporal = XMLTCNUtils::parseTemporalConstraints(doc, current);
         } else if(XMLUtils::nameMatches(current, "model-constraints"))
         {
-            constraints.model = parseModelConstraints(doc, current, requirementIntervalMap);
+            constraints.model = parseModelConstraints(doc, current,
+                    requirementIntervalMap,
+                    locationIntervalMap);
         }
         current = current->next;
     }
     return constraints;
 }
 
-constraints::ModelConstraint::List MissionReader::parseModelConstraints(xmlDocPtr doc, xmlNodePtr current,const std::map<size_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap)
+constraints::ModelConstraint::List MissionReader::parseModelConstraints(xmlDocPtr doc, xmlNodePtr current,
+        const std::map<size_t, SpaceTime::SpaceIntervalTuple>& requirementIntervalMap,
+        const std::map<std::string, SpaceTime::SpaceIntervalTuple>& locationIntervalMap)
 {
     using namespace constraints;
     ModelConstraint::List constraints;
@@ -747,6 +773,10 @@ constraints::ModelConstraint::List MissionReader::parseModelConstraints(xmlDocPt
                 case ModelConstraint::MAX_EQUAL:
                 case ModelConstraint::MIN_DISTINCT:
                 case ModelConstraint::MAX_DISTINCT:
+                case ModelConstraint::MAX_ACCESS:
+                case ModelConstraint::MIN_ACCESS:
+                case ModelConstraint::MAX:
+                case ModelConstraint::MIN:
                     value = boost::lexical_cast<size_t>( XMLUtils::getProperty(current, "value") );
                 case ModelConstraint::ALL_EQUAL:
                 case ModelConstraint::ALL_DISTINCT:
@@ -767,6 +797,16 @@ constraints::ModelConstraint::List MissionReader::parseModelConstraints(xmlDocPt
             {
                 int32_t requirementId = 0;
                 try {
+                    // requirement which applies to one or more locations, irrespective of
+                    // the timepoint time
+                    std::map<std::string,
+                        SpaceTime::SpaceIntervalTuple>::const_iterator lit = locationIntervalMap.find(requirementIdTxt);
+                    if(lit != locationIntervalMap.end())
+                    {
+                        intervals.push_back(lit->second);
+                        continue;
+                    }
+
                     requirementId = boost::lexical_cast<size_t>(requirementIdTxt);
                     std::map<size_t, SpaceTime::SpaceIntervalTuple>::const_iterator cit = requirementIntervalMap.find(requirementId);
                     if(cit != requirementIntervalMap.end())

@@ -20,42 +20,6 @@ namespace solvers {
 namespace csp {
 namespace propagators {
 
-// Advisor for the isPath propagator
-
-std::string IsPath::Idx::toString() const
-{
-    std::stringstream ss;
-    ss << "Idx: " << idx() << " tp: "<< isTimepointIdx();
-    return ss.str();
-}
-
-IsPath::Idx::Idx(Gecode::Space& home, Gecode::Propagator& p,
-        Gecode::Council<Idx>& c, int i, bool isTimepointIdx, SetVarArrayView x)
-    : Gecode::Advisor(home, p, c)
-    , mInfo(i << 1)
-    , mIsTimepointIdx(isTimepointIdx)
-    , x(x)
-{
-    // Subscribe to view
-    x.subscribe(home, *this);
-}
-
-IsPath::Idx::Idx(Gecode::Space& home, Idx& other)
-    : Gecode::Advisor(home, other)
-    , mInfo(other.mInfo)
-    , mIsTimepointIdx(other.mIsTimepointIdx)
-{
-    x.update(home, other.x);
-}
-
-void IsPath::Idx::dispose(Gecode::Space& home, Gecode::Council<Idx>& c)
-{
-    x.cancel(home, *this);
-    Advisor::dispose(home, c);
-}
-
-
-
 void isPath(Gecode::Space& home, const Gecode::SetVarArgs& x, const std::string& tag, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength, int maxPathLength)
 {
     // If there is no path -- fail directly
@@ -401,7 +365,7 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
         int offset = timepoint*mNumberOfFluents;
         int idx = offset + fluent;
 
-        assert( x[idx].assigned() );
+        //assert( x[idx].assigned() );
 
         // This is an actual assigned waypoint
         // so update
@@ -560,7 +524,6 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
     //    return ES_FIX;
     //}
 }
-
 
 std::string IsPath::waypointsToString() const
 {

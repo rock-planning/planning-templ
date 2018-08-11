@@ -34,6 +34,10 @@ public:
         MAX,
         // Minimum usage of agent instances across multiple requirements
         MIN,
+        // Maximum entries allowed to a single location
+        MAX_ACCESS,
+        // Minimum entries required to a single location
+        MIN_ACCESS,
         /// \f$ minDistinct(S,\widehat{a},n) \f$ describes
         /// the constraint: \f$ \forall s_i,s_j \in S, i \neq j: \left|
         /// |A_{s_i}^{\widehat{a}}| - |A_{s_j}^{\widehat{a}}| \right| \geq n \f$,

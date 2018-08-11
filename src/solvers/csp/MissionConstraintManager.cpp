@@ -146,6 +146,10 @@ void MissionConstraintManager::apply(const shared_ptr<constraints::ModelConstrai
             break;
         }
         case ModelConstraint::MAX_FUNCTION:
+        case ModelConstraint::MAX_ACCESS:
+        case ModelConstraint::MIN_ACCESS:
+            // these will not be handled here
+            break;
         default:
             throw std::runtime_error("templ::solvers::csp::MissionConstraintManager::apply: " + ModelConstraint::TypeTxt[ constraint->getModelConstraintType() ]
                     + " is currently not supported");
