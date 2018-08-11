@@ -829,6 +829,7 @@ constraints::ModelConstraint::List MissionReader::parseModelConstraints(xmlDocPt
 
             ModelConstraint constraint(type, model, intervals, value, property);
             constraints.push_back(constraint);
+            LOG_DEBUG_S << "Adding constraint: " << constraint.toString();
         }
 
         current = current->next;
