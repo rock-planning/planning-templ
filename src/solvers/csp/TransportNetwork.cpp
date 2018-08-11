@@ -610,7 +610,6 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const qxc
     //options.inspect.click(&p);
     ////Gecode::Gist::bab(this, o);
     //Gecode::Gist::dfs(this, options);
-
 }
 
 
@@ -620,12 +619,8 @@ void TransportNetwork::initializeMinMaxConstraints()
 
     // For debugging purposes
     ConstraintMatrix constraintMatrix(mAvailableModels);
-
-    // Part (A)
     {
         using namespace solvers::temporal;
-        LOG_INFO_S << mAsk.toString();
-        LOG_DEBUG_S << "Involved services: " << owlapi::model::IRI::toString(mServices, true);
         {
             std::vector<FluentTimeResource>::const_iterator fit = mResourceRequirements.begin();
             for(; fit != mResourceRequirements.end(); ++fit)
@@ -701,30 +696,37 @@ void TransportNetwork::addExtensionalConstraints()
    for(; fit != mResourceRequirements.end(); ++fit)
    {
         const FluentTimeResource& ftr = *fit;
-        LOG_DEBUG_S << "(A) Define requirement: " << ftr.toString()
-                    << "        available models: " << mAvailableModels << std::endl;
-
-        // row: index of requirement
-        // col: index of model type
-        size_t requirementIndex = fit - mResourceRequirements.begin();
-
-        // Prepare the extensional constraints, i.e. specifying the allowed
-        // combinations for each requirement
-        organization_model::ModelPool::Set allowedCombinations = ftr.getDomain();
-        if(allowedCombinations.empty())
+        if(!ftr.hasFunctionalityConstraint())
         {
-            LOG_WARN_S << "No allowed combinations available with the given constraints: failing this space";
-            this->failed();
-            return;
-        }
-        LOG_DEBUG_S << "ExtensionalConstraints: add ftr: " << ftr.toString();
+            LOG_DEBUG_S << "Fluent has no functionality constraints:\n"
+                << ftr.toString(4) << "\n"
+                << "    skipping extensional constraint generation";
+        } else {
+            LOG_DEBUG_S << "(A) Define requirement:\n" << ftr.toString(4)
+                        << "        available models: " << mAvailableModels << std::endl;
 
-        // A tuple set is a fully expanded vector describing the cardinality for
-        // all available resources
-        Gecode::TupleSet tupleSet(availableResourceCount);
-        appendToTupleSet(tupleSet, allowedCombinations);
-        tupleSet.finalize();
-        extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
+            // row: index of requirement
+            // col: index of model type
+            size_t requirementIndex = fit - mResourceRequirements.begin();
+
+            // Prepare the extensional constraints, i.e. specifying the allowed
+            // combinations for each requirement
+            organization_model::ModelPool::Set allowedCombinations = ftr.getDomain();
+            if(allowedCombinations.empty())
+            {
+                LOG_WARN_S << "No allowed combinations available with the given constraints: failing this space";
+                this->failed();
+                return;
+            }
+            LOG_DEBUG_S << "ExtensionalConstraints: add ftr: " << ftr.toString();
+
+            // A tuple set is a fully expanded vector describing the cardinality for
+            // all available resources
+            Gecode::TupleSet tupleSet(availableResourceCount);
+            appendToTupleSet(tupleSet, allowedCombinations);
+            tupleSet.finalize();
+            extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
+        }
    }
 }
 
