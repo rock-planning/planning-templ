@@ -256,7 +256,7 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
     }
 }
 
-transshipment::Flaw::List FlowNetwork::getInvalidTransitions(double feasibilityCheckTimeoutInS) const
+transshipment::Flaw::List FlowNetwork::getInvalidTransitions(double feasibilityCheckTimeoutInMs) const
 {
     organization_model::OrganizationModelAsk ask = mAsk;
 
@@ -276,7 +276,8 @@ transshipment::Flaw::List FlowNetwork::getInvalidTransitions(double feasibilityC
 
                 LOG_INFO_S << "Checking for infeasible coalition on transition:"
                     << edge->toString(4);
-                organization_model::ModelPool::List coalitionStructure = ask.findFeasibleCoalitionStructure(pool, mMoveToResource, feasibilityCheckTimeoutInS);
+                organization_model::ModelPool::List coalitionStructure =
+                    ask.findFeasibleCoalitionStructure(pool, mMoveToResource, feasibilityCheckTimeoutInMs);
                 if( coalitionStructure.empty() )
                 {
                     LOG_WARN_S << "Infeasible coalition detected for transition"

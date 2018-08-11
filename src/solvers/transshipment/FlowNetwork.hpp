@@ -75,8 +75,12 @@ public:
     /**
      * Check feasibility of a transition for the given
      * agent
+     * \param feasibilityCheckTimeoutInMs Checking the feasibility might
+     * encounter infeasible solutions which will be however be explored
+     * exhaustively until the given timeout is reached
      */
-    transshipment::Flaw::List getInvalidTransitions(double feasibilityCheckTimeoutInS = 1) const;
+    transshipment::Flaw::List getInvalidTransitions(double
+            feasibilityCheckTimeoutInMs = 1000) const;
 
 protected:
     /**
