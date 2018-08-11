@@ -49,6 +49,8 @@ void FlawResolution::prepare(const std::vector<transshipment::Flaw>& flaws)
                 //mResolutionOptions.push_back(ResolutionOption(flaw,0) );
                 //mResolutionOptions.push_back( ResolutionOption(flaw,1) );
                 break;
+            case ga::ConstraintViolation::FlowBalance:
+                break;
             default:
                 LOG_WARN_S << "Unknown flaw type";
                 break;
