@@ -480,6 +480,19 @@ public:
     static std::vector<solvers::FluentTimeResource> getResourceRequirements(const Mission::Ptr& mission);
 
     /**
+     * Return the list of resource requirements which are not overlapping for a
+     * single location, i.e. overlapping fluent time resource intervals will be
+     * split into requirement fragments
+     * \param mission Mission description
+     * \param sortedTimepoints List of sorted timepoints
+     * \param tpc TimePointComparator to identify the overlap between two
+     * intervals
+     */
+    static std::vector<solvers::FluentTimeResource> getResourceRequirements(const Mission::Ptr& mission,
+        solvers::temporal::point_algebra::TimePoint::PtrList sortedTimepoints,
+        solvers::temporal::point_algebra::TimePointComparator tpc);
+
+    /**
      * Get a fluent time resource from a Persistence
      * condition (using LocationCardinality)
      * \param p PersistenceCondition to convert

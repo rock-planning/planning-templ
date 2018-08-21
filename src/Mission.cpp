@@ -409,6 +409,40 @@ std::vector<solvers::FluentTimeResource> Mission::getResourceRequirements(const 
     return requirements;
 }
 
+std::vector<solvers::FluentTimeResource> Mission::getResourceRequirements(const Mission::Ptr& mission,
+        solvers::temporal::point_algebra::TimePoint::PtrList sortedTimepoints,
+        solvers::temporal::point_algebra::TimePointComparator tpc)
+{
+    using namespace solvers;
+    using namespace symbols::constants;
+
+    FluentTimeResource::List requirements = getResourceRequirements(mission);
+    std::map<Location::Ptr, FluentTimeResource::List> requirementsPerLocation;
+    for(FluentTimeResource& ftr : requirements)
+    {
+        temporal::Interval i = ftr.getInterval();
+        i.setTimePointComparator(tpc);
+        ftr.setInterval(i);
+        requirementsPerLocation[ftr.getLocation()].push_back(ftr);
+    }
+
+    FluentTimeResource::List newRequirements;
+    for(const std::pair<Location::Ptr, FluentTimeResource::List>& p : requirementsPerLocation)
+    {
+        FluentTimeResource::List requirementsNoOverlap =
+        FluentTimeResource::createNonOverlappingRequirements(p.second,
+                sortedTimepoints,
+                tpc);
+
+        newRequirements.insert(
+                newRequirements.begin(),
+                requirementsNoOverlap.begin(),
+                requirementsNoOverlap.end());
+    }
+
+    return newRequirements;
+}
+
 
 // Get special sets of constants
 std::vector<symbols::constants::Location::Ptr> Mission::getLocations(bool excludeUnused) const
@@ -599,36 +633,12 @@ solvers::FluentTimeResource Mission::fromLocationCardinality(const solvers::temp
     symbols::object_variables::LocationCardinality::Ptr locationCardinality = dynamic_pointer_cast<symbols::object_variables::LocationCardinality>(objectVariable);
 
     Interval interval(p->getFromTimePoint(), p->getToTimePoint(), timepointComparator);
-    std::vector<Interval>::const_iterator iit = std::find(mission->mTimeIntervals.begin(), mission->mTimeIntervals.end(), interval);
-    if(iit == mission->mTimeIntervals.end())
-    {
-        throw std::runtime_error("templ::Mission::fromLocationCardinality: could not find interval: '" + interval.toString() + "'");
-    }
-
-    owlapi::model::IRIList::const_iterator sit = std::find(mission->mRequestedResources.begin(), mission->mRequestedResources.end(), resourceModel);
-    if(sit == mission->mRequestedResources.end())
-    {
-        throw std::runtime_error("templ::Mission::fromLocationCardinality: could not find service: '" + resourceModel.toString() + "'");
-    }
-
     symbols::constants::Location::Ptr location = locationCardinality->getLocation();
 
-    std::vector<symbols::constants::Location::Ptr> locations = mission->getLocations();
-    std::vector<symbols::constants::Location::Ptr>::const_iterator lit = std::find(locations.begin(), locations.end(), location);
-    if(lit == locations.end())
-    {
-        throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceRequirements: could not find location: '" + location->toString() + "'");
-    }
-
-    using namespace solvers::csp;
-
-    // Map objects to numeric indices -- the indices can be mapped
-    // backed using the mission they were created from
-    uint32_t timeIndex = std::distance(mission->mTimeIntervals.cbegin(), iit);
-    solvers::FluentTimeResource ftr(mission,
-            std::distance(mission->mRequestedResources.cbegin(), sit)
-            , timeIndex
-            , std::distance(locations.cbegin(), lit)
+    solvers::FluentTimeResource ftr(mission
+            , resourceModel
+            , location
+            , interval
     );
 
     owlapi::model::OWLOntologyAsk ask = mission->getOrganizationModelAsk().ontology();
