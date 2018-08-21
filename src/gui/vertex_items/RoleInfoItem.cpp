@@ -128,6 +128,12 @@ RoleInfoItem::RoleInfoItem(graph_analysis::gui::GraphWidget* graphWidget,
         prevItemPos = mpSafetySvg->pos();
         prevItemLabelPos = mpSafetyLabel->pos();
         yOffset = fontSize;
+
+        if(safety == 0) // minimum mission requirements not fulfilled
+        {
+            mBorderPen.setColor(Qt::red);
+            mBorderPen.setStyle( Qt::DashLine);
+        }
     }
 
     if(tuple->hasAttribute(RoleInfo::RECONFIGURATION_COST))
