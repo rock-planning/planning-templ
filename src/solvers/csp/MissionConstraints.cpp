@@ -126,6 +126,33 @@ void MissionConstraints::distinct(Gecode::Space& home, Gecode::IntVarArray& role
         const owlapi::model::IRI& roleModel, uint32_t distinctRoles,
         Gecode::IntRelType relation)
 {
+    Gecode::IntVar minMaxDistinctRoles(home, distinctRoles, distinctRoles);
+    distinct(home, roleUsage, roles, requirements, fts0, fts1,
+            roleModel, minMaxDistinctRoles, relation);
+}
+
+void MissionConstraints::distinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
+        const Role::List& allRoles,
+        const FluentTimeResource::List& allRequirements,
+        const FluentTimeResource::Set& _affectedRequirements,
+        const owlapi::model::IRI& roleModel,
+        uint32_t distinctRoles,
+        Gecode::IntRelType relation)
+{
+    Gecode::IntVar minMaxDistinctRoles(home, distinctRoles, distinctRoles);
+    distinct(home, roleUsage, allRoles,
+            allRequirements, _affectedRequirements,
+            roleModel,
+            minMaxDistinctRoles,
+            relation);
+}
+
+void MissionConstraints::distinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
+        const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
+        const FluentTimeResource& fts0, const FluentTimeResource& fts1,
+        const owlapi::model::IRI& roleModel, Gecode::IntVar& minMaxDistinctRoles,
+        Gecode::IntRelType relation)
+{
     std::vector<size_t> indices;
     for(size_t roleIndex = 0; roleIndex < roles.size(); ++roleIndex)
     {
@@ -155,7 +182,7 @@ void MissionConstraints::distinct(Gecode::Space& home, Gecode::IntVarArray& role
     }
 
     Gecode::IntVar sumOfAppearance = Gecode::expr(home, sum(args));
-    rel(home, sumOfAppearance, relation, distinctRoles);
+    rel(home, sumOfAppearance, relation, minMaxDistinctRoles);
 }
 
 void MissionConstraints::distinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
@@ -163,7 +190,7 @@ void MissionConstraints::distinct(Gecode::Space& home, Gecode::IntVarArray& role
         const FluentTimeResource::List& allRequirements,
         const FluentTimeResource::Set& _affectedRequirements,
         const owlapi::model::IRI& roleModel,
-        uint32_t distinctRoles,
+        Gecode::IntVar& minMaxDistinctRoles,
         Gecode::IntRelType relation)
 {
     FluentTimeResource::List affectedRequirements(_affectedRequirements.begin(), _affectedRequirements.end());
@@ -176,7 +203,7 @@ void MissionConstraints::distinct(Gecode::Space& home, Gecode::IntVarArray& role
                     affectedRequirements[a],
                     affectedRequirements[b],
                     roleModel,
-                    distinctRoles,
+                    minMaxDistinctRoles,
                     relation);
         }
     }
@@ -204,19 +231,17 @@ void MissionConstraints::maxDistinct(Gecode::Space& home, Gecode::IntVarArray& r
             Gecode::IRT_LQ);
 }
 
-void MissionConstraints::minDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
-        const Role::List& allRoles,
-        const FluentTimeResource::List& allRequirements,
-        const FluentTimeResource::Set& affectedRequirements,
-        const owlapi::model::IRI& roleModel,
-        uint32_t distinctRoles)
+void MissionConstraints::maxDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
+        const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
+        const FluentTimeResource& fts0, const FluentTimeResource& fts1,
+        const owlapi::model::IRI& roleModel, Gecode::IntVar& maxDistinctRoles)
 {
-    return distinct(home, roleUsage, allRoles,
-            allRequirements, affectedRequirements,
-            roleModel,
-            distinctRoles,
-            Gecode::IRT_GQ);
+    return distinct(home, roleUsage, roles, requirements,
+            fts0, fts1,
+            roleModel, maxDistinctRoles,
+            Gecode::IRT_LQ);
 }
+
 
 void MissionConstraints::maxDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
         const Role::List& allRoles,
@@ -230,6 +255,34 @@ void MissionConstraints::maxDistinct(Gecode::Space& home, Gecode::IntVarArray& r
             roleModel,
             distinctRoles,
             Gecode::IRT_LQ);
+}
+
+void MissionConstraints::maxDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
+        const Role::List& allRoles,
+        const FluentTimeResource::List& allRequirements,
+        const FluentTimeResource::Set& affectedRequirements,
+        const owlapi::model::IRI& roleModel,
+        Gecode::IntVar& distinctRoles)
+{
+    return distinct(home, roleUsage, allRoles,
+            allRequirements, affectedRequirements,
+            roleModel,
+            distinctRoles,
+            Gecode::IRT_LQ);
+}
+
+void MissionConstraints::minDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
+        const Role::List& allRoles,
+        const FluentTimeResource::List& allRequirements,
+        const FluentTimeResource::Set& affectedRequirements,
+        const owlapi::model::IRI& roleModel,
+        uint32_t distinctRoles)
+{
+    return distinct(home, roleUsage, allRoles,
+            allRequirements, affectedRequirements,
+            roleModel,
+            distinctRoles,
+            Gecode::IRT_GQ);
 }
 
 void MissionConstraints::equal(Gecode::Space& home, Gecode::IntVarArray& roleUsage,

@@ -88,6 +88,20 @@ public:
             uint32_t distinctRoles,
             Gecode::IntRelType relation);
 
+    static void distinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
+            const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
+            const FluentTimeResource& fts0, const FluentTimeResource& fts1,
+            const owlapi::model::IRI& roleModel, Gecode::IntVar& minMaxDistinctRoles,
+            Gecode::IntRelType relation);
+
+    static void distinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
+            const Role::List& roles,
+            const FluentTimeResource::List& allRequirements,
+            const FluentTimeResource::Set& affectedRequirements,
+            const owlapi::model::IRI& roleModel,
+            Gecode::IntVar& minMaxDistinctRoles,
+            Gecode::IntRelType relation);
+
     /**
      * Require a minimum distinction of \a minDistinctRoles for model instance between two requirements
      * \param home
@@ -136,6 +150,20 @@ public:
             const owlapi::model::IRI& roleModel, uint32_t maxDistinctRoles);
 
     /**
+     * Require a maximum distinction of \a minDistinctRoles for model instance between two requirements
+     * \param home
+     * \param roleUsage
+     * \param requirements
+     * \param fts0
+     * \param fts1
+     * \param roleModel
+     */
+    static void maxDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
+            const Role::List& roles, const std::vector<FluentTimeResource>& requirements,
+            const FluentTimeResource& fts0, const FluentTimeResource& fts1,
+            const owlapi::model::IRI& roleModel, Gecode::IntVar& maxDistinctRoles);
+
+    /**
      * Require a maximum distinction of \a distinctRoles for model instance between all paris fo multiple requirements
      * \param home
      * \param roleUsage
@@ -151,6 +179,13 @@ public:
             const FluentTimeResource::Set& affectedRequirements,
             const owlapi::model::IRI& roleModel,
             uint32_t distinctRoles);
+
+    static void maxDistinct(Gecode::Space& home, Gecode::IntVarArray& roleUsage,
+            const Role::List& roles,
+            const FluentTimeResource::List& allRequirements,
+            const FluentTimeResource::Set& affectedRequirements,
+            const owlapi::model::IRI& roleModel,
+            Gecode::IntVar& distinctRoles);
 
     /**
      * Extract the number of distinct roles
