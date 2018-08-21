@@ -65,15 +65,15 @@ int main(int argc, char** argv)
     baseMission.applyOrganizationModelOverrides();
 
     Mission::Ptr mission(new Mission(baseMission));
-
     mission->saveInputData(mission->getLogger()->getBasePath()  + "/specs");
     std::string dotFilename = mission->getLogger()->filename("templ-mission-relations.dot");
     graph_analysis::io::GraphIO::write(dotFilename, mission->getRelations());
     printf("Written: %s\n", dotFilename.c_str() );
     printf("Base Mission:\n %s\n",mission->toString().c_str());
 
-
     qxcfg::Configuration configuration(configurationFilename);
+    configuration.save(mission->getLogger()->getBasePath() + "/specs/configuration.xml");
+
     // Make sure the configuration is set according to the command line
     // parameter if selected, otherwise use the info from the configuration file
     if(vm.count("interactive"))
