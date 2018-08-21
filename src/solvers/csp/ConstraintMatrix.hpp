@@ -39,7 +39,7 @@ public:
     void setMax(RowId row, ColumnId col, uint32_t max) {  mMatrix[row][col].max = max; }
     void setMin(RowId row, ColumnId col, uint32_t min) {  mMatrix[row][col].min = min; }
 
-    std::string toString() const;
+    std::string toString(const std::vector<std::string>& row_name = std::vector<std::string>()) const;
 };
 
 } // end namespace csp

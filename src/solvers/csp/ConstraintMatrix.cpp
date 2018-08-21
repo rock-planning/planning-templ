@@ -18,7 +18,7 @@ ConstraintMatrix::ConstraintMatrix(const owlapi::model::IRIList& availableModels
     : mAvailableModels(availableModels)
 {}
 
-std::string ConstraintMatrix::toString() const 
+std::string ConstraintMatrix::toString(const std::vector<std::string>& rowNames) const
 {
     std::stringstream ss;
     ss << "Constraint matrix:" << std::endl;
@@ -26,11 +26,16 @@ std::string ConstraintMatrix::toString() const
     for(auto row : mMatrix)
     {
         ss << "#" << std::setw(4) << row.first << " ";
-        
         for(auto col : row.second)
         {
             ss << " " << col.second.toString();
         }
+
+        if(!rowNames.empty())
+        {
+            ss << rowNames[row.first];
+        }
+
         ss << std::endl;
     }
     return ss.str();
