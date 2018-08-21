@@ -35,7 +35,8 @@ public:
             const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
             const std::map<Role, csp::RoleTimeline>& minimalTimelines,
             const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines(),
-            graph_analysis::algorithms::LPSolver::Type solverType = graph_analysis::algorithms::LPSolver::GLPK_SOLVER
+            graph_analysis::algorithms::LPSolver::Type solverType = graph_analysis::algorithms::LPSolver::GLPK_SOLVER,
+            double feasibilityTimeoutInMs = 1000
             );
 
     MinCostFlow(const organization_model::OrganizationModelAsk& ask,
@@ -44,7 +45,8 @@ public:
             const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
             const SpaceTime::Timelines& minimalTimelines,
             const SpaceTime::Timelines& expandedTimelines,
-            graph_analysis::algorithms::LPSolver::Type solverType = graph_analysis::algorithms::LPSolver::GLPK_SOLVER
+            graph_analysis::algorithms::LPSolver::Type solverType = graph_analysis::algorithms::LPSolver::GLPK_SOLVER,
+            double feasibilityTimeoutInMs = 1000
             );
 
     /**
@@ -164,6 +166,8 @@ private:
     // Store the mapping between flow graph and space time network
     graph_analysis::BipartiteGraph mBipartiteGraph;
     graph_analysis::algorithms::LPSolver::Type mSolverType;
+
+    double mFeasibilityTimeoutInMs;
 };
 
 } // end namespace transshipment

@@ -21,7 +21,8 @@ MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
         const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
         const std::map<Role, csp::RoleTimeline>& timelines,
         const SpaceTime::Timelines& expandedTimelines,
-            graph_analysis::algorithms::LPSolver::Type solverType)
+        graph_analysis::algorithms::LPSolver::Type solverType,
+        double feasibilityTimeoutInMs)
     : mAsk(mission->getOrganizationModelAsk())
     , mpLogger(mission->getLogger())
     , mSortedTimepoints(sortedTimepoints)
@@ -30,6 +31,7 @@ MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
     , mFlowNetwork(mission, mSortedTimepoints, timelines, expandedTimelines)
     , mSpaceTimeNetwork(mFlowNetwork.getSpaceTimeNetwork())
     , mSolverType(solverType)
+    , mFeasibilityTimeoutInMs(feasibilityTimeoutInMs)
 {
     // Create virtual start and end depot vertices and connect them with the
     // current start and end vertices
@@ -59,7 +61,8 @@ MinCostFlow::MinCostFlow(const organization_model::OrganizationModelAsk& ask,
         const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
         const SpaceTime::Timelines& timelines,
         const SpaceTime::Timelines& expandedTimelines,
-            graph_analysis::algorithms::LPSolver::Type solverType)
+            graph_analysis::algorithms::LPSolver::Type solverType,
+        double feasibilityTimeoutInMs)
     : mAsk(ask)
     , mpLogger(logger)
     , mSortedTimepoints(sortedTimepoints)
@@ -69,6 +72,7 @@ MinCostFlow::MinCostFlow(const organization_model::OrganizationModelAsk& ask,
     , mFlowNetwork(ask, locations, mSortedTimepoints, expandedTimelines)
     , mSpaceTimeNetwork(mFlowNetwork.getSpaceTimeNetwork())
     , mSolverType(solverType)
+    , mFeasibilityTimeoutInMs(feasibilityTimeoutInMs)
 {
     // Create virtual start and end depot vertices and connect them with the
     // current start and end vertices
@@ -371,7 +375,7 @@ std::vector<Flaw> MinCostFlow::computeFlaws(const MultiCommodityMinCostFlow& min
         flaws.push_back(flaw);
     }
 
-    transshipment::Flaw::List transitionFlaws = mFlowNetwork.getInvalidTransitions();
+    transshipment::Flaw::List transitionFlaws = mFlowNetwork.getInvalidTransitions(mFeasibilityTimeoutInMs);
     flaws.insert(flaws.begin(), transitionFlaws.begin(), transitionFlaws.end());
 
     return flaws;

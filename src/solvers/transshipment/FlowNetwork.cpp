@@ -259,8 +259,12 @@ void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
 transshipment::Flaw::List FlowNetwork::getInvalidTransitions(double feasibilityCheckTimeoutInMs) const
 {
     organization_model::OrganizationModelAsk ask = mAsk;
-
     transshipment::Flaw::List flaws;
+    if(feasibilityCheckTimeoutInMs <= 0)
+    {
+        // checking disabled
+        return flaws;
+    }
 
     EdgeIterator::Ptr edgeIt =  mSpaceTimeNetwork.getGraph()->getEdgeIterator();
     while(edgeIt->next())
