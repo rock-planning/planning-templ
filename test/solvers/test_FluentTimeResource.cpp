@@ -42,16 +42,97 @@ BOOST_AUTO_TEST_CASE(sorting)
     Interval i2(t2,t4, tpc);
     Interval i3(t5,t6, tpc);
 
-    Interval::List expected = { i0,i2,i3,i1 };
-    FluentTimeResource::sortForMutualExclusion(requirements, tpc);
-
-    Interval::List actual;
-    for(const FluentTimeResource& ftr : requirements)
     {
-        actual.push_back(ftr.getInterval());
+        Interval::List expected = { i0,i2,i3,i1 };
+        FluentTimeResource::sortForEarlierEnd(requirements, tpc);
+
+        Interval::List actual;
+        for(const FluentTimeResource& ftr : requirements)
+        {
+            actual.push_back(ftr.getInterval());
+        }
+
+        BOOST_REQUIRE_MESSAGE(expected == actual, "Sorted list of intervals for"
+                " earlier end should be as expected");
     }
 
-    BOOST_REQUIRE_MESSAGE(expected == actual, "Sorted list of intervals should be as expected");
+    {
+        Interval::List expected = { i0,i1,i2,i3 };
+        FluentTimeResource::sortForEarlierStart(requirements, tpc);
+
+        Interval::List actual;
+        for(const FluentTimeResource& ftr : requirements)
+        {
+            actual.push_back(ftr.getInterval());
+        }
+
+        BOOST_REQUIRE_MESSAGE(expected == actual, "Sorted list of intervals for"
+                " earlier start should be as expected");
+    }
+}
+
+BOOST_AUTO_TEST_CASE(overlapping)
+{
+    std::string rootDir = getRootDir();
+    std::string missionFilename = rootDir + "/test/data/scenarios/test-mission-ftrs-1.xml";
+
+    Mission m = io::MissionReader::fromFile(missionFilename);
+    Mission::Ptr mission(new Mission(m));
+    mission->prepareTimeIntervals();
+
+    FluentTimeResource::List requirements = Mission::getResourceRequirements(mission);
+    mission->getTemporalConstraintNetwork()->isConsistent();
+
+    TimePointComparator tpc(mission->getTemporalConstraintNetwork());
+    TimePoint::Ptr t1 = TimePoint::create("t1");
+    TimePoint::Ptr t2 = TimePoint::create("t2");
+    TimePoint::Ptr t3 = TimePoint::create("t3");
+    TimePoint::Ptr t4 = TimePoint::create("t4");
+    TimePoint::Ptr t5 = TimePoint::create("t5");
+    TimePoint::Ptr t6 = TimePoint::create("t6");
+    TimePoint::Ptr t7 = TimePoint::create("t7");
+
+    std::vector<FluentTimeResource::Set> overlap =
+        FluentTimeResource::getOverlapping(requirements, tpc);
+
+    for(FluentTimeResource::Set& o : overlap)
+    {
+        BOOST_TEST_MESSAGE("Overlapping requirements:" <<
+                FluentTimeResource::toQualificationString(o.begin(),
+                    o.end(),4));
+    }
+}
+
+BOOST_AUTO_TEST_CASE(split_overlapping)
+{
+    std::string rootDir = getRootDir();
+    std::string missionFilename = rootDir + "/test/data/scenarios/test-mission-ftrs-1.xml";
+
+    Mission m = io::MissionReader::fromFile(missionFilename);
+    Mission::Ptr mission(new Mission(m));
+    mission->prepareTimeIntervals();
+
+    FluentTimeResource::List requirements = Mission::getResourceRequirements(mission);
+    mission->getTemporalConstraintNetwork()->isConsistent();
+
+    TimePointComparator tpc(mission->getTemporalConstraintNetwork());
+    TimePoint::Ptr t1 = TimePoint::create("t1");
+    TimePoint::Ptr t2 = TimePoint::create("t2");
+    TimePoint::Ptr t3 = TimePoint::create("t3");
+    TimePoint::Ptr t4 = TimePoint::create("t4");
+    TimePoint::Ptr t5 = TimePoint::create("t5");
+    TimePoint::Ptr t6 = TimePoint::create("t6");
+    TimePoint::Ptr t7 = TimePoint::create("t7");
+
+    TimePoint::PtrList sortedTimepoints = { t1,t2,t3,t4,t5,t6,t7 };
+
+    FluentTimeResource::List splitRequirements =
+        Mission::getResourceRequirements(mission,
+                sortedTimepoints,
+                tpc);
+
+    BOOST_TEST_MESSAGE("Split requirement: " <<
+            FluentTimeResource::toString(splitRequirements) );
 }
 
 BOOST_AUTO_TEST_CASE(mutually_exclusive)
