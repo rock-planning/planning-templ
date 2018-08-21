@@ -279,7 +279,7 @@ transshipment::Flaw::List FlowNetwork::getInvalidTransitions(double feasibilityC
                 organization_model::ModelPool pool = roleInfo->getModelPool( { RoleInfo::ASSIGNED } );
 
                 LOG_INFO_S << "Checking for infeasible coalition on transition:"
-                    << edge->toString(4);
+                    << pool.toString(4);
                 organization_model::ModelPool::List coalitionStructure =
                     ask.findFeasibleCoalitionStructure(pool, mMoveToResource, feasibilityCheckTimeoutInMs);
                 if( coalitionStructure.empty() )
