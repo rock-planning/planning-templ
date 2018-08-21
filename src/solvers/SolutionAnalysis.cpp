@@ -925,18 +925,22 @@ double SolutionAnalysis::computeReconfigurationCost(const Vertex::Ptr& vertex, c
     }
 
     double cost = 0.0;
+    LOG_INFO_S << "Compute reconfiguration cost at " << vertex->toString()
+        << "    from" << Agent::toString(in,4)
+        << "    to"  << Agent::toString(out,4)
+        << "    requirement"  << Agent::toString(actualRequirement,4);
     try {
         if(!in.empty())
         {
             cost += mAnalyser.getHeuristics().getReconfigurationCost(in, actualRequirement);
-            LOG_DEBUG_S << "Reconfiguration: from: " << Agent::toString(in,4)
+            LOG_INFO_S << "Reconfiguration: from: " << Agent::toString(in,4)
                 << "to: " << Agent::toString(actualRequirement, 4)
                 << "with cost: " << cost;
         }
         if(!out.empty())
         {
             cost += mAnalyser.getHeuristics().getReconfigurationCost(actualRequirement, out);
-            LOG_DEBUG_S << "Reconfiguration: from: " << Agent::toString(actualRequirement,4)
+            LOG_INFO_S << "Reconfiguration: from: " << Agent::toString(actualRequirement,4)
                 << "to: " << Agent::toString(out, 4)
                 << "with cost: " << cost;
         }
