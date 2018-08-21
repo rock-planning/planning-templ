@@ -8,6 +8,7 @@
 #include <qxcfg/Configuration.hpp>
 #include "../SpaceTime.hpp"
 #include "../solvers/transshipment/MinCostFlow.hpp"
+#include "../constraints/ModelConstraint.hpp"
 
 using namespace organization_model;
 using namespace templ::symbols;
@@ -77,6 +78,8 @@ Mission::Ptr MissionGenerator::convert(const VRPProblem& vrp)
     Mission::Ptr mission(new Mission(om, vrp.getName()));
 
     solvers::temporal::TemporalConstraintNetwork::Ptr tcn = mission->getTemporalConstraintNetwork();
+    solvers::temporal::point_algebra::TimePointComparator tpc(tcn);
+
     // idx
     // Add constants
     size_t idx = 0;
@@ -88,6 +91,7 @@ Mission::Ptr MissionGenerator::convert(const VRPProblem& vrp)
 
     std::map<Coord2D, constants::Location::Ptr> coordLocationMap;
     std::vector<TimePoint::Ptr> timepoints;
+    std::vector<SpaceTime::SpaceIntervalTuple> spaceTimeIntervalTuples;
     for(const Coord2D& coord : vrp.getNodeCoordinates())
     {
         // Add locations -- nodes
@@ -113,16 +117,32 @@ Mission::Ptr MissionGenerator::convert(const VRPProblem& vrp)
         TimePoint::Ptr to = tcn->getOrCreateTimePoint(ssTo.str());
         timepoints.push_back(to);
 
+        // Creating the individual customer with the corresponding
+        // demand
         mission->addResourceLocationCardinalityConstraint(location,
                 from, to,
                 vocabulary::VRP::Commodity(),
                 vrp.getDemands()[idx-1],
                 owlapi::model::OWLCardinalityRestriction::MIN);
+
+        // Creating vehicle as provider
+        mission->addResourceLocationCardinalityConstraint(location,
+                from, to,
+                vocabulary::VRP::Vehicle(),
+                1,
+                owlapi::model::OWLCardinalityRestriction::MIN);
+
+        spaceTimeIntervalTuples.push_back(SpaceTime::SpaceIntervalTuple(location,
+                    solvers::temporal::Interval(from, to, tpc)));
     }
 
     size_t depotIdx = 0;
     TimePoint::Ptr startFrom;
     TimePoint::Ptr startTo;
+
+    TimePoint::Ptr endFrom;
+    TimePoint::Ptr endTo;
+
     for(const Coord2D& coord : vrp.getDepots())
     {
         std::map<Coord2D, constants::Location::Ptr>::const_iterator cit = coordLocationMap.find(coord);
@@ -141,6 +161,9 @@ Mission::Ptr MissionGenerator::convert(const VRPProblem& vrp)
 
             startFrom = tcn->getOrCreateTimePoint("t-init-0");
             startTo = tcn->getOrCreateTimePoint("t-init-1");
+
+            endFrom = tcn->getOrCreateTimePoint("t-end-0");
+            endTo = tcn->getOrCreateTimePoint("t-end-1");
 
             std::stringstream ss;
             ss << "depot" << depotIdx++;
@@ -164,6 +187,14 @@ Mission::Ptr MissionGenerator::convert(const VRPProblem& vrp)
                 vrp.getVehicles(),
                 owlapi::model::OWLCardinalityRestriction::MIN);
 
+        // Making sure vehicles end at depot locations
+        mission->addResourceLocationCardinalityConstraint(depotLocation,
+                endFrom,
+                endTo,
+                vocabulary::VRP::Vehicle(),
+                vrp.getVehicles(),
+                owlapi::model::OWLCardinalityRestriction::MIN);
+
         // Making sure commodities are available at starting locations
         mission->addResourceLocationCardinalityConstraint(depotLocation,
                 startFrom,
@@ -180,18 +211,68 @@ Mission::Ptr MissionGenerator::convert(const VRPProblem& vrp)
                 owlapi::model::OWLCardinalityRestriction::MAX);
     }
 
+    // Limit the transport capacities of the vehicle type
     DataPropertyAssignment da(vocabulary::VRP::Vehicle(), vocabulary::OM::transportCapacity(), vrp.getCapacity());
     mission->addDataPropertyAssignment(da);
 
     for(point_algebra::TimePoint::Ptr t : timepoints)
     {
         try {
-            // making sure that depot is the first to be considered
+            // making sure that start depot is the first to be considered
             Constraint::Ptr constraint0 = tcn->addQualitativeConstraint(startTo, t, QualitativeTimePointConstraint::Less);
             mission->addConstraint(constraint0);
         } catch(...)
         {}
+
+        try {
+            // making sure the end depot is the last to be considered
+            Constraint::Ptr constraint1 = tcn->addQualitativeConstraint(endTo, t, QualitativeTimePointConstraint::Greater);
+            mission->addConstraint(constraint1);
+        } catch(...)
+        {}
     }
+
+    // Limit to maximum 1 visit for each location
+    for(const std::pair<Coord2D, constants::Location::Ptr>& p : coordLocationMap)
+    {
+        SpaceTime::SpaceIntervalTuple sit(p.second, solvers::temporal::Interval(
+                    SpaceTime::getHorizonStart(),
+                    SpaceTime::getHorizonEnd(),
+                    tpc));
+
+        std::vector<SpaceTime::SpaceIntervalTuple> sits = { sit };
+        // One vehicle goes to one destination only
+        {
+            constraints::ModelConstraint::Ptr accessConstraint =
+                make_shared<constraints::ModelConstraint>(
+                        constraints::ModelConstraint::MAX_ACCESS,
+                        vocabulary::VRP::Vehicle(),
+                        sits,
+                        1);
+
+            mission->addConstraint(accessConstraint);
+        }
+
+        // One commodity goes to one destination only
+        {
+            constraints::ModelConstraint::Ptr accessConstraint =
+                make_shared<constraints::ModelConstraint>(
+                        constraints::ModelConstraint::MAX_ACCESS,
+                        vocabulary::VRP::Commodity(),
+                        sits,
+                        1);
+            mission->addConstraint(accessConstraint);
+        }
+    }
+
+    // No resource of commodities
+    constraints::ModelConstraint::Ptr distinctConstraint =
+        make_shared<constraints::ModelConstraint>(
+                constraints::ModelConstraint::ALL_DISTINCT,
+                vocabulary::VRP::Commodity(),
+                spaceTimeIntervalTuples
+                );
+    mission->addConstraint(distinctConstraint);
 
     return mission;
 }
