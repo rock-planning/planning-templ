@@ -1880,6 +1880,7 @@ void TransportNetwork::postMinCostFlow()
         {
             solverType = graph_analysis::algorithms::LPSolver::SCIP_SOLVER;
         }
+        double feasibilityTimeoutInMs = mConfiguration.getValueAs<double>("TransportNetwork/search/options/coalition-feasibility/timeoutInMs",1000);
 
         SpaceTime::Timelines spaceTimeTimelines = getTimelines();
         std::pair<SpaceTime::Timelines, std::map<Role, csp::RoleTimeline> > key(spaceTimeTimelines, activeMinimalTimelines);
@@ -1887,7 +1888,8 @@ void TransportNetwork::postMinCostFlow()
                 mTimepoints,
                 activeMinimalTimelines,
                 spaceTimeTimelines,
-                solverType);
+                solverType,
+                feasibilityTimeoutInMs);
 
         FlowSolutions::iterator it = msMinCostFlowSolutions.find(key);
         if(it == msMinCostFlowSolutions.end())
