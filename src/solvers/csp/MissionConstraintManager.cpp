@@ -41,7 +41,14 @@ void MissionConstraintManager::apply(const shared_ptr<constraints::ModelConstrai
 
     const owlapi::model::IRI& roleModel = constraint->getModel();
 
-    FluentTimeResource::Set affectedRequirements = findAffected(constraint, allRequirements);
+    FluentTimeResource::Set affectedRequirements;
+    try {
+        affectedRequirements = findAffected(constraint, allRequirements);
+    } catch(const std::invalid_argument& e)
+    {
+        // nothing to apply if the constraint does not apply
+        return;
+    }
 
     using namespace templ::constraints;
     switch(constraint->getModelConstraintType())
@@ -98,7 +105,6 @@ void MissionConstraintManager::apply(const shared_ptr<constraints::ModelConstrai
             break;
         case ModelConstraint::MIN_FUNCTION:
             MissionConstraints::addResourceRequirement(
-                    transportNetwork.mResources,
                     allRequirements,
                     affectedRequirements,
                     organization_model::Resource(constraint->getModel()),
@@ -118,7 +124,6 @@ void MissionConstraintManager::apply(const shared_ptr<constraints::ModelConstrai
             resource.setPropertyConstraints(constraints);
 
             MissionConstraints::addResourceRequirement(
-                    transportNetwork.mResources,
                     allRequirements,
                     affectedRequirements,
                     resource,
@@ -138,7 +143,6 @@ void MissionConstraintManager::apply(const shared_ptr<constraints::ModelConstrai
             resource.setPropertyConstraints(constraints);
 
             MissionConstraints::addResourceRequirement(
-                    transportNetwork.mResources,
                     allRequirements,
                     affectedRequirements,
                     resource,

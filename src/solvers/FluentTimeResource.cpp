@@ -10,27 +10,28 @@ namespace templ {
 namespace solvers {
 
 FluentTimeResource::FluentTimeResource()
-    : mUpdateRequired(false)
+    : mFluentIdx(0)
 {}
 
 FluentTimeResource::FluentTimeResource(const Mission::Ptr& mpMission,
-        size_t resource,
-        size_t timeInterval,
-        size_t fluent,
+        const owlapi::model::IRI& resourceModel,
+        symbols::constants::Location::Ptr& location,
+        temporal::Interval timeInterval,
         const organization_model::ModelPool& availableModels)
     : mpMission(mpMission)
+    , mFluentIdx(0)
+    , mpLocation(location)
     , mTimeInterval(timeInterval)
-    , mFluent(fluent)
     , mMaxCardinalities(availableModels)
-    , mUpdateRequired(true)
 {
-    assert(mpMission);
-    mResources.insert(resource);
+    organization_model::Resource resource(resourceModel);
+    addRequiredResource(resource);
 }
 
 bool FluentTimeResource::operator==(const FluentTimeResource& other) const
 {
-    return mResources == other.mResources && mTimeInterval == other.mTimeInterval && mFluent == other.mFluent;
+    return mResources == other.mResources && mTimeInterval ==
+        other.mTimeInterval && mpLocation == mpLocation;
 }
 
 bool FluentTimeResource::operator<(const FluentTimeResource& other) const
@@ -39,7 +40,7 @@ bool FluentTimeResource::operator<(const FluentTimeResource& other) const
     {
         if(mTimeInterval == other.mTimeInterval)
         {
-            return mFluent < other.mFluent;
+            return mpLocation < other.mpLocation;
         }
         return mTimeInterval < other.mTimeInterval;
     }
@@ -52,7 +53,7 @@ std::string FluentTimeResource::toString(uint32_t indent) const
     std::string hspace(indent,' ');
     ss << hspace << "FluentTimeResource: " << std::endl;
     ss << hspace << "    resources: #";
-    std::set<size_t>::const_iterator cit = mResources.begin();
+    owlapi::model::IRISet::const_iterator cit = mResources.begin();
     for(; cit != mResources.end(); )
     {
         ss << *cit;
@@ -62,9 +63,9 @@ std::string FluentTimeResource::toString(uint32_t indent) const
         }
     }
     ss << std::endl;
-    ss << hspace << "    time: #" << mTimeInterval << std::endl;
+    ss << hspace << "    time:" << std::endl;
     ss << getInterval().toString(indent + 8) << std::endl;
-    ss << hspace << "    fluent: #" << mFluent << std::endl;
+    ss << hspace << "    fluent: #" << mFluentIdx << std::endl;
     ss << hspace << "        " << getLocation()->toString() << std::endl;
     ss << hspace << "    max cardinalities: " << std::endl
         << mMaxCardinalities.toString(indent + 8) << std::endl;
@@ -96,63 +97,21 @@ std::string FluentTimeResource::toString(const List& list, uint32_t indent)
     return ss.str();
 }
 
-void FluentTimeResource::addResourceIdx(size_t idx)
-{
-    mResources.insert(idx);
-    mUpdateRequired = true;
-}
-
-solvers::temporal::Interval FluentTimeResource::getInterval() const
-{
-    return mpMission->getTimeIntervals().at(mTimeInterval);
-}
-
-void FluentTimeResource::setInterval(const solvers::temporal::Interval& interval)
-{
-    mTimeInterval = utils::Index::getIndex(mpMission->getTimeIntervals(), interval, "templ::solvers::FluentTimeResource::setInterval: failed to find interval: " + interval.toString());
-}
-
-void FluentTimeResource::setInterval(size_t time)
-{
-    if(time >= mpMission->getTimeIntervals().size())
-    {
-        throw std::invalid_argument("templ::solvers::FluentTimeResource::setInterval: time interval"
-                    "exceeds index of available intervals");
-    }
-    mTimeInterval = time;
-}
-
 Symbol::Ptr FluentTimeResource::getFluent() const
 {
-    return mpMission->getLocations().at(mFluent);
+    return mpLocation;
 }
 
 void FluentTimeResource::setFluent(const Symbol::Ptr& symbol)
 {
     symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(symbol);
-    setLocation(location);
-}
-
-void FluentTimeResource::setFluent(size_t fluent)
-{
-    if(fluent >= mpMission->getLocations().size())
-    {
-        throw std::invalid_argument("templ::solvers::FluentTimeResource::setFluent: fluent idx "
-                "exceeds available fluents (here: locations)");
-    }
-    mFluent = fluent;
+    mpLocation = location;
 }
 
 symbols::constants::Location::Ptr FluentTimeResource::getLocation() const
 {
-    return dynamic_pointer_cast<symbols::constants::Location>(getFluent());
+    return mpLocation;
 }
-
-void FluentTimeResource::setLocation(const symbols::constants::Location::Ptr& location)
-{
-    mFluent = utils::Index::getIndex(mpMission->getLocations(), location, "templ::solvers::FluentTimeResource::setLocation: " + location->toString());
-}
-
 
 void FluentTimeResource::setMinCardinalities(const owlapi::model::IRI& model, size_t cardinality)
 {
@@ -169,48 +128,7 @@ void FluentTimeResource::setSatisficingCardinalities(const owlapi::model::IRI& m
     mSatisficingCardinalities[model] = cardinality;
 }
 
-std::vector< FluentTimeResource::List > FluentTimeResource::getConcurrent(const List& requirements,
-        const std::vector<solvers::temporal::Interval>& intervals)
-{
-    // map timeslot to fluenttime service
-    std::map<size_t, List > timeIndexedRequirements;
-    {
-        for(const FluentTimeResource& fts : requirements)
-        {
-            // map the time index
-            timeIndexedRequirements[ fts.mTimeInterval ].push_back(fts);
-        }
-    }
-
-    // All fluents that are on the same time overlap by default
-    std::vector< List > concurrentFts;
-    for(const std::pair<size_t, List>& mapEntry : timeIndexedRequirements)
-    {
-        concurrentFts.push_back(mapEntry.second);
-    }
-
-    // Identify overlapping intervals
-    typedef std::vector<uint32_t> IndexCombination;
-    typedef std::set< IndexCombination > IndexCombinationSet;
-    IndexCombinationSet overlappingIntervals = solvers::temporal::Interval::overlappingIntervals(intervals);
-
-    // All fluents that are in overlapping intervals also overlap
-    for(const IndexCombination& indexCombination : overlappingIntervals)
-    {
-        std::vector<FluentTimeResource> concurrent;
-
-        for(size_t timeIndex : indexCombination)
-        {
-            const std::vector<FluentTimeResource>& fts = timeIndexedRequirements[ timeIndex ];
-            concurrent.insert(concurrent.end(), fts.begin(), fts.end());
-        }
-        concurrentFts.push_back(concurrent);
-    }
-
-    return concurrentFts;
-}
-
-void FluentTimeResource::sortForMutualExclusion(List& requirements,
+void FluentTimeResource::sortForEarlierEnd(List& requirements,
         temporal::point_algebra::TimePointComparator tpc)
 {
     std::sort(requirements.begin(), requirements.end(), [tpc](const FluentTimeResource& a,
@@ -227,17 +145,37 @@ void FluentTimeResource::sortForMutualExclusion(List& requirements,
             });
 }
 
+void FluentTimeResource::sortForEarlierStart(List& requirements,
+        temporal::point_algebra::TimePointComparator tpc)
+{
+    std::sort(requirements.begin(), requirements.end(), [tpc](const FluentTimeResource& a,
+                const FluentTimeResource& b)
+            {
+                if( tpc.lessThan(a.getInterval().getFrom(),(b.getInterval().getFrom())) )
+                {
+                    return true;
+                } else if(tpc.equals(a.getInterval().getFrom(), b.getInterval().getFrom()))
+                {
+                    return tpc.lessThan(a.getInterval().getTo(), b.getInterval().getTo());
+                }
+                return false;
+            });
+}
+
+
 std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(const List& _requirements,
         temporal::point_algebra::TimePointComparator tpc
         )
 {
     List requirements = _requirements;
-    sortForMutualExclusion(requirements, tpc);
+    sortForEarlierEnd(requirements, tpc);
 
     // Todo: check keyword 'edge finding'
 
     // Take advantage of a specially ordered list:
-    // based on (1) earlier end point means <= true,
+    // based on
+    // (1)
+    // earlier end point means <= true,
     // earlier start time means <= true,
     // to as a result order all intervals overlapping with the smallest unit
     // will be concurrent
@@ -276,6 +214,7 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
             continue;
         } else {
             bool alreadyProcessed = false;
+            // sort to allow set::includes operation
             std::sort(concurrentEncoded.begin(), concurrentEncoded.end());
             for(std::vector<std::string>& processed : processedConcurrent)
             {
@@ -285,6 +224,7 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
                 {
                     // already processed so ignore this one
                     alreadyProcessed = true;
+                    break;
                 }
             }
             if(alreadyProcessed)
@@ -300,7 +240,7 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
                   << ftrA.getQualificationString()
                   << std::endl
               << "    is concurrent with:" <<  std::endl
-              << FluentTimeResource::toQualificationStringList(concurrent, 8);
+              << FluentTimeResource::toQualificationString(concurrent, 8);
 
         // Now concurrent, but not necessarily mutual exclusive intervals
         // are identified, e.g.
@@ -355,12 +295,12 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
 }
 
 
-std::vector<FluentTimeResource::List> FluentTimeResource::getOverlapping(const List& _requirements,
+std::vector<FluentTimeResource::Set> FluentTimeResource::getOverlapping(const List& _requirements,
         temporal::point_algebra::TimePointComparator tpc
         )
 {
     List requirements = _requirements;
-    sortForMutualExclusion(requirements, tpc);
+    sortForEarlierEnd(requirements, tpc);
 
     // Take advantage of a specially ordered list:
     // based on (1) earlier end point means <= true,
@@ -376,28 +316,99 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getOverlapping(const L
     //
     //                 [e_s --- e_e]
 
-    std::vector<List> overlapping;
-    std::vector< std::vector<std::string> > processedConcurrent;
+    using namespace temporal::point_algebra;
+    std::vector<Set> overlapping;
     for(size_t a = 0; a < requirements.size();++a)
     {
         const FluentTimeResource& ftrA = requirements[a];
 
-        std::vector<std::string> concurrentEncoded;;
-        List concurrent;
+        std::map<temporal::Interval, Set> concurrent = { { ftrA.getInterval(), { ftrA }} };
+
         for(size_t b = a + 1; b < requirements.size(); ++b)
         {
-            const FluentTimeResource& ftrB = requirements[b];
-            if(FluentTimeResource::areOverlapping(ftrA, ftrB, tpc))
+            std::map<temporal::Interval, Set>::iterator it =
+                concurrent.begin();
+            for(; it != concurrent.end(); ++it)
             {
-                concurrent.push_back(ftrB);
-            } else {
-                // due to the sorting we can stop here, since no
-                // other interval will overlap
-                break;
+                temporal::Interval interval = it->first;
+                Set& ftrs = it->second;
+
+                const FluentTimeResource& ftrB = requirements[b];
+                TimePoint::Ptr otherFrom = ftrB.getInterval().getFrom();
+                TimePoint::Ptr otherTo = ftrB.getInterval().getTo();
+
+                if(tpc.hasIntervalOverlap(interval.getFrom(), interval.getTo(),
+                            otherFrom,
+                            otherTo))
+                {
+                    temporal::Interval overlapInterval = tpc.getIntervalOverlap(interval.getFrom(),
+                            interval.getTo(),
+                            otherFrom,
+                            otherTo);
+                    if(overlapInterval == interval)
+                    {
+                        ftrs.insert(ftrB);
+                    } else {
+                        Set newFtrs = ftrs;
+                        newFtrs.insert(ftrB);
+                        concurrent[overlapInterval] = newFtrs;
+                    }
+                }
+            }
+        }
+
+        for(std::pair<temporal::Interval,Set> c : concurrent)
+        {
+            Set& ftrs = c.second;
+            const temporal::Interval& interval = c.first;
+            if(ftrs.size() > 1)
+            {
+                std::cout << "Found overlap for: "
+                    << interval.toString(4,true) << std::endl
+                    << FluentTimeResource::toQualificationString(ftrs.begin(),
+                            ftrs.end(), 4)
+                    << std::endl;
+                overlapping.push_back(ftrs);
             }
         }
     }
     return overlapping;
+}
+
+FluentTimeResource::List FluentTimeResource::createNonOverlappingRequirements(const List& _requirements,
+        temporal::point_algebra::TimePoint::PtrList sortedTimepoints,
+        temporal::point_algebra::TimePointComparator tpc
+        )
+{
+    List newRequirements;
+    List requirements = _requirements;
+    sortForEarlierStart(requirements, tpc);
+
+    for(size_t i = 0; i < sortedTimepoints.size()-1; ++i)
+    {
+        FluentTimeResource ftr;
+        ftr.setMission( requirements.back().getMission());
+        ftr.setLocation(requirements.back().getLocation());
+        temporal::Interval interval(sortedTimepoints[i],
+                sortedTimepoints[i+1],
+                tpc);
+
+        ftr.setInterval(interval);
+
+        for(const FluentTimeResource& r : requirements)
+        {
+            if(interval.overlaps(r.getInterval()))
+            {
+                ftr.merge(r);
+            }
+        }
+        if(!ftr.getMinCardinalities().empty()
+                || !ftr.getMaxCardinalities().empty())
+        {
+            newRequirements.push_back(ftr);
+        }
+    }
+    return newRequirements;
 }
 
 bool FluentTimeResource::hasFunctionalityConstraint() const
@@ -415,47 +426,12 @@ bool FluentTimeResource::hasFunctionalityConstraint() const
 
 organization_model::Resource::Set FluentTimeResource::getRequiredResources() const
 {
-    if(mUpdateRequired)
-    {
-        updateRequiredResources();
-        mUpdateRequired = false;
-    }
-
     return mRequiredResources;
-}
-
-// TODO: this will require quantification as well, but an be added as
-// constraint, e.g. cardinality constraint to
-void FluentTimeResource::updateRequiredResources() const
-{
-    owlapi::model::OWLOntologyAsk ontologyAsk(mpMission->getOrganizationModel()->ontology());
-    owlapi::model::IRIList mappedResources = mpMission->getRequestedResources();
-
-    std::set<organization_model::Functionality> functionalities;
-
-    for(size_t resourceIdx : mResources)
-    {
-        const owlapi::model::IRI& resourceModel = mappedResources[resourceIdx];
-
-        using namespace organization_model;
-        if( ontologyAsk.isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
-        {
-            organization_model::Resource::Set::const_iterator cit;
-            cit = std::find_if(mRequiredResources.begin(), mRequiredResources.end(), [resourceModel](const organization_model::Resource& r)
-                    {
-                        return resourceModel == r.getModel();
-                    });
-            if(cit == mRequiredResources.end())
-            {
-                organization_model::Resource functionality(resourceModel);
-                mRequiredResources.insert(functionality);
-            }
-        }
-    }
 }
 
 void FluentTimeResource::addRequiredResource(const organization_model::Resource& resource)
 {
+    mResources.insert(resource.getModel());
     mRequiredResources.insert(resource);
     mRequiredResources = organization_model::Resource::merge(mRequiredResources);
 }
@@ -473,19 +449,10 @@ void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements)
         {
             FluentTimeResource& otherFts = *compareIt;
 
-            if(fts.mTimeInterval == otherFts.mTimeInterval && fts.mFluent == otherFts.mFluent)
+            if(fts.mTimeInterval == otherFts.mTimeInterval &&
+                    fts.mpLocation == otherFts.mpLocation)
             {
-                LOG_DEBUG_S << "Compacting: " << std::endl
-                    << fts.toString() << std::endl
-                    << otherFts.toString() << std::endl;
-
-                // Compacting the resource list
-                fts.mResources.insert(otherFts.mResources.begin(), otherFts.mResources.end());
-                fts.mMinCardinalities = organization_model::Algebra::max(fts.mMinCardinalities, otherFts.mMinCardinalities);
-                fts.mMaxCardinalities = organization_model::Algebra::min(fts.mMaxCardinalities, otherFts.mMaxCardinalities);
-                fts.mSatisficingCardinalities = organization_model::Algebra::max(fts.mSatisficingCardinalities, otherFts.mSatisficingCardinalities);
-
-                LOG_DEBUG_S << "Result:" << fts.toString(8);
+                fts.merge(otherFts);
                 requirements.erase(compareIt);
             } else {
                 ++compareIt;
@@ -493,6 +460,23 @@ void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements)
         }
     }
     LOG_DEBUG_S << "END compact requirements";
+}
+
+void FluentTimeResource::merge(const FluentTimeResource& otherFtr)
+{
+    LOG_DEBUG_S << "Merging: " << std::endl
+        << toString() << std::endl
+        << otherFtr.toString() << std::endl;
+
+    mResources.insert(otherFtr.mResources.begin(), otherFtr.mResources.end());
+    mMinCardinalities = organization_model::Algebra::max(mMinCardinalities,
+            otherFtr.mMinCardinalities);
+    mMaxCardinalities = organization_model::Algebra::min(mMaxCardinalities,
+            otherFtr.mMaxCardinalities);
+    mSatisficingCardinalities = organization_model::Algebra::max(mSatisficingCardinalities,
+            otherFtr.mSatisficingCardinalities);
+
+    LOG_DEBUG_S << "Result:" << toString(8);
 }
 
 organization_model::ModelPool::Set FluentTimeResource::getDomain() const
@@ -544,9 +528,10 @@ size_t FluentTimeResource::getIndex(const List& list, const FluentTimeResource& 
     size_t index = 0;
     for(const FluentTimeResource& ftr : list)
     {
-        if(ftr.mTimeInterval == fluent.mTimeInterval && ftr.mFluent == fluent.mFluent)
+        if(ftr.mTimeInterval == fluent.mTimeInterval &&
+                ftr.mpLocation == fluent.mpLocation)
         {
-            std::set<size_t> intersect;
+            owlapi::model::IRISet intersect;
             std::set_intersection(ftr.mResources.begin(), ftr.mResources.end(),
                     fluent.mResources.begin(), fluent.mResources.end(),
                     std::inserter(intersect, intersect.begin()) );
@@ -566,17 +551,8 @@ size_t FluentTimeResource::getIndex(const List& list, const FluentTimeResource& 
 
 void FluentTimeResource::incrementResourceMinCardinality(const owlapi::model::IRI& model, size_t number)
 {
-    owlapi::model::IRIList mappedResources = mpMission->getRequestedResources();
-    for(size_t idx = 0; idx != mappedResources.size(); ++idx)
-    {
-        if(mappedResources[idx] == model)
-        {
-            mResources.insert(idx);
-            mMinCardinalities[model] += number;
-            return;
-        }
-    }
-    throw std::invalid_argument("FluentTimeResource::incrementResourceRequirement: failed to increment model '" + model.toString() + "'");
+    mResources.insert(model);
+    mMinCardinalities[model] += number;
 }
 
 void FluentTimeResource::updateSatisficingCardinalities()
@@ -636,7 +612,7 @@ std::string FluentTimeResource::getQualificationString() const
     return ss.str();
 }
 
-std::string FluentTimeResource::toQualificationStringList(const List& list, uint32_t indent)
+std::string FluentTimeResource::toQualificationString(const List& list, uint32_t indent)
 {
     std::string hspace(indent,' ');
     std::stringstream ss;
@@ -645,6 +621,30 @@ std::string FluentTimeResource::toQualificationStringList(const List& list, uint
         ss << hspace << ftr.getQualificationString() << std::endl;
     }
     return ss.str();
+}
+
+void FluentTimeResource::updateIndices(const symbols::constants::Location::PtrList& locations)
+{
+    symbols::constants::Location::PtrList::const_iterator lit =
+        std::find(locations.begin(), locations.end(), mpLocation);
+    if(lit != locations.end())
+    {
+        mFluentIdx = std::distance(locations.begin(), lit);
+    } else {
+        throw
+            std::invalid_argument("templ::solvers::FluentTimeResource::updateIdxs:"
+                    " could not find a location named '" + mpLocation->toString()
+                    + "'");
+    }
+}
+
+void FluentTimeResource::updateIndices(List& requirements,
+        const symbols::constants::Location::PtrList& locations)
+{
+    for(FluentTimeResource& ftr : requirements)
+    {
+        ftr.updateIndices(locations);
+    }
 }
 
 } // end namespace solvers

@@ -535,21 +535,17 @@ void MissionConstraints::addModelRequirement(
     throw std::invalid_argument("templ::solvers::csp::MissionConstraints::addModelRequirement: given FluentTimeResource is not part of the given list");
 }
 
-void MissionConstraints::addResourceRequirement(const owlapi::model::IRIList& allAvailableResources,
-        std::vector<FluentTimeResource>& resourceRequirements,
+void MissionConstraints::addResourceRequirement(std::vector<FluentTimeResource>& resourceRequirements,
         const FluentTimeResource& fts,
         const organization_model::Resource& resource,
         organization_model::OrganizationModelAsk ask)
 {
-    // Find the function requirement index
-    size_t index = getResourceIndex(allAvailableResources, resource);
     // identify the fluent time resource
     size_t idx = FluentTimeResource::getIndex(resourceRequirements, fts);
     FluentTimeResource& ftr = resourceRequirements[idx];
 
     LOG_DEBUG_S << "Fluent before adding function requirement: " << ftr.toString();
 
-    ftr.addResourceIdx(index);
     ftr.addRequiredResource(resource);
     ftr.updateSatisficingCardinalities();
 
@@ -560,16 +556,14 @@ void MissionConstraints::addResourceRequirement(const owlapi::model::IRIList& al
     LOG_DEBUG_S << "Fluent after adding function requirement: " << ftr.toString();
 }
 
-void MissionConstraints::addResourceRequirement(const owlapi::model::IRIList& allAvailableResources,
-        std::vector<FluentTimeResource>& resourceRequirements,
+void MissionConstraints::addResourceRequirement(std::vector<FluentTimeResource>& resourceRequirements,
         const FluentTimeResource::Set& ftrs,
         const organization_model::Resource& resource,
         organization_model::OrganizationModelAsk ask)
 {
     for(const FluentTimeResource& ftr : ftrs)
     {
-        addResourceRequirement(allAvailableResources,
-                resourceRequirements,
+        addResourceRequirement(resourceRequirements,
                 ftr,
                 resource,
                 ask);

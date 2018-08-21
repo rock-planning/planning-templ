@@ -306,8 +306,7 @@ public:
      * \throws std::invalid_argument when fluent time resource could not be
      * found
      */
-    static void addResourceRequirement(const owlapi::model::IRIList& allAvailableResources,
-            std::vector<FluentTimeResource>& resourceRequirements,
+    static void addResourceRequirement(std::vector<FluentTimeResource>& resourceRequirements,
             const FluentTimeResource& fts,
             const organization_model::Resource& resource,
             organization_model::OrganizationModelAsk ask);
@@ -317,8 +316,7 @@ public:
      * to a set of FluentTimeResource instances
      * \throw std::invalid_argument when fluent time resource could not be found
      */
-    static void addResourceRequirement(const owlapi::model::IRIList& allAvailableResources,
-            std::vector<FluentTimeResource>& resourceRequirements,
+    static void addResourceRequirement(std::vector<FluentTimeResource>& resourceRequirements,
             const FluentTimeResource::Set& ftrs,
             const organization_model::Resource& resource,
             organization_model::OrganizationModelAsk ask);

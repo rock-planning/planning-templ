@@ -40,9 +40,9 @@ public:
      * \param time
      */
     FluentTimeResource(const Mission::Ptr& mission,
-            size_t resource,
-            size_t timeInterval,
-            size_t fluent,
+            const owlapi::model::IRI& resource,
+            symbols::constants::Location::Ptr& location,
+            temporal::Interval timeInterval,
             const organization_model::ModelPool& availableModels = organization_model::ModelPool());
 
     bool operator==(const FluentTimeResource& other) const;
@@ -55,7 +55,34 @@ public:
      * Compute only the spatio-temporal qualification for identification of the
      * set of intervals
      */
-    static std::string toQualificationStringList(const List& list, uint32_t indent = 0);
+    static std::string toQualificationString(const List& list, uint32_t indent = 0);
+
+    template<class InputIterator>
+    static std::vector<std::string> toQualificationStringList(InputIterator begin, InputIterator end)
+    {
+        std::vector<std::string> list;
+        InputIterator it = begin;
+        for(; it != end; ++it)
+        {
+            list.push_back(it->getQualificationString());
+        }
+        return list;
+    }
+
+
+    template<class InputIterator>
+    static std::string toQualificationString(InputIterator begin,
+            InputIterator end, uint32_t indent = 0)
+    {
+        std::string hspace(indent,' ');
+        std::stringstream ss;
+        InputIterator it = begin;
+        for(; it != end; ++it)
+        {
+            ss << hspace << it->getQualificationString() << std::endl;
+        }
+        return ss.str();
+    }
 
     /**
      * Set the mission that is associated with this FluentTimeResource instance
@@ -68,40 +95,17 @@ public:
     Mission::Ptr getMission() const { return mpMission; }
 
     /**
-     * Add a resource requirement using the idx (for CSP based variants)
-     */
-    void addResourceIdx(size_t idx);
-
-    /**
-     * Get resource requirement as set of indices
-     */
-    const std::set<size_t>& getResourceIndices() const { return mResources; }
-
-    /**
      * Retrieve the interval associated with FluentTimeResource instance
      * \return interval this object refers to
      */
-    solvers::temporal::Interval getInterval() const;
-
-    /**
-     * Retrieve the time interval index
-     */
-    size_t getTimeIntervalIdx() const { return mTimeInterval; }
+    const solvers::temporal::Interval& getInterval() const { return mTimeInterval; }
 
     /**
      * Set the interval index using the interval
      * \param interval
      * \throws std::invalid_argument if interval cannot be found in the mission
      */
-    void setInterval(const solvers::temporal::Interval& interval);
-
-    /**
-     * Set the interval index
-     * \param time
-     * \throw std::invalid_arugment if the interval index exceeds the number of
-     * existing intervals
-     */
-    void setInterval(size_t time);
+    void setInterval(const solvers::temporal::Interval& interval) { mTimeInterval = interval; }
 
     /**
      * Get the associated fluent (here: location)
@@ -112,7 +116,7 @@ public:
     /**
      * Retrieve the fluent idx
      */
-    size_t getFluentIdx() const { return mFluent; }
+    size_t getFluentIdx() const { return mFluentIdx; }
 
     /**
      * Set fluent via symbol pointer
@@ -120,14 +124,6 @@ public:
      * \throws std::invalid_argument when symbol cannot be found in the mission
      */
     void setFluent(const Symbol::Ptr& symbol);
-
-    /**
-     * Set the fluent index
-     * \param fluent Fluent index
-     * \throw std::invalid_arugment if the index exceeds the number of
-     * existing fluents
-     */
-    void setFluent(size_t fluent);
 
     /**
      * Get location (fluent)
@@ -139,7 +135,8 @@ public:
      * \throw std::invalid_argument if the constant cannot be found in the
      * mission
      */
-    void setLocation(const symbols::constants::Location::Ptr& location);
+    void setLocation(const symbols::constants::Location::Ptr& location) {
+        mpLocation = location; }
 
     /**
      * Get the minimum cardinalities for a number of resources
@@ -187,18 +184,15 @@ public:
     void setSatisficingCardinalities(const owlapi::model::IRI& model, size_t cardinality);
 
     /**
-     * Get the overlapping/concurrent FluentTimeResources
-     * from indexed list of intervals
-     * \param requirements Referencing intervals using index
-     * \param intervals Intervallist that is referenced by the requirements
+     * Sort requirements based on earlier end point
      */
-    static std::vector< List > getConcurrent(const List& requirements,
-            const std::vector<solvers::temporal::Interval>& intervals);
+    static void sortForEarlierEnd(List& requirements,
+            temporal::point_algebra::TimePointComparator tpc);
 
     /**
-     *
+     * Sort requirements based on earlier start point
      */
-    static void sortForMutualExclusion(List& requirements,
+    static void sortForEarlierStart(List& requirements,
             temporal::point_algebra::TimePointComparator tpc);
 
     /**
@@ -215,7 +209,19 @@ public:
      * requirements overlap, when they refer to the same location
      * and their time interval overlaps
      */
-    static std::vector<List> getOverlapping(const List& requirements,
+    static std::vector<Set> getOverlapping(const List& requirements,
+            temporal::point_algebra::TimePointComparator tpc
+            );
+
+    /**
+     * Create set of non overlapping requirements assuming requirements
+     * which refer to the same location
+     * \param requirements Existing requirements
+     * \param sortedTimepoints Timepoint fully temporally ordered
+     * \param tpc TimePointComparator which applies (for interval comparison)
+     */
+    static List createNonOverlappingRequirements(const List& requirements,
+            temporal::point_algebra::TimePoint::PtrList sortedTimepoints,
             temporal::point_algebra::TimePointComparator tpc
             );
 
@@ -243,15 +249,16 @@ public:
     void addRequiredResource(const organization_model::Resource& resource);
 
     /**
-     * Refresh the set of required resources
-     */
-    void updateRequiredResources() const;
-
-    /**
      * Create a compact representation for all requirement that
      * refer to the same fluent and time
      */
     static void compact(std::vector<FluentTimeResource>& requirements);
+
+    /**
+     * Merge other requirements into this one, while keeping
+     * the time interval and fluent of this
+     */
+    void merge(const FluentTimeResource& otherFtr);
 
     /**
      * Get the domain in terms of model pools that are allowed
@@ -308,16 +315,24 @@ public:
      */
     std::string getQualificationString() const;
 
+    void updateIndices(const symbols::constants::Location::PtrList& locations);
+
+    static void updateIndices(List& requirements,
+            const symbols::constants::Location::PtrList& locations);
+
 private:
     /// Allow to map between indexes and symbols
     Mission::Ptr mpMission;
 
+    /// Location idx for processing in CSP
+    size_t mFluentIdx;
+
     /// involved resource types
-    std::set<size_t> mResources;
-    /// the time interval index
-    size_t mTimeInterval;
+    owlapi::model::IRISet mResources;
     /// the fluent, e.g. space/location
-    size_t mFluent;
+    symbols::constants::Location::Ptr mpLocation;
+    /// the time interval index
+    temporal::Interval mTimeInterval;
 
     // Set of required resources including additional constraints
     mutable organization_model::Resource::Set mRequiredResources;
@@ -330,10 +345,6 @@ private:
     /// satisficing cardinalities (functional saturation) of the available
     /// models
     organization_model::ModelPool mSatisficingCardinalities;
-
-    /// Flag to mark that an update is required
-    /// see updateRequiredResources
-    mutable bool mUpdateRequired;
 };
 
 } // end namespace solvers
