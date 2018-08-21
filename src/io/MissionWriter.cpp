@@ -310,12 +310,17 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
             std::stringstream ss;
             for(const SpaceTime::SpaceIntervalTuple& t : modelConstraint->getSpaceIntervalTuples())
             {
-                std::map<SpaceTime::SpaceIntervalTuple,size_t>::const_iterator cit =  intervalRequirementIdMap.find(t);
-                if(cit == intervalRequirementIdMap.end())
+                if(SpaceTime::isFullMissionInterval(t.second()))
                 {
-                    std::runtime_error("templ::io::MissionWriter::write: failed to identify the requirements that are associated with a model constraint");
+                    ss << t.first()->toString() << ",";
+                } else {
+                    std::map<SpaceTime::SpaceIntervalTuple,size_t>::const_iterator cit =  intervalRequirementIdMap.find(t);
+                    if(cit == intervalRequirementIdMap.end())
+                    {
+                        std::runtime_error("templ::io::MissionWriter::write: failed to identify the requirements that are associated with a model constraint");
+                    }
+                    ss << cit->second << ",";
                 }
-                ss << cit->second << ",";
             }
             if(type == ModelConstraint::MIN_PROPERTY || type == ModelConstraint::MAX_PROPERTY)
             {
