@@ -35,7 +35,6 @@ rock_library(templ_core
         Symbol.hpp
         Tuple.hpp
         Variable.hpp
-        Variable.hpp
         constraints/HyperConstraint.hpp
         constraints/SimpleConstraint.hpp
         io/FluentTypes.hpp
