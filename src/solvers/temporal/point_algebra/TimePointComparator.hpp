@@ -8,6 +8,9 @@
 namespace templ {
 namespace solvers {
 namespace temporal {
+
+    class Interval;
+
 namespace point_algebra {
 
 /**
@@ -58,6 +61,8 @@ public:
     bool lessThan(const TimePoint::Ptr& t0, const TimePoint::Ptr& t1) const { return greaterThan(t1,t0); }
 
     bool hasIntervalOverlap(const TimePoint::Ptr& a_start, const TimePoint::Ptr& a_end, const TimePoint::Ptr& b_start, const TimePoint::Ptr& b_end) const;
+
+    Interval getIntervalOverlap(const TimePoint::Ptr& a_start, const TimePoint::Ptr& a_end, const TimePoint::Ptr& b_start, const TimePoint::Ptr& b_end) const;
 
     bool inInterval(const TimePoint::Ptr& t0, const TimePoint::Ptr& i_start, const TimePoint::Ptr& i_end) const;
 };

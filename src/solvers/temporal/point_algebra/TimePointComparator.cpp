@@ -1,6 +1,7 @@
 #include "TimePointComparator.hpp"
 #include <base-logging/Logging.hpp>
 #include <algorithm>
+#include "../Interval.hpp"
 
 namespace templ {
 namespace solvers {
@@ -113,6 +114,28 @@ bool TimePointComparator::hasIntervalOverlap(const TimePoint::Ptr& a_start, cons
         return true;
     }
     return !(TimePointComparator::lessOrEqual(a_end, b_start) || TimePointComparator::lessOrEqual(b_end, a_start));
+}
+
+Interval TimePointComparator::getIntervalOverlap(const TimePoint::Ptr& a_start, const TimePoint::Ptr& a_end, const TimePoint::Ptr& b_start, const TimePoint::Ptr& b_end) const
+{
+    Interval interval;
+    if( TimePointComparator::equals(a_start, b_start)
+        || TimePointComparator::lessThan(a_start, b_start))
+    {
+        interval.setFrom(b_start);
+    } else {
+        interval.setFrom(a_start);
+    }
+
+    if( TimePointComparator::equals(a_end, b_end)
+            || TimePointComparator::lessThan(a_end, b_end))
+    {
+        interval.setTo(a_end);
+    } else {
+        interval.setTo(b_end);
+    }
+    interval.setTimePointComparator(*this);
+    return interval;
 }
 
 bool TimePointComparator::inInterval(const TimePoint::Ptr& t0, const TimePoint::Ptr& i_start, const TimePoint::Ptr& i_end) const
