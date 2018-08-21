@@ -161,8 +161,8 @@ protected:
     //  requirement | robot-type-0 | robot-type-1 | robot-type-2 | ...
     //  r-0         |      1       |      0       |      1       | ...
     //  r-1         |      0       |      2       |      2       | ...
-    Gecode::IntVarArray mModelUsage;
     owlapi::model::IRIList mAvailableModels;
+    Gecode::IntVarArray mModelUsage;
 
     // #######################
     // Role based mapping
@@ -350,6 +350,11 @@ protected:
      * Identify the index of the given timepoint
      */
     uint32_t getTimepointIndex(const temporal::point_algebra::TimePoint::Ptr& timePoint) const;
+
+    /**
+     * Initialize the temporal constraint network and active the branching
+     */
+    void initializeTemporalConstraintNetwork();
 
     /**
      * Set the cardinality constraints
