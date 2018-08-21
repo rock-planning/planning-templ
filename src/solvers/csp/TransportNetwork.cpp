@@ -1810,15 +1810,22 @@ void TransportNetwork::postRoleAssignments()
     Gecode::Rnd rnd;
     rnd.hw();
     double timelineAfcDecay = mConfiguration.getValueAs<double>("TransportNetwork/search/options/timeline-brancher/afc-decay");
+
+    size_t numberOfLocations = mLocations.size();
+
+    std::vector<Gecode::SetVarArray> mobileSystemTimelines;
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
-        propagators::isPath(*this, mTimelines[i], mActiveRoleList[i].toString(), numberOfTimepoints, mLocations.size());
+        const Role& role = mActiveRoleList[i];
+        propagators::isPath(*this, mTimelines[i], role.toString(),
+                numberOfTimepoints, numberOfLocations);
 
         // Only branch on the mobile systems
         using namespace organization_model::facades;
-        Robot robot = Robot::getInstance(mActiveRoleList[i].getModel(), mAsk);
+        Robot robot = Robot::getInstance(role.getModel(), mAsk);
         if(robot.isMobile())
         {
+            mobileSystemTimelines.push_back(mTimelines[i]);
 
             Gecode::SetAFC timelineUsageAfc(*this, mTimelines[i], timelineAfcDecay);
             // SET_VAR_MERIT MIN
@@ -1827,6 +1834,12 @@ void TransportNetwork::postRoleAssignments()
         }
     }
 
+    // BEGIN LOCATION ACCESS
+    applyAccessConstraints(mTimelines,
+            numberOfTimepoints,
+            numberOfLocations,
+            mActiveRoleList);
+    // END LOCATION ACCESS
     // Only the check whether a feasible approach is to use a heuristic
     // to draw system by supply demand
     //branchTimelines(*this, mTimelines, mSupplyDemand);
