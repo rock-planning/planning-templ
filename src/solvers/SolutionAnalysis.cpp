@@ -24,6 +24,7 @@ SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
     : mpMission(mission)
     , mSolutionNetwork(solution)
     , mTimepointComparator(mission->getTemporalConstraintNetwork())
+    , mAsk(mpMission->getOrganizationModelAsk())
     , mAnalyser(mpMission->getOrganizationModelAsk())
     , mConfiguration(configuration)
 {
@@ -59,7 +60,7 @@ void SolutionAnalysis::updateAnalyser()
     {
         const solvers::FluentTimeResource& ftr = *cit;
         Resource::Set resources = ftr.getRequiredResources();
-        ModelPool agentPool = mpMission->getOrganizationModelAsk().allowSubclasses(ftr.getMinCardinalities(), vocabulary::OM::Actor());
+        ModelPool agentPool = mAsk.allowSubclasses(ftr.getMinCardinalities(), vocabulary::OM::Actor());
 
         RequirementSample sample(resources,
                 agentPool,
@@ -179,11 +180,7 @@ organization_model::ModelPool SolutionAnalysis::getMinAvailableResources(const F
     ModelPool minAvailableResources = organization_model::Algebra::min( availableResources);
 
     // Infer functionality from this set of resources
-    OrganizationModelAsk ask = OrganizationModelAsk::getInstance(mpMission->getOrganizationModel(),
-            minAvailableResources,
-            true);
-    // Creating model pool from available functionalities
-    ModelPool functionalities = ask.getSupportedFunctionalities();
+    ModelPool functionalities = mAsk.getSupportedFunctionalities(minAvailableResources);
     ModelPool pool = organization_model::Algebra::max(minAvailableResources, functionalities);
     return pool;
 }
@@ -333,7 +330,18 @@ SolutionAnalysis::MinMaxModelPools SolutionAnalysis::getRequiredResources(const 
         if(ftr.getLocation() == requirementFtr.getLocation() &&
                 ftr.getInterval() == requirementFtr.getInterval())
         {
-            minMaxModelPools.first.push_back(ftr.getMinCardinalities());
+            ModelPool minCardinalities = ftr.getMinCardinalities();
+            for(const organization_model::Resource& resource : ftr.getRequiredResources())
+            {
+                // Assuming the functionalities have max
+                if(mAsk.ontology().isSubClassOf(resource.getModel(),
+                            vocabulary::OM::Functionality()))
+                {
+                    minCardinalities[resource.getModel()] = 1;
+                }
+            }
+
+            minMaxModelPools.first.push_back(minCardinalities);
             minMaxModelPools.second.push_back(ftr.getMaxCardinalities());
             return minMaxModelPools;
         }
@@ -376,16 +384,17 @@ void SolutionAnalysis::save(const std::string& _filename) const
     graph_analysis::io::GraphIO::write(solutionNetworkFilename, mSolutionNetwork.getGraph());
 
     // stats to string
-    std::string filename = mpMission->getLogger()->filename("solution_analysis-stats.logs");
+    std::string filename = mpMission->getLogger()->getBasePath() +
+        "solution_analysis-stats.logs";
     std::ofstream outfile;
     if(!boost::filesystem::exists(filename))
     {
         outfile.open(filename);
         outfile << getRowDescriptor() << std::endl;
-        outfile << toRow();
+        outfile << toRow() << std::endl;
     } else {
         outfile.open(filename, std::ios_base::app);
-        outfile << toRow();
+        outfile << toRow() << std::endl;
     }
 }
 
@@ -393,6 +402,7 @@ std::string SolutionAnalysis::getRowDescriptor() const
 {
     std::stringstream ss;
     ss << "# ";
+    ss << " session-id ";
     ss << " alpha beta sigma ";
     ss << " efficacy efficiency safety ";
     ss << " timehorizon travel-distance reconfiguration-cost";
@@ -402,6 +412,7 @@ std::string SolutionAnalysis::getRowDescriptor() const
 std::string SolutionAnalysis::toRow() const
 {
     std::stringstream ss;
+    ss << mpMission->getLogger()->getSessionId() << " ";
     ss << mAlpha << " ";
     ss << mBeta << " ";
     ss << mSigma << " ";
@@ -464,13 +475,8 @@ organization_model::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequir
     ModelPool requiredResources = getMinResourceRequirements(ftr);
     ModelPool maxAvailableResources = getMinAvailableResources(ftr);
 
-    // Infer functionality from this set of resources
-    OrganizationModelAsk ask(mpMission->getOrganizationModel(),
-            maxAvailableResources,
-            true);
-
     // Creating model pool from available functionalities
-    ModelPool functionalities = ask.getSupportedFunctionalities();
+    ModelPool functionalities = mAsk.getSupportedFunctionalities(maxAvailableResources);
     ModelPool availableResources = organization_model::Algebra::max(maxAvailableResources, functionalities);
 
     return Algebra::delta(requiredResources, availableResources);
@@ -665,7 +671,6 @@ void SolutionAnalysis::quantifyTime()
 
     tcn.stpWithConjunctiveIntervals();
     tcn.stp();
-    graph_analysis::io::GraphIO::write("/tmp/test-distance-graph.dot", tcn.getDistanceGraph());
     tcn.minNetwork();
 
     mTimeAssignment = TemporalConstraintNetwork::getAssignment(tcn.getDistanceGraph(), mSolutionNetwork.getTimepoints());
@@ -719,6 +724,8 @@ void SolutionAnalysis::computeSafety(bool ignoreStartDepot)
                             << "    at: " << ftr.getLocation()->toString() << std::endl
                             << "    over: " <<  std::endl
                             << ftr.getInterval().toString(8) << std::endl
+                            << ftr.toString(8) << std::endl
+                            << tuple->toString() << std::endl
                             << e.what();
                         value = 0.0;
                     }

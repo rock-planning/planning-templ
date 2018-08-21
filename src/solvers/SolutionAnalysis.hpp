@@ -289,6 +289,7 @@ private:
     /// The cost per role
     std::map<Role, double> mEfficiencyPerRole;
 
+    organization_model::OrganizationModelAsk mAsk;
     organization_model::Analyser mAnalyser;
 
     qxcfg::Configuration mConfiguration;
