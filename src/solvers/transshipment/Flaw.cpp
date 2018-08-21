@@ -67,7 +67,10 @@ std::string Flaw::toString(size_t indent) const
         case ConstraintViolation::TotalTransFlow:
                 ss << hspace << "TotalTransflow violation in timeline:" << std::endl;
                 break;
-
+        case ConstraintViolation::FlowBalance:
+                ss << hspace << "Flow Balance violation in timeline:" <<
+                    std::endl;
+                break;
     }
     ss << mViolation.toString(indent + 8) << std::endl;
     ss << hspace << "    context:" << std::endl;
