@@ -535,74 +535,69 @@ void TransportNetwork::initializeMinMaxConstraints()
 {
     Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mpMission->getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
 
+    // TODO: change to using MissionConstraintManager
     // For debugging purposes
     ConstraintMatrix constraintMatrix(mAvailableModels);
+    using namespace solvers::temporal;
+    std::vector<FluentTimeResource>::const_iterator fit = mResourceRequirements.begin();
+    for(; fit != mResourceRequirements.end(); ++fit)
     {
-        using namespace solvers::temporal;
+        const FluentTimeResource& fts = *fit;
+
+        LOG_DEBUG_S << "(A) Define requirement: " << fts.toString()
+                    << "        available models: " << mAvailableModels << std::endl;
+
+        // row: index of requirement
+        // col: index of model type
+        size_t requirementIndex = fit - mResourceRequirements.begin();
+        for(size_t mi = 0; mi < mAvailableModels.size(); ++mi)
         {
-            std::vector<FluentTimeResource>::const_iterator fit = mResourceRequirements.begin();
-            for(; fit != mResourceRequirements.end(); ++fit)
+            Gecode::IntVar v = resourceDistribution(mi, requirementIndex);
+            uint32_t minCardinality = 0;
+            const owlapi::model::IRI& model = mAvailableModels[mi];
             {
-                const FluentTimeResource& fts = *fit;
-
-                LOG_DEBUG_S << "(A) Define requirement: " << fts.toString()
-                            << "        available models: " << mAvailableModels << std::endl;
-
-                // row: index of requirement
-                // col: index of model type
-                size_t requirementIndex = fit - mResourceRequirements.begin();
-                for(size_t mi = 0; mi < mAvailableModels.size(); ++mi)
+                // default min requirement is 0 for a model
+                /// Consider resource cardinality constraint
+                /// Check what is set for the given model
+                organization_model::ModelPool::const_iterator cardinalityIt =
+                    fts.getMinCardinalities().find(model);
+                if(cardinalityIt != fts.getMinCardinalities().end())
                 {
-                    Gecode::IntVar v = resourceDistribution(mi, requirementIndex);
-                    uint32_t minCardinality = 0;
-                    {
-                        // default min requirement is 0 for a model
-                        /// Consider resource cardinality constraint
-                        /// Check what is set for the given model
-                        LOG_DEBUG_S << "Check min cardinality for " << mAvailableModels[mi];
-                        organization_model::ModelPool::const_iterator cardinalityIt = fts.getMinCardinalities().find( mAvailableModels[mi] );
-                        if(cardinalityIt != fts.getMinCardinalities().end())
-                        {
-                            minCardinality = cardinalityIt->second;
-                            LOG_DEBUG_S << "Found resource minimum cardinality constraint: " << std::endl
-                                << "    " << mAvailableModels[mi] << ": minCardinality " << minCardinality;
-                        }
-                        constraintMatrix.setMin(requirementIndex, mi, minCardinality);
-                        rel(*this, v, Gecode::IRT_GQ, minCardinality);
-                    }
-
-                    uint32_t maxCardinality = mModelPool[ mAvailableModels[mi] ];
-                    // setting the upper bound for this model and this service
-                    // based on what the model pool can provide
-                    constraintMatrix.setMax(requirementIndex, mi, maxCardinality);
-                    rel(*this, v, Gecode::IRT_LQ, maxCardinality);
-
-
-                    LOG_DEBUG_S << "requirement: " << requirementIndex
-                        << ", model: " << mi
-                        << " IRT_GQ " << minCardinality << ", IRT_LQ: " << maxCardinality;
+                    minCardinality = cardinalityIt->second;
                 }
-
-                // there can be no empty assignment for resource requirement
-                rel(*this, sum( resourceDistribution.row(requirementIndex) ) > 0);
-                if(this->failed())
-                {
-                    LOG_WARN_S << "Encountered an empty assignment for a resource requirement"
-                        << fts.toString(4);
-                }
-
-                // This can be equivalently modelled using a linear constraint
-                // Gecode::IntArgs c(mAvailableModels.size());
-                // for(size_t mi = 0; mi < mAvailableModels.size(); ++mi)
-                //    c[mi] = 1;
-                // linear(*this, c, resourceDistribution.row(requirementIndex), Gecode::IRT_GR, 0);
+                constraintMatrix.setMin(requirementIndex, mi, minCardinality);
+                rel(*this, v, Gecode::IRT_GQ, minCardinality);
             }
+
+            uint32_t maxCardinality = mModelPool[ model ];
+            // setting the upper bound for this model and this service
+            // based on what the model pool can provide
+            constraintMatrix.setMax(requirementIndex, mi, maxCardinality);
+            rel(*this, v, Gecode::IRT_LQ, maxCardinality);
+
+            LOG_DEBUG_S << "requirement: " << requirementIndex
+                << ", model: " << mi
+                << " IRT_GQ " << minCardinality << ", IRT_LQ: " << maxCardinality;
         }
 
-        std::vector<std::string> rowNames =
-            FluentTimeResource::toQualificationStringList(mResourceRequirements.begin(),
-                mResourceRequirements.end());
-        LOG_INFO_S << constraintMatrix.toString(rowNames);
+        // there can be no empty assignment for resource requirement
+        rel(*this, sum( resourceDistribution.row(requirementIndex) ) > 0);
+        if(this->failed())
+        {
+            LOG_WARN_S << "Encountered an empty assignment for a resource requirement"
+                << fts.toString(4);
+        }
+    }
+
+    std::vector<std::string> rowNames =
+        FluentTimeResource::toQualificationStringList(mResourceRequirements.begin(),
+            mResourceRequirements.end());
+    LOG_INFO_S << constraintMatrix.toString(rowNames);
+    if(msInteractive)
+    {
+        std::cout << "InitializeMinMax: final constraint matrix: " << constraintMatrix.toString(rowNames) << std::endl;
+        std::cout << "Press ENTER to continue..."  << std::endl;
+        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
     }
 }
 

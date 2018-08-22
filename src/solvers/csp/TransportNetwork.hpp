@@ -357,7 +357,8 @@ protected:
     void initializeTemporalConstraintNetwork();
 
     /**
-     * Set the cardinality constraints
+     * Set the cardinality constraints as defined in the
+     * mission specification
      */
     void initializeMinMaxConstraints();
 
