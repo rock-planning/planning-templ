@@ -540,10 +540,6 @@ void TransportNetwork::initializeMinMaxConstraints()
     for(; fit != mResourceRequirements.end(); ++fit)
     {
         const FluentTimeResource& fts = *fit;
-
-        LOG_DEBUG_S << "(A) Define requirement: " << fts.toString()
-                    << "        available models: " << mAvailableModels << std::endl;
-
         // row: index of requirement
         // col: index of model type
         size_t requirementIndex = fit - mResourceRequirements.begin();
@@ -573,7 +569,7 @@ void TransportNetwork::initializeMinMaxConstraints()
             rel(*this, v, Gecode::IRT_LQ, maxCardinality);
 
             LOG_DEBUG_S << "requirement: " << requirementIndex
-                << ", model: " << mi
+                << ", model: " << model
                 << " IRT_GQ " << minCardinality << ", IRT_LQ: " << maxCardinality;
         }
 
@@ -581,8 +577,11 @@ void TransportNetwork::initializeMinMaxConstraints()
         rel(*this, sum( resourceDistribution.row(requirementIndex) ) > 0);
         if(this->failed())
         {
-            LOG_WARN_S << "Encountered an empty assignment for a resource requirement"
+            LOG_WARN_S << "Encountered an empty assignment for a resource requirement" << std::endl
+                << "requirement index: " << requirementIndex << std::endl
+                << resourceDistribution.row(requirementIndex) << std::endl
                 << fts.toString(4);
+            return;
         }
     }
 
@@ -909,7 +908,6 @@ void TransportNetwork::enforceUnaryResourceUsage()
             for(const FluentTimeResource& fts : concurrentFluents)
             {
                 size_t row = FluentTimeResource::getIndex(mResourceRequirements, fts);
-                LOG_DEBUG_S << "    index: " << roleIndex << "/" << row;
                 Gecode::IntVar v = roleDistribution(roleIndex, row);
                 args << v;
             }
@@ -1416,8 +1414,15 @@ void TransportNetwork::postTemporalConstraints()
     // Sort the timepoints according
     TemporalConstraintNetworkBase::sort(*mpQualitativeTemporalConstraintNetwork, mTimepoints);
 
+    mResourceRequirements = Mission::getResourceRequirements(mpMission);
+    if(mResourceRequirements.empty())
+    {
+        throw std::invalid_argument("templ::solvers::csp::TransportNetwork: no resource requirements given");
+    }
     if(msInteractive)
     {
+        std::cout << "Requirements:" << std::endl;
+        std::cout << FluentTimeResource::toString(mResourceRequirements, 4);
         std::cout << "Timepoints: " << mTimepoints << std::endl;
         std::cout << mQualitativeTimepoints << std::endl;
         std::cout << "Press ENTER to continue..."  << std::endl;
@@ -1425,11 +1430,6 @@ void TransportNetwork::postTemporalConstraints()
     }
     // update timepoint comparator for intervals
 
-    mResourceRequirements = Mission::getResourceRequirements(mpMission);
-    if(mResourceRequirements.empty())
-    {
-        throw std::invalid_argument("templ::solvers::csp::TransportNetwork: no resource requirements given");
-    }
     FluentTimeResource::updateIndices(mResourceRequirements,
             mLocations);
 
