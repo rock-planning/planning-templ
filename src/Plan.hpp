@@ -44,6 +44,8 @@ public:
      */
     std::string toString(uint32_t indent = 0) const;
 
+    static std::string toString(const RoleBasedPlan& roleBasedPlan, uint32_t indent = 0);
+
     /**
      * Create a string representation of plans
      */

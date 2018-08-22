@@ -89,6 +89,22 @@ void Plan::saveGraph(const std::string& filename) const
     graph_analysis::io::GraphIO::write(filename, mpBaseGraph);
 }
 
+std::string Plan::toString(const RoleBasedPlan& plan, uint32_t indent)
+{
+    std::string hspace(indent,' ');
+    std::stringstream ss;
+
+    for(const RoleBasedPlan::value_type& p : plan)
+    {
+        ss << hspace << p.first.toString() << std::endl;
+        for(const graph_analysis::Vertex::Ptr& waypoint : p.second)
+        {
+            ss << hspace << "    " << waypoint->toString() << std::endl;
+        }
+    }
+    return ss.str();
+}
+
 std::string Plan::toString(const ActionPlan& plan, uint32_t indent)
 {
     std::string hspace(indent,' ');
