@@ -173,13 +173,19 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
         {
             for(const std::pair<owlapi::model::IRI,size_t> p : ftr.getMinCardinalities())
             {
-                models.insert(p.first);
+                if(p.second > 0)
+                {
+                    models.insert(p.first);
+                }
             }
         }
         {
             for(const std::pair<owlapi::model::IRI,size_t> p : ftr.getMaxCardinalities())
             {
-                models.insert(p.first);
+                if(p.second != std::numeric_limits<size_t>::max())
+                {
+                    models.insert(p.first);
+                }
             }
         }
         for(const owlapi::model::IRI& model : models)
@@ -228,6 +234,21 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
 
                 XMLUtils::endElement(writer); // end resource
             }
+        }
+
+        for(const organization_model::Resource& r : ftr.getRequiredResources())
+        {
+            XMLUtils::startElement(writer, "resource");
+            XMLUtils::startElement(writer, "model");
+            XMLUtils::writeString(writer, r.getModel().toString());
+            XMLUtils::endElement(writer); // end model;
+
+            std::stringstream sm;
+            sm << 1;
+            XMLUtils::startElement(writer, "minCardinality");
+            XMLUtils::writeString(writer, sm.str());
+            XMLUtils::endElement(writer); // end minCardinality
+            XMLUtils::endElement(writer); // end resource
         }
         XMLUtils::endElement(writer); // end resource-requirement
         XMLUtils::endElement(writer); // end requirement
