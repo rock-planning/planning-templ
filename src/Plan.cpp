@@ -374,13 +374,24 @@ void Plan::computeGraph() const
                         }
                     } else if(edges.empty())
                     {
-                        throw std::runtime_error("templ::Plan::computeGraphAndActionPlan: item can not be routed, neither a transport provider is available, nor is this a local transition");
+                        std::stringstream msg;
+                        msg << "templ::Plan::computeGraphAndActionPlan:";
+                        msg << "item can not be routed, neither a transport";
+                        msg << " provider is available, nor is this a local";
+                        msg << " transition -  from '" << previousWaypoint->toString() << "'";
+                        msg << " to '" << currentWaypoint->toString();
+                        msg << " for role '" << role.toString() << std::endl;
+                        msg << " Rolebased plan: " << toString(mRolebasedPlan);
+                        LOG_WARN_S << msg.str();
                     }else {
                         assert(edges.size() == 1);
                         capacityLink = dynamic_pointer_cast<CapacityLink>(edges[0]);
                     }
 
-                    capacityLink->addConsumer(role, capacityUsage);
+                    if(capacityLink)
+                    {
+                        capacityLink->addConsumer(role, capacityUsage);
+                    }
                 }
                 previousWaypoint = currentWaypoint;
             }
