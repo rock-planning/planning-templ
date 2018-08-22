@@ -80,18 +80,6 @@ void CapacityLink::addConsumer(const Role& role, uint32_t capacity)
         throw std::invalid_argument("templ::CapacityLink::addConsumer: consumer '" + role.toString() + "'"
                 "does already exist for this link");
     }
-    uint32_t remainingCapacity = getRemainingCapacity();
-
-    if(remainingCapacity < capacity)
-    {
-        std::stringstream ss;
-        ss << "templ::CapacityLink::addConsumer: consumer '" << role.toString() << "'"
-            << "cannot be added, since there is not enough capacity left: '" << remainingCapacity
-            << "' of '" << mMaxCapacity << "'";
-        LOG_WARN_S << ss.str();
-       // throw std::runtime_error(ss.str());
-    }
-
     mUsedCapacity[role] = capacity;
 }
 
