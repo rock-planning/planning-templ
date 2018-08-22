@@ -638,7 +638,7 @@ void SolutionAnalysis::quantifyTime()
         RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(sourceTuple);
         double reconfigurationCost = 0;
         try {
-            roleInfo->getAttribute(RoleInfo::RECONFIGURATION_COST);
+            reconfigurationCost = roleInfo->getAttribute(RoleInfo::RECONFIGURATION_COST);
         } catch(const std::exception& e)
         {
             LOG_WARN_S << "No reconfiguration cost for " << roleInfo->toString(4);
