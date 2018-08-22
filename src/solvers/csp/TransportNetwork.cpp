@@ -942,10 +942,8 @@ Gecode::Symmetries TransportNetwork::identifySymmetries()
 
     Gecode::Symmetries symmetries;
     // define interchangeable columns for roles of the same model type
-    owlapi::model::IRIList::const_iterator ait = mAvailableModels.begin();
-    for(; ait != mAvailableModels.end(); ++ait)
+    for(const owlapi::model::IRI& currentModel : mAvailableModels)
     {
-        const owlapi::model::IRI& currentModel = *ait;
         LOG_INFO_S << "Starting symmetry column for model: " << currentModel.toString();
         Gecode::IntVarArgs sameModelColumns;
         for(int c = 0; c < roleDistribution.width(); ++c)
@@ -958,7 +956,6 @@ Gecode::Symmetries TransportNetwork::identifySymmetries()
         }
         symmetries << VariableSequenceSymmetry(sameModelColumns, roleDistribution.height());
     }
-
     return symmetries;
 }
 
