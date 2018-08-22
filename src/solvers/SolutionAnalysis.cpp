@@ -18,6 +18,10 @@ using namespace organization_model;
 namespace templ {
 namespace solvers {
 
+SolutionAnalysis::SolutionAnalysis()
+    : mAnalyser(organization_model::OrganizationModelAsk())
+{}
+
 SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
         const SpaceTime::Network& solution,
         qxcfg::Configuration configuration)
@@ -350,11 +354,17 @@ SolutionAnalysis::MinMaxModelPools SolutionAnalysis::getRequiredResources(const 
     throw std::invalid_argument("templ::solvers::SolutionAnalysis::getRequiredResources: could not find the corrensponding requirement for an existing fluent time resource");
 }
 
-void SolutionAnalysis::analyse()
+void SolutionAnalysis::propagateTemporalConstraints()
 {
     mPlan = computePlan();
     computeReconfigurationCost();
     quantifyTime();
+}
+
+void SolutionAnalysis::analyse()
+{
+    propagateTemporalConstraints();
+
     mTimepoints = mSolutionNetwork.getTimepoints();
 
     //updateAnalyser();

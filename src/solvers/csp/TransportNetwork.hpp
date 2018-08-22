@@ -18,6 +18,7 @@
 #include "TemporalConstraintNetwork.hpp"
 #include "Types.hpp"
 #include "utils/FluentTimeIndex.hpp"
+#include "../SolutionAnalysis.hpp"
 
 namespace templ {
 namespace solvers {
@@ -56,6 +57,7 @@ public:
         RoleDistribution mRoleDistribution;
         SpaceTime::Timelines mTimelines;
         SpaceTime::Network mMinCostFlowSolution;
+        SolutionAnalysis mSolutionAnalysis;
 
     public:
         const ModelDistribution& getModelDistribution() const { return mModelDistribution; }
@@ -65,6 +67,12 @@ public:
         SpaceTime::Network toNetwork() const;
 
         SpaceTime::Network getMinCostFlowSolution() const { return mMinCostFlowSolution; }
+
+        /**
+         * Get the solution analysis that corresponds to this
+         * solution
+         */
+        const SolutionAnalysis& getSolutionAnalysis() const  { return mSolutionAnalysis; }
     };
 
     typedef std::vector<Solution> SolutionList;
@@ -239,6 +247,8 @@ protected:
 
     /// List of extra constraints
     Constraint::PtrList mConstraints;
+
+    SolutionAnalysis mSolutionAnalysis;
 private:
 
     std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelPool::Set& set) const;

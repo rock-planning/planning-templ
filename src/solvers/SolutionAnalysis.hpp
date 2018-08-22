@@ -23,6 +23,8 @@ public:
     typedef std::pair< organization_model::ModelPool::List, organization_model::ModelPool::List >
         MinMaxModelPools;
 
+    SolutionAnalysis();
+
     /**
      * An existing solution will provide contain RoleInfoTuple as vertices
      * and An existing solution will provide contain RoleInfoTuple as vertices
@@ -45,6 +47,12 @@ public:
             qxcfg::Configuration configuration = qxcfg::Configuration());
 
     void updateAnalyser();
+
+    /**
+     * Propagate temporal constraints
+     * \throw std::runtime_error if propagation failed
+     */
+    void propagateTemporalConstraints();
 
     void analyse();
 

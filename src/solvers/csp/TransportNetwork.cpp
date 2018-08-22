@@ -355,6 +355,7 @@ TransportNetwork::Solution TransportNetwork::getSolution() const
         solution.mLocations = mLocations;
         solution.mTimepoints = mTimepoints;
         solution.mMinCostFlowSolution = mMinCostFlowSolution;
+        solution.mSolutionAnalysis = mSolutionAnalysis;
     } catch(std::exception& e)
     {
         LOG_WARN_S << e.what();
@@ -387,16 +388,12 @@ void TransportNetwork::saveSolution(const Solution& solution, const Mission::Ptr
     }
 
     std::cout << "Solution analysis" << std::endl;
-    solvers::SolutionAnalysis sa(mission, solution.getMinCostFlowSolution());
-    sa.analyse();
     try {
-        sa.save();
+        solution.getSolutionAnalysis().save();
     } catch(const std::exception& e)
     {
         LOG_WARN_S << "Saving solution analysis failed: -- " << e.what();
     }
-
-
 }
 
 TransportNetwork::ModelDistribution TransportNetwork::getModelDistribution() const
@@ -966,9 +963,10 @@ TransportNetwork::TransportNetwork(TransportNetwork& other)
     , mFlawResolution(other.mFlawResolution)
     , mConfiguration(other.mConfiguration)
     , mUseMasterSlave(other.mUseMasterSlave)
-    , mpCurrentMaster(other.mpCurrentMaster)
     , mTemporalConstraintNetwork(other.mTemporalConstraintNetwork)
     , mpQualitativeTemporalConstraintNetwork(other.mpQualitativeTemporalConstraintNetwork)
+    , mpCurrentMaster(other.mpCurrentMaster)
+    , mSolutionAnalysis(other.mSolutionAnalysis)
 {
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
@@ -1894,17 +1892,22 @@ void TransportNetwork::postMinCostFlow()
         rel(*this, mCost, Gecode::IRT_EQ, mMinCostFlowFlaws.size());
         rel(*this, mNumberOfFlaws, Gecode::IRT_EQ, mMinCostFlowFlaws.size());
 
+        mSolutionAnalysis = solvers::SolutionAnalysis(mpMission, mMinCostFlowSolution);
+        mSolutionAnalysis.analyse();
+
         // Set flaws as well
         bool allowFlaws = mConfiguration.getValueAs<bool>("TransportNetwork/search/options/allow-flaws", true);
         if(!mMinCostFlowFlaws.empty() && !allowFlaws)
         {
             this->fail();
+            return;
         }
 
     } catch(const std::runtime_error& e)
     {
-        // Min cost flow optimization
-        std::cout << "templ::solvers::csp::TransportNetwork: could not find solution: " << e.what() << std::endl;
+        // Min cost flow optimization or negative cycle checking
+        LOG_WARN_S << "templ::solvers::csp::TransportNetwork: could not find"
+            << " solution: " << e.what();
         this->fail();
         return;
     }
