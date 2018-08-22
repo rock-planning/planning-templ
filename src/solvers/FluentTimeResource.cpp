@@ -425,8 +425,12 @@ organization_model::Resource::Set FluentTimeResource::getRequiredResources() con
 void FluentTimeResource::addRequiredResource(const organization_model::Resource& resource)
 {
     mResources.insert(resource.getModel());
-    mRequiredResources.insert(resource);
-    mRequiredResources = organization_model::Resource::merge(mRequiredResources);
+    if(mpMission->getOrganizationModelAsk().ontology().isSubClassOf(resource.getModel(),
+                    organization_model::vocabulary::OM::Functionality()))
+    {
+        mRequiredResources.insert(resource);
+        mRequiredResources = organization_model::Resource::merge(mRequiredResources);
+    }
 }
 
 void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements)
@@ -462,6 +466,10 @@ void FluentTimeResource::merge(const FluentTimeResource& otherFtr)
         << otherFtr.toString() << std::endl;
 
     mResources.insert(otherFtr.mResources.begin(), otherFtr.mResources.end());
+    mRequiredResources.insert(otherFtr.mRequiredResources.begin(),
+            otherFtr.mRequiredResources.end());
+    mRequiredResources = organization_model::Resource::merge(mRequiredResources);
+
     mMinCardinalities = organization_model::Algebra::max(mMinCardinalities,
             otherFtr.mMinCardinalities);
     mMaxCardinalities = organization_model::Algebra::min(mMaxCardinalities,

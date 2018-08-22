@@ -371,9 +371,10 @@ void Mission::validateAvailableResources() const
 void Mission::updateMaxCardinalities(solvers::FluentTimeResource& ftr) const
 {
     organization_model::ModelPool maxCardinalities = ftr.getMaxCardinalities();
-    organization_model::ModelPool maxAvailability = getAvailableResources();
 
-    organization_model::ModelPool newMax = organization_model::Algebra::min(maxCardinalities, maxAvailability);
+    organization_model::ModelPool newMax =
+        organization_model::Algebra::min(maxCardinalities,
+                mModelPool);
     ftr.setMaxCardinalities(newMax);
 }
 
@@ -639,15 +640,11 @@ solvers::FluentTimeResource Mission::fromLocationCardinality(const solvers::temp
             , resourceModel
             , location
             , interval
+            , mission->getAvailableResources()
     );
 
     owlapi::model::OWLOntologyAsk ask = mission->getOrganizationModelAsk().ontology();
-    if(ask.isSubClassOf(resourceModel, organization_model::vocabulary::OM::Functionality()))
-    {
-        // retrieve upper bound
-        ftr.setMaxCardinalities( mission->mOrganizationModelAsk.getFunctionalSaturationBound(resourceModel) );
-
-    } else if(ask.isSubClassOf(resourceModel, organization_model::vocabulary::OM::Actor()))
+    if(ask.isSubClassOf(resourceModel, organization_model::vocabulary::OM::Actor()))
     {
         switch(locationCardinality->getCardinalityRestrictionType())
         {
@@ -655,19 +652,22 @@ solvers::FluentTimeResource Mission::fromLocationCardinality(const solvers::temp
             {
                 size_t min = ftr.getMinCardinalities().getValue(resourceModel, std::numeric_limits<size_t>::min());
                 ftr.setMinCardinalities(resourceModel, std::max(min, (size_t) locationCardinality->getCardinality()) );
-                ftr.setMaxCardinalities(resourceModel, std::numeric_limits<size_t>::max());
                 break;
             }
             case owlapi::model::OWLCardinalityRestriction::MAX :
             {
                 size_t max = ftr.getMaxCardinalities().getValue(resourceModel, std::numeric_limits<size_t>::max());
                 ftr.setMaxCardinalities(resourceModel, std::min(max, (size_t) locationCardinality->getCardinality()));
-                ftr.setMinCardinalities(resourceModel, 0);
                 break;
             }
             default:
                 break;
         }
+    } else if(ask.isSubClassOf(resourceModel,
+                organization_model::vocabulary::OM::Functionality()))
+    {
+        //  nothing to do since constructor of FluentTimeResource will handle
+        //  the existence constraint min/maxCard == 1 for functionality
     } else {
         throw std::invalid_argument("templ::Mission::fromLocationCardinality: Unsupported state variable: " + resourceModel.toString());
     }
