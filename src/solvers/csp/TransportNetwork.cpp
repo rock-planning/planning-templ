@@ -642,7 +642,6 @@ void TransportNetwork::setUpperBoundForConcurrentRequirements()
 {
     Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mpMission->getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
 
-    // Part (B) General resource constraints
     // - identify overlapping fts, limit resources for these
     std::vector< std::vector<FluentTimeResource> > concurrentRequirements;
     bool nooverlap = mConfiguration.getValueAs<bool>("TransportNetwork/intervals-nooverlap",false);
@@ -660,19 +659,12 @@ void TransportNetwork::setUpperBoundForConcurrentRequirements()
         concurrentRequirements = FluentTimeResource::getMutualExclusive(mResourceRequirements, tpc);
     }
 
-    std::vector< std::vector<FluentTimeResource> >::const_iterator cit = concurrentRequirements.begin();
-    for(; cit != concurrentRequirements.end(); ++cit)
+    for(const std::vector<FluentTimeResource>& concurrentFluents :
+            concurrentRequirements)
     {
-        LOG_DEBUG_S << "Concurrent requirements";
-        const std::vector<FluentTimeResource>& concurrentFluents = *cit;
-        std::vector<FluentTimeResource>::const_iterator fit = concurrentFluents.begin();
-        for(; fit != concurrentFluents.end(); ++fit)
-        {
-        }
-
         for(size_t mi = 0; mi < mAvailableModels.size(); ++mi)
         {
-            LOG_DEBUG_S << "    model: " << mAvailableModels[ mi ].toString();
+            const owlapi::model::IRI& model = mAvailableModels[mi];
             Gecode::IntVarArgs args;
 
             std::vector<FluentTimeResource>::const_iterator fit = concurrentFluents.begin();
@@ -681,18 +673,9 @@ void TransportNetwork::setUpperBoundForConcurrentRequirements()
                 size_t fluentIdx = FluentTimeResource::getIndex(mResourceRequirements, *fit);
                 Gecode::IntVar v = resourceDistribution(mi,fluentIdx);
                 args << v;
-
-                LOG_DEBUG_S << "    index: " << mi << "/" << fluentIdx
-                    << std::endl << fit->getInterval().toString(4)
-                    << std::endl << fit->getLocation()->toString(4) <<
-                    std::endl;
-                std::cout << "    index: " << mi << "/" << fluentIdx
-                    << std::endl << fit->getInterval().toString(4)
-                    << std::endl << fit->getLocation()->toString(4) <<
-                    std::endl;
             }
 
-            uint32_t maxCardinality = mModelPool[ mAvailableModels[mi] ];
+            uint32_t maxCardinality = mModelPool[ model ];
             LOG_DEBUG_S << "Add general resource usage constraint: " << std::endl
                 << "     " << mAvailableModels[mi].toString() << "# <= " << maxCardinality;
             rel(*this, sum(args) <= maxCardinality);
@@ -793,6 +776,9 @@ void TransportNetwork::initializeRoleDistributionConstraints()
         }
         if(!forceMinimumRoleUsage)
         {
+            // Making sure the total offset of model instances does not exceed the
+            // given bound, i.e. if model bound is 2, that means only two
+            // additional model instances will be available
             if(mobileBoundedRoleUsage)
             {
                 rel(*this, sum(mobileModelBounds) <= mobileRoleUsageBoundOffset);
@@ -1530,18 +1516,8 @@ void TransportNetwork::postTemporalConstraints()
     //  - identify overlapping fts, limit resources for these (TODO: better
     //    identification of overlapping requirements)
     //
-    // TODO: in brancher since its time dependant
     setUpperBoundForConcurrentRequirements();
-    if(msInteractive)
-    {
-        std::cout << "Press ENTER to continue..."  << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
-
-
     // There can be only one assignment per role
-    //
-    // TODO: in brancher since its time dependant
     enforceUnaryResourceUsage();
 }
 
@@ -1851,7 +1827,6 @@ void TransportNetwork::postMinCostFlow()
         activeMinimalTimelines[role] = minimalTimelines[role];
     }
 
-    //assert(!timelines.empty());
     try {
         if(msInteractive)
         {
