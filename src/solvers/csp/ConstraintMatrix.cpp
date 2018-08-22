@@ -33,7 +33,7 @@ std::string ConstraintMatrix::toString(const std::vector<std::string>& rowNames)
 
         if(!rowNames.empty())
         {
-            ss << rowNames[row.first];
+            ss << "    " << rowNames[row.first];
         }
 
         ss << std::endl;
