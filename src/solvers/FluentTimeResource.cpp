@@ -71,8 +71,6 @@ std::string FluentTimeResource::toString(uint32_t indent) const
         << mMaxCardinalities.toString(indent + 8) << std::endl;
     ss << hspace << "    min cardinalities: " << std::endl
         << mMinCardinalities.toString(indent + 8) << std::endl;
-    ss << hspace << "    sat cardinalities: " << std::endl
-        << mSatisficingCardinalities.toString(indent + 8) << std::endl;
     ss << hspace << "    resulting domain: " << std::endl;
     organization_model::ModelPool::Set domain = getDomain();
     organization_model::ModelPool::Set::const_iterator dit = domain.begin();
@@ -121,11 +119,6 @@ void FluentTimeResource::setMinCardinalities(const owlapi::model::IRI& model, si
 void FluentTimeResource::setMaxCardinalities(const owlapi::model::IRI& model, size_t cardinality)
 {
     mMaxCardinalities[model] = cardinality;
-}
-
-void FluentTimeResource::setSatisficingCardinalities(const owlapi::model::IRI& model, size_t cardinality)
-{
-    mSatisficingCardinalities[model] = cardinality;
 }
 
 void FluentTimeResource::sortForEarlierEnd(List& requirements,
@@ -473,8 +466,6 @@ void FluentTimeResource::merge(const FluentTimeResource& otherFtr)
             otherFtr.mMinCardinalities);
     mMaxCardinalities = organization_model::Algebra::min(mMaxCardinalities,
             otherFtr.mMaxCardinalities);
-    mSatisficingCardinalities = organization_model::Algebra::max(mSatisficingCardinalities,
-            otherFtr.mSatisficingCardinalities);
 
     LOG_DEBUG_S << "Result:" << toString(8);
 }
@@ -553,20 +544,6 @@ void FluentTimeResource::incrementResourceMinCardinality(const owlapi::model::IR
 {
     mResources.insert(model);
     mMinCardinalities[model] += number;
-}
-
-void FluentTimeResource::updateSatisficingCardinalities()
-{
-    using namespace organization_model;
-    Resource::Set requiredResources = getRequiredResources();
-
-    ModelPool saturation = mpMission->getOrganizationModelAsk().getFunctionalSaturationBound(requiredResources);
-    ModelPool satisficingCardinalities = Algebra::min(mpMission->getAvailableResources(), saturation);
-
-    // Resource constraints might enforce a minimum cardinality that is higher than the functional saturation bound
-    // thus update the max cardinalities
-    satisficingCardinalities = organization_model::Algebra::min(mMaxCardinalities, mSatisficingCardinalities);
-    satisficingCardinalities = organization_model::Algebra::max(mMinCardinalities, mSatisficingCardinalities);
 }
 
 bool FluentTimeResource::areMutualExclusive(const FluentTimeResource& ftrA,

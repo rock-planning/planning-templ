@@ -547,7 +547,6 @@ void MissionConstraints::addResourceRequirement(std::vector<FluentTimeResource>&
     LOG_DEBUG_S << "Fluent before adding function requirement: " << ftr.toString();
 
     ftr.addRequiredResource(resource);
-    ftr.updateSatisficingCardinalities();
 
     // TODO: should max be really changed here, it should be rather min to be
     // updated -- though it can be checked here if max cardinalities are not

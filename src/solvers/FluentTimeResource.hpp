@@ -169,21 +169,6 @@ public:
     void setMaxCardinalities(const owlapi::model::IRI& model, size_t cardinality);
 
     /**
-     * Get the satisficing cardinalities for the required resources
-     */
-    const organization_model::ModelPool& getSatisficingCardinalities() const { return mSatisficingCardinalities; }
-
-    /**
-     * Set the satisficing cardinalities for the required resources
-     */
-    void setSatisficingCardinalities(const organization_model::ModelPool& m) { mSatisficingCardinalities = m; }
-
-    /**
-     * Set the satisficing cardinality for a particular resource
-     */
-    void setSatisficingCardinalities(const owlapi::model::IRI& model, size_t cardinality);
-
-    /**
      * Sort requirements based on earlier end point
      */
     static void sortForEarlierEnd(List& requirements,
@@ -289,18 +274,6 @@ public:
     void incrementResourceMinCardinality(const owlapi::model::IRI& model, size_t increment);
 
     /**
-     * Update the set of satisficing cardinalities by computing the functional
-     * saturation bound for the given functionalities and the existing
-     * organization model ask (which accounts for the overall available
-     * resources)
-     *
-     * Satisficying cardinalities has a lower bound at the minCardinalities and
-     * upper bound at the maxCardinalities
-     *
-     */
-    void updateSatisficingCardinalities();
-
-    /**
      */
     static bool areMutualExclusive(const FluentTimeResource& a , const FluentTimeResource& b,
             temporal::point_algebra::TimePointComparator tpc
@@ -341,10 +314,6 @@ private:
     organization_model::ModelPool mMinCardinalities;
     /// max cardinalities of the available models
     organization_model::ModelPool mMaxCardinalities;
-
-    /// satisficing cardinalities (functional saturation) of the available
-    /// models
-    organization_model::ModelPool mSatisficingCardinalities;
 };
 
 } // end namespace solvers
