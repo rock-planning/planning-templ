@@ -614,16 +614,11 @@ void SolutionAnalysis::quantifyTime()
         symbols::constants::Location::Ptr targetLocation = targetTuple->first();
 
         double distance = cost.getTravelDistance({sourceLocation, targetLocation});
-
         double minTravelTime = cost.estimateTravelTime(sourceLocation, targetLocation, roles);
         LOG_DEBUG_S << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
             << " from: " << sourceLocation->toString() << " to: " << targetLocation->toString()
             << std::endl
             << "Estimated travelDistance: " << distance;
-        std::cout << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
-            << " from: " << sourceLocation->toString() << " to: " << targetLocation->toString()
-            << std::endl
-            << "Estimated travelDistance: " << distance << std::endl;
 
         travelDistance += distance;
 
