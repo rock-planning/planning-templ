@@ -11,6 +11,8 @@ class LatexWriter
 public:
     static std::string toLatex(const Mission::Ptr& mission);
 
+    static std::string toLatex(const symbols::constants::Location::Ptr& location);
+
     static std::string toLatex(const solvers::FluentTimeResource& ftr);
 
     static std::string suffixNumber(const std::string& label);

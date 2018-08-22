@@ -14,7 +14,7 @@ std::string LatexWriter::toLatex(const Mission::Ptr& mission)
     ss << "\\begin{align*}" << std::endl;
 
     // General available
-    ss << "    \\widehat{GA}  &= \\{";
+    ss << "    \\widehat{GA}\n&= \\left \\{";
     ModelPool available = mission->getAvailableResources();
     for(const ModelPool::value_type& v : available)
     {
@@ -27,13 +27,13 @@ std::string LatexWriter::toLatex(const Mission::Ptr& mission)
 
 
     // Requirements
-    ss << "    STR ";
+    ss << "    STR" << std::endl;
     bool init = false;
     for(const solvers::FluentTimeResource& ftr : ftrs)
     {
         if(!init)
         {
-            ss << "      &= \\{";
+            ss << "     &= \\left \\{";
             init = true;
         } else {
             ss << "     & ";
@@ -41,19 +41,73 @@ std::string LatexWriter::toLatex(const Mission::Ptr& mission)
 
         ss << toLatex(ftr) << ", \\\\" << std::endl;
     }
-    ss << "    & \\}\\\\" << std::endl;
+    ss << "    & \\right \\}\\\\" << std::endl;
+
+    // Constraints
+    ss << "    \\mathcal{X}" << std::endl;
+    ss << "    &= \\left \\{ \\\\"  << std::endl;
+    ss << "    & \\right \\}" << std::endl;
+
+    // Organization Model
+    ss << "    \\mathcal{OM}" << std::endl;
+    ss << "    &= \\left \\{ \\\\"  << std::endl;
+    ss << "    & \\right \\}" << std::endl;
+
+    // Timepoints
+    ss << "    T\n";
+    init = false;
+    std::string labelString;
+    for(const solvers::temporal::point_algebra::TimePoint::Ptr& tp :
+            mission->getTimepoints())
+    {
+        if(labelString.size() < 40)
+        {
+            labelString += tp->getLabel() + ", ";
+        } else {
+            if(!init)
+            {
+                ss << "     &= \\left \\{ ";
+                init = true;
+            } else {
+                ss << "     & ";
+            }
+
+            labelString += tp->getLabel() + " \\\\";
+            ss << labelString << std::endl;
+        }
+    }
+    ss << "    & \\right \\}\\\\" << std::endl;
+
+    // Locations
+    ss << "    L" << std::endl;
+    init = false;
+    for(const symbols::constants::Location::Ptr& location :
+            mission->getLocations(true))
+    {
+        if(!init)
+        {
+            ss << "     &= \\left \\{ ";
+            init = true;
+        } else {
+            ss << "     & ";
+        }
+        ss << toLatex(location) << ", \\\\" << std::endl;
+    }
+    ss << "    & \\right \\} \\\\" << std::endl;
 
     ss << "\\end{align*}" << std::endl;
+    return ss.str();
+}
 
-    for(const symbols::constants::Location::Ptr& location : mission->getLocations(true))
-    {
-        base::Point point = location->getPosition();
-        std::string locationLabel = location->getInstanceName();
-        locationLabel = suffixNumber(locationLabel);
+std::string LatexWriter::toLatex(const symbols::constants::Location::Ptr& location)
+{
+    std::stringstream ss;
+    base::Point point = location->getPosition();
+    std::string locationLabel = location->getInstanceName();
+    locationLabel = suffixNumber(locationLabel);
 
-        ss << locationLabel << "= (" << point.x() << ","
-            << point.y() << ", " << point.z() << "), ";
-    }
+    ss << locationLabel << "= (" << point.x() << ","
+        << point.y() << "," << point.z() << ") ";
     return ss.str();
 }
 
