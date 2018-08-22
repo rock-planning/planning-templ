@@ -918,30 +918,21 @@ void TransportNetwork::enforceUnaryResourceUsage()
     std::vector< std::vector<FluentTimeResource> > concurrentRequirements =
         FluentTimeResource::getMutualExclusive(mResourceRequirements, tpc);
 
-    std::vector< std::vector<FluentTimeResource> >::const_iterator cit = concurrentRequirements.begin();
-    if(!concurrentRequirements.empty())
+    for(const FluentTimeResource::List& concurrentFluents : concurrentRequirements)
     {
-        for(; cit != concurrentRequirements.end(); ++cit)
+        for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
         {
-            const std::vector<FluentTimeResource>& concurrentFluents = *cit;
-            for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
+            Gecode::IntVarArgs args;
+            for(const FluentTimeResource& fts : concurrentFluents)
             {
-                Gecode::IntVarArgs args;
-
-                std::vector<FluentTimeResource>::const_iterator fit = concurrentFluents.begin();
-                for(; fit != concurrentFluents.end(); ++fit)
-                {
-                    size_t row = FluentTimeResource::getIndex(mResourceRequirements, *fit);
-                    LOG_DEBUG_S << "    index: " << roleIndex << "/" << row;
-                    Gecode::IntVar v = roleDistribution(roleIndex, row);
-                    args << v;
-                }
-                // there can only be one role active
-                rel(*this, sum(args) <= 1);
+                size_t row = FluentTimeResource::getIndex(mResourceRequirements, fts);
+                LOG_DEBUG_S << "    index: " << roleIndex << "/" << row;
+                Gecode::IntVar v = roleDistribution(roleIndex, row);
+                args << v;
             }
+            // there can only be one role active
+            rel(*this, sum(args) <= 1);
         }
-    } else {
-        LOG_DEBUG_S << "No concurrent requirements found";
     }
 }
 
