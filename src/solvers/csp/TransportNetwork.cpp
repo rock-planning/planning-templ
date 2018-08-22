@@ -608,41 +608,33 @@ void TransportNetwork::addExtensionalConstraints()
             /*width --> col*/ availableResourceCount,
             /*height --> row*/ mResourceRequirements.size());
 
-   std::vector<FluentTimeResource>::const_iterator fit = mResourceRequirements.begin();
-   for(; fit != mResourceRequirements.end(); ++fit)
+   size_t requirementIndex = 0;
+   for(const FluentTimeResource& ftr: mResourceRequirements)
    {
-        const FluentTimeResource& ftr = *fit;
-        if(!ftr.hasFunctionalityConstraint())
+        // Prepare the extensional constraints, i.e. specifying the allowed
+        // combinations for each requirement
+        organization_model::ModelPool::Set allowedCombinations = ftr.getDomain();
+        if(allowedCombinations.empty())
         {
-            LOG_DEBUG_S << "Fluent has no functionality constraints:\n"
-                << ftr.toString(4) << "\n"
-                << "    skipping extensional constraint generation";
-        } else {
-            LOG_DEBUG_S << "(A) Define requirement:\n" << ftr.toString(4)
-                        << "        available models: " << mAvailableModels << std::endl;
-
-            // row: index of requirement
-            // col: index of model type
-            size_t requirementIndex = fit - mResourceRequirements.begin();
-
-            // Prepare the extensional constraints, i.e. specifying the allowed
-            // combinations for each requirement
-            organization_model::ModelPool::Set allowedCombinations = ftr.getDomain();
-            if(allowedCombinations.empty())
-            {
-                LOG_WARN_S << "No allowed combinations available with the given constraints: failing this space";
-                this->failed();
-                return;
-            }
-            LOG_DEBUG_S << "ExtensionalConstraints: add ftr: " << ftr.toString();
-
-            // A tuple set is a fully expanded vector describing the cardinality for
-            // all available resources
-            Gecode::TupleSet tupleSet(availableResourceCount);
-            appendToTupleSet(tupleSet, allowedCombinations);
-            tupleSet.finalize();
-            extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
+            LOG_WARN_S << "No allowed combinations available with the given constraints: failing this space";
+            this->fail();
+            return;
         }
+        LOG_WARN_S << "Adding extensional constraint:\n" << ftr.toString(4);
+
+        // A tuple set is a fully expanded vector describing the cardinality for
+        // all available resources
+        Gecode::TupleSet tupleSet(availableResourceCount);
+        appendToTupleSet(tupleSet, allowedCombinations);
+        tupleSet.finalize();
+        extensional(*this, resourceDistribution.row(requirementIndex), tupleSet);
+        if(this->failed())
+        {
+            LOG_WARN_S  << "Adding extensional constraint lead to failed space"
+                << ftr.toString(4);
+            return;
+        }
+        ++requirementIndex;
    }
 }
 
