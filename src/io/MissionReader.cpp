@@ -278,6 +278,16 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                         mission.addConstraint(qtcp);
                     } else {
                         /// min/max duration
+                        if(temporalConstraint.minDuration >
+                                temporalConstraint.maxDuration)
+                        {
+                            std::stringstream ss;
+                            ss << "templ::io::MissionReader::fromFile:"
+                                << "temporal constraint invalid at line: " <<
+                                xmlGetLineNo(firstLevelChild);
+                            throw std::invalid_argument(ss.str());
+                        }
+
                         TimePoint::Ptr t0 = tcn->getOrCreateTimePoint(temporalConstraint.lval);
                         TimePoint::Ptr t1 = tcn->getOrCreateTimePoint(temporalConstraint.rval);
                         IntervalConstraint::Ptr intervalConstraint(new IntervalConstraint(t0,t1));
