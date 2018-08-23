@@ -12,17 +12,9 @@ SpaceTime::Timeline TypeConversion::toTimeline(const AdjacencyList& list,
             bool doThrow)
 {
     SpaceTime::Timeline timeline;
-    symbols::constants::Location::Ptr targetLocation;
     // find all timepoints
     for(size_t t = 0; t < timepoints.size();++t)
     {
-        if(t == timepoints.size() -1)
-        {
-            SpaceTime::Point stp(targetLocation, timepoints[t]);
-            timeline.push_back(stp);
-            break;
-        }
-
         for(size_t f = 0; f < locations.size(); ++f)
         {
             size_t idx = t*locations.size() + f;
@@ -33,23 +25,28 @@ SpaceTime::Timeline TypeConversion::toTimeline(const AdjacencyList& list,
                 if(doThrow)
                 {
                     throw std::invalid_argument("templ::solvers::csp::TypeConversion::toTimeline: cannot compute timeline, value is not assigned");
+                } else {
+                    // skip this timepoint -- since it is not assigned yet
+                    continue;
                 }
-                SpaceTime::Point stp(locations[0],timepoints[t]);
-                timeline.push_back(stp);
             }
-
+            // registration of source vertex
             if(var.lubSize() == 1)
             {
-                // cache the target location of this assignment
-                int target = var.lubMin();
-                targetLocation = locations[target%locations.size()];
+                symbols::constants::Location::Ptr currentLocation = locations[f];
+                if(timeline.empty() || timeline.back().second != timepoints[t])
+                {
+                    SpaceTime::Point stp(locations[f], timepoints[t]);
+                    timeline.push_back(stp);
+                }
 
-                SpaceTime::Point stp(locations[f], timepoints[t]);
+                // Add the target
+                int target = var.lubMin();
+                symbols::constants::Location::Ptr targetLocation = locations[target%locations.size()];
+                SpaceTime::Point stp(targetLocation, timepoints[t+1]);
                 timeline.push_back(stp);
+                // found assignment so continue with next timepoint
                 break;
-            } else {
-                // empty set
-                continue;
             }
         }
     }

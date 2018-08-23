@@ -55,7 +55,7 @@ public:
 
         ModelDistribution mModelDistribution;
         RoleDistribution mRoleDistribution;
-        SpaceTime::Timelines mTimelines;
+        std::map<Role, csp::RoleTimeline> mTimelines;
         SpaceTime::Network mMinCostFlowSolution;
         SolutionAnalysis mSolutionAnalysis;
 
@@ -204,6 +204,7 @@ protected:
     //
     // Activation if edge is traversed by this item or not
     ListOfAdjacencyLists mTimelines;
+    std::map<Role, csp::RoleTimeline> mMinRequiredTimelines;
 
     std::vector<int32_t> mSupplyDemand;
     // Map the transport characteristic: (|Locations|*|Timepoints|)^2
@@ -240,7 +241,7 @@ protected:
     TransportNetwork* mpCurrentMaster;
 
     typedef std::pair< std::vector<transshipment::Flaw>, SpaceTime::Network> FlowSolutionValue;
-    typedef std::pair<SpaceTime::Timelines, std::map<Role, csp::RoleTimeline> > FlowSolutionKey;
+    typedef std::pair< std::map<Role, csp::RoleTimeline>, std::map<Role, csp::RoleTimeline> > FlowSolutionKey;
     typedef std::map< FlowSolutionKey, FlowSolutionValue > FlowSolutions;
 
     static FlowSolutions msMinCostFlowSolutions;
@@ -354,7 +355,7 @@ protected:
     /**
      * Use the list of active role in order to compute a list of timelines
      */
-    SpaceTime::Timelines getTimelines() const;
+    std::map<Role, csp::RoleTimeline> getTimelines() const;
 
     /**
      * Identify the index of the given timepoint

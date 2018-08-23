@@ -78,14 +78,15 @@ std::string TransportNetwork::Solution::toString(uint32_t indent) const
     }
     {
         ss << hspace << "Timelines (" << mTimelines.size() << ")" << std::endl;
-        ss << hspace  << SpaceTime::toString(mTimelines);
+        ss << hspace  << RoleTimeline::toString(mTimelines, 4);
     }
     return ss.str();
 }
 
 SpaceTime::Network TransportNetwork::Solution::toNetwork() const
 {
-    return SpaceTime::toNetwork(mLocations, mTimepoints, mTimelines);
+    return SpaceTime::toNetwork(mLocations, mTimepoints,
+            RoleTimeline::collectTimelines(mTimelines) );
 }
 
 TransportNetwork::SearchState::SearchState(const Mission::Ptr& mission)
@@ -455,16 +456,28 @@ TransportNetwork::RoleDistribution TransportNetwork::getRoleDistribution() const
     return solution;
 }
 
-SpaceTime::Timelines TransportNetwork::getTimelines() const
+std::map<Role, csp::RoleTimeline> TransportNetwork::getTimelines() const
 {
+    std::map<Role, csp::RoleTimeline> roleTimelines;
     for(size_t i = 0; i < mActiveRoleList.size(); ++i)
     {
-        LOG_WARN_S << "Active role: " << i << " of " << mActiveRoleList.size() << " " << mActiveRoleList[i].toString() << std::endl
+        const Role& role = mActiveRoleList[i];
+        LOG_INFO_S << "Active role: " << i << " of " << mActiveRoleList.size() << " " << mActiveRoleList[i].toString() << std::endl
             << Formatter::toString(mTimelines[i], mLocations.size());
-    }
 
-    bool doThrow = false;
-    return TypeConversion::toTimelines(mActiveRoleList, mTimelines, mLocations, mTimepoints, doThrow);
+        bool doThrow = false;
+        SpaceTime::Timeline timeline = TypeConversion::toTimeline(mTimelines[i],
+                mLocations,
+                mTimepoints,
+                doThrow);
+
+        csp::RoleTimeline roleTimeline(role, mAsk);
+        roleTimeline.setTimeline(timeline);
+
+        roleTimelines[role] = roleTimeline;
+
+    }
+    return roleTimelines;
 }
 
 TransportNetwork::TransportNetwork()
@@ -955,14 +968,15 @@ TransportNetwork::TransportNetwork(TransportNetwork& other)
     , mRoles(other.mRoles)
     , mActiveRoles(other.mActiveRoles)
     , mActiveRoleList(other.mActiveRoleList)
+    , mMinRequiredTimelines(other.mMinRequiredTimelines)
     , mSupplyDemand(other.mSupplyDemand)
     , mMinCostFlowSolution(other.mMinCostFlowSolution)
     , mMinCostFlowFlaws(other.mMinCostFlowFlaws)
     , mFlawResolution(other.mFlawResolution)
     , mConfiguration(other.mConfiguration)
-    , mUseMasterSlave(other.mUseMasterSlave)
     , mTemporalConstraintNetwork(other.mTemporalConstraintNetwork)
     , mpQualitativeTemporalConstraintNetwork(other.mpQualitativeTemporalConstraintNetwork)
+    , mUseMasterSlave(other.mUseMasterSlave)
     , mpCurrentMaster(other.mpCurrentMaster)
     , mSolutionAnalysis(other.mSolutionAnalysis)
 {
@@ -1565,7 +1579,6 @@ void TransportNetwork::postRoleAssignments()
 
     mActiveRoles = computeActiveRoles();
 
-
     LOG_WARN_S << std::endl
         << mTimepoints << std::endl
         << symbols::constants::Location::toString(mLocations);
@@ -1684,11 +1697,9 @@ void TransportNetwork::postRoleAssignments()
                     // http://www.gecode.org/doc-latest/reference/classGecode_1_1Set_1_1SetView.html
                     // set value to 'col'
                     // workaround to set {col} as target for this edge
-                    LOG_DEBUG_S << "UPDATE column: view " << v << col;
                     v.intersect(*this, col,col);
                     v.cardMin(*this, 1);
                     v.cardMax(*this, 1);
-                    LOG_DEBUG_S << "Result view " << v << col;
 
                     // now limit parallel values of the edge target
                     // since (due to the existing path constraint) the next
@@ -1762,10 +1773,10 @@ void TransportNetwork::postRoleAssignments()
 
     size_t numberOfLocations = mLocations.size();
 
-    std::vector<Gecode::SetVarArray> mobileSystemTimelines;
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
         const Role& role = mActiveRoleList[i];
+
         propagators::isPath(*this, mTimelines[i], role.toString(),
                 numberOfTimepoints, numberOfLocations);
 
@@ -1774,14 +1785,16 @@ void TransportNetwork::postRoleAssignments()
         Robot robot = Robot::getInstance(role.getModel(), mAsk);
         if(robot.isMobile())
         {
-            mobileSystemTimelines.push_back(mTimelines[i]);
-
             Gecode::SetAFC timelineUsageAfc(*this, mTimelines[i], timelineAfcDecay);
             // SET_VAR_MERIT MIN
             branch(*this, mTimelines[i],Gecode::SET_VAR_AFC_MIN(timelineAfcDecay), Gecode::SET_VAL_RND_EXC(rnd));
             //branch(*this, mTimelines[i],Gecode::SET_VAR_RND(rnd),Gecode::SET_VAL_RND_EXC(rnd));
         }
     }
+
+    // Record the minimal required timeline for this role, before branching
+    // expansion of the timeline takes place
+    mMinRequiredTimelines = getTimelines();
 
     // BEGIN LOCATION ACCESS
     applyAccessConstraints(mTimelines,
@@ -1805,25 +1818,8 @@ void TransportNetwork::doPostMinCostFlow(Gecode::Space& home)
 
 void TransportNetwork::postMinCostFlow()
 {
-    if(msInteractive)
-    {
-        std::cout << "postMinCostFlow" << std::endl;
-        std::cout << "Press ENTER to proceed ..." << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
-
     LOG_INFO_S << "Post MinCostFlow";
     save();
-    std::map<Role, csp::RoleTimeline> minimalTimelines =  RoleTimeline::computeRoleTimelines(*mpMission.get(), getRoleDistribution());
-
-    std::map<Role, csp::RoleTimeline> activeMinimalTimelines;
-    for(size_t i = 0; i < mActiveRoleList.size(); ++i)
-    {
-        LOG_WARN_S << "Active role: " << i << " of " << mActiveRoleList.size() << " " << mActiveRoleList[i].toString() << std::endl
-            << Formatter::toString(mTimelines[i], mLocations.size());
-        const Role& role = mActiveRoleList[i];
-        activeMinimalTimelines[role] = minimalTimelines[role];
-    }
 
     try {
         if(msInteractive)
@@ -1843,12 +1839,17 @@ void TransportNetwork::postMinCostFlow()
         }
         double feasibilityTimeoutInMs = mConfiguration.getValueAs<double>("TransportNetwork/search/options/coalition-feasibility/timeoutInMs",1000);
 
-        SpaceTime::Timelines spaceTimeTimelines = getTimelines();
-        std::pair<SpaceTime::Timelines, std::map<Role, csp::RoleTimeline> > key(spaceTimeTimelines, activeMinimalTimelines);
-        transshipment::MinCostFlow minCostFlow(mpMission,
+        std::map<Role, RoleTimeline> expandedTimelines = getTimelines();
+
+        std::pair< std::map<Role, csp::RoleTimeline>, std::map<Role, csp::RoleTimeline> >
+            key(expandedTimelines, mMinRequiredTimelines);
+
+        transshipment::MinCostFlow minCostFlow(expandedTimelines,
+                mMinRequiredTimelines,
+                mLocations,
                 mTimepoints,
-                activeMinimalTimelines,
-                spaceTimeTimelines,
+                mAsk,
+                mpMission->getLogger(),
                 solverType,
                 feasibilityTimeoutInMs);
 
@@ -1911,7 +1912,6 @@ void TransportNetwork::postMinCostFlow()
         this->fail();
         return;
     }
-
 }
 
 void TransportNetwork::doPostTimelines(Gecode::Space& home)

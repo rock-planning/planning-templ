@@ -119,6 +119,12 @@ public:
      */
     static bool isFullMissionInterval(const solvers::temporal::Interval& interval);
 
+    /**
+     * Sort a timeline according to time
+     */
+    static void sort(Timeline& timeline,
+            const solvers::temporal::point_algebra::TimePointComparator& tpc);
+
 private:
     static SpaceTime::Network::tuple_t::Ptr msHorizonStartTuple;
     static SpaceTime::Network::tuple_t::Ptr msHorizonEndTuple;

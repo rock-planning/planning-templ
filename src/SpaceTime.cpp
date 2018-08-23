@@ -172,4 +172,14 @@ bool SpaceTime::isFullMissionInterval(const solvers::temporal::Interval& interva
         interval.getTo() == SpaceTime::getHorizonEnd();
 }
 
+void SpaceTime::sort(Timeline& timeline,
+        const solvers::temporal::point_algebra::TimePointComparator& tpc)
+{
+    using namespace solvers::temporal::point_algebra;
+    std::sort(timeline.begin(), timeline.end(), [tpc](const Point& a, const Point& b)
+            {
+                return tpc.lessThan(a.second, b.second);
+            });
+}
+
 } // end namespace templ

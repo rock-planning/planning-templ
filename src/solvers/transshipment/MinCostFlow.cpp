@@ -17,59 +17,26 @@ namespace templ {
 namespace solvers {
 namespace transshipment {
 
-MinCostFlow::MinCostFlow(const Mission::Ptr& mission,
+MinCostFlow::MinCostFlow(
+        const std::map<Role, csp::RoleTimeline>& expandedTimelines,
+        const std::map<Role, csp::RoleTimeline>& minRequiredTimelines,
+        const symbols::constants::Location::PtrList& locations,
         const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
-        const std::map<Role, csp::RoleTimeline>& timelines,
-        const SpaceTime::Timelines& expandedTimelines,
+        const organization_model::OrganizationModelAsk& ask,
+        const utils::Logger::Ptr& logger,
         graph_analysis::algorithms::LPSolver::Type solverType,
         double feasibilityTimeoutInMs)
-    : mAsk(mission->getOrganizationModelAsk())
-    , mpLogger(mission->getLogger())
+    : mExpandedTimelines(expandedTimelines)
+    , mMinRequiredTimelines(minRequiredTimelines)
     , mSortedTimepoints(sortedTimepoints)
-    , mTimelines(timelines)
-    , mExpandedTimelines(expandedTimelines)
-    , mFlowNetwork(mission, mSortedTimepoints, timelines, expandedTimelines)
-    , mSpaceTimeNetwork(mFlowNetwork.getSpaceTimeNetwork())
-    , mSolverType(solverType)
-    , mFeasibilityTimeoutInMs(feasibilityTimeoutInMs)
-{
-    // Create virtual start and end depot vertices and connect them with the
-    // current start and end vertices
-    SpaceTime::injectVirtualStartAndEnd(mSpaceTimeNetwork);
-
-    std::map<Role, csp::RoleTimeline>::const_iterator rit = mTimelines.begin();
-    for(; rit != mTimelines.end(); ++rit)
-    {
-        const Role& role = rit->first;
-        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mAsk);
-        if(!robot.isMobile()) // only immobile systems are relevant
-        {
-            // Allow to later map roles back from index
-            mCommoditiesRoles.push_back(role);
-        }
-    }
-    if(mCommoditiesRoles.empty())
-    {
-        LOG_WARN_S << "No immobile systems, thus no commodities to be routed";
-    }
-    mInitialSetupCost = std::vector<double>(mCommoditiesRoles.size(), 1.0);
-}
-
-MinCostFlow::MinCostFlow(const organization_model::OrganizationModelAsk& ask,
-        const utils::Logger::Ptr& logger,
-        const symbols::constants::Location::PtrList locations,
-        const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
-        const SpaceTime::Timelines& timelines,
-        const SpaceTime::Timelines& expandedTimelines,
-            graph_analysis::algorithms::LPSolver::Type solverType,
-        double feasibilityTimeoutInMs)
-    : mAsk(ask)
+    , mAsk(ask)
     , mpLogger(logger)
-    , mSortedTimepoints(sortedTimepoints)
-    , mTimelines()
-    , mSpaceTimelines(timelines)
-    , mExpandedTimelines(expandedTimelines)
-    , mFlowNetwork(ask, locations, mSortedTimepoints, expandedTimelines)
+    , mFlowNetwork(expandedTimelines,
+            minRequiredTimelines,
+            locations,
+            sortedTimepoints,
+            mAsk,
+            mpLogger)
     , mSpaceTimeNetwork(mFlowNetwork.getSpaceTimeNetwork())
     , mSolverType(solverType)
     , mFeasibilityTimeoutInMs(feasibilityTimeoutInMs)
@@ -78,12 +45,12 @@ MinCostFlow::MinCostFlow(const organization_model::OrganizationModelAsk& ask,
     // current start and end vertices
     SpaceTime::injectVirtualStartAndEnd(mSpaceTimeNetwork);
 
-    std::map<Role, SpaceTime::Timeline>::const_iterator rit = mSpaceTimelines.begin();
-    for(; rit != mSpaceTimelines.end(); ++rit)
+    std::map<Role, csp::RoleTimeline>::const_iterator rit = mExpandedTimelines.begin();
+    for(; rit != mExpandedTimelines.end(); ++rit)
     {
         const Role& role = rit->first;
-        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mAsk);
-        if(!robot.isMobile()) // only immobile systems are relevant
+        const csp::RoleTimeline& timeline = rit->second;
+        if(!timeline.getRobot().isMobile()) // only immobile systems are relevant
         {
             // Allow to later map roles back from index
             mCommoditiesRoles.push_back(role);
@@ -164,56 +131,11 @@ BaseGraph::Ptr MinCostFlow::createFlowGraph(uint32_t commodities)
 
 void MinCostFlow::setCommoditySupplyAndDemand()
 {
-    std::map<Role, csp::RoleTimeline>::const_iterator rit = mTimelines.begin();
-    for(; rit != mTimelines.end(); ++rit)
-    {
-        const Role& role = rit->first;
-        const csp::RoleTimeline& roleTimeline = rit->second;
-
-        // The list of commodities roles is initialized in the constructor and
-        // contains the list of immobile units
-        std::vector<Role>::const_iterator cit = std::find(mCommoditiesRoles.begin(), mCommoditiesRoles.end(), role);
-        if(cit != mCommoditiesRoles.end())
-        {
-            size_t commodityId = cit - mCommoditiesRoles.begin();
-            setSupplyDemand(SpaceTime::getHorizonStartTuple(),commodityId, role, 1);
-            setSupplyDemand(SpaceTime::getHorizonEndTuple(),commodityId, role, -1);
-
-            // Retrieve the (time-based) sorted list of FluentTimeResources
-            const FluentTimeResource::List& ftrs = roleTimeline.getFluentTimeResources();
-            FluentTimeResource::List::const_iterator fit = ftrs.begin();
-
-            for(; fit != ftrs.end(); ++fit)
-            {
-                // todo update constraint for all that are assigned inbetween
-                SpaceTime::Network::tuple_t::Ptr currentFromTuple = getFromTimeTuple(*fit);
-                SpaceTime::Network::tuple_t::Ptr currentToTuple = getToTimeTuple(*fit);
-
-                bool inInterval = false;
-                for(const point_algebra::TimePoint::Ptr& tp : mSortedTimepoints)
-                {
-                    if(currentFromTuple->second() == tp)
-                    {
-                        inInterval = true;
-                        setMinTransFlow(currentFromTuple, commodityId, role, 1);
-                    } else if(currentToTuple->second() == tp)
-                    {
-                        setMinTransFlow(currentToTuple, commodityId, role, 1);
-                        break;
-                    } else if(inInterval)
-                    {
-                        SpaceTime::Network::tuple_t::Ptr currentTuple = mSpaceTimeNetwork.tupleByKeys(fit->getLocation(),tp);
-                        setMinTransFlow(currentTuple, commodityId, role, 1);
-                    }
-                }
-            }
-        }
-    } // end for role timelines
-
-    for(std::pair<Role, SpaceTime::Timeline> p : mSpaceTimelines)
+    for(const std::pair<Role, csp::RoleTimeline>& p : mMinRequiredTimelines)
     {
         const Role& role = p.first;
-        const SpaceTime::Timeline& timeline = p.second;
+        const csp::RoleTimeline& roleTimeline = p.second;
+        const SpaceTime::Timeline& timeline = roleTimeline.getTimeline();
 
         // The list of commodities roles is initialized in the constructor and
         // contains the list of immobile units
@@ -433,28 +355,6 @@ void MinCostFlow::updateRoles(const BaseGraph::Ptr& flowGraph)
         }
     }
 }
-
-std::vector<FluentTimeResource>::const_iterator MinCostFlow::getFluent(const csp::RoleTimeline& roleTimeline, const SpaceTime::Network::tuple_t::Ptr& tuple) const
-{
-    const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
-    std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
-    for(; fit != ftrs.end(); ++fit)
-    {
-        const FluentTimeResource& ftr = *fit;
-        symbols::constants::Location::Ptr location = ftr.getLocation();
-        solvers::temporal::Interval interval = ftr.getInterval();
-
-        if(location->equals(tuple->first()) && (interval.getFrom()->equals(tuple->second()) || interval.getTo()->equals(tuple->second())))
-        {
-            return fit;
-        }
-    }
-
-    std::string msg = "templ::solvers::transshipment::MinCostFlow::getFluent: could not retrieve corresponding fluent in timeline: '"
-            + roleTimeline.toString() + "' from tuple '" + tuple->toString();
-    throw std::invalid_argument(msg);
-}
-
 
 SpaceTime::Network::tuple_t::Ptr MinCostFlow::getFromTimeTuple(const FluentTimeResource& ftr)
 {

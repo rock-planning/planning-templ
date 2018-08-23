@@ -31,20 +31,13 @@ public:
      * \param expandedTimeline optional timelines which serve as a guide for mobile system flow
      * result of the multi-commodity min-cost flow optimization
      */
-    MinCostFlow(const Mission::Ptr& mission,
-            const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
+    MinCostFlow(
+            const std::map<Role, csp::RoleTimeline>& expandedTimelines,
             const std::map<Role, csp::RoleTimeline>& minimalTimelines,
-            const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines(),
-            graph_analysis::algorithms::LPSolver::Type solverType = graph_analysis::algorithms::LPSolver::GLPK_SOLVER,
-            double feasibilityTimeoutInMs = 1000
-            );
-
-    MinCostFlow(const organization_model::OrganizationModelAsk& ask,
-            const utils::Logger::Ptr& logger,
-            const symbols::constants::Location::PtrList locations,
+            const symbols::constants::Location::PtrList& locations,
             const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
-            const SpaceTime::Timelines& minimalTimelines,
-            const SpaceTime::Timelines& expandedTimelines,
+            const organization_model::OrganizationModelAsk& ask,
+            const utils::Logger::Ptr& logger,
             graph_analysis::algorithms::LPSolver::Type solverType = graph_analysis::algorithms::LPSolver::GLPK_SOLVER,
             double feasibilityTimeoutInMs = 1000
             );
@@ -109,14 +102,6 @@ protected:
      */
     std::vector<Flaw> computeFlaws(const graph_analysis::algorithms::MultiCommodityMinCostFlow&) const;
 
-    /**
-     * Find the Fluent which corresponds to the given network tuple to allow
-     * a reverse mapping between gaph based representation and fluents
-     */
-    std::vector<templ::solvers::FluentTimeResource>::const_iterator
-        getFluent(const templ::solvers::csp::RoleTimeline& roleTimeline,
-            const SpaceTime::Network::tuple_t::Ptr& tuple) const;
-
     SpaceTime::Network::tuple_t::Ptr getFromTimeTuple(const FluentTimeResource& ftr);
     SpaceTime::Network::tuple_t::Ptr getToTimeTuple(const FluentTimeResource& ftr);
 
@@ -152,16 +137,18 @@ protected:
     uint32_t getInitialSetupCost(uint32_t commodity) const { return mInitialSetupCost[commodity]; }
 
 private:
+    std::map<Role, csp::RoleTimeline> mExpandedTimelines;
+    std::map<Role, csp::RoleTimeline> mMinRequiredTimelines;
+
+    temporal::point_algebra::TimePoint::PtrList mSortedTimepoints;
+
     organization_model::OrganizationModelAsk mAsk;
     utils::Logger::Ptr mpLogger;
-    temporal::point_algebra::TimePoint::PtrList mSortedTimepoints;
-    std::map<Role, csp::RoleTimeline> mTimelines;
-    std::map<Role, SpaceTime::Timeline> mSpaceTimelines;
-    SpaceTime::Timelines mExpandedTimelines;
+    FlowNetwork mFlowNetwork;
+
     std::vector<Role> mCommoditiesRoles;
     std::vector<double> mInitialSetupCost;
 
-    FlowNetwork mFlowNetwork;
     SpaceTime::Network mSpaceTimeNetwork;
     // Store the mapping between flow graph and space time network
     graph_analysis::BipartiteGraph mBipartiteGraph;

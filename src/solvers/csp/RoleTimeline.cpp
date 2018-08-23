@@ -7,126 +7,42 @@ namespace templ {
 namespace solvers {
 namespace csp {
 
+RoleTimeline::RoleTimeline()
+{}
+
+RoleTimeline::RoleTimeline(const Role& role,
+        const organization_model::OrganizationModelAsk& ask)
+    : mRole(role)
+    , mAsk(ask)
+    , mRobot(organization_model::facades::Robot::getInstance(mRole.getModel(), mAsk))
+{}
+
 bool RoleTimeline::operator<(const RoleTimeline& other) const
 {
-    if(mFluents < other.mFluents)
+    if(mRole == other.mRole)
     {
-        return true;
-    } else if(mFluents == other.mFluents)
-    {
-        if(mLocations < other.mLocations)
-        {
-            return true;
-        } else if(mLocations == other.mLocations)
-        {
-            if(mIntervals < other.mIntervals)
-            {
-                return true;
-            } else if(mIntervals == other.mIntervals)
-            {
-                if(mRole < other.mRole)
-                {
-                    return true;
-                } else if(mRole == other.mRole)
-                {
-                    return false;
-                }
-            }
-        }
+        return mTimeline < other.mTimeline;
     }
-    return false;
+    return mRole < other.mRole;
 }
 
-void RoleTimeline::sortByTime()
+void RoleTimeline::sort(const temporal::point_algebra::TimePointComparator& tpc)
 {
     using namespace solvers::csp;
-    if(mIntervals.empty())
-    {
-        throw std::runtime_error("templ::solvers::csp::RoleTimeline::sortByTime: intervals not set");
-    }
-
-    std::sort( mFluents.begin(), mFluents.end(), [this](const FluentTimeResource& a, const FluentTimeResource& b)->bool
-            {
-                if(a == b)
-                {
-                    return false;
-                }
-
-                return a.getInterval() < b.getInterval();
-            });
+    SpaceTime::sort(mTimeline, tpc);
 }
 
-std::string RoleTimeline::toString() const
+std::string RoleTimeline::toString(size_t indent) const
 {
+    std::string hspace(indent,' ');
     std::stringstream ss;
-    ss << "-- Timeline: " << mRole.toString() << std::endl;
-    for(auto &fluent : mFluents)
-    {
-        ss << fluent.toString() << std::endl;
-    }
-
-    organization_model::OrganizationModelAsk ask(mOrganizationModel);
-    organization_model::facades::Robot robot(mRole.getModel(), ask);
-    ss << "    " << robot.toString() << std::endl;
-
-    ss << "    travel distance (in km):         " << travelDistance()/1.0E3 << std::endl;
-    ss << "    estimated time (in h):         " << duration()/3.6E3 << std::endl;
-    ss << "    estimated energy cost (in kWh):  " << estimatedEnergyCost()/1.0E3 << std::endl;
+    ss << hspace << "Timeline for '" << mRole.toString() << "'" << std::endl;
+    ss << SpaceTime::toString(mTimeline,indent + 4) << std::endl;
+    ss << hspace + "    " << mRobot.toString() << std::endl;
+    ss << hspace + "    travel distance (in km):         " << travelDistance()/1.0E3 << std::endl;
+    ss << hspace + "    estimated time (in h):         " << duration()/3.6E3 << std::endl;
+    ss << hspace + "    estimated energy cost (in kWh):  " << estimatedEnergyCost()/1.0E3 << std::endl;
     return ss.str();
-}
-
-const SpaceTime::Timeline& RoleTimeline::getTimeline()
-{
-    if(mTimeline.empty())
-    {
-        sortByTime();
-        for(const FluentTimeResource& ftr : mFluents)
-        {
-            SpaceTime::Point stpFrom(ftr.getLocation(), ftr.getInterval().getFrom());
-            SpaceTime::Point stpTo(ftr.getLocation(), ftr.getInterval().getTo());
-            SpaceTime::appendToTimeline(mTimeline, stpFrom);
-            SpaceTime::appendToTimeline(mTimeline, stpTo);
-        }
-    }
-    return mTimeline;
-}
-
-std::map<Role,RoleTimeline> RoleTimeline::computeRoleTimelines(const Mission& mission, const std::map<FluentTimeResource, Role::List>& roleSolution)
-{
-    std::map<Role,RoleTimeline> timelines;
-
-    // Timeline
-    std::map<FluentTimeResource, Role::List>::const_iterator cit = roleSolution.begin();
-    for(; cit != roleSolution.end(); ++cit)
-    {
-        const Role::List& roles = cit->second;
-        const FluentTimeResource& fts = cit->first;
-
-        Role::List::const_iterator lit = roles.begin();
-        for(; lit != roles.end(); ++lit)
-        {
-            const Role& role = *lit;
-            RoleTimeline& timeline = timelines[role];
-            timeline.setRole(role);
-            timeline.add(fts);
-            timeline.mLocations = mission.getLocations();
-            timeline.mOrganizationModel = mission.getOrganizationModel();
-        }
-    }
-
-    // Sort timeline
-    std::vector<solvers::temporal::Interval> intervals(mission.getTimeIntervals().begin(), mission.getTimeIntervals().end());
-
-    std::map<Role, RoleTimeline>::iterator it = timelines.begin();
-    for(; it != timelines.end(); ++it)
-    {
-        RoleTimeline& timeline = it->second;
-        timeline.mIntervals = intervals;
-
-        timeline.sortByTime();
-    }
-
-    return timelines;
 }
 
 std::string RoleTimeline::toString(const std::map<Role, RoleTimeline>& timelines, uint32_t indent)
@@ -142,21 +58,29 @@ std::string RoleTimeline::toString(const std::map<Role, RoleTimeline>& timelines
     return ss.str();
 }
 
+SpaceTime::Timelines RoleTimeline::collectTimelines(const std::map<Role, RoleTimeline>& timelines)
+{
+    SpaceTime::Timelines spaceTimeTimelines;
+    for(const std::pair<Role, RoleTimeline>& p : timelines)
+    {
+        spaceTimeTimelines[p.first] = p.second.getTimeline();
+    }
+    return spaceTimeTimelines;
+}
+
 double RoleTimeline::travelDistance() const
 {
     using namespace ::templ::symbols;
-    if(mFluents.empty())
+    if(mTimeline.empty())
     {
-        throw std::runtime_error("templ::solvers::csp::RoleTimeline::travelDistance:"
-                " no fluents available to compute travel distance");
+        LOG_WARN_S << "Timeline is empty -- return distance: 0 m";
+        return 0.0;
     }
 
     constants::Location::PtrList path;
-    std::vector<FluentTimeResource>::const_iterator cit = mFluents.begin();
-    for(; cit != mFluents.end(); ++cit)
+    for(const SpaceTime::Point& p : mTimeline)
     {
-        const FluentTimeResource& ftr = *cit;
-        path.push_back(ftr.getLocation());
+        path.push_back(p.first);
     }
     return Cost::getTravelDistance(path);
 }
@@ -165,16 +89,12 @@ double RoleTimeline::estimatedEnergyCost() const
 {
     double distance = travelDistance();
 
-    organization_model::OrganizationModelAsk ask(mOrganizationModel);
-    organization_model::facades::Robot robot(mRole.getModel(), ask);
-    return robot.estimatedEnergyCost(distance);
+    return mRobot.estimatedEnergyCost(distance);
 }
 
 double RoleTimeline::duration() const
 {
-    organization_model::OrganizationModelAsk ask(mOrganizationModel);
-    organization_model::facades::Robot robot(mRole.getModel(), ask);
-    return travelDistance()/robot.getNominalVelocity();
+    return travelDistance()/mRobot.getNominalVelocity();
 }
 
 } // end namespace csp

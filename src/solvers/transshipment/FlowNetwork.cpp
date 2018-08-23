@@ -15,35 +15,25 @@ namespace templ {
 namespace solvers {
 namespace transshipment {
 
-FlowNetwork::FlowNetwork(const Mission::Ptr& mission,
+FlowNetwork::FlowNetwork(
+        const std::map<Role, csp::RoleTimeline>& expandedTimelines,
+        const std::map<Role, csp::RoleTimeline>& minRequiredTimelines,
+        const symbols::constants::Location::PtrList& locations,
         const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
-        const std::map<Role, csp::RoleTimeline>& timelines,
-        const SpaceTime::Timelines& expandedTimelines)
-    : mpMission(mission)
-    , mSpaceTimeNetwork(mission->getLocations(), sortedTimepoints)
-    , mAsk(mission->getOrganizationModelAsk())
-    , mTimelines(timelines)
-    , mExpandedTimelines(expandedTimelines)
+        const organization_model::OrganizationModelAsk& ask,
+        const utils::Logger::Ptr& logger
+    )
+    : mExpandedTimelines(expandedTimelines)
+    , mMinRequiredTimelines(minRequiredTimelines)
+    , mSpaceTimeNetwork(locations, sortedTimepoints)
     , mMoveToResource()
-{
-    assert(mpMission);
-    initialize();
-
-    using namespace organization_model;
-    mMoveToResource.insert( Resource(vocabulary::OM::resolve("MoveTo")) );
-}
-
-FlowNetwork::FlowNetwork(const organization_model::OrganizationModelAsk& ask,
-        const symbols::constants::Location::PtrList locations,
-        const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
-        const SpaceTime::Timelines& expandedTimelines)
-    : mSpaceTimeNetwork(locations, sortedTimepoints)
     , mAsk(ask)
-    , mTimelines()
-    , mExpandedTimelines(expandedTimelines)
-    , mMoveToResource()
+    , mpLogger(logger)
 {
-    initialize();
+    /// register requirements first
+    initialize(minRequiredTimelines, true);
+    /// register fully routed agent
+    initialize(expandedTimelines, false);
 
     using namespace organization_model;
     mMoveToResource.insert( Resource(vocabulary::OM::resolve("MoveTo")) );
@@ -54,11 +44,9 @@ void FlowNetwork::save(const std::string& path)
     std::string filename = path;
     if(filename.empty())
     {
-        if(mpMission)
+        if(mpLogger)
         {
-            filename = mpMission->getLogger()->filename("transhipment-flow-network.gexf");
-        } else {
-            filename = "/tmp/transhipment-flow-network.gexf";
+            filename = mpLogger->filename("transhipment-flow-network.gexf");
         }
     }
     using namespace graph_analysis::io;
@@ -70,188 +58,93 @@ void FlowNetwork::save(const std::string& path)
 
 }
 
-void FlowNetwork::initialize()
-{
-    if(mExpandedTimelines.empty())
-    {
-        initializeMinimalTimelines(false);
-    } else {
-        initializeMinimalTimelines(true);
-        initializeExpandedTimelines();
-    }
-}
-
-void FlowNetwork::initializeExpandedTimelines()
+void FlowNetwork::initialize(const std::map<Role, csp::RoleTimeline>& timelines, bool updateMinRequirements)
 {
     // -----------------------------------------
     // Add capacity-weighted edges to the graph
     // -----------------------------------------
     // Per Role --> add capacities (in terms of capability of carrying an immobile system)
-    SpaceTime::Timelines::const_iterator rit = mExpandedTimelines.begin();
-    for(; rit != mExpandedTimelines.end(); ++rit)
+    for(const std::pair<Role, csp::RoleTimeline>& p : timelines)
     {
         // infer connections from timeline
         // sequentially ordered timeline
         // locations and timeline
         // connection from (l0, i0_end) ---> (l1, i1_start)
         //
-        const Role& role = rit->first;
-        SpaceTime::Timeline roleTimeline = rit->second;
-
-        // Check if this item is mobile, i.e. change the location
-        // WARNING: this is currently domain specific based on using the dataProperty payloadTransportCapacity
-        //
-        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mAsk);
-        if(!robot.isMobile())
-        {
-            continue;
-        }
-
-        /// MOBILE SYSTEMS ONLY
-        uint32_t capacity = robot.getTransportCapacity();
-
-        namespace pa = templ::solvers::temporal::point_algebra;
-        pa::TimePoint::Ptr prevIntervalEnd;
-        co::Location::Ptr prevLocation;
-        SpaceTime::Network::tuple_t::Ptr startTuple, endTuple;
-
-        // Iterate over all role-specific timelines and annotate vertices and
-        // edges with the information of the role that is assigned to it
-        SpaceTime::Timeline::const_iterator cit = roleTimeline.begin();
-        RoleInfo::Tag tag = RoleInfo::AVAILABLE;
-        for(; cit != roleTimeline.end(); ++cit)
-        {
-            const SpaceTime::Point& spaceTimePoint = *cit;
-            symbols::constants::Location::Ptr location = spaceTimePoint.first;
-            solvers::temporal::point_algebra::TimePoint::Ptr timepoint = spaceTimePoint.second;
-
-            // create tuple if it does not exist?
-            endTuple = mSpaceTimeNetwork.tupleByKeys(location, timepoint);
-            endTuple->addRole(role, tag);
-
-            if(prevIntervalEnd)
-            {
-                startTuple = mSpaceTimeNetwork.tupleByKeys(prevLocation, prevIntervalEnd);
-                startTuple->addRole(role, tag);
-
-                std::vector< RoleInfoWeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<RoleInfoWeightedEdge>(startTuple, endTuple);
-                if(edges.empty())
-                {
-                    RoleInfoWeightedEdge::Ptr weightedEdge(new RoleInfoWeightedEdge(startTuple, endTuple, capacity));
-                    weightedEdge->addRole(role, tag);
-                    mSpaceTimeNetwork.getGraph()->addEdge(weightedEdge);
-                } else if(edges.size() > 1)
-                {
-                    throw std::runtime_error("templ::solvers::transshipment::FlowNetwork: multiple capacity edges detected");
-                } else { // one edge -- sum up capacities of mobile systems
-                    RoleInfoWeightedEdge::Ptr& existingEdge = edges[0];
-                    double existingCapacity = existingEdge->getWeight();
-                    if(!existingEdge->hasRole(role, tag))
-                    {
-                        existingEdge->addRole(role, tag);
-
-                        if(existingCapacity < std::numeric_limits<RoleInfoWeightedEdge::value_t>::max())
-                        {
-                            uint32_t newCapacity = existingCapacity + capacity;
-                            existingEdge->setWeight(newCapacity, 0 /*index of 'overall capacity'*/);
-                        }
-                    } else {
-                        throw std::runtime_error("templ::solvers::transshipment::FlowNetwork::initializeExpandedTimelines: Edge has already been assigned for role: "
-                                + role.toString());
-                    }
-                }
-            } else {
-                tag = RoleInfo::ASSIGNED;
-            }
-
-            prevIntervalEnd = timepoint;
-            prevLocation = location;
-        }
-    }
-}
-
-void FlowNetwork::initializeMinimalTimelines(bool updateRolesOnly)
-{
-    // -----------------------------------------
-    // Add capacity-weighted edges to the graph
-    // -----------------------------------------
-    // Per Role --> add capacities (in terms of capability of carrying an immobile system)
-    std::map<Role, csp::RoleTimeline>::const_iterator rit = mTimelines.begin();
-    for(; rit != mTimelines.end(); ++rit)
-    {
-        // infer connections from timeline
-        // sequentially ordered timeline
-        // locations and timeline
-        // connection from (l0, i0_end) ---> (l1, i1_start)
-        //
-        const Role& role = rit->first;
-        csp::RoleTimeline roleTimeline = rit->second;
+        const Role& role = p.first;
+        const csp::RoleTimeline& roleTimeline = p.second;
 
         // Check if this item is mobile, i.e. change change the location
         // WARNING: this is domain specific
         // transportCapacity
-        organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(role.getModel(), mAsk);
+        using namespace organization_model::facades;
+        const Robot& robot = roleTimeline.getRobot();
         if(!robot.isMobile())
         {
             continue;
         }
 
-        LOG_DEBUG_S << "Add capacity for mobile system: " << role.getModel();
         uint32_t capacity = robot.getTransportCapacity();
         LOG_DEBUG_S << "Role: " << role.toString() << std::endl
             << "    transport capacity: " << capacity << std::endl;
+        LOG_INFO_S << "Process (time-sorted) timeline: " << roleTimeline.toString();
 
         namespace pa = templ::solvers::temporal::point_algebra;
         SpaceTime::Network::tuple_t::Ptr edgeSourceTuple, edgeTargetTuple;
 
-        LOG_INFO_S << "Process (time-sorted) timeline: " << roleTimeline.toString();
-        const std::vector<FluentTimeResource>& ftrs = roleTimeline.getFluentTimeResources();
-        std::vector<FluentTimeResource>::const_iterator fit = ftrs.begin();
-        RoleInfo::Tag tag = RoleInfo::REQUIRED;
-        for(; fit != ftrs.end(); ++fit)
+        RoleInfo::Tag tag = RoleInfo::ASSIGNED;
+        for(const SpaceTime::Point& p : roleTimeline.getTimeline())
         {
-            const FluentTimeResource& ftr = *fit;
-            symbols::constants::Location::Ptr location = ftr.getLocation();
-            solvers::temporal::Interval interval = ftr.getInterval();
+            SpaceTime::Network::tuple_t::Ptr tuple =
+                mSpaceTimeNetwork.tupleByKeys(p.first, p.second);
 
-            // Get all involved tuples
-            SpaceTime::Network::tuple_t::PtrList tuples = mSpaceTimeNetwork.getTuples(interval.getFrom(), interval.getTo(), location);
-            for(const SpaceTime::Network::tuple_t::Ptr& tuple : tuples)
+            if(updateMinRequirements)
             {
+                tuple->addRole(role, RoleInfo::REQUIRED);
+                continue;
+            } else {
                 tuple->addRole(role, tag);
             }
 
-            if(updateRolesOnly)
-            {
-                continue;
-            }
-
-            // create tuple if it does not exist?
-            edgeTargetTuple = tuples.front();
-
-            // Find start node: Tuple of location and interval.getFrom()
-            // This is where the agent is available
+            edgeTargetTuple = tuple;
             if(edgeSourceTuple)
             {
                 std::vector< RoleInfoWeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<RoleInfoWeightedEdge>(edgeSourceTuple, edgeTargetTuple);
                 if(edges.empty())
                 {
                     RoleInfoWeightedEdge::Ptr weightedEdge(new RoleInfoWeightedEdge(edgeSourceTuple, edgeTargetTuple, capacity));
+                    weightedEdge->addRole(role, RoleInfo::ASSIGNED);
                     mSpaceTimeNetwork.getGraph()->addEdge(weightedEdge);
                 } else if(edges.size() > 1)
                 {
-                    throw std::runtime_error("MissionPlanner: multiple capacity edges detected");
-                } else { // one edge -- sum up capacities of mobile systems
+                    throw
+                        std::runtime_error("templ::solvers::transshipment::FlowNetwork: multiple capacity edges detected");
+                } else if(edgeSourceTuple->first() != edgeTargetTuple->first())
+                {  // one edge -- sum up capacities of mobile systems
                     RoleInfoWeightedEdge::Ptr& existingEdge = edges[0];
                     double existingCapacity = existingEdge->getWeight();
-                    if(existingCapacity < std::numeric_limits<RoleInfoWeightedEdge::value_t>::max())
+
+                    if(!existingEdge->hasRole(role, tag))
                     {
-                        capacity += existingCapacity;
-                        existingEdge->setWeight(capacity, 0 /*index of 'overall capacity'*/);
+                        existingEdge->addRole(role, tag);
+
+                        if(existingCapacity < std::numeric_limits<RoleInfoWeightedEdge::value_t>::max())
+                        {
+                            capacity += existingCapacity;
+                            existingEdge->setWeight(capacity, 0 /*index of 'overall capacity'*/);
+                        }
+                    } else {
+                        throw
+                            std::runtime_error("templ::solvers::transshipment::FlowNetwork"
+                                    "::initializeExpandedTimelines:"
+                                    "Edge has already been assigned for role: " +
+                                    role.toString());
                     }
+                } else {
+                    // local transition edge -- capacity is infinite anyhow
                 }
             }
-            edgeSourceTuple = tuples.back();
+            edgeSourceTuple = tuple;
         }
     }
 }

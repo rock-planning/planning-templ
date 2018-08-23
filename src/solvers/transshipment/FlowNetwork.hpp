@@ -27,30 +27,20 @@ class FlowNetwork
 public:
     /**
      * Default constructor of the flow network
-     * \param mission Mission to which this flow network is related
-     * \param sortedTimepoints List of sorted timepoints (which allows to create
-     * the temporally expanded network)
-     * \param minimalTimelines The set of minimal requirement per role
-     * \param expandedTimelines The set of additional requirements for roles
+     * \param timelines Timeline that represent the fully expanded timelines * (after csp timeline branching)
+     * \param minRequiredTimeline represents the timelines that are based on the
+     * minimum requirements
+     * \param locations set of locations
+     * \param sortedTimepoints set of time sorted timepoints
+     * \param ask organization model ask object
+     * \param logger logger instance
      */
-    FlowNetwork(const Mission::Ptr& mission,
+    FlowNetwork(const std::map<Role, csp::RoleTimeline>& fullyExpandedTimelines,
+        const std::map<Role, csp::RoleTimeline>& minRequiredTimelines,
+        const symbols::constants::Location::PtrList& locations,
         const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
-        const std::map<Role, csp::RoleTimeline>& minimalTimelines,
-        const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines());
-
-    /**
-     * \param ask
-     * \param sortedTimepoints List of sorted timepoints (which allows to create
-     * the temporally expanded network)
-     * \param minimalTimelines The set of minimal requirement per role
-     * \param expandedTimelines The set of additional requirements for roles
-     */
-    FlowNetwork(const organization_model::OrganizationModelAsk& ask,
-        const symbols::constants::Location::PtrList locations,
-        const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
-        const SpaceTime::Timelines& expandedTimelines = SpaceTime::Timelines());
-
-    const Mission::Ptr& getMission() const { return mpMission; }
+        const organization_model::OrganizationModelAsk& ask,
+        const utils::Logger::Ptr& logger = utils::Logger::Ptr());
 
     /**
      * Get the graph representation of the transport network, i.e. as a space time network
@@ -63,12 +53,12 @@ public:
     /**
      * Get the current set of timelines
      */
-    const std::map<Role, csp::RoleTimeline> getTimeslines() const { return mTimelines; }
+    const std::map<Role, csp::RoleTimeline> getExpandedTimeslines() const { return mExpandedTimelines; }
 
     /**
-     *
+     * Get the current set of timelines
      */
-    const SpaceTime::Timelines getExpandedTimelines() const { return mExpandedTimelines; }
+    const std::map<Role, csp::RoleTimeline> getMinRequiredTimeslines() const { return mMinRequiredTimelines; }
 
     void save(const std::string& filename = "");
 
@@ -87,14 +77,13 @@ protected:
      * check if expanded or minimal timelines shall be used for initialization
      * and call appropriate initialization function
      */
-    void initialize();
+    void initialize(const std::map<Role, csp::RoleTimeline>& timeline,
+            bool updateMinRequirements);
 
     /**
-     * Initialize network (from a vector of FluentTimeResource)
-     *
-     * This initialize the minimal required elements of a timeline
+     * Initialize mobile agent timelines
      */
-    void initializeMinimalTimelines(bool updateRolesOnly = false);
+    void initializeMobileAgentTimelines(bool updateRolesOnly = false);
 
     /**
      * Initialize network (from a
@@ -102,15 +91,15 @@ protected:
     void initializeExpandedTimelines();
 
 private:
-    Mission::Ptr mpMission;
+    std::map<Role, csp::RoleTimeline> mExpandedTimelines;
+    std::map<Role, csp::RoleTimeline> mMinRequiredTimelines;
+
     SpaceTime::Network mSpaceTimeNetwork;
-    organization_model::OrganizationModelAsk mAsk;
-
-    std::map<Role, csp::RoleTimeline> mTimelines;
-    SpaceTime::Timelines mExpandedTimelines;
-
     /// Allow to check valid transitions
     organization_model::Resource::Set mMoveToResource;
+
+    organization_model::OrganizationModelAsk mAsk;
+    utils::Logger::Ptr mpLogger;
 };
 
 

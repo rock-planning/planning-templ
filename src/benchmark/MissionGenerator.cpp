@@ -488,11 +488,12 @@ SpaceTime::Network MissionGenerator::generateNetwork()
 
 
     // Create paths for mobile roles first
-    std::map<Role, SpaceTime::Timeline> timelines;
+    std::map<Role, solvers::csp::RoleTimeline> roleTimelines;
     for(Role role : roles)
     {
-        facades::Robot robot = facades::Robot::getInstance(role.getModel(), ask);
-        if( robot.isMobile())
+        solvers::csp::RoleTimeline roleTimeline(role, ask);
+        SpaceTime::Timeline timeline;
+        if( roleTimeline.getRobot().isMobile())
         {
             // Make sure system stay at a location for an interval
             SpaceTime::Timeline timeline;
@@ -508,14 +509,17 @@ SpaceTime::Network MissionGenerator::generateNetwork()
                 }
                 timeline.push_back(SpaceTime::Point(location, timepoints[t]));
             }
-            timelines[role] = timeline;
         }
+        roleTimeline.setTimeline(timeline);
+        roleTimelines[role] = roleTimeline;
     }
 
-    solvers::transshipment::FlowNetwork flowNetwork(ask,
+    solvers::transshipment::FlowNetwork flowNetwork(roleTimelines,
+            roleTimelines,
             locations,
             timepoints,
-            timelines);
+            ask);
+
 
     // At this stage mobile systems are assigned
     SpaceTime::Network network = flowNetwork.getSpaceTimeNetwork();
@@ -526,11 +530,11 @@ SpaceTime::Network MissionGenerator::generateNetwork()
     while(true)
     {
         std::cout << "Trying to route immobile" << std::endl;
-        SpaceTime::Timelines timelinesWithImmobile;
+        std::map<Role, solvers::csp::RoleTimeline> roleTimelinesWithImmobile;
         for(Role role : roles)
         {
-            facades::Robot robot = facades::Robot::getInstance(role.getModel(), ask);
-            if(!robot.isMobile())
+            solvers::csp::RoleTimeline roleTimeline(role, ask);
+            if(!roleTimeline.getRobot().isMobile())
             {
                 SpaceTime::Timeline timeline;
                 SpaceTime::RoleInfoSpaceTimeTuple::PtrList path;
@@ -601,16 +605,17 @@ SpaceTime::Network MissionGenerator::generateNetwork()
                     vertex->addRole(role, RoleInfo::ASSIGNED);
                 }
 
-                timelinesWithImmobile[role] = timeline;
+                roleTimeline.setTimeline(timeline);
+                roleTimelinesWithImmobile[role] = roleTimeline;
             }
         }
 
-        solvers::transshipment::MinCostFlow minCostFlow(ask,
-                    logger,
+        solvers::transshipment::MinCostFlow minCostFlow(roleTimelinesWithImmobile,
+                    roleTimelines,
                     locations,
                     timepoints,
-                    timelinesWithImmobile,
-                    timelines,
+                    ask,
+                    logger,
                     graph_analysis::algorithms::LPSolver::SCIP_SOLVER);
 
         try {
