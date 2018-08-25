@@ -19,7 +19,16 @@ namespace templ {
 namespace solvers {
 
 SolutionAnalysis::SolutionAnalysis()
-    : mAnalyser(organization_model::OrganizationModelAsk())
+    : mAlpha(1.0)
+    , mBeta(1.0)
+    , mSigma(1.0)
+    , mCost(0.0)
+    , mTimeHorizonInS(0)
+    , mSafety(0.0)
+    , mEfficacy(0.0)
+    , mTraveledDistance(0)
+    , mReconfigurationCost(0)
+    , mAnalyser(organization_model::OrganizationModelAsk())
 {}
 
 SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
@@ -28,8 +37,17 @@ SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
     : mpMission(mission)
     , mSolutionNetwork(solution)
     , mTimepointComparator(mission->getTemporalConstraintNetwork())
+    , mAlpha(1.0)
+    , mBeta(1.0)
+    , mSigma(1.0)
+    , mCost(0.0)
+    , mTimeHorizonInS(0)
+    , mSafety(0.0)
+    , mEfficacy(0.0)
+    , mTraveledDistance(0)
+    , mReconfigurationCost(0)
     , mAsk(mpMission->getOrganizationModelAsk())
-    , mAnalyser(mpMission->getOrganizationModelAsk())
+    , mAnalyser(mAsk)
     , mConfiguration(configuration)
 {
     mResourceRequirements = Mission::getResourceRequirements(mpMission);
@@ -44,7 +62,17 @@ SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
         qxcfg::Configuration configuration)
     : mpMission(mission)
     , mTimepointComparator(mission->getTemporalConstraintNetwork())
-    , mAnalyser(mpMission->getOrganizationModelAsk())
+    , mAlpha(1.0)
+    , mBeta(1.0)
+    , mSigma(1.0)
+    , mCost(0.0)
+    , mTimeHorizonInS(0)
+    , mSafety(0.0)
+    , mEfficacy(0.0)
+    , mTraveledDistance(0)
+    , mReconfigurationCost(0)
+    , mAsk(mpMission->getOrganizationModelAsk())
+    , mAnalyser(mAsk)
     , mConfiguration(configuration)
 {
     mSolutionNetwork = SpaceTime::Network::fromGraph(graph, mission->getLocations(), mission->getTimepoints());
