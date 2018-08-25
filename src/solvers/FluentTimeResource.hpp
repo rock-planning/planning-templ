@@ -170,20 +170,26 @@ public:
 
     /**
      * Sort requirements based on earlier end point
+     * \param requirements List of requirements
+     * \param tcp TimePointComparator which is used for temporal comparison
      */
     static void sortForEarlierEnd(List& requirements,
             temporal::point_algebra::TimePointComparator tpc);
 
     /**
      * Sort requirements based on earlier start point
+     * \param requirements List of requirements
+     * \param tcp TimePointComparator which is used for temporal comparison
      */
     static void sortForEarlierStart(List& requirements,
             temporal::point_algebra::TimePointComparator tpc);
 
     /**
-     * Get the mutual exclusive set of requirements,
-     * two requirements a mutually exclusive, when they refer to different
+     * Get the pairwise mutual exclusive set of requirements,
+     * two requirements are mutually exclusive, when they refer to different
      * locations and their time interval overlaps
+     * \param requirements List of requirements
+     * \param tcp TimePointComparator which is used for temporal comparison
      */
     static std::vector<List> getMutualExclusive(const List& requirements,
             temporal::point_algebra::TimePointComparator tpc
@@ -193,6 +199,8 @@ public:
      * Get overlapping requirement,
      * requirements overlap, when they refer to the same location
      * and their time interval overlaps
+     * \param requirements List of requirements
+     * \param tcp TimePointComparator which is used for temporal comparison
      */
     static std::vector<Set> getOverlapping(const List& requirements,
             temporal::point_algebra::TimePointComparator tpc

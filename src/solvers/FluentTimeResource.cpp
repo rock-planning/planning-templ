@@ -161,127 +161,21 @@ std::vector<FluentTimeResource::List> FluentTimeResource::getMutualExclusive(con
         )
 {
     List requirements = _requirements;
-    sortForEarlierEnd(requirements, tpc);
-
-    // Todo: check keyword 'edge finding'
-
-    // Take advantage of a specially ordered list:
-    // based on
-    // (1)
-    // earlier end point means <= true,
-    // earlier start time means <= true,
-    // to as a result order all intervals overlapping with the smallest unit
-    // will be concurrent
-    // use sorted fluents, check overlap of the first interval with rest
-    // and thus step through each interval and the potentially overlapping one
-    // [a_s -------------------------------a_e]
-    // [b_s --- b_e]
-    //                      [c_s  --- c_e]
-    //                                      [d_s ---- d_e]
-    //
-    //                 [e_s --- e_e]
+    sortForEarlierStart(requirements, tpc);
 
     std::vector<List> mutualExclusive;
-    std::vector< std::vector<std::string> > processedConcurrent;
     for(size_t a = 0; a < requirements.size();++a)
     {
         const FluentTimeResource& ftrA = requirements[a];
-
-        std::vector<std::string> concurrentEncoded;;
-        List concurrent;
         for(size_t b = a + 1; b < requirements.size(); ++b)
         {
             const FluentTimeResource& ftrB = requirements[b];
             if(FluentTimeResource::areMutualExclusive(ftrA, ftrB, tpc))
             {
-                concurrent.push_back(ftrB);
-                concurrentEncoded.push_back(ftrB.getQualificationString());
+                mutualExclusive.push_back({ ftrA, ftrB });
             } else {
-                break;
-            }
-        }
-
-        if(concurrent.empty())
-        {
-            mutualExclusive.push_back({ ftrA });
-            continue;
-        } else {
-            bool alreadyProcessed = false;
-            // sort to allow set::includes operation
-            std::sort(concurrentEncoded.begin(), concurrentEncoded.end());
-            for(std::vector<std::string>& processed : processedConcurrent)
-            {
-                if(std::includes(processed.begin(), processed.end(),
-                        concurrentEncoded.begin(),
-                        concurrentEncoded.end()) )
-                {
-                    // already processed so ignore this one
-                    alreadyProcessed = true;
-                    break;
-                }
-            }
-            if(alreadyProcessed)
-            {
                 continue;
-            } else {
-                processedConcurrent.push_back(concurrentEncoded);
             }
-        }
-
-        LOG_DEBUG_S << "Reference interval: " << std::endl
-              << "   "
-                  << ftrA.getQualificationString()
-                  << std::endl
-              << "    is concurrent with:" <<  std::endl
-              << FluentTimeResource::toQualificationString(concurrent, 8);
-
-        // Now concurrent, but not necessarily mutual exclusive intervals
-        // are identified, e.g.
-        // (l0,[t0,t1]) - (l1,[t0,t1]) - (l1,[t1,t2])
-        // so check on full mutual exclusion on this subset
-        std::vector<List> mutexGroups;
-        mutexGroups.push_back( { concurrent.back() });
-        concurrent.pop_back();
-        while(!concurrent.empty())
-        {
-            FluentTimeResource ftrC = concurrent.back();
-            concurrent.pop_back();
-
-            std::vector<List> extraGroups;
-            for(List& requirementList : mutexGroups)
-            {
-                List tmpMutualExclusive;
-                bool newGroup = false;
-                for(FluentTimeResource& ftr : requirementList)
-                {
-                    // create a new mutex group when this requirement
-                    // is not mutual exclusive with all(!) requirement that
-                    // are part of the current group
-                    if(!FluentTimeResource::areMutualExclusive(ftr,ftrC, tpc))
-                    {
-                        tmpMutualExclusive.push_back(ftrC);
-                        extraGroups.push_back(tmpMutualExclusive);
-                        newGroup = true;
-                        break;
-                    }
-                    tmpMutualExclusive.push_back(ftr);
-                }
-
-                if(!newGroup)
-                {
-                    requirementList.push_back(ftrC);
-                }
-            }
-            for(List list : extraGroups)
-            {
-                mutexGroups.push_back(list);
-            }
-        }
-
-        for(List c : mutexGroups)
-        {
-            c.push_back(ftrA);
-            mutualExclusive.push_back(c);
         }
     }
     return mutualExclusive;
