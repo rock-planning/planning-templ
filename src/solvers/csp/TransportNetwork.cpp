@@ -388,7 +388,6 @@ void TransportNetwork::saveSolution(const Solution& solution, const Mission::Ptr
         LOG_WARN_S << "Saving file " << filename << " failed: -- " << e.what();
     }
 
-    std::cout << "Solution analysis" << std::endl;
     try {
         solution.getSolutionAnalysis().save();
     } catch(const std::exception& e)
@@ -463,7 +462,10 @@ std::map<Role, csp::RoleTimeline> TransportNetwork::getTimelines() const
     {
         const Role& role = mActiveRoleList[i];
         LOG_INFO_S << "Active role: " << i << " of " << mActiveRoleList.size() << " " << mActiveRoleList[i].toString() << std::endl
-            << Formatter::toString(mTimelines[i], mLocations.size());
+            << Formatter::toString(mTimelines[i],
+                    mLocations,
+                    mTimepoints)
+            << std::endl;
 
         bool doThrow = false;
         SpaceTime::Timeline timeline = TypeConversion::toTimeline(mTimelines[i],
@@ -629,7 +631,7 @@ void TransportNetwork::addExtensionalConstraints()
             this->fail();
             return;
         }
-        LOG_WARN_S << "Adding extensional constraint:\n" << ftr.toString(4);
+        LOG_INFO_S << "Adding extensional constraint:\n" << ftr.toString(4);
 
         // A tuple set is a fully expanded vector describing the cardinality for
         // all available resources
@@ -964,6 +966,8 @@ TransportNetwork::TransportNetwork(TransportNetwork& other)
     , mTimepoints(other.mTimepoints)
     , mLocations(other.mLocations)
     , mResourceRequirements(other.mResourceRequirements)
+    , mTemporalConstraintNetwork(other.mTemporalConstraintNetwork)
+    , mpQualitativeTemporalConstraintNetwork(other.mpQualitativeTemporalConstraintNetwork)
     , mAvailableModels(other.mAvailableModels)
     , mRoles(other.mRoles)
     , mActiveRoles(other.mActiveRoles)
@@ -974,8 +978,6 @@ TransportNetwork::TransportNetwork(TransportNetwork& other)
     , mMinCostFlowFlaws(other.mMinCostFlowFlaws)
     , mFlawResolution(other.mFlawResolution)
     , mConfiguration(other.mConfiguration)
-    , mTemporalConstraintNetwork(other.mTemporalConstraintNetwork)
-    , mpQualitativeTemporalConstraintNetwork(other.mpQualitativeTemporalConstraintNetwork)
     , mUseMasterSlave(other.mUseMasterSlave)
     , mpCurrentMaster(other.mpCurrentMaster)
     , mSolutionAnalysis(other.mSolutionAnalysis)
@@ -1579,7 +1581,7 @@ void TransportNetwork::postRoleAssignments()
 
     mActiveRoles = computeActiveRoles();
 
-    LOG_WARN_S << std::endl
+    LOG_INFO_S << std::endl
         << mTimepoints << std::endl
         << symbols::constants::Location::toString(mLocations);
 
@@ -1748,7 +1750,8 @@ void TransportNetwork::postRoleAssignments()
         for(uint32_t roleIdx = 0; roleIdx < mActiveRoles.size(); ++roleIdx)
         {
             const Role& role = mRoles[ mActiveRoles[roleIdx] ];
-            organization_model::facades::Robot robot(role.getModel(), mAsk);
+            using namespace organization_model::facades;
+            Robot robot = Robot::getInstance(role.getModel(), mAsk);
             if(robot.isMobile())
             {
                 uint32_t transportCapacity = robot.getTransportCapacity();
@@ -1770,9 +1773,7 @@ void TransportNetwork::postRoleAssignments()
     Gecode::Rnd rnd;
     rnd.hw();
     double timelineAfcDecay = mConfiguration.getValueAs<double>("TransportNetwork/search/options/timeline-brancher/afc-decay");
-
     size_t numberOfLocations = mLocations.size();
-
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
         const Role& role = mActiveRoleList[i];
@@ -1786,9 +1787,8 @@ void TransportNetwork::postRoleAssignments()
         if(robot.isMobile())
         {
             Gecode::SetAFC timelineUsageAfc(*this, mTimelines[i], timelineAfcDecay);
-            // SET_VAR_MERIT MIN
             branch(*this, mTimelines[i],Gecode::SET_VAR_AFC_MIN(timelineAfcDecay), Gecode::SET_VAL_RND_EXC(rnd));
-            //branch(*this, mTimelines[i],Gecode::SET_VAR_RND(rnd),Gecode::SET_VAL_RND_EXC(rnd));
+            branch(*this, mTimelines[i],Gecode::SET_VAR_RND(rnd),Gecode::SET_VAL_RND_EXC(rnd));
         }
     }
 
@@ -1805,8 +1805,7 @@ void TransportNetwork::postRoleAssignments()
     // Only the check whether a feasible approach is to use a heuristic
     // to draw system by supply demand
     //branchTimelines(*this, mTimelines, mSupplyDemand);
-    Gecode::branch(*this, &TransportNetwork::doPostMinCostFlow);
-
+    Gecode::branch(*this,&TransportNetwork::doPostMinCostFlow);
     Gecode::Gist::stopBranch(*this);
 }
 
@@ -1818,7 +1817,6 @@ void TransportNetwork::doPostMinCostFlow(Gecode::Space& home)
 
 void TransportNetwork::postMinCostFlow()
 {
-    LOG_INFO_S << "Post MinCostFlow";
     save();
 
     try {
@@ -1840,6 +1838,12 @@ void TransportNetwork::postMinCostFlow()
         double feasibilityTimeoutInMs = mConfiguration.getValueAs<double>("TransportNetwork/search/options/coalition-feasibility/timeoutInMs",1000);
 
         std::map<Role, RoleTimeline> expandedTimelines = getTimelines();
+
+
+        LOG_INFO_S << "Min required: " <<
+            RoleTimeline::toString(mMinRequiredTimelines,4,false);
+        LOG_INFO_S << "Expanded: " <<
+            RoleTimeline::toString(expandedTimelines,4,false);
 
         std::pair< std::map<Role, csp::RoleTimeline>, std::map<Role, csp::RoleTimeline> >
             key(expandedTimelines, mMinRequiredTimelines);
@@ -1948,28 +1952,28 @@ std::string TransportNetwork::toString() const
     }
 
     Gecode::Matrix<Gecode::IntVarArray> rolesDistribution(mRoleUsage, mRoles.size(), mResourceRequirements.size());
+    size_t width = 30;
     for(size_t m = 0; m < mRoles.size(); ++m)
     {
-        ss << std::setw(30) << mRoles[m].toString() << ": ";
+        width = std::min(mRoles[m].toString().size() + 5, width);
+    }
+
+    for(size_t m = 0; m < mRoles.size(); ++m)
+    {
+        ss << std::setw(width) << mRoles[m].toString() << ": ";
         for(size_t i = 0; i < mResourceRequirements.size(); ++i)
         {
             ss << std::setw(10) << std::left << rolesDistribution(m,i);
         }
         ss << std::endl;
     }
-    //ss << "Current model usage: " << std::endl << resourceDistribution << std::endl;
-    //ss << "Current role usage: " << std::endl << rolesDistribution << std::endl;
-
     try {
         for(size_t i = 0; i < mTimelines.size(); ++i)
         {
-            ss << mActiveRoleList[i].toString();
-            ss << Formatter::toString(mTimelines[i], mLocations.size()) << std::endl;
+            ss << mActiveRoleList[i].toString() << std::endl;
+            ss << Formatter::toString(mTimelines[i], mLocations, mTimepoints) << std::endl;
         }
 
-        SpaceTime::Timelines timelines = TypeConversion::toTimelines(mActiveRoleList, mTimelines, mLocations, mTimepoints);
-        ss << "Number of timelines: " << timelines.size() << " active roles -- " << mActiveRoleList.size() << std::endl;
-        //ss << "Current timelines:" << std::endl << toString(timelines) << std::endl;
     } catch(const std::exception& e)
     {
         ss << "Number of timelines: n/a -- " << e.what() << std::endl;
