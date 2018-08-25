@@ -74,6 +74,7 @@ SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
     , mAsk(mpMission->getOrganizationModelAsk())
     , mAnalyser(mAsk)
     , mConfiguration(configuration)
+
 {
     mSolutionNetwork = SpaceTime::Network::fromGraph(graph, mission->getLocations(), mission->getTimepoints());
 
@@ -423,7 +424,7 @@ void SolutionAnalysis::save(const std::string& _filename) const
 
     // stats to string
     std::string filename = mpMission->getLogger()->getBasePath() +
-        "solution_analysis-stats.logs";
+        "solution_analysis.log";
     std::ofstream outfile;
     if(!boost::filesystem::exists(filename))
     {
