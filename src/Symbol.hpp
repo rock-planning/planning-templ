@@ -18,7 +18,7 @@ class Symbol : public std::pair<std::string, std::string>
 {
 public:
     typedef shared_ptr<Symbol> Ptr;
-    typedef std::vector< Ptr > SymbolPtrList;
+    typedef std::vector< Ptr > PtrList;
 
     enum Type { UNKNOWN, STATE_VARIABLE, OBJECT_VARIABLE, CONSTANT, TEMPORAL_VARIABLE, VALUE };
     static std::map<Type, std::string> TypeTxt;
