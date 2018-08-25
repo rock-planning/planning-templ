@@ -3,8 +3,8 @@
 #include <gecode/minimodel.hh>
 #include <gecode/set.hh>
 
-#include "../../../Variable.hpp"
-#include "../../../Symbol.hpp"
+#include "../../../symbols/constants/Location.hpp"
+#include "../../temporal/point_algebra/TimePoint.hpp"
 #include "../../../Role.hpp"
 #include "../../FluentTimeResource.hpp"
 
@@ -19,18 +19,37 @@ public:
     /**
      * Print a set of array in matrix form
      */
-    static std::string toString(const std::vector<Gecode::IntVarArray>& arrays, const std::vector<Symbol::Ptr>& fluents, const std::vector<Variable::Ptr>& variables, const std::vector<std::string>& arrayLabels);
+    static std::string toString(const std::vector<Gecode::IntVarArray>& arrays,
+            const std::vector<Symbol::Ptr>& fluents,
+            const std::vector<Variable::Ptr>& variables,
+            const std::vector<std::string>& arrayLabels);
 
     /**
      * Print an array in matrix form
      */
-    static std::string toString(const Gecode::IntVarArray& array, const std::vector<Symbol::Ptr>& fluents, const std::vector<Variable::Ptr>& variables);
+    static std::string toString(const Gecode::IntVarArray& array,
+            const std::vector<Symbol::Ptr>& fluents,
+            const std::vector<Variable::Ptr>& variables);
 
     static std::string toString(const Gecode::SetVarArray& array, size_t columnSize);
 
-    static std::string toString(const Gecode::ViewArray<Gecode::Set::SetView>& array, size_t columnSize);
+    static std::string toString(const std::vector<Gecode::SetVarArray>& array,
+            size_t columnSize);
 
-    static std::string toString(const std::vector<Gecode::SetVarArray>& array, size_t columnSize);
+    static std::string toString(const Gecode::ViewArray<Gecode::Set::SetView>& array,
+            size_t columnSize);
+
+    static std::string toString(const Gecode::SetVarArray& array,
+            const symbols::constants::Location::PtrList& fluents,
+            const temporal::point_algebra::TimePoint::PtrList& timepoints);
+
+    static std::string toString(const std::vector<Gecode::SetVarArray>& array,
+            const symbols::constants::Location::PtrList& fluents,
+            const temporal::point_algebra::TimePoint::PtrList& timepoints);
+
+    static std::string toString(const Gecode::ViewArray<Gecode::Set::SetView>& array,
+            const symbols::constants::Location::PtrList fluents,
+            const temporal::point_algebra::TimePoint::PtrList& timepoints);
 
     /**
      * Print an array of roles with respect to requirements

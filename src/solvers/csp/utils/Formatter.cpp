@@ -64,6 +64,21 @@ std::string Formatter::toString(const Gecode::IntVarArray& array, const std::vec
     return ss.str();
 }
 
+std::string Formatter::toString(const Gecode::ViewArray<Gecode::Set::SetView>& array,
+    size_t columnSize)
+{
+    std::stringstream ss;
+    ss << std::string(12,' ');
+    for(int i = 0; i < array.size(); ++i)
+    {
+        if(i%columnSize == 0)
+        {
+            ss << std::endl;
+        }
+        ss << std::setw(24) << array[i];
+    }
+    return ss.str();
+}
 
 std::string Formatter::toString(const Gecode::SetVarArray& array, size_t columnSize)
 {
@@ -79,28 +94,67 @@ std::string Formatter::toString(const Gecode::SetVarArray& array, size_t columnS
     return ss.str();
 }
 
-std::string Formatter::toString(const Gecode::ViewArray<Gecode::Set::SetView>& array, size_t columnSize)
+static std::string toString(const Gecode::ViewArray<Gecode::Set::SetView>& array,
+        const symbols::constants::Location::PtrList locations,
+        const temporal::point_algebra::TimePoint::PtrList& timepoints)
 {
+    size_t columnSize = locations.size();
+
     std::stringstream ss;
+    ss << std::string(11,' ');
+    for(const symbols::constants::Location::Ptr& location : locations)
+    {
+        ss << std::setw(25) << location->getInstanceName();
+    }
     for(int i = 0; i < array.size(); ++i)
     {
-        if(i%columnSize == 0)
+        size_t fluentIdx = i%columnSize;
+        if(fluentIdx == 0)
         {
             ss << std::endl;
+            ss << std::setw(12) << timepoints[i]->toString();
         }
-        ss << std::setw(25) << array[i];
+        ss << std::setw(24) << array[i];
     }
     return ss.str();
 }
 
-std::string Formatter::toString(const std::vector<Gecode::SetVarArray>& array, size_t columnSize)
+std::string Formatter::toString(const std::vector<Gecode::SetVarArray>& array,
+    const symbols::constants::Location::PtrList& locations,
+    const temporal::point_algebra::TimePoint::PtrList& timepoints)
 {
     std::stringstream ss;
     std::vector<Gecode::SetVarArray>::const_iterator cit = array.begin();
     for(; cit != array.end(); ++cit)
     {
-        ss << toString(*cit, columnSize);
+        ss << toString(*cit, locations, timepoints);
         ss << std::endl;
+    }
+    return ss.str();
+}
+
+std::string Formatter::toString(const Gecode::SetVarArray& array,
+    const symbols::constants::Location::PtrList& locations,
+    const temporal::point_algebra::TimePoint::PtrList& timepoints)
+{
+    size_t columnSize = locations.size();
+
+    std::stringstream ss;
+    ss << std::string(11,' ');
+    for(const symbols::constants::Location::Ptr& location : locations)
+    {
+        ss << std::setw(25) << location->getInstanceName();
+    }
+    size_t timepointIdx = 0;
+    for(int i = 0; i < array.size(); ++i)
+    {
+        size_t locationIdx = i%columnSize;
+        if(locationIdx == 0)
+        {
+            ss << std::endl;
+            ss << std::setw(12) << timepoints[timepointIdx++]->getLabel();
+        }
+        ss << std::setw(24) << array[i];
     }
     return ss.str();
 }
