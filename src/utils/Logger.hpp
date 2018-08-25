@@ -30,6 +30,8 @@ public:
 
 
     const base::Time& getTime() const { return mTime; }
+
+    void setBaseDirectory(const std::string& baseDir) { mBaseDirectory = baseDir; }
     const std::string& getBaseDirectory() const { return mBaseDirectory; }
 
     /**

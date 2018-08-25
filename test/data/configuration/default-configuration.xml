@@ -1,5 +1,8 @@
 <templ-configuration>
     <TransportNetwork>
+        <logging>
+            <basedir>/tmp</basedir>
+        </logging>
         <use-transfer-location>false</use-transfer-location>
         <!-- default is false -->
         <intervals-nooverlap>false</intervals-nooverlap>

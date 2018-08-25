@@ -1051,6 +1051,9 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             "flaws",
             "cost"});
 
+    std::string baseDir = configuration.getValue("TransportNetwork/logging/basedir","/tmp");
+    mission->getLogger()->setBaseDirectory(baseDir);
+
     if( configuration.getValueAs<bool>("TransportNetwork/use-transfer-location"))
     {
         mission->enableTransferLocation();
