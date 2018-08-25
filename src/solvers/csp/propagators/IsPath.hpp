@@ -67,6 +67,9 @@ public:
      */
     Gecode::ModEvent constrainSametimeView(Gecode::Space& home, int viewIdx, int lowerBound, int upperBound);
 
+    Gecode::ModEvent excludeTarget(Gecode::Space&, int viewIdx,
+            int targetIdx);
+
     static bool isValidWaypointSequence(const std::vector< std::pair<int, bool> >& waypoints, size_t& startTimepoint, size_t& endTimepoint, bool fullyAssigned = false);
 
     /**

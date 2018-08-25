@@ -159,6 +159,17 @@ Gecode::ModEvent IsPath::constrainSametimeView(Gecode::Space& home, int viewIdx,
     return Gecode::ME_GEN_ASSIGNED;
 }
 
+Gecode::ModEvent IsPath::excludeTarget(Gecode::Space& home, int viewIdx, int
+        targetIdx)
+{
+    for(size_t idx = viewIdx; idx < viewIdx + mNumberOfFluents; ++idx)
+    {
+        Gecode::Set::SetView& v = x[idx];
+        GECODE_ME_CHECK( v.exclude(home, targetIdx) );
+    }
+    return Gecode::ME_GEN_ASSIGNED;
+}
+
 bool IsPath::isValidWaypointSequence(const std::vector< std::pair<int,bool> >& waypoints,
         size_t& start,
         size_t& end,
@@ -365,8 +376,6 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
         int offset = timepoint*mNumberOfFluents;
         int idx = offset + fluent;
 
-        //assert( x[idx].assigned() );
-
         // This is an actual assigned waypoint
         // so update
         if(x[idx].lubSize() == 1)
@@ -374,7 +383,7 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
             int prev = idx - mNumberOfFluents;
             if(prev > 0)
             {
-                // Constrain all column of source nodes that lead to the current
+                // Constrain all columns of source nodes that lead to the current
                 // node i, to the domain of the current node
                 ModEvent ev = constrainSametimeView(home, prev, idx, idx);
                 if(ev == Gecode::ME_GEN_FAILED)
@@ -400,6 +409,12 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
             }
 
             mAssignedTimepoints[timepoint] = std::pair<int, bool>( idx, true);
+        } else if (x[idx].lubSize() == 0)
+        {
+            if(timepoint > 0 && (size_t) timepoint + 1 < mNumberOfTimepoints)
+            {
+                excludeTarget(home, (timepoint-1)*mNumberOfFluents, idx);
+            }
         }
     }
 
