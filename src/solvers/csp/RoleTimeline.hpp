@@ -58,13 +58,14 @@ public:
     /**
      * Stringify role timeline
      */
-    std::string toString(size_t indent = 0) const;
+    std::string toString(size_t indent = 0, bool withStats = true) const;
 
     /**
      * Convert a role->timeline map to a string representation
      * \return timeline representation
      */
-    static std::string toString(const std::map<Role, RoleTimeline>& timelines, uint32_t indent = 0);
+    static std::string toString(const std::map<Role, RoleTimeline>& timelines,
+            uint32_t indent = 0, bool withStats = true);
 
     /**
      * Collect all space time timelines

@@ -32,20 +32,25 @@ void RoleTimeline::sort(const temporal::point_algebra::TimePointComparator& tpc)
     SpaceTime::sort(mTimeline, tpc);
 }
 
-std::string RoleTimeline::toString(size_t indent) const
+std::string RoleTimeline::toString(size_t indent, bool withStats) const
 {
     std::string hspace(indent,' ');
     std::stringstream ss;
     ss << hspace << "Timeline for '" << mRole.toString() << "'" << std::endl;
     ss << SpaceTime::toString(mTimeline,indent + 4) << std::endl;
-    ss << hspace + "    " << mRobot.toString() << std::endl;
-    ss << hspace + "    travel distance (in km):         " << travelDistance()/1.0E3 << std::endl;
-    ss << hspace + "    estimated time (in h):         " << duration()/3.6E3 << std::endl;
-    ss << hspace + "    estimated energy cost (in kWh):  " << estimatedEnergyCost()/1.0E3 << std::endl;
+    if(withStats)
+    {
+        ss << hspace << mRobot.toString() << std::endl;
+        ss << hspace << "    travel distance (in km):         " << travelDistance()/1.0E3 << std::endl;
+        ss << hspace << "    estimated time (in h):         " << duration()/3.6E3 << std::endl;
+        ss << hspace << "    estimated energy cost (in kWh):  " << estimatedEnergyCost()/1.0E3 << std::endl;
+    }
     return ss.str();
 }
 
-std::string RoleTimeline::toString(const std::map<Role, RoleTimeline>& timelines, uint32_t indent)
+std::string RoleTimeline::toString(const std::map<Role, RoleTimeline>& timelines,
+        uint32_t indent,
+        bool noStats)
 {
     std::stringstream ss;
     std::string hspace(indent,' ');
@@ -53,7 +58,8 @@ std::string RoleTimeline::toString(const std::map<Role, RoleTimeline>& timelines
     for(; it != timelines.end(); ++it)
     {
         const RoleTimeline& timeline = it->second;
-        ss << hspace << timeline.toString();
+        ss << timeline.toString(indent + 4, noStats);
+        ss << std::endl;
     }
     return ss.str();
 }
