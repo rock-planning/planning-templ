@@ -709,7 +709,10 @@ void TransportNetwork::initializeRoleDistributionConstraints()
         Gecode::IntVarArgs mobileModelBounds;
         Gecode::IntVarArgs immobileModelBounds;
 
-        // Sum of all models instances (role) has to correspond to the model count
+        Gecode::IntVarArgs mobileModelMaxOffsets;
+        Gecode::IntVarArgs immobileModelMaxOffsets;
+
+        // Sum of all models' instances (role) has to correspond to the model count
         for(size_t modelIndex = 0; modelIndex < mAvailableModels.size(); ++modelIndex)
         {
             const owlapi::model::IRI& model = mAvailableModels[modelIndex];
@@ -784,7 +787,16 @@ void TransportNetwork::initializeRoleDistributionConstraints()
                     }
                 }
             }
+
+            Gecode::IntVar mobileModelOffsetMax(*this,0, mobileRoleUsageBoundOffset);
+            Gecode::max(*this, mobileModelBounds, mobileModelOffsetMax);
+            mobileModelMaxOffsets << mobileModelOffsetMax;
+
+            Gecode::IntVar immobileModelOffsetMax(*this,0, immobileRoleUsageBoundOffset);
+            Gecode::max(*this, immobileModelBounds, immobileModelOffsetMax);
+            immobileModelMaxOffsets << immobileModelOffsetMax;
         }
+
         if(!forceMinimumRoleUsage)
         {
             // Making sure the total offset of model instances does not exceed the
@@ -792,11 +804,11 @@ void TransportNetwork::initializeRoleDistributionConstraints()
             // additional model instances will be available
             if(mobileBoundedRoleUsage)
             {
-                rel(*this, sum(mobileModelBounds) <= mobileRoleUsageBoundOffset);
+                rel(*this, sum(mobileModelMaxOffsets) <= mobileRoleUsageBoundOffset);
             }
             if(immobileBoundedRoleUsage)
             {
-                rel(*this, sum(immobileModelBounds) <= immobileRoleUsageBoundOffset);
+                rel(*this, sum(immobileModelMaxOffsets) <= immobileRoleUsageBoundOffset);
             }
         }
     }
