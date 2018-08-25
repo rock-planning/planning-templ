@@ -8,9 +8,10 @@
                 <threads>1</threads>
                 <cutoff>2</cutoff>
                 <nogoods_limit>128</nogoods_limit>
-                <computation_distance>15</computation_distance>
-                <adaptive_computation_distance>8</adaptive_computation_distance>
-                <timeout_in_ms>3600000</timeout_in_ms><!-- stop cutoff -->
+                <computation_distance>120</computation_distance>
+                <adaptive_computation_distance>40</adaptive_computation_distance>
+                <epoch_timeout_in_s>60</epoch_timeout_in_s><!-- stop: when a single search ends and a restart should be triggered -->
+                <total_timeout_in_s>900</total_timeout_in_s><!-- stop: when the total search ends -->
                 <model-usage>
                     <afc-decay>0.95</afc-decay>
                 </model-usage>

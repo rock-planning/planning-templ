@@ -1027,6 +1027,15 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
 
     /// Allow to log the final results into a csv file
     CSVLogger csvLogger({"session",
+            "alpha",
+            "beta",
+            "sigma",
+            "efficacy",
+            "efficiency",
+            "safety",
+            "timehorizon",
+            "travel-distance",
+            "reconfiguration-cost",
             "overall-runtime",
             "solution-runtime",
             "solution-runtime-mean",
@@ -1053,125 +1062,87 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
     TransportNetwork* distribution = new TransportNetwork(mission, configuration);
     distribution->mUseMasterSlave = configuration.getValueAs<bool>("TransportNetwork/search/options/master-slave",false);
 
+    // Search options: Gecode 9.3.1
+    // threads (double) number of parallel threads to use
+    // c_d (unsigned int) commit recomputation distance
+    // a_d                adaptive recomputation distance
+    // clone (bool)  whether engine uses a clone when created
+    // d_l           discrepancy limit when using LDS
+    // nogoods_limit depth limit for no-good generation
+    // assets        number of assets in a portfolio
+    // share_rbs     (bool) whether AFC is shared between restarts
+    // share_pbs     (bool) whether AFC is shared between assets
+    // stop                 Stop object   (NULL if none)
+    // cutoff               cutoff object (NULL if none)
+    int threads = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/threads",1);
+
+    int cutoff = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/cutoff",10);
+    int nogoods_limit = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/nogoods_limit",128);
+    int epochTimeoutInS = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/epoch_timeout_in_s",180000);
+    int abortTimeoutInS = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/total_timeout_in_s",600000);
+
+    Gecode::Search::Options options;
+    options.threads = threads;
+    // p 172 "the value of nogoods_limit described to which depth limit
+    // no-goods should be extracted from the path of the search tree
+    // maintained by the search engine
+    options.nogoods_limit = nogoods_limit;
+    // recomputation distance
+    options.c_d = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/computation_distance", options.c_d);
+    // adaptive recomputation distance
+    options.a_d = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/adaptive_computation_distance", options.a_d);
+    // default failure cutoff
+    // options.fail
+
+    base::Time allStart = base::Time::now();
+    bool stop = false;
+    int numberOfEpochs = 0;
+    while(!stop)
     {
-        // Search options: Gecode 9.3.1
-        // threads (double) number of parallel threads to use
-	// c_d (unsigned int) commit recomputation distance
-        // a_d                adaptive recomputation distance
-        // clone (bool)  whether engine uses a clone when created
-        // d_l           discrepancy limit when using LDS
-        // nogoods_limit depth limit for no-good generation
-        // assets        number of assets in a portfolio
-        // share_rbs     (bool) whether AFC is shared between restarts
-        // share_pbs     (bool) whether AFC is shared between assets
-        // stop                 Stop object   (NULL if none)
-        // cutoff               cutoff object (NULL if none)
-            int threads = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/threads",1);
+        ++numberOfEpochs;
+        //Cutoff::geometric: s*b^i, for i = 0,1,2,3,4
+        // when the corresponding number of failure has been reached
+        // restart and continue
+        options.cutoff = Gecode::Search::Cutoff::geometric(cutoff,2);
+        options.stop = Gecode::Search::Stop::time(epochTimeoutInS*1000.0);
+        Gecode::RBS< TransportNetwork, Gecode::DFS > searchEngine(distribution, options);
 
-            int cutoff = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/cutoff",10);
-            int nogoods_limit = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/nogoods_limit",128);
-            int stoptimeInMs = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/timeout_in_ms",600000);
-
-            Gecode::Search::Options options;
-            options.threads = threads;
-            //Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(cutoff);
-            //s*b^i, for i = 0,1,2,3,4
-            Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::geometric(cutoff,2);
-            options.cutoff = c;
-            // p 172 "the value of nogoods_limit described to which depth limit
-            // no-goods should be extracted from the path of the search tree
-            // maintained by the search engine
-            options.nogoods_limit = nogoods_limit;
-            // recomputation distance
-            options.c_d = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/computation_distance", options.c_d);
-            // adaptive recomputation distance
-            options.a_d = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/adaptive_computation_distance", options.a_d);
-            // default failure cutoff
-            // options.fail
-            options.stop = Gecode::Search::Stop::time(stoptimeInMs);
-
-            //Gecode::BAB<TransportNetwork> searchEngine(distribution,options);
-            //Gecode::DFS<TransportNetwork> searchEngine(distribution, options);
-            Gecode::RBS< TransportNetwork, Gecode::BAB > searchEngine(distribution, options);
-            //Gecode::TemplRBS< TransportNetwork, Gecode::DFS > searchEngine(distribution, options);
+        //Gecode::TemplRBS< TransportNetwork, Gecode::DFS > searchEngine(distribution, options);
 
         TransportNetwork* best = NULL;
-        //try {
-            int i = 0;
-            base::Time allStart = base::Time::now();
-            base::Time start = allStart;
-            base::Time allElapsed;
-            base::Time elapsed;
-            numeric::Stats<double> stats;
-            while(TransportNetwork* current = searchEngine.next())
-            {
-                allElapsed = (base::Time::now() - allStart);
-                elapsed = (base::Time::now() - start);
-                stats.update(elapsed.toSeconds());
-                delete best;
-                best = current;
+        size_t solutionCount = 0;
+        int i = 0;
+        base::Time start = base::Time::now();
+        base::Time allElapsed;
+        base::Time elapsed;
+        numeric::Stats<double> stats;
+        while(TransportNetwork* current = searchEngine.next())
+        {
+            allElapsed = (base::Time::now() - allStart);
+            elapsed = (base::Time::now() - start);
+            stats.update(elapsed.toSeconds());
+            delete best;
+            best = current;
 
-                using namespace organization_model;
+            using namespace organization_model;
 
-                LOG_INFO_S << "#" << i << "/" << minNumberOfSolutions << " solution found:" << current->toString();
-                std::cout << "Solution found:" << std::endl;
-                std::cout << "    # session id " << current->mpMission->getLogger()->getSessionId() << std::endl;
-                std::cout << "    # flaws: " << current->mNumberOfFlaws.val() << std::endl;
-                std::cout << "    # cost: " << current->mCost.val() << std::endl;
-                std::cout << std::endl;
-
-                csvLogger.addToRow(current->mpMission->getLogger()->getSessionId(),"session");
-                csvLogger.addToRow(allElapsed.toSeconds(), "overall-runtime");
-                csvLogger.addToRow(elapsed.toSeconds(), "solution-runtime");
-                csvLogger.addToRow(stats.mean(), "solution-runtime-mean");
-                csvLogger.addToRow(stats.stdev(), "solution-runtime-stdev");
-                csvLogger.addToRow(searchEngine.stopped(), "solution-stopped");
-                csvLogger.addToRow(searchEngine.statistics().propagate, "propagate");
-                csvLogger.addToRow(searchEngine.statistics().fail, "fail");
-                csvLogger.addToRow(searchEngine.statistics().node, "node");
-                csvLogger.addToRow(searchEngine.statistics().depth, "depth");
-                csvLogger.addToRow(searchEngine.statistics().restart, "restart");
-                csvLogger.addToRow(searchEngine.statistics().nogood, "nogood");
-                csvLogger.addToRow(1.0, "solution-found");
-                csvLogger.addToRow(best->mMinCostFlowFlaws.size(), "flaws");
-                csvLogger.addToRow(best->cost().val(), "cost");
-                csvLogger.commitRow();
-
-                std::string filename = mission->getLogger()->filename("search-statistics.csv");
-                std::cout << "Saving stats in: " << filename << std::endl;
-                csvLogger.save(filename);
-
-                Solution solution = current->getSolution();
-                solutions.push_back(solution);
-                saveSolution(solution, mission);
-
-                if(minNumberOfSolutions != 0)
-                {
-                    if(solutions.size() == minNumberOfSolutions)
-                    {
-                        LOG_INFO_S << "Found minimum required number of solutions: " << solutions.size();
-                        break;
-                    }
-                }
-
-                current->mpMission->getLogger()->incrementSessionId();
-                start = base::Time::now();
-            }
-
-            std::cout << "Solution Search" << std::endl;
-            std::cout << "    was stopped (e.g. timeout): " << searchEngine.stopped() << std::endl;
-            std::cout << "    found # solutions: " << solutions.size() << std::endl;
-            std::cout << "    minimum request: " << minNumberOfSolutions << std::endl;
+            LOG_INFO_S << "#" << i << "/" << minNumberOfSolutions << " solution found:" << current->toString();
+            std::cout << "Solution found:" << std::endl;
+            std::cout << "    # session id " << current->mpMission->getLogger()->getSessionId() << std::endl;
+            std::cout << "    # flaws: " << current->mNumberOfFlaws.val() << std::endl;
+            std::cout << "    # cost: " << current->mCost.val() << std::endl;
             std::cout << std::endl;
-            std::cout << "Statistics: " << std::endl;
-            std::cout << std::setw(15) << "    propagate " << searchEngine.statistics().propagate << std::endl;
 
-            std::cout << std::setw(15) << "    fail " << searchEngine.statistics().fail << std::endl;
-            std::cout << std::setw(15) << "    node " << searchEngine.statistics().node << std::endl;
-            std::cout << std::setw(15) << "    depth " << searchEngine.statistics().depth << std::endl;
-            std::cout << std::setw(15) << "    restart " << searchEngine.statistics().restart << std::endl;
-            std::cout << std::setw(15) << "    nogood " << searchEngine.statistics().nogood << std::endl;
-            csvLogger.addToRow(-1,"session");
+            csvLogger.addToRow(current->mpMission->getLogger()->getSessionId(),"session");
+            csvLogger.addToRow(current->mSolutionAnalysis.getAlpha(), "alpha");
+            csvLogger.addToRow(current->mSolutionAnalysis.getBeta(), "beta");
+            csvLogger.addToRow(current->mSolutionAnalysis.getSigma(), "sigma");
+            csvLogger.addToRow(current->mSolutionAnalysis.getEfficacy(), "efficacy");
+            csvLogger.addToRow(current->mSolutionAnalysis.getEfficiency(), "efficiency");
+            csvLogger.addToRow(current->mSolutionAnalysis.getSafety(), "safety");
+            csvLogger.addToRow(current->mSolutionAnalysis.getTimeHorizon(), "timehorizon");
+            csvLogger.addToRow(current->mSolutionAnalysis.getTravelledDistance(),"travel-distance");
+            csvLogger.addToRow(current->mSolutionAnalysis.getReconfigurationCost(),"reconfiguration-cost");
             csvLogger.addToRow(allElapsed.toSeconds(), "overall-runtime");
             csvLogger.addToRow(elapsed.toSeconds(), "solution-runtime");
             csvLogger.addToRow(stats.mean(), "solution-runtime-mean");
@@ -1183,56 +1154,52 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             csvLogger.addToRow(searchEngine.statistics().depth, "depth");
             csvLogger.addToRow(searchEngine.statistics().restart, "restart");
             csvLogger.addToRow(searchEngine.statistics().nogood, "nogood");
-
-            if(best)
-            {
-                std::cout << std::setw(15) << "    flaws " << best->mMinCostFlowFlaws.size() << std::endl;
-                std::cout << std::setw(15) << "    cost " << best->cost().val() << std::endl;
-                csvLogger.addToRow(1.0, "solution-found");
-                csvLogger.addToRow(best->mMinCostFlowFlaws.size(), "flaws");
-                csvLogger.addToRow(best->cost().val(), "cost");
-            } else {
-                std::cout << std::setw(15) << "    flaws " << "n/a" << std::endl;
-                std::cout << std::setw(15) << "    cost " << "n/a" << std::endl;
-                csvLogger.addToRow(0.0, "solution-found");
-                csvLogger.addToRow(-1.0, "flaws");
-                csvLogger.addToRow(-1.0, "cost");
-            }
+            csvLogger.addToRow(1.0, "solution-found");
+            csvLogger.addToRow(best->mMinCostFlowFlaws.size(), "flaws");
+            csvLogger.addToRow(best->cost().val(), "cost");
             csvLogger.commitRow();
 
-        //} catch(const std::exception& e)
-        //{
-        //    std::cout << "Solution Search (failed) stopped: " << searchEngine.stopped() << std::endl;
+            std::string filename =
+                mission->getLogger()->getBasePath() + "search-statistics.log";
+            std::cout << "Saving stats in: " << filename << std::endl;
+            csvLogger.save(filename);
 
-        //    std::cout << "Statistics: " << std::endl;
-        //    std::cout << std::setw(15) << "    propagate " << searchEngine.statistics().propagate << std::endl;
+            Solution solution = current->getSolution();
+            saveSolution(solution, mission);
+            // TODO: use serialization to filesystem for later retrieval
+            solutions.push_back(solution);
+            ++solutionCount;
 
-        //    std::cout << std::setw(15) << "    fail " << searchEngine.statistics().fail << std::endl;
-        //    std::cout << std::setw(15) << "    node " << searchEngine.statistics().node << std::endl;
-        //    std::cout << std::setw(15) << "    depth " << searchEngine.statistics().depth << std::endl;
-        //    std::cout << std::setw(15) << "    restart " << searchEngine.statistics().restart << std::endl;
-        //    std::cout << std::setw(15) << "    nogood " << searchEngine.statistics().nogood << std::endl;
-        //    std::cout << std::setw(15) << "    flaws " << best->mMinCostFlowFlaws.size() << std::endl;
-        //    std::cout << std::setw(15) << "    cost " << best->cost().val() << std::endl;
-        //    csvLogger.addToRow(1.0, "solution-found");
-        //    csvLogger.addToRow(searchEngine.stopped(), "solution-stopped");
-        //    csvLogger.addToRow(searchEngine.statistics().propagate, "propagate");
-        //    csvLogger.addToRow(searchEngine.statistics().fail, "fail");
-        //    csvLogger.addToRow(searchEngine.statistics().node, "node");
-        //    csvLogger.addToRow(searchEngine.statistics().depth, "depth");
-        //    csvLogger.addToRow(searchEngine.statistics().restart, "restart");
-        //    csvLogger.addToRow(searchEngine.statistics().nogood, "nogood");
-        //    csvLogger.addToRow(-1, "flaws");
-        //    csvLogger.addToRow(-1, "cost");
-        //    csvLogger.commitRow();
+            if(minNumberOfSolutions != 0)
+            {
+                if(solutionCount >= minNumberOfSolutions)
+                {
+                    LOG_INFO_S << "Found minimum required number of solutions: " << solutions.size();
+                    stop = true;
+                    break;
+                }
+            }
 
-        //    throw;
-        //}
-    }
+            current->mpMission->getLogger()->incrementSessionId();
+            start = base::Time::now();
+        }
 
-    std::string filename = mission->getLogger()->filename("search-statistics.csv");
-    LOG_INFO_S << "Saving stats in: " << filename;
-    csvLogger.save(filename);
+        std::cout << "Solution Search (epoch: " << numberOfEpochs << ")" << std::endl;
+        std::cout << "    was stopped (e.g. timeout): ";
+        if(searchEngine.stopped())
+        {
+            std::cout << " yes" << std::endl;
+        } else {
+            std::cout << " no" << std::endl;
+        }
+        std::cout << "    found # solutions: " << solutions.size() << std::endl;
+        std::cout << "    minimum # requested: " << minNumberOfSolutions << std::endl;
+
+        if((base::Time::now() - allStart).toSeconds() >= abortTimeoutInS)
+        {
+            stop = true;
+        }
+    } // end while all
 
     delete distribution;
     return solutions;
@@ -1897,7 +1864,7 @@ void TransportNetwork::postMinCostFlow()
         // to improve the solution
         mFlawResolution.prepare(mMinCostFlowFlaws);
 
-        std::cout << "Remaining flaws: " << mMinCostFlowFlaws.size() << std::endl;
+        std::cout << "Session " << mpMission->getLogger()->getSessionId() << ": remaining flaws: " << mMinCostFlowFlaws.size() << std::endl;
         if(msInteractive)
         {
             std::cout << "Remaining flaws: " << mMinCostFlowFlaws.size() << std::endl;
