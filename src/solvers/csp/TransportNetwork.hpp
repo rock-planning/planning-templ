@@ -248,8 +248,8 @@ protected:
 
     /// List of extra constraints
     Constraint::PtrList mConstraints;
-
     SolutionAnalysis mSolutionAnalysis;
+
 private:
 
     std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelPool::Set& set) const;
@@ -478,6 +478,17 @@ public:
      * into constraints
      */
     Mission::Ptr getAugmentedMission() const;
+
+    /**
+     * Propagate the solution of the location search for validation
+     */
+    Gecode::ExecStatus propagateImmobileAgentConstraints(const SpaceTime::Network& network);
+
+    Gecode::ExecStatus updateTimeline(size_t timelineIdx,
+            size_t locationIdx,
+            size_t timepointIdx,
+            size_t numberOfLocations,
+            size_t numberOfTimepoints);
 
     std::string toString() const;
 

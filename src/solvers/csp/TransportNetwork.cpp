@@ -2084,6 +2084,128 @@ void TransportNetwork::save(const std::string& _filename) const
     file.close();
 }
 
+Gecode::ExecStatus TransportNetwork::propagateImmobileAgentConstraints(const SpaceTime::Network& network)
+{
+    std::map<symbols::constants::Location::Ptr, size_t> mLocationIdxMap;
+    size_t numberOfLocations = mLocations.size();
+    for(size_t idx = 0; idx < numberOfLocations; ++idx)
+    {
+        mLocationIdxMap[ mLocations[idx] ] = idx;
+    }
+    std::map<temporal::point_algebra::TimePoint::Ptr, size_t> mTimepointIdxMap;
+    size_t numberOfTimepoints = mTimepoints.size();
+    for(size_t idx = 0; idx < numberOfTimepoints; ++idx)
+    {
+        mTimepointIdxMap[ mTimepoints[idx] ] = idx;
+    }
+
+    Role::List activeImmobileRoles;
+    std::vector<size_t> activeImmobileRolesIdx;
+    for(size_t idx = 0; idx < mActiveRoleList.size(); ++idx)
+    {
+        const Role& role = mActiveRoleList[idx];
+        using namespace organization_model::facades;
+        Robot robot = Robot::getInstance(role.getModel(), mAsk);
+        if(!robot.isMobile())
+        {
+            activeImmobileRoles.push_back(role);
+            activeImmobileRolesIdx.push_back(idx);
+        }
+    }
+
+    using namespace graph_analysis;
+    BaseGraph::Ptr graph = network.getGraph();
+    VertexIterator::Ptr vertexIt = graph->getVertexIterator();
+    while(vertexIt->next())
+    {
+        SpaceTime::Network::tuple_t::Ptr tuple =
+            dynamic_pointer_cast<SpaceTime::Network::tuple_t>(vertexIt->current());
+
+        Role::Set roles = tuple->getRoles(RoleInfo::ASSIGNED);
+        for(const Role& role : roles)
+        {
+            for(size_t idx : activeImmobileRolesIdx)
+            {
+                if(role == activeImmobileRoles[idx])
+                {
+                    if(updateTimeline(idx,
+                                mLocationIdxMap[tuple->first()],
+                                mTimepointIdxMap[tuple->second()],
+                                numberOfLocations,
+                                numberOfTimepoints) == Gecode::ES_FAILED)
+                    {
+                        LOG_WARN_S << "Constraint could not be maintained for"
+                            << " role '" << role.toString() << "' at "
+                            << " location " << tuple->first()->getInstanceName()
+                            << " timepoint " << tuple->second()->getLabel();
+                        return Gecode::ES_FAILED;
+                    }
+                }
+            }
+        }
+    }
+    return Gecode::ES_OK;
+}
+
+Gecode::ExecStatus TransportNetwork::updateTimeline(size_t timelineIdx,
+        size_t locationIdx,
+        size_t timepointIdx,
+        size_t numberOfLocations,
+        size_t numberOfTimepoints)
+{
+    if(timepointIdx == 0 || timelineIdx >= numberOfTimepoints)
+    {
+        return Gecode::ES_OK;
+    }
+
+    for(size_t i = 0; i < numberOfLocations; ++i)
+    {
+        if(i != locationIdx)
+        {
+            Gecode::Set::SetView view(mTimelines[timelineIdx][timepointIdx*numberOfLocations + i]);
+            // only the given locations should have an outgoing edge,
+            // thus all other locations with empty sets
+            view.cardMax(*this, 0);
+        }
+
+        Gecode::SetVar var = mTimelines[timelineIdx][(timepointIdx-1)*numberOfLocations + i];
+
+        // Already assigned value have been propagated before local search,
+        // so no need to revalidate
+        if(var.assigned())
+        {
+            continue;
+        }
+
+        Gecode::Set::SetView view(var);
+        if(locationIdx > 0)
+        {
+            if(view.cardMax() != 0)
+            {
+                size_t lower = timepointIdx*numberOfLocations;
+                size_t upper = timepointIdx*numberOfLocations + locationIdx -1;
+                for(size_t l = lower; l <= upper; ++l)
+                {
+                    GECODE_ME_CHECK(view.exclude(*this, l));
+                }
+            }
+        }
+        if(locationIdx < numberOfLocations - 1)
+        {
+            if(view.cardMax() != 0)
+            {
+                size_t lower = timepointIdx*numberOfLocations + locationIdx + 1;
+                size_t upper = timepointIdx*numberOfLocations + numberOfLocations + 1;
+                for(size_t l = lower; l <= upper; ++l)
+                {
+                    GECODE_ME_CHECK(view.exclude(*this, l));
+                }
+            }
+        }
+    }
+    return Gecode::ES_OK;
+}
+
 } // end namespace csp
 } // end namespace solvers
 } // end namespace templ
