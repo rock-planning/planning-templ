@@ -72,14 +72,23 @@ public:
 
     template<class InputIterator>
     static std::string toQualificationString(InputIterator begin,
-            InputIterator end, uint32_t indent = 0)
+            InputIterator end, uint32_t indent = 0, bool compact = false)
     {
         std::string hspace(indent,' ');
         std::stringstream ss;
         InputIterator it = begin;
+        if(compact)
+        {
+            ss << hspace;
+        }
         for(; it != end; ++it)
         {
-            ss << hspace << it->getQualificationString() << std::endl;
+            if(compact)
+            {
+                ss << it->getQualificationString() << ",";
+            } else {
+                ss << hspace << it->getQualificationString() << std::endl;
+            }
         }
         return ss.str();
     }
