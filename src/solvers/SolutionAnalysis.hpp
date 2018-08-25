@@ -58,12 +58,17 @@ public:
 
     void save(const std::string& filename = "") const;
 
+    double getAlpha() const { return mAlpha; }
+    double getBeta() const { return mBeta; }
+    double getSigma() const { return mSigma; }
     double getQuality() const { return mQuality; }
     double getCost() const { return mCost; }
     double getSafety() const { return mSafety; }
-    double getEfficacy() const { return getCost(); }
+    double getEfficacy() const { return mEfficacy; }
+    double getEfficiency() const { return mEfficiency; }
     double getReconfigurationCost() const { return mReconfigurationCost; }
     double getTravelledDistance() const { return mTraveledDistance; }
+    double getTimeHorizon() const { return mTimeHorizonInS; }
 
     /**
      * Get the metrics, e.g., redundancy of the fluent time resource
