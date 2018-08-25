@@ -1843,6 +1843,20 @@ void TransportNetwork::postMinCostFlow()
 
             transshipment::FlowNetwork flowNetwork = minCostFlow.getFlowNetwork();
             mMinCostFlowSolution = flowNetwork.getSpaceTimeNetwork();
+
+            if(flaws.empty())
+            {
+                if(propagateImmobileAgentConstraints(mMinCostFlowSolution) ==
+                        Gecode::ES_FAILED)
+                {
+                    LOG_WARN_S << "Immobile agent constraints not maintained by"
+                        << " local search";
+                    std::cout << "Press ENTER to continue..." << std::endl;
+                    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+                    return;
+                }
+            }
+
             flowNetwork.save();
 
             // store all flaws
