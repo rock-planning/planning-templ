@@ -230,7 +230,6 @@ std::vector<Flaw> MinCostFlow::run(bool doThrow)
                 throw std::runtime_error("templ::solvers::transshipment::MinCostFlow: no solution found");
             }
     }
-    LOG_DEBUG_S << "Ran flow optimization: min cost: " << minCostFlow.getObjectiveValue() << std::endl;
 
     // LOGGING
     {
@@ -239,12 +238,6 @@ std::vector<Flaw> MinCostFlow::run(bool doThrow)
 
         filename  = mpLogger->filename("multicommodity-min-cost-flow.gexf");
         minCostFlow.save(filename);
-
-        filename  = mpLogger->filename("multicommodity-min-cost-flow-problem.cplex");
-        minCostFlow.saveProblem(filename);
-
-        filename  = mpLogger->filename("multicommodity-min-cost-flow.solution");
-        minCostFlow.saveSolution(filename);
     }
 
     // Update roles in the space time network using the information of the
