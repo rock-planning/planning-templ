@@ -378,6 +378,25 @@ QGraphicsSvgItem* RoleInfoItem::getSvgItemForModel(const owlapi::model::IRI& iri
         if(resource.isValid())
         {
             file = filename;
+        } else {
+            // dynamically create svg with text label - when a
+            // pictogram is not available
+            QString modelSvgFilename("/tmp/templ-gui-" + agentmodel + ".svg");
+            QFile modelSvgFile(modelSvgFilename);
+            if(modelSvgFile.exists())
+            {
+                file = modelSvgFilename;
+            } else if(modelSvgFile.open(QIODevice::WriteOnly | QIODevice::Text))
+            {
+                QTextStream out(&modelSvgFile);
+                int length = agentmodel.length();
+                int height = length*7;
+                out << "<svg height=\"" << height << "\" width=\"" << height << "\">\n";
+                out << "    <text x=\"6\" y=\"" << height/2 + 4 << "\" style=\"font-size:8\">" << agentmodel << "</text>\n";
+                out << "</svg>\n";
+                modelSvgFile.close();
+                file = modelSvgFilename;
+            }
         }
     }
 
