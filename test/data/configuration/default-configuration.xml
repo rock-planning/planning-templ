@@ -15,6 +15,7 @@
                 <adaptive_computation_distance>40</adaptive_computation_distance>
                 <epoch_timeout_in_s>60</epoch_timeout_in_s><!-- stop: when a single search ends and a restart should be triggered -->
                 <total_timeout_in_s>900</total_timeout_in_s><!-- stop: when the total search ends -->
+                <allow-flaws>false</allow-flaws>
                 <model-usage>
                     <afc-decay>0.95</afc-decay>
                 </model-usage>
@@ -38,8 +39,11 @@
                     <afc-decay>0.95</afc-decay>
                     <supply-demand>false</supply-demand>
                 </timeline-brancher>
-                <!-- SCIP or GLPK -->
-                <lpsolver>GLPK</lpsolver>
+                <lp>
+                    <!-- CBC_SOLVER, CLP_SOLVER, SCIP_SOLVER or GLPK_SOLVER -->
+                    <solver>CLP_SOLVER</solver>
+                    <cache-solution>false</cache-solution>
+                </lp>
                 <cost-function>
                     <efficacy>
                         <weight>1.0</weight>

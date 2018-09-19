@@ -29,6 +29,7 @@
 #include "utils/Converter.hpp"
 #include "../../utils/CSVLogger.hpp"
 #include <graph_analysis/GraphIO.hpp>
+#include <graph_analysis/algorithms/LPSolver.hpp>
 #include "MissionConstraints.hpp"
 #include "Search.hpp"
 #include "../SolutionAnalysis.hpp"
@@ -87,53 +88,6 @@ SpaceTime::Network TransportNetwork::Solution::toNetwork() const
 {
     return SpaceTime::toNetwork(mLocations, mTimepoints,
             RoleTimeline::collectTimelines(mTimelines) );
-}
-
-TransportNetwork::SearchState::SearchState(const Mission::Ptr& mission)
-    : mpMission(mission)
-    , mpInitialState(NULL)
-    , mpSearchEngine(NULL)
-    , mType(OPEN)
-{
-    assert(mpMission);
-    mpInitialState = TransportNetwork::Ptr(new TransportNetwork(mpMission));
-    mpSearchEngine = TransportNetwork::BABSearchEnginePtr(new Gecode::BAB<TransportNetwork>(mpInitialState.get()));
-}
-
-TransportNetwork::SearchState::SearchState(const TransportNetwork::Ptr& transportNetwork,
-        const TransportNetwork::BABSearchEnginePtr& searchEngine)
-    : mpMission(transportNetwork->mpMission)
-    , mpInitialState(transportNetwork)
-    , mpSearchEngine(searchEngine)
-    , mType(OPEN)
-{
-    assert(mpMission);
-    assert(mpInitialState);
-    if(!mpSearchEngine)
-    {
-        mpSearchEngine = TransportNetwork::BABSearchEnginePtr(new Gecode::BAB<TransportNetwork>(mpInitialState.get()));
-    }
-}
-
-TransportNetwork::SearchState TransportNetwork::SearchState::next() const
-{
-    if(!getInitialState())
-    {
-        throw std::runtime_error("templ::solvers::csp::TransportNetwork::SearchState::next: "
-                " next() called on an unitialized search state");
-    }
-
-    SearchState searchState(mpInitialState, mpSearchEngine);
-    TransportNetwork* solvedDistribution = mpSearchEngine->next();
-    if(solvedDistribution)
-    {
-        searchState.mSolution = solvedDistribution->getSolution();
-        searchState.mType = SUCCESS;
-        delete solvedDistribution;
-    } else {
-        searchState.mType = FAILED;
-    }
-    return searchState;
 }
 
 // return true in order to enforce a restart
@@ -1811,12 +1765,21 @@ void TransportNetwork::postMinCostFlow()
             std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
         }
 
-        std::string solver = mConfiguration.getValueAs<std::string>("TransportNetwork/search/options/lpsolver","SCIP");
-        graph_analysis::algorithms::LPSolver::Type solverType = graph_analysis::algorithms::LPSolver::GLPK_SOLVER;
-        if(solver == "SCIP")
+        std::string solver =
+            mConfiguration.getValueAs<std::string>("TransportNetwork/search/options/lp/solver","CBC_SOLVER");
+
+        namespace ga = graph_analysis::algorithms;
+        ga::LPSolver::Type solverType = ga::LPSolver::UNKNOWN_LP_SOLVER;
+        for(const std::pair<ga::LPSolver::Type, std::string>& p :
+                graph_analysis::algorithms::LPSolver::TypeTxt)
         {
-            solverType = graph_analysis::algorithms::LPSolver::SCIP_SOLVER;
+            if(p.second == solver)
+            {
+                solverType = p.first;
+                break;
+            }
         }
+
         double feasibilityTimeoutInMs = mConfiguration.getValueAs<double>("TransportNetwork/search/options/coalition-feasibility/timeoutInMs",1000);
 
         std::map<Role, RoleTimeline> expandedTimelines = getTimelines();
@@ -1865,7 +1828,11 @@ void TransportNetwork::postMinCostFlow()
             // store all flaws
             mMinCostFlowFlaws = flaws;
 
-            msMinCostFlowSolutions[key] = FlowSolutionValue(flaws, mMinCostFlowSolution);
+            if(mConfiguration.getValueAs<bool>("TransportNetwork/search/options/lp/cache-solution",
+                        false))
+            {
+                msMinCostFlowSolutions[key] = FlowSolutionValue(flaws, mMinCostFlowSolution);
+            }
         } else {
             if(msInteractive)
             {

@@ -10,15 +10,17 @@ namespace templ {
 namespace solvers {
 
 FluentTimeResource::FluentTimeResource()
-    : mFluentIdx(0)
+    : mOrganizationModelAsk()
+    , mFluentIdx(0)
 {}
 
-FluentTimeResource::FluentTimeResource(const Mission::Ptr& mpMission,
+FluentTimeResource::FluentTimeResource(
+        const organization_model::OrganizationModelAsk& ask,
         const owlapi::model::IRI& resourceModel,
         symbols::constants::Location::Ptr& location,
         temporal::Interval timeInterval,
         const organization_model::ModelPool& availableModels)
-    : mpMission(mpMission)
+    : mOrganizationModelAsk(ask)
     , mFluentIdx(0)
     , mpLocation(location)
     , mTimeInterval(timeInterval)
@@ -274,7 +276,7 @@ FluentTimeResource::List FluentTimeResource::createNonOverlappingRequirements(co
     for(size_t i = 0; i < sortedTimepoints.size()-1; ++i)
     {
         FluentTimeResource ftr;
-        ftr.setMission( requirements.back().getMission());
+        ftr.setOrganizationModelAsk(requirements.back().getOrganizationModelAsk());
         ftr.setLocation(requirements.back().getLocation());
         temporal::Interval interval(sortedTimepoints[i],
                 sortedTimepoints[i+1],
@@ -302,7 +304,7 @@ bool FluentTimeResource::hasFunctionalityConstraint() const
 {
     for(const organization_model::Resource& resource : mRequiredResources)
     {
-        if( mpMission->getOrganizationModelAsk().ontology().isSubClassOf(resource.getModel(),
+        if( mOrganizationModelAsk.ontology().isSubClassOf(resource.getModel(),
                     organization_model::vocabulary::OM::Functionality()))
         {
             return true;
@@ -319,7 +321,7 @@ organization_model::Resource::Set FluentTimeResource::getRequiredResources() con
 void FluentTimeResource::addRequiredResource(const organization_model::Resource& resource)
 {
     mResources.insert(resource.getModel());
-    if(mpMission->getOrganizationModelAsk().ontology().isSubClassOf(resource.getModel(),
+    if(mOrganizationModelAsk.ontology().isSubClassOf(resource.getModel(),
                     organization_model::vocabulary::OM::Functionality()))
     {
         mRequiredResources.insert(resource);
@@ -393,7 +395,7 @@ organization_model::ModelPool::Set FluentTimeResource::getDomain() const
     //
     // The functional saturation bound has already been applied to the
     // organization model at initialization
-    organization_model::ModelPool::Set combinations = mpMission->getOrganizationModelAsk().getResourceSupport(requiredResources);
+    organization_model::ModelPool::Set combinations = mOrganizationModelAsk.getResourceSupport(requiredResources);
 
     LOG_INFO_S << "Support for the following resource requests:" << std::endl
         << organization_model::Functionality::toString(requiredResources) << std::endl

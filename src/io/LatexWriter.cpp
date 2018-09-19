@@ -116,7 +116,7 @@ std::string LatexWriter::toLatex(const solvers::FluentTimeResource& ftr)
     owlapi::model::IRIList functionalities;
     std::stringstream ssAgents;
 
-    OrganizationModelAsk ask = ftr.getMission()->getOrganizationModelAsk();
+    organization_model::OrganizationModelAsk ask = ftr.getOrganizationModelAsk();
 
     ModelPool pool = ftr.getMinCardinalities();
     for(ModelPool::value_type& v : pool)

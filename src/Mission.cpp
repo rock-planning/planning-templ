@@ -636,7 +636,8 @@ solvers::FluentTimeResource Mission::fromLocationCardinality(const solvers::temp
     Interval interval(p->getFromTimePoint(), p->getToTimePoint(), timepointComparator);
     symbols::constants::Location::Ptr location = locationCardinality->getLocation();
 
-    solvers::FluentTimeResource ftr(mission
+    solvers::FluentTimeResource ftr(
+            mission->getOrganizationModelAsk()
             , resourceModel
             , location
             , interval

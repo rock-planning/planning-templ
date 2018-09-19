@@ -5,11 +5,11 @@
 #include <vector>
 #include <cstdint>
 #include <owlapi/model/OWLOntologyAsk.hpp>
-#include <organization_model/ModelPool.hpp>
+#include <organization_model/OrganizationModelAsk.hpp>
 #include <organization_model/vocabularies/OM.hpp>
 #include <organization_model/Resource.hpp>
-#include <templ/solvers/temporal/Interval.hpp>
-#include <templ/Mission.hpp>
+#include "temporal/Interval.hpp"
+#include "../symbols/constants/Location.hpp"
 
 namespace templ {
 namespace solvers {
@@ -39,7 +39,8 @@ public:
      * \param resource Index of resource
      * \param time
      */
-    FluentTimeResource(const Mission::Ptr& mission,
+    FluentTimeResource(
+            const organization_model::OrganizationModelAsk& ask,
             const owlapi::model::IRI& resource,
             symbols::constants::Location::Ptr& location,
             temporal::Interval timeInterval,
@@ -50,6 +51,9 @@ public:
 
     std::string toString(uint32_t indent = 0) const;
     static std::string toString(const List& list, uint32_t indent = 0);
+
+    void setOrganizationModelAsk(const organization_model::OrganizationModelAsk& ask) { mOrganizationModelAsk = ask; }
+    const organization_model::OrganizationModelAsk& getOrganizationModelAsk() const { return mOrganizationModelAsk; }
 
     /**
      * Compute only the spatio-temporal qualification for identification of the
@@ -92,16 +96,6 @@ public:
         }
         return ss.str();
     }
-
-    /**
-     * Set the mission that is associated with this FluentTimeResource instance
-     */
-    void setMission(const Mission::Ptr& mission) { mpMission = mission; }
-
-    /**
-     * Get the mission that is associated with this FluentTimeResource instance
-     */
-    Mission::Ptr getMission() const { return mpMission; }
 
     /**
      * Retrieve the interval associated with FluentTimeResource instance
@@ -312,7 +306,7 @@ public:
 
 private:
     /// Allow to map between indexes and symbols
-    Mission::Ptr mpMission;
+    organization_model::OrganizationModelAsk mOrganizationModelAsk;
 
     /// Location idx for processing in CSP
     size_t mFluentIdx;
