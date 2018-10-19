@@ -376,7 +376,6 @@ void FluentTimeResource::merge(const FluentTimeResource& otherFtr)
 
 organization_model::ModelPool::Set FluentTimeResource::getDomain() const
 {
-    assert(mpMission);
     using namespace organization_model;
 
     // The domain definition accounts for service requirements as well as explicitly stated
