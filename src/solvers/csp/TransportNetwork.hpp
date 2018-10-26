@@ -81,41 +81,6 @@ public:
 
     const std::vector<solvers::temporal::Interval>& getIntervals() const { return mIntervals; }
 
-    /**
-     * Search state of the model distribution
-     */
-    class SearchState
-    {
-    public:
-        enum Type { OPEN, SUCCESS, FAILED };
-
-        SearchState(const Mission::Ptr& mission);
-
-        SearchState(const TransportNetwork::Ptr& transportNetwork,
-                const TransportNetwork::BABSearchEnginePtr& searchEngine = TransportNetwork::BABSearchEnginePtr());
-
-        TransportNetwork::Ptr getInitialState() const { return mpInitialState; }
-        Mission::Ptr getMission() const { return mpMission; }
-
-        SearchState next() const;
-
-        Type getType() const { return mType; }
-
-        const ModelDistribution& getModelDistribution() const { return mSolution.getModelDistribution(); }
-        const RoleDistribution& getRoleDistribution() const { return mSolution.getRoleDistribution(); }
-
-        const Solution getSolution() const { return mSolution; }
-
-    private:
-        Mission::Ptr mpMission;
-        TransportNetwork::Ptr mpInitialState;
-        TransportNetwork::BABSearchEnginePtr mpSearchEngine;
-
-        Type mType;
-        Solution mSolution;
-    };
-
-    friend class SearchState;
 protected:
     /// The mission to plan for
     Mission::Ptr mpMission;
