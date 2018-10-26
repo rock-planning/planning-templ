@@ -62,12 +62,23 @@ rock_library(templ_core
         qxcfg
 )
 
+if(WITH_GQR)
+    set(MOFT_EXTRA_CPP
+        solvers/GQReasoner.cpp
+    )
+
+    set(MOFT_EXTRA_HPP
+        solvers/GQReasoner.hpp
+    )
+    list(APPEND templ_moft_DEPS_PKGCONFIG gqr)
+    list(APPEND PKGCONFIG_MOFT_REQUIRES gqr)
+endif(WITH_GQR)
+
 # Master of time
 rock_library(templ_moft
     SOURCES
         RoleInfoTuple.cpp
         SpaceTime.cpp
-        solvers/GQReasoner.cpp
         io/TemporalConstraint.cpp
         solvers/csp/TemporalConstraintNetwork.cpp
         solvers/temporal/Bounds.cpp
@@ -87,11 +98,11 @@ rock_library(templ_moft
         solvers/temporal/point_algebra/TimePoint.cpp
         solvers/temporal/point_algebra/TimePointComparator.cpp
         utils/XMLTCNUtils.cpp
+        ${MOFT_EXTRA_CPP}
     HEADERS
         SpaceTime.hpp
         TemporallyExpandedNetwork.hpp
         io/TemporalConstraint.hpp
-        solvers/GQReasoner.hpp
         solvers/csp/TemporalConstraintNetwork.hpp
         solvers/temporal/Bounds.hpp
         solvers/temporal/Chronicle.hpp
@@ -111,11 +122,13 @@ rock_library(templ_moft
         solvers/temporal/point_algebra/TimePoint.hpp
         solvers/temporal/point_algebra/TimePointComparator.hpp
         utils/XMLTCNUtils.hpp
+        ${MOFT_EXTRA_HPP}
     DEPS
         templ_core
-    DEPS_PKGCONFIG
-        gqr
 )
+if(WITH_GQR)
+    target_link_libraries(templ_moft ${GQR_LIBRARIES})
+endif(WITH_GQR)
 
 rock_library(templ
     SOURCES

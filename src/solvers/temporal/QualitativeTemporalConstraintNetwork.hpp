@@ -23,7 +23,7 @@ public:
     typedef shared_ptr<QualitativeTemporalConstraintNetwork> Ptr;
     typedef std::pair<graph_analysis::Vertex::Ptr, graph_analysis::Vertex::Ptr> VertexPair;
 
-    enum ValidationAlgorithm { TCN_GECODE, TCN_GQR, TCN_INCREMENTAL, TCN_BEEK_MANAK };
+    enum ValidationAlgorithm { TCN_GECODE, TCN_INCREMENTAL, TCN_BEEK_MANAK };
 
     /**
      * Constraint validation for a triangle relation

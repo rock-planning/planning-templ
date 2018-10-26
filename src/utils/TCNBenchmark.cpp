@@ -6,7 +6,9 @@
 #include <templ/solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp>
 #include <templ/solvers/temporal/point_algebra/QualitativeTimePoint.hpp>
 #include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
+#ifdef WITH_GQR
 #include <templ/solvers/GQReasoner.hpp>
+#endif
 
 using namespace templ;
 using namespace templ::solvers::temporal;
@@ -47,8 +49,10 @@ int main(int argc, char** argv)
 {
     std::map< std::string, numeric::Stats<double> > stats;
     stats["gecode"];
+#ifdef WITH_GQR
     stats["gq_with_overhead"];
     stats["gq"];
+#endif
     stats["incremental"];
 
     std::cout << "# <number-of-timepoints> ";
@@ -68,7 +72,7 @@ int main(int argc, char** argv)
             tcn->isConsistent();
             double duration = (base::Time::now() - start).toSeconds();
             stats["gecode"].update(duration);
-
+#ifdef WITH_GQR
             start = base::Time::now();
             solvers::GQReasoner::isConsistent(*tcn);
             double gqWithOverheadDuration = (base::Time::now() - start).toSeconds();
@@ -80,13 +84,18 @@ int main(int argc, char** argv)
             paReasoner.getPrimarySolution();
             double gqDuration = (base::Time::now() - start).toSeconds();
             stats["gq"].update(gqDuration);
+#endif // WITH_GQR
 
             start = base::Time::now();
             tcn->isConsistent(QualitativeTemporalConstraintNetwork::TCN_INCREMENTAL);
             double incremental = (base::Time::now() - start).toSeconds();
             stats["incremental"].update(incremental);
 
-            std::cout << i << " " << duration << " " << gqWithOverheadDuration << " " << gqDuration << " " << incremental << std::endl;
+            std::cout << i << " " << duration << " ";
+#ifdef WITH_GQR
+            std::cout << gqWithOverheadDuration << " " << gqDuration << " ";
+#endif // WITH_GQR
+            std::cout << incremental << std::endl;
         }
         //std::cout << i <<  " ";
         //for(std::pair<std::string, numeric::Stats<double> > p: stats)

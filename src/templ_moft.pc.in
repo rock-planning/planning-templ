@@ -6,7 +6,7 @@ includedir=${prefix}/include
 Name: @TARGET_NAME@
 Description: TemPl Master Of Time
 Version: @PROJECT_VERSION@
-Requires: templ_core gqr
+Requires: templ_core @PKGCONFIG_MOFT_REQUIRES@
 Libs: -L${libdir} -l@TARGET_NAME@ @PKGCONFIG_LIBS@
 Cflags: -I${includedir} @PKGCONFIG_CFLAGS@
 
