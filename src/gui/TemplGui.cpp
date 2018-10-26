@@ -199,8 +199,15 @@ void TemplGui::createMenus()
     // BEGIN Windows->Dockable Dialogs
     QMenu* windowsMenu = new QMenu(QObject::tr("&Windows"));
     QMenu* viewDockWidgetMenu = windowsMenu->addMenu("&Dockable Dialogs");
-    viewDockWidgetMenu->addAction( mpUi->dockWidgetLeft->toggleViewAction() );
-    viewDockWidgetMenu->addAction( mpUi->dockWidgetRight->toggleViewAction() );
+
+    QAction* widgetLeft = mpUi->dockWidgetLeft->toggleViewAction();
+    viewDockWidgetMenu->addAction(widgetLeft);
+    mpUi->dockWidgetLeft->hide();
+
+    QAction* widgetRight = mpUi->dockWidgetRight->toggleViewAction();
+    viewDockWidgetMenu->addAction(widgetRight);
+    mpUi->dockWidgetRight->hide();
+
     viewDockWidgetMenu->addAction( mpUi->dockWidgetBottom->toggleViewAction() );
 
 
