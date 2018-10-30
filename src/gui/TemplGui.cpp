@@ -69,6 +69,7 @@ TemplGui::TemplGui()
     , mpMissionView(0)
     , mpOntologyView(0)
     , mConfiguration()
+    , mpProcess(0)
 {
     mpUi->setupUi(this);
     mpUi->tabWidget->clear();
