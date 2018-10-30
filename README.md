@@ -9,7 +9,7 @@ The current focus of TemPl is to allow planning and optimization of medium sized
 set of so-called atomic agents.
 
 ## Installation
-Please use autoproj to boostrap and include the package-set rock.dfki and
+Please use autoproj to bootstrap and include the package-set rock.dfki and
 dfki.planning in you manifest.
 Afterwards you can install templ via:
 ```
@@ -71,3 +71,7 @@ each solution:
 ```
 ./build/src/templ-solution_analysis test/data/solution_analysis/0_deviation-0.xml /tmp/.../final_plan.gexf
 ```
+
+# Copyright
+
+Copyright (c) 2015-2018 Thomas M. Roehr, DFKI GmbH Robotics Innovation Center

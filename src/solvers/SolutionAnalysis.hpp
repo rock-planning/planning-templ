@@ -234,7 +234,7 @@ public:
     /**
      * Compute efficacy as function of satisfiability
      \f[
-         E = \frac{1}{|STR|} \sum_{s\inSTR} sat(s)
+         E = \frac{1}{|STR|} \sum_{s\in STR} sat(s)
      \f]
      * The resulting value can be retrieve with getEfficiency
      */
