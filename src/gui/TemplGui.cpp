@@ -875,6 +875,7 @@ void TemplGui::loadConfiguration(const QString& _filename,
 
 void TemplGui::editConfiguration()
 {
+    QMessageBox::warning(this, "Templ", QString("Configuration: editing the configuration is not yet supported"));
 }
 
 void TemplGui::logOutput()
