@@ -551,7 +551,7 @@ graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
     std::map<Role, RoleInfoVertex::Ptr> role2VertexMap;
     for(const Role& role : roles)
     {
-        RoleInfoVertex::Ptr roleInfo(new RoleInfoVertex());
+        RoleInfoVertex::Ptr roleInfo = make_shared<RoleInfoVertex>();
         roleInfo->addRole(role);
         role2VertexMap[role] = roleInfo;
         hyperGraph->addVertex(roleInfo);
@@ -571,7 +571,7 @@ graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
         }
         for(const Role& role : roles)
         {
-            Edge::Ptr edge(new Edge("requires"));
+            Edge::Ptr edge = make_shared<Edge>("requires");
             edge->setSourceVertex(roleInfo);
 
             RoleInfoVertex::Ptr targetRoleVertex = role2VertexMap[role];
@@ -603,12 +603,12 @@ graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
         edgeLabel << hyperGraph->getVertexId( roleInfo->getTargetVertex() );
         edgeLabel << "]";
 
-        HyperEdge::Ptr hyperEdge(new HyperEdge(vertices, edgeLabel.str()));
+        HyperEdge::Ptr hyperEdge = make_shared<HyperEdge>(vertices, edgeLabel.str());
         hyperGraph->addHyperEdge(hyperEdge);
 
         for(const Role& role : roles)
         {
-            Edge::Ptr edge(new Edge("requires"));
+            Edge::Ptr edge = make_shared<Edge>("requires");
             edge->setSourceVertex(hyperEdge);
             RoleInfoVertex::Ptr targetRoleVertex = role2VertexMap[role];
             edge->setTargetVertex(targetRoleVertex);
@@ -664,9 +664,8 @@ void SolutionAnalysis::quantifyTime()
         point_algebra::TimePoint::Ptr sourceTimepoint = sourceTuple->second();
         point_algebra::TimePoint::Ptr targetTimepoint = targetTuple->second();
 
-        IntervalConstraint::Ptr intervalConstraint(
-                new IntervalConstraint(sourceTimepoint, targetTimepoint)
-                );
+        IntervalConstraint::Ptr intervalConstraint =
+            make_shared<IntervalConstraint>(sourceTimepoint, targetTimepoint);
 
         // Compute the required transition time
         RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(sourceTuple);
@@ -833,7 +832,8 @@ Plan SolutionAnalysis::computePlan() const
         // use SpaceTime::Network, which contains information on role for each edge
         // after update from the flow graph
         // foreach role -- find starting point and follow path
-        PathConstructor::Ptr pathConstructor(new PathConstructor(role, RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]));
+        PathConstructor::Ptr pathConstructor =
+            make_shared<PathConstructor>(role, RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]);
         Skipper skipper = boost::bind(&PathConstructor::isInvalidTransition, pathConstructor,_1);
         DFS dfs(mSolutionNetwork.getGraph(), pathConstructor, skipper);
         dfs.run(startTuple);

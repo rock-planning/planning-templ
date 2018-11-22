@@ -220,7 +220,8 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addResourceLocationCardinalit
     using namespace ::templ::symbols;
     // Make sure constant is known
     requireConstant(location);
-    ObjectVariable::Ptr locationCardinality(new object_variables::LocationCardinality(location, cardinality, type));
+    ObjectVariable::Ptr locationCardinality =
+        make_shared<object_variables::LocationCardinality>(location, cardinality, type);
 
     // the combination of resource, location and cardinality represents a state variable
     // which needs to be translated into resource based state variables
@@ -255,11 +256,12 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addResourceLocationNumericAtt
     using namespace ::templ::symbols;
 
     requireConstant(location);
-    ObjectVariable::Ptr numericAttribute(new object_variables::LocationNumericAttribute(
+    ObjectVariable::Ptr numericAttribute =
+        make_shared<object_variables::LocationNumericAttribute>(
                 location,
                 attribute,
                 minInclusive,
-                maxInclusive));
+                maxInclusive);
 
     symbols::StateVariable rloc(ObjectVariable::TypeTxt[ObjectVariable::LOCATION_NUMERIC_ATTRIBUTE],
             resourceModel.toString());
@@ -574,7 +576,7 @@ graph_analysis::Edge::Ptr Mission::addRelation(const graph_analysis::Vertex::Ptr
         const graph_analysis::Vertex::Ptr& target)
 {
     using namespace graph_analysis;
-    Edge::Ptr edge(new Edge(source, target, label));
+    Edge::Ptr edge = make_shared<Edge>(source, target, label);
     mpRelations->addEdge(edge);
     return edge;
 }

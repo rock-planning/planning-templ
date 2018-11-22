@@ -259,7 +259,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                 for(const constraints::ModelConstraint& modelConstraint : constraints.model)
                 {
                     using namespace templ::constraints;
-                    ModelConstraint::Ptr m(new ModelConstraint(modelConstraint));
+                    ModelConstraint::Ptr m = make_shared<ModelConstraint>(modelConstraint);
                     mission.addConstraint(m);
                 }
 
@@ -274,7 +274,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                         // account only for the relevant ones
                         TimePoint::Ptr t0 = tcn->getOrCreateTimePoint(temporalConstraint.lval);
                         TimePoint::Ptr t1 = tcn->getOrCreateTimePoint(temporalConstraint.rval);
-                        QualitativeTimePointConstraint::Ptr qtcp(new QualitativeTimePointConstraint(t0,t1, temporalConstraint.type));
+                        QualitativeTimePointConstraint::Ptr qtcp = make_shared<QualitativeTimePointConstraint>(t0,t1, temporalConstraint.type);
                         mission.addConstraint(qtcp);
                     } else {
                         /// min/max duration
@@ -290,7 +290,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
 
                         TimePoint::Ptr t0 = tcn->getOrCreateTimePoint(temporalConstraint.lval);
                         TimePoint::Ptr t1 = tcn->getOrCreateTimePoint(temporalConstraint.rval);
-                        IntervalConstraint::Ptr intervalConstraint(new IntervalConstraint(t0,t1));
+                        IntervalConstraint::Ptr intervalConstraint = make_shared<IntervalConstraint>(t0,t1);
                         Bounds bounds(temporalConstraint.minDuration, temporalConstraint.maxDuration);
                         intervalConstraint->addInterval(bounds);
                         mission.addConstraint(intervalConstraint);

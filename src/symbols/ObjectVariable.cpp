@@ -17,7 +17,7 @@ ObjectVariable::ObjectVariable(const std::string& name, Type type)
 
 ObjectVariable::Ptr ObjectVariable::getInstance(const std::string& name, Type type)
 {
-    return ObjectVariable::Ptr( new ObjectVariable(name, type));
+    return make_shared<ObjectVariable>(name, type);
 }
 
 bool ObjectVariable::equals(const Symbol::Ptr& symbol) const

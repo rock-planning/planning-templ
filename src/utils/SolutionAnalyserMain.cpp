@@ -57,7 +57,7 @@ int main(int argc, char** argv)
     baseMission.prepareTimeIntervals();
     baseMission.applyOrganizationModelOverrides();
 
-    Mission::Ptr mission( new Mission(baseMission));
+    Mission::Ptr mission = make_shared<Mission>(baseMission);
 
 
     SpaceTime::Network solution = SpaceTime::Network::fromFile(solutionFilename, mission->getLocations(), mission->getTimepoints());
