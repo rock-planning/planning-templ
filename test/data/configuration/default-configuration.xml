@@ -8,6 +8,13 @@
         <intervals-nooverlap>false</intervals-nooverlap>
         <search>
             <options>
+                <connectivity>
+                    <interface-type>http://www.rock-robotics.org/2014/01/om-schema#ElectroMechanicalInterface</interface-type>
+                    <timeout_in_s>20</timeout_in_s>
+                </connectivity>
+                <coalition-feasibility>
+                    <timeout_in_s>1</timeout_in_s>
+                </coalition-feasibility>
                 <threads>1</threads>
                 <cutoff>2</cutoff>
                 <nogoods_limit>128</nogoods_limit>

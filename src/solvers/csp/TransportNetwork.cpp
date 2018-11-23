@@ -1763,7 +1763,7 @@ void TransportNetwork::postMinCostFlow()
             }
         }
 
-        double feasibilityTimeoutInMs = mConfiguration.getValueAs<double>("TransportNetwork/search/options/coalition-feasibility/timeoutInMs",1000);
+        double feasibilityTimeoutInMs = 1000*mConfiguration.getValueAs<double>("TransportNetwork/search/options/coalition-feasibility/timeout_in_s",1);
 
         std::map<Role, RoleTimeline> expandedTimelines = getTimelines();
 
