@@ -114,12 +114,7 @@ bool TransportNetwork::master(const Gecode::MetaInfo& mi)
 
 void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::MetaInfo& mi)
 {
-    if(msInteractive)
-    {
-        std::cout << "BEGIN next()" << std::endl;
-        std::cout << "Press ENTER to continue..." << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
+    breakpoint("BEGIN next()");
 
     // constrain the next space // but not the first
     if(mi.last() != NULL)
@@ -133,14 +128,13 @@ void TransportNetwork::next(const TransportNetwork& lastSpace, const Gecode::Met
         mRequiredResolutionOptions = lastSpace.mRequiredResolutionOptions;
     }
 
-    if(msInteractive)
-    {
-        std::cout << "next():" << std::endl;
-        std::cout << "    # flaws: " << mMinCostFlowFlaws.size() << std::endl;
-        std::cout << "    # resolution options: " << mFlawResolution.remainingDraws().size() << std::endl;
-        std::cout << "    # required resolution options: " << mRequiredResolutionOptions.size() << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
+    breakpointStart()
+        << "next():" << std::endl
+        << "    # flaws: " << mMinCostFlowFlaws.size() << std::endl
+        << "    # resolution options: " <<
+        mFlawResolution.remainingDraws().size() << std::endl
+        ;
+    breakpointEnd();
 
     namespace ga = graph_analysis::algorithms;
 
@@ -180,19 +174,16 @@ void TransportNetwork::constrain(const Gecode::Space& lastSpace)
 {
     const TransportNetwork& lastTransportNetwork = static_cast<const TransportNetwork&>(lastSpace);
 
-    if(msInteractive)
-    {
-        std::cout << "constrain()" << std::endl;
-        std::cout << "Last state: " << std::endl;
-        std::cout << "    # cost: "<< lastTransportNetwork.mCost.val() << std::endl;
-        std::cout << "    # flaws: "<< lastTransportNetwork.mMinCostFlowFlaws.size() << std::endl;
-        std::cout << "    # resolution options: " << lastTransportNetwork.mFlawResolution.remainingDraws().size() << std::endl;
-        std::cout << "Current: " << std::endl;
-        std::cout << "    # cost: " << cost() << std::endl;
-
-        std::cout << "Press ENTER to continue..." << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
+    breakpointStart()
+        << "constrain()" << std::endl
+        << "Last state: " << std::endl
+        << "    # cost: "<< lastTransportNetwork.mCost.val() << std::endl
+        << "    # flaws: "<< lastTransportNetwork.mMinCostFlowFlaws.size() << std::endl
+        << "    # resolution options: " << lastTransportNetwork.mFlawResolution.remainingDraws().size() <<
+        std::endl
+        << "Current: " << std::endl
+        << "    # cost: " << cost() << std::endl;
+    breakpointEnd();
 
 
     bool hillClimbing = mConfiguration.getValueAs<bool>("TransportNetwork/search/options/hill-climbing",false);
@@ -209,16 +200,12 @@ void TransportNetwork::constrainSlave(const Gecode::Space& lastSpace)
 {
     const TransportNetwork& lastTransportNetwork = static_cast<const TransportNetwork&>(lastSpace);
 
-    if(msInteractive)
-    {
-        std::cout << "constrainSlave()" << std::endl;
-        std::cout << "Last state: " << std::endl;
-        std::cout << "    # flaws: "<< lastTransportNetwork.mMinCostFlowFlaws.size() << std::endl;
-        std::cout << "    # resolution options: " << lastTransportNetwork.mFlawResolution.remainingDraws().size() << std::endl;
-
-        std::cout << "Press ENTER to continue..." << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
+    breakpointStart()
+         << "constrainSlave()" << std::endl
+         << "Last state: " << std::endl
+         << "    # flaws: "<< lastTransportNetwork.mMinCostFlowFlaws.size() << std::endl
+         << "    # resolution options: " << lastTransportNetwork.mFlawResolution.remainingDraws().size() << std::endl;
+    breakpointEnd();
 
     //rel(*this, cost(), Gecode::IRT_LE, lastTransportNetwork.cost().val());
 
@@ -255,23 +242,19 @@ bool TransportNetwork::slave(const Gecode::MetaInfo& mi)
         mpMission->getLogger()->incrementSessionId();
     }
 
-    std::cout << "slave() with restarts: " << mi.restart() << std::endl;
-    if(msInteractive)
-    {
-        std::cout << "Press ENTER to continue..." << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
+    breakpointStart()
+        << "slave() with restarts: " << mi.restart() << std::endl;
+    breakpointEnd();
 
     if(mi.type() == Gecode::MetaInfo::RESTART)
     {
         if(!mi.last())
         {
             // the previous call with initialize the selected draw
-            if(msInteractive)
-            {
-                std::cout << "No last space available, thus slave search is complete" << std::endl;
-                std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-            }
+            breakpointStart()
+                    << "No last space available, thus slave search is complete" << std::endl;
+            breakpointEnd();
+
             // slave should only expand an existing solution,
             // but search is not complete at this stage
             return false;
@@ -283,11 +266,10 @@ bool TransportNetwork::slave(const Gecode::MetaInfo& mi)
         if(!lastSpace.mFlawResolution.next(true))
         {
             // the previous call with initialize the selected draw
-            if(msInteractive)
-            {
-                std::cout << "Flaw resolution: options are exhausted slave search is complete" << std::endl;
-                std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-            }
+            breakpointStart()
+                << "Flaw resolution: options are exhausted slave search is complete" << std::endl;
+            breakpointEnd();
+
             // Options are exhausted Search is complete
             mpMission->getLogger()->incrementSessionId();
             return false;
@@ -447,7 +429,11 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const qxc
     , Solver(Solver::CSP_TRANSPORT_NETWORK)
     , mpMission(mission)
     , mModelPool(mpMission->getAvailableResources())
-    , mAsk(mpMission->getOrganizationModel(), mpMission->getAvailableResources(), true)
+    , mAsk(mpMission->getOrganizationModel(),
+            mpMission->getAvailableResources(), true,
+            1000*configuration.getValueAs<double>("TransportNetwork/search/options/connectivity/timeout_in_s",20),
+            configuration.getValue("TransportNetwork/search/options/connectivity/interface-type",organization_model::vocabulary::OM::ElectroMechanicalInterface().toString())
+          )
     , mResources(mpMission->getRequestedResources())
     , mIntervals(mpMission->getTimeIntervals())
     , mTimepoints(mpMission->getUnorderedTimepoints())
@@ -558,12 +544,10 @@ void TransportNetwork::initializeMinMaxConstraints()
         FluentTimeResource::toQualificationStringList(mResourceRequirements.begin(),
             mResourceRequirements.end());
     LOG_INFO_S << constraintMatrix.toString(rowNames);
-    if(msInteractive)
-    {
-        std::cout << "InitializeMinMax: final constraint matrix: " << constraintMatrix.toString(rowNames) << std::endl;
-        std::cout << "Press ENTER to continue..."  << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
+
+    breakpointStart()
+        << "InitializeMinMax: final constraint matrix: " << constraintMatrix.toString(rowNames) << std::endl;
+    breakpointEnd();
 }
 
 void TransportNetwork::addExtensionalConstraints()
@@ -948,6 +932,16 @@ TransportNetwork::TransportNetwork(TransportNetwork& other)
     , mpCurrentMaster(other.mpCurrentMaster)
     , mSolutionAnalysis(other.mSolutionAnalysis)
 {
+    breakpointStart()
+        << "Space " << std::endl
+        << "    count: " << msActiveSpaceCount << std::endl
+        << "    size: " << sizeof(TransportNetwork) << std::endl
+        << "Mission: " << std::endl
+        << "    use count: " << mpMission.use_count() << std::endl
+        << "QualitativeTemporalConstraintNetwork" << std::endl
+        << "    use count: " << mpQualitativeTemporalConstraintNetwork.use_count() << std::endl;
+    breakpointEnd();
+
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
     mModelUsage.update(*this, other.mModelUsage);
@@ -1371,17 +1365,14 @@ void TransportNetwork::postTemporalConstraints()
     {
         throw std::invalid_argument("templ::solvers::csp::TransportNetwork: no resource requirements given");
     }
-    if(msInteractive)
-    {
-        std::cout << "Requirements:" << std::endl;
-        std::cout << FluentTimeResource::toString(mResourceRequirements, 4);
-        std::cout << "Timepoints: " << mTimepoints << std::endl;
-        std::cout << mQualitativeTimepoints << std::endl;
-        std::cout << "Press ENTER to continue..."  << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
-    // update timepoint comparator for intervals
+    breakpointStart()
+        << "Requirements:" << std::endl
+        << FluentTimeResource::toString(mResourceRequirements, 4)
+        << "Timepoints: " << mTimepoints << std::endl
+        << mQualitativeTimepoints << std::endl;
+    breakpointEnd();
 
+    // update timepoint comparator for intervals
     FluentTimeResource::updateIndices(mResourceRequirements,
             mLocations);
 
@@ -1483,12 +1474,7 @@ void TransportNetwork::doPostExtensionalConstraints(Gecode::Space& home)
 
 void TransportNetwork::doPostRoleAssignments(Gecode::Space& home)
 {
-    if(msInteractive)
-    {
-        std::cout << "doPostRoleAssignments()" << std::endl;
-        std::cout << "Press ENTER to continue..."  << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
+    breakpoint("doPostRoleAssignments()");
     static_cast<TransportNetwork&>(home).postRoleAssignments();
 }
 
@@ -1756,14 +1742,11 @@ void TransportNetwork::postMinCostFlow()
     save();
 
     try {
-        if(msInteractive)
-        {
-            std::cout << "Remaining flaws computation: " << mMinCostFlowFlaws.size() << std::endl;
-            std::cout << "     cost: " << mCost << std::endl;
-            std::cout << "     flaws: " << mNumberOfFlaws << std::endl;
-            std::cout << "Press ENTER to continue..." << std::endl;
-            std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-        }
+        breakpointStart()
+            << "Remaining flaws computation: " << mMinCostFlowFlaws.size() << std::endl
+            << "     cost: " << mCost << std::endl
+            << "     flaws: " << mNumberOfFlaws << std::endl;
+        breakpointEnd();
 
         std::string solver =
             mConfiguration.getValueAs<std::string>("TransportNetwork/search/options/lp/solver","CBC_SOLVER");
@@ -1802,10 +1785,18 @@ void TransportNetwork::postMinCostFlow()
                 solverType,
                 feasibilityTimeoutInMs);
 
+        breakpointStart()
+            << "Min cost flow to start" << std::endl;
+        breakpointEnd();
+
         FlowSolutions::iterator it = msMinCostFlowSolutions.find(key);
         if(it == msMinCostFlowSolutions.end())
         {
             std::vector<transshipment::Flaw> flaws = minCostFlow.run();
+
+            breakpointStart()
+                << "Min cost flow to start" << std::endl;
+            breakpointEnd();
 
             transshipment::FlowNetwork flowNetwork = minCostFlow.getFlowNetwork();
             mMinCostFlowSolution = flowNetwork.getSpaceTimeNetwork();
@@ -1817,8 +1808,6 @@ void TransportNetwork::postMinCostFlow()
                 {
                     LOG_WARN_S << "Immobile agent constraints not maintained by"
                         << " local search";
-                    std::cout << "Press ENTER to continue..." << std::endl;
-                    std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
                     return;
                 }
             }
@@ -1834,12 +1823,9 @@ void TransportNetwork::postMinCostFlow()
                 msMinCostFlowSolutions[key] = FlowSolutionValue(flaws, mMinCostFlowSolution);
             }
         } else {
-            if(msInteractive)
-            {
-                std::cout << "Found existing solution .. (skipping recomputation and taking from cache)" << std::endl;
-                std::cout << "Press ENTER to continue..." << std::endl;
-                std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-            }
+            breakpointStart()
+                << "Found existing solution .. (skipping recomputation and taking from cache)" << std::endl;
+            breakpointEnd();
 
             mMinCostFlowFlaws = it->second.first;
             mMinCostFlowSolution = it->second.second;
@@ -1849,12 +1835,9 @@ void TransportNetwork::postMinCostFlow()
         mFlawResolution.prepare(mMinCostFlowFlaws);
 
         std::cout << "Session " << mpMission->getLogger()->getSessionId() << ": remaining flaws: " << mMinCostFlowFlaws.size() << std::endl;
-        if(msInteractive)
-        {
-            std::cout << "Remaining flaws: " << mMinCostFlowFlaws.size() << std::endl;
-            std::cout << "Press ENTER to continue..." << std::endl;
-            std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-        }
+        breakpointStart()
+            << "Remaining flaws: " << mMinCostFlowFlaws.size() << std::endl;
+        breakpointEnd();
 
         // Set flaws as current cost of this solution
         rel(*this, mCost, Gecode::IRT_EQ, mMinCostFlowFlaws.size());
@@ -1879,6 +1862,9 @@ void TransportNetwork::postMinCostFlow()
         this->fail();
         return;
     }
+    breakpointStart()
+        << "Space count: " << msActiveSpaceCount << std::endl;
+    breakpointEnd();
 }
 
 void TransportNetwork::doPostTimelines(Gecode::Space& home)
@@ -1888,12 +1874,10 @@ void TransportNetwork::doPostTimelines(Gecode::Space& home)
 
 void TransportNetwork::postTimelines()
 {
-    if(msInteractive)
-    {
-        std::cout << "Post timelines" << std::endl;
-        std::cout << "Press ENTER to continue ..." << std::endl;
-        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
-    }
+    breakpointStart()
+        << "Post timelines" << std::endl;
+    breakpointEnd();
+
     branchTimelines(*this, mTimelines, mSupplyDemand);
 }
 
@@ -2167,6 +2151,26 @@ Gecode::ExecStatus TransportNetwork::updateTimeline(size_t timelineIdx,
         }
     }
     return Gecode::ES_OK;
+}
+
+void TransportNetwork::breakpoint(const std::string& msg)
+{
+    if(msInteractive)
+    {
+        std::cout << msg << std::endl;
+        std::cin.ignore( std::numeric_limits<std::streamsize>::max(), '\n' );
+    }
+}
+
+std::ostream& TransportNetwork::breakpointStart()
+{
+    mInteractiveMessageStream.clear();
+    return mInteractiveMessageStream;
+}
+
+void TransportNetwork::breakpointEnd()
+{
+    breakpoint(mInteractiveMessageStream.str());
 }
 
 } // end namespace csp

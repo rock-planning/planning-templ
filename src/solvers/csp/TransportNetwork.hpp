@@ -108,46 +108,46 @@ protected:
     /// requirements that arise from the mission scenario
     std::vector<FluentTimeResource> mResourceRequirements;
 
-    // map timeslot to fluenttime service
+    /// map timeslot to fluenttime service
     std::map<uint32_t, std::vector<FluentTimeResource> > mTimeIndexedRequirements;
 
-    // ###############################
-    // Temporal constraint networks
-    // ###############################
-    // Solver/helper instance for the qualitative TCN
+    /// ###############################
+    /// Temporal constraint networks
+    /// ###############################
+    /// Solver/helper instance for the qualitative TCN
     TemporalConstraintNetworkBase mTemporalConstraintNetwork;
     // Gecode representation of the qualitative TCN
     Gecode::IntVarArray mQualitativeTimepoints;
     // The currently considered qualitative TCN without gaps
     temporal::QualitativeTemporalConstraintNetwork::Ptr mpQualitativeTemporalConstraintNetwork;
 
-    // ###########################
-    // Model-based mapping
-    // ###########################
-    //
-    // Array which will be accessed using Gecode::Matrix
-    // The array contains information about the robot types required to
-    // fullfill a requirement, e.g., r-0
-    //
-    // Additional resource constraints apply due to the upper resource
-    // bound and time
-    //  requirement | robot-type-0 | robot-type-1 | robot-type-2 | ...
-    //  r-0         |      1       |      0       |      1       | ...
-    //  r-1         |      0       |      2       |      2       | ...
+    /// ###########################
+    /// Model-based mapping
+    /// ###########################
+    ///
+    /// Array which will be accessed using Gecode::Matrix
+    /// The array contains information about the robot types required to
+    /// fullfill a requirement, e.g., r-0
+    ///
+    /// Additional resource constraints apply due to the upper resource
+    /// bound and time
+    ///  requirement | robot-type-0 | robot-type-1 | robot-type-2 | ...
+    ///  r-0         |      1       |      0       |      1       | ...
+    ///  r-1         |      0       |      2       |      2       | ...
     owlapi::model::IRIList mAvailableModels;
     Gecode::IntVarArray mModelUsage;
 
-    // #######################
-    // Role based mapping
-    // #######################
-    // Array which will be accessed using Gecode::Matrix
-    // -- contains information about the robot types required to
-    // fullfill r-0
-    // Additional resource constraints apply due to the upper resource
-    // bound and time
-    //  requirement | role-0 | role-1 | role-2 | ...
-    //  r-0         |   1    |   0    |   1    | ...
-    //  r-1         |   0    |   1    |   1    | ...
+    /// #######################
+    /// Role based mapping
+    /// #######################
+    /// Array which will be accessed using Gecode::Matrix
+    /// -- contains information about the robot types required to
+    /// fullfill r-0
+    /// Additional resource constraints apply due to the upper resource
+    /// bound and time
+    ///  requirement | role-0 | role-1 | role-2 | ...
+    ///  r-0         |   1    |   0    |   1    | ...
+    ///  r-1         |   0    |   1    |   1    | ...
     Gecode::IntVarArray mRoleUsage;
 
     // Constraints:
@@ -216,6 +216,7 @@ protected:
     SolutionAnalysis mSolutionAnalysis;
 
 private:
+    std::stringstream mInteractiveMessageStream;
 
     std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelPool::Set& set) const;
     std::vector<uint32_t> toCSP(const organization_model::ModelPool& combination) const;
@@ -483,6 +484,18 @@ public:
     Role::List getActiveRoleList() const { return mActiveRoleList; }
 
     void setCurrentMaster(TransportNetwork* master) { mpCurrentMaster = master; }
+
+    static void breakpoint(const std::string& msg);
+
+    /**
+     * Start a breakpoint for the interactive mode
+     */
+    std::ostream& breakpointStart();
+
+    /**
+     * Close the interactive mode
+     */
+    void breakpointEnd();
 };
 
 std::ostream& operator<<(std::ostream& os, const TransportNetwork::Solution& solution);
