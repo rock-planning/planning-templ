@@ -14,7 +14,11 @@ int main(int argc, char** argv)
         ("mission", po::value<std::string>(), "Path to the mission specification")
         ("solution", po::value<std::string>(), "Path to the solution file")
         ("om", po::value<std::string>(), "IRI of the organization model (optional)")
+        ("report", "show the report of the analysis")
         ("save", po::value<std::string>(), "Save final path to a given filename")
+        ("save-row", po::value<std::string>(), "Save generated row data to a given filename")
+        ("save-modelpool", po::value<std::string>(), "Save generated modelpool to a given filename")
+        ("session-id", po::value<size_t>(), "The session id to use for writing row data")
         ;
 
     po::variables_map vm;
@@ -68,11 +72,30 @@ int main(int argc, char** argv)
     if(vm.count("save"))
     {
         saveFilename = vm["save"].as<std::string>();
+        solutionAnalysis.save(saveFilename);
     }
 
-    solutionAnalysis.save(saveFilename);
+    if(vm.count("save-row"))
+    {
+        saveFilename = vm["save-row"].as<std::string>();
+        size_t sessionId = 0;
+        if(vm.count("session-id"))
+        {
+            sessionId = vm["session-id"].as<size_t>();
+        }
+        solutionAnalysis.saveRow(saveFilename, sessionId);
+    }
 
-    printf("Report:\n%s", solutionAnalysis.toString().c_str());
+    if(vm.count("save-modelpool"))
+    {
+        saveFilename = vm["save-modelpool"].as<std::string>();
+        solutionAnalysis.saveModelPool(saveFilename);
+    }
+
+    if(vm.count("report"))
+    {
+        printf("Report:\n%s", solutionAnalysis.toString().c_str());
+    }
 
     return 0;
 }
