@@ -20,8 +20,17 @@ public:
 
     void loadConfiguration(const std::string& configurationFile);
 
+    /**
+     * Generate a feasible logistics network of a set of atomic agents
+     * \return network a atomic agents transitions
+     */
     SpaceTime::Network generateNetwork();
 
+    /**
+     * Sample from a generated network, to create a mission specification
+     * where the network represents one of possible many feasible solutions
+     * \return mission specification
+     */
     Mission::Ptr sampleFromNetwork(const SpaceTime::Network& network);
 
     /**
