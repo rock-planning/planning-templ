@@ -57,6 +57,8 @@ public:
     void analyse();
 
     void save(const std::string& filename = "") const;
+    void saveRow(const std::string& filename, size_t sessionId = 0) const;
+    void saveModelPool(const std::string& filename) const;
 
     double getAlpha() const { return mAlpha; }
     double getBeta() const { return mBeta; }
@@ -117,6 +119,11 @@ public:
      * definition
      */
     SpaceTime::Network::tuple_t::Ptr getToTuple(const FluentTimeResource& ftr) const;
+
+    /**
+     * Get the corresponding space time tuples for the space-time interval
+     */
+    SpaceTime::Network::tuple_t::PtrList getTuples(const FluentTimeResource& ftr) const;
 
     /**
      * Get the maximum number of missing resource requirements, i.e.
@@ -241,7 +248,7 @@ public:
     void computeEfficacy();
 
     /**
-     * Compute efficiency as overall energy cost in Wh
+     * Compute efficiency as overall energy cost in kWh
      */
     void computeEfficiency();
 
@@ -265,8 +272,18 @@ public:
      */
     void computeSafety(bool ignoreStartDepot = true);
 
+    /**
+     * Compute the atomic agent count
+     */
+    void computeAgentCount();
+
     std::string getRowDescriptor() const;
-    std::string toRow() const;
+    /**
+     * Encode the results of the solutions analysis in a single row
+     * \param sessionId Any id not equal to 0 will be used to override the logger's current session id
+     * \return result of the solution analysis as row
+     */
+    std::string toRow(size_t sessionId = 0) const;
 
     bool isStartDepotRequirement(const FluentTimeResource& ftr) const;
 
@@ -295,10 +312,19 @@ private:
     double mQuality;
     double mSafety;
     double mEfficacy;
-    /// The overall cost of the mission
+    /// The overall cost of the mission in kWh
     double mEfficiency;
+    /// Total travel distance in m
     double mTraveledDistance;
+    /// Total reconfiguration cost in s
     double mReconfigurationCost;
+    /// The required agent roles
+    Role::Set mRoles;
+    /// Total number of agents
+    size_t mTotalNumberOfAgents;
+    /// Number of mobile agents
+    size_t mNumberOfMobileAgents;
+
     /// The cost per role
     std::map<Role, double> mEfficiencyPerRole;
 

@@ -28,6 +28,8 @@ SolutionAnalysis::SolutionAnalysis()
     , mEfficacy(0.0)
     , mTraveledDistance(0)
     , mReconfigurationCost(0)
+    , mTotalNumberOfAgents(0)
+    , mNumberOfMobileAgents(0)
     , mAnalyser(organization_model::OrganizationModelAsk())
 {}
 
@@ -46,6 +48,8 @@ SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
     , mEfficacy(0.0)
     , mTraveledDistance(0)
     , mReconfigurationCost(0)
+    , mTotalNumberOfAgents(0)
+    , mNumberOfMobileAgents(0)
     , mAsk(mpMission->getOrganizationModelAsk())
     , mAnalyser(mAsk)
     , mConfiguration(configuration)
@@ -402,6 +406,7 @@ void SolutionAnalysis::analyse()
     computeEfficacy();
     computeEfficiency();
     computeSafety();
+    computeAgentCount();
 
     mCost = mAlpha*mEfficacy + mBeta*mEfficiency + mSigma*mSafety;
 }
@@ -437,21 +442,56 @@ void SolutionAnalysis::save(const std::string& _filename) const
     }
 }
 
+void SolutionAnalysis::saveRow(const std::string& filename, size_t sessionId) const
+{
+    std::ofstream outfile;
+    if(!boost::filesystem::exists(filename))
+    {
+        outfile.open(filename);
+        outfile << getRowDescriptor() << std::endl;
+        outfile << toRow(sessionId) << std::endl;
+    } else {
+        outfile.open(filename, std::ios_base::app);
+        outfile << toRow(sessionId) << std::endl;
+    }
+}
+
+void SolutionAnalysis::saveModelPool(const std::string& filename) const
+{
+    std::ofstream outfile;
+    outfile.open(filename);
+    ModelPool modelPool = Role::getModelPool(mRoles);
+    for(const ModelPool::value_type& value : modelPool)
+    {
+        outfile << value.first.toString();
+        outfile << " ";
+        outfile << value.second;
+        outfile << std::endl;
+    }
+    outfile.close();
+}
+
 std::string SolutionAnalysis::getRowDescriptor() const
 {
     std::stringstream ss;
     ss << "# ";
-    ss << " session-id ";
-    ss << " alpha beta sigma ";
-    ss << " efficacy efficiency safety ";
-    ss << " timehorizon travel-distance reconfiguration-cost";
+    ss << " [session-id] ";
+    ss << " [alpha] [beta] [sigma] ";
+    ss << " [efficacy] [efficiency in kWh] [safety] ";
+    ss << " [timehorizon in s] [travel-distance in m] [reconfiguration-cost in s]";
+    ss << " [number of agents] [number of mobile agents]";
     return ss.str();
 }
 
-std::string SolutionAnalysis::toRow() const
+std::string SolutionAnalysis::toRow(size_t sessionId) const
 {
     std::stringstream ss;
-    ss << mpMission->getLogger()->getSessionId() << " ";
+    if(sessionId != 0)
+    {
+        ss << sessionId << " ";
+    } else {
+        ss << mpMission->getLogger()->getSessionId() << " ";
+    }
     ss << mAlpha << " ";
     ss << mBeta << " ";
     ss << mSigma << " ";
@@ -461,6 +501,8 @@ std::string SolutionAnalysis::toRow() const
     ss << mTimeHorizonInS << " ";
     ss << mTraveledDistance << " ";
     ss << mReconfigurationCost << " ";
+    ss << mTotalNumberOfAgents << " ";
+    ss << mNumberOfMobileAgents << " ";
     return ss.str();
 }
 
@@ -478,13 +520,19 @@ double SolutionAnalysis::degreeOfFulfillment(const solvers::FluentTimeResource& 
         return 1.0;
     }
 
-    ModelPoolDelta delta = getMinMissingResourceRequirements(ftr);
-    if(delta.isNegative())
+    SpaceTime::Network::tuple_t::PtrList tuples = getTuples(ftr);
+    for(const SpaceTime::Network::tuple_t::Ptr& roleInfo : tuples)
     {
-        return 0.0;
-    } else {
-        return 1.0;
+        std::set<Role> assigned = roleInfo->getRoles(RoleInfo::ASSIGNED);
+        std::set<Role> required = roleInfo->getRoles(RoleInfo::REQUIRED);
+
+        if(!std::includes(assigned.begin(), assigned.end(), required.begin(),
+                required.end()))
+        {
+            return 0.0;
+        }
     }
+    return 1.0;
 }
 
 organization_model::ModelPool SolutionAnalysis::getMinResourceRequirements(const FluentTimeResource& ftr) const
@@ -507,6 +555,13 @@ SpaceTime::Network::tuple_t::Ptr SolutionAnalysis::getFromTuple(const FluentTime
 SpaceTime::Network::tuple_t::Ptr SolutionAnalysis::getToTuple(const FluentTimeResource& ftr) const
 {
     return mSolutionNetwork.tupleByKeys(ftr.getLocation(), ftr.getInterval().getTo());
+}
+
+SpaceTime::Network::tuple_t::PtrList SolutionAnalysis::getTuples(const
+        FluentTimeResource& ftr) const
+{
+    return mSolutionNetwork.getTuples(ftr.getInterval().getFrom(),
+            ftr.getInterval().getFrom(), ftr.getLocation());
 }
 
 organization_model::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequirements(const solvers::FluentTimeResource& ftr) const
@@ -624,7 +679,7 @@ void SolutionAnalysis::quantifyTime()
     TemporalConstraintNetwork tcn;
     Cost cost(mpMission->getOrganizationModelAsk());
 
-    double travelDistance;
+    double travelDistanceInM = 0.0;
 
     // Apply constraints from the current solution
     // TODO: space time network: iterator over all 'solution' edges
@@ -652,14 +707,14 @@ void SolutionAnalysis::quantifyTime()
         symbols::constants::Location::Ptr sourceLocation = sourceTuple->first();
         symbols::constants::Location::Ptr targetLocation = targetTuple->first();
 
-        double distance = cost.getTravelDistance({sourceLocation, targetLocation});
+        double distanceInM = cost.getTravelDistance({sourceLocation, targetLocation});
         double minTravelTime = cost.estimateTravelTime(sourceLocation, targetLocation, roles);
         LOG_DEBUG_S << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
-            << " from: " << sourceLocation->toString() << " to: " << targetLocation->toString()
-            << std::endl
-            << "Estimated travelDistance: " << distance;
+            << "    from: " << sourceLocation->toString() << "/" << sourceTuple->second()->toString() << std::endl
+            << "    to: " << targetLocation->toString() << "/" << targetTuple->second()->toString() << std::endl
+            << "    estimated travelDistance in m: " << distanceInM;
 
-        travelDistance += distance;
+        travelDistanceInM += distanceInM;
 
         point_algebra::TimePoint::Ptr sourceTimepoint = sourceTuple->second();
         point_algebra::TimePoint::Ptr targetTimepoint = targetTuple->second();
@@ -678,12 +733,15 @@ void SolutionAnalysis::quantifyTime()
         }
 
         double requiredTime = minTravelTime + reconfigurationCost;
-        Bounds bounds(requiredTime, std::numeric_limits<double>::max());
-        intervalConstraint->addInterval(bounds);
-        tcn.addIntervalConstraint(intervalConstraint);
+        if(requiredTime > 0)
+        {
+            Bounds bounds(requiredTime, std::numeric_limits<double>::max());
+            intervalConstraint->addInterval(bounds);
+            tcn.addIntervalConstraint(intervalConstraint);
 
-        LOG_DEBUG_S << "Interval constraint between: " << sourceTimepoint->toString() << " and " << targetTimepoint->toString() << " min travel time: "
-            << minTravelTime;
+            LOG_DEBUG_S << "Interval constraint between: " << sourceTimepoint->toString() << " and " << targetTimepoint->toString() << " min travel time: "
+                << minTravelTime;
+        }
     }
 
     for(Constraint::Ptr c : mpMission->getConstraints())
@@ -708,7 +766,7 @@ void SolutionAnalysis::quantifyTime()
 
     mTimeAssignment = TemporalConstraintNetwork::getAssignment(tcn.getDistanceGraph(), mSolutionNetwork.getTimepoints());
     mTimeHorizonInS = TemporalConstraintNetwork::getTimeHorizon(mTimeAssignment);
-    mTraveledDistance = travelDistance;
+    mTraveledDistance = travelDistanceInM;
 }
 
 void SolutionAnalysis::computeSafety(bool ignoreStartDepot)
@@ -833,7 +891,8 @@ Plan SolutionAnalysis::computePlan() const
         // after update from the flow graph
         // foreach role -- find starting point and follow path
         PathConstructor::Ptr pathConstructor =
-            make_shared<PathConstructor>(role, RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]);
+            make_shared<PathConstructor>(role,
+                    RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]);
         Skipper skipper = boost::bind(&PathConstructor::isInvalidTransition, pathConstructor,_1);
         DFS dfs(mSolutionNetwork.getGraph(), pathConstructor, skipper);
         dfs.run(startTuple);
@@ -858,6 +917,37 @@ Plan SolutionAnalysis::computePlan() const
     }
 
     return plan;
+}
+
+void SolutionAnalysis::computeAgentCount()
+{
+    std::set<Role> roles;
+    for(const solvers::FluentTimeResource& ftr : mResourceRequirements)
+    {
+        if(isStartDepotRequirement(ftr))
+        {
+            SpaceTime::Network::tuple_t::PtrList tuples = getTuples(ftr);
+            for(const SpaceTime::Network::tuple_t::Ptr& roleInfo : tuples)
+            {
+                std::set<Role> assigned = roleInfo->getRoles(RoleInfo::ASSIGNED);
+                roles.insert(assigned.begin(), assigned.end());
+                break;
+            }
+        }
+    }
+
+    mRoles = roles;
+    mTotalNumberOfAgents = 0;
+    mNumberOfMobileAgents = 0;
+    for(const Role& role : roles)
+    {
+        facades::Robot robot = facades::Robot::getInstance(role.getModel(), mpMission->getOrganizationModelAsk());
+        if(robot.isMobile())
+        {
+            ++mNumberOfMobileAgents;
+        }
+        ++mTotalNumberOfAgents;
+    }
 }
 
 void SolutionAnalysis::computeEfficacy()
@@ -885,7 +975,7 @@ void SolutionAnalysis::computeEfficiency()
         }
         //const Vertex::PtrList& plan = v.second;
         facades::Robot robot = facades::Robot::getInstance(role.getModel(), mpMission->getOrganizationModelAsk());
-        double efficiencyInkWh = robot.estimatedEnergyCostFromTime(mTimeHorizonInS)/(3600*1000);
+        double efficiencyInkWh = robot.estimatedEnergyCostFromTime(mTimeHorizonInS)/(3600*1000.0);
 
         mEfficiencyPerRole[role] = efficiencyInkWh;
         mEfficiency += efficiencyInkWh;
@@ -1008,6 +1098,9 @@ std::string SolutionAnalysis::toString(size_t indent) const
     ss << hspace << "            reconfiguration: " << mReconfigurationCost << std::endl;
     ss << hspace << "            safety: " << mSafety << std::endl;
     ss << hspace << "            travel distance: " << mTraveledDistance << std::endl;
+    ss << hspace << "        # of agents: " << mTotalNumberOfAgents << std::endl;
+    ss << hspace << "        # of mobile agents: " << mNumberOfMobileAgents << std::endl;
+    ss << Role::getModelPool(mRoles).toString(indent + 12) << std::endl;
     return ss.str();
 }
 
