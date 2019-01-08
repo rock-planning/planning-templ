@@ -142,15 +142,18 @@ void MinCostFlow::setCommoditySupplyAndDemand()
         std::vector<Role>::const_iterator cit = std::find(mCommoditiesRoles.begin(), mCommoditiesRoles.end(), role);
         if(cit != mCommoditiesRoles.end())
         {
+            organization_model::facades::Robot robot = role.getFacade(mAsk);
+            uint32_t transportDemand = robot.getTransportDemand();
+
             size_t commodityId = cit - mCommoditiesRoles.begin();
-            setSupplyDemand(SpaceTime::getHorizonStartTuple(),commodityId, role, 1);
-            setSupplyDemand(SpaceTime::getHorizonEndTuple(),commodityId, role, -1);
+            setSupplyDemand(SpaceTime::getHorizonStartTuple(),commodityId, role, transportDemand);
+            setSupplyDemand(SpaceTime::getHorizonEndTuple(),commodityId, role, -transportDemand);
 
             for(size_t i = 0; i < timeline.size(); ++i)
             {
                 // todo update constraint for all that are assigned inbetween
                 SpaceTime::Network::tuple_t::Ptr currentTuple = mSpaceTimeNetwork.tupleByKeys(timeline[i].first, timeline[i].second);
-                setMinTransFlow(currentTuple, commodityId, role, 1);
+                setMinTransFlow(currentTuple, commodityId, role, transportDemand);
             }
         }
     } // end for role timelines
