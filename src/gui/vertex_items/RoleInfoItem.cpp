@@ -389,10 +389,21 @@ QGraphicsSvgItem* RoleInfoItem::getSvgItemForModel(const owlapi::model::IRI& iri
             } else if(modelSvgFile.open(QIODevice::WriteOnly | QIODevice::Text))
             {
                 QTextStream out(&modelSvgFile);
-                int length = agentmodel.length();
-                int height = length*7;
+
+                size_t rowlength = 6;
+                size_t rowheight = 11;
+                size_t textrows = ceil(agentmodel.length() / (rowlength*1.0));
+                int height = 30 + textrows*4;
                 out << "<svg height=\"" << height << "\" width=\"" << height << "\">\n";
-                out << "    <text x=\"6\" y=\"" << height/2 + 4 << "\" style=\"font-size:8\">" << agentmodel << "</text>\n";
+                size_t ypos = (height - textrows*rowheight)/2;
+                for(size_t row = 0; row < textrows; ++row)
+                {
+                    out << "    <text "
+                        << " x=\"6\""
+                        << " y=\"" << ypos + rowheight*(row+1) << "\"";
+                    out << " style=\"font-size:8\">" << agentmodel.mid(row*rowlength,rowlength)
+                        << "</text>\n";
+                }
                 out << "</svg>\n";
                 modelSvgFile.close();
                 file = modelSvgFilename;
