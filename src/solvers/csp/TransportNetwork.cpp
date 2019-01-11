@@ -934,7 +934,6 @@ TransportNetwork::TransportNetwork(TransportNetwork& other)
 {
     breakpointStart()
         << "Space " << std::endl
-        << "    count: " << msActiveSpaceCount << std::endl
         << "    size: " << sizeof(TransportNetwork) << std::endl
         << "Mission: " << std::endl
         << "    use count: " << mpMission.use_count() << std::endl
@@ -1862,9 +1861,6 @@ void TransportNetwork::postMinCostFlow()
         this->fail();
         return;
     }
-    breakpointStart()
-        << "Space count: " << msActiveSpaceCount << std::endl;
-    breakpointEnd();
 }
 
 void TransportNetwork::doPostTimelines(Gecode::Space& home)
