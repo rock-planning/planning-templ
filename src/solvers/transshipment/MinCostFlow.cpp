@@ -144,6 +144,15 @@ void MinCostFlow::setCommoditySupplyAndDemand()
         {
             organization_model::facades::Robot robot = role.getFacade(mAsk);
             uint32_t transportDemand = robot.getTransportDemand();
+            if(transportDemand == 0)
+            {
+                throw
+                    std::invalid_argument("templ::solvers::transshipment::"
+                            "MinCostFlow::setCommoditySupplyAndDemand: "
+                            "transportDemand for model '" +
+                            role.getModel().toString() + "' is 0 -- pls"
+                            " update the organization_model");
+            }
 
             size_t commodityId = cit - mCommoditiesRoles.begin();
             setSupplyDemand(SpaceTime::getHorizonStartTuple(),commodityId, role, transportDemand);
