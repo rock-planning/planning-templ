@@ -1845,7 +1845,7 @@ void TransportNetwork::postMinCostFlow()
         rel(*this, mCost, Gecode::IRT_EQ, mMinCostFlowFlaws.size());
         rel(*this, mNumberOfFlaws, Gecode::IRT_EQ, mMinCostFlowFlaws.size());
 
-        mSolutionAnalysis = solvers::SolutionAnalysis(mpMission, mMinCostFlowSolution);
+        mSolutionAnalysis = solvers::SolutionAnalysis(mpMission, mMinCostFlowSolution, mConfiguration);
         mSolutionAnalysis.analyse();
 
         // Set flaws as well

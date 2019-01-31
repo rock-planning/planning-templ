@@ -56,9 +56,12 @@ SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
 {
     mResourceRequirements = Mission::getResourceRequirements(mpMission);
 
-    mAlpha = mConfiguration.getValueAs<double>("TransportNetwork/efficacy/factor", 1.0);
-    mBeta = mConfiguration.getValueAs<double>("TransportNetwork/efficiency/factor", 1.0);
-    mSigma = mConfiguration.getValueAs<double>("TransportNetwork/safety/factor", 1.0);
+    mAlpha =
+        mConfiguration.getValueAs<double>("TransportNetwork/search/options/cost-function/efficacy/weight", 1.0);
+    mBeta =
+        mConfiguration.getValueAs<double>("TransportNetwork/search/options/cost-function/efficiency/weight", 1.0);
+    mSigma =
+        mConfiguration.getValueAs<double>("TransportNetwork/search/options/cost-function/safety/weight", 1.0);
 }
 
 SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
@@ -84,9 +87,12 @@ SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
 
     mResourceRequirements = Mission::getResourceRequirements(mpMission);
 
-    mAlpha = mConfiguration.getValueAs<double>("TransportNetwork/efficacy/factor", 1.0);
-    mBeta = mConfiguration.getValueAs<double>("TransportNetwork/efficiency/factor", 1.0);
-    mSigma = mConfiguration.getValueAs<double>("TransportNetwork/safety/factor", 1.0);
+    mAlpha =
+        mConfiguration.getValueAs<double>("TransportNetwork/search/options/cost-function/efficacy/weight", 1.0);
+    mBeta =
+        mConfiguration.getValueAs<double>("TransportNetwork/search/options/cost-function/efficiency/weight", 1.0);
+    mSigma =
+        mConfiguration.getValueAs<double>("TransportNetwork/search/options/cost-function/safety/weight", 1.0);
 }
 
 void SolutionAnalysis::updateAnalyser()
@@ -403,9 +409,18 @@ void SolutionAnalysis::analyse()
     //updateAnalyser();
     // a collect all requirements of the mission -- as translated from the
     // persistence conditions
-    computeEfficacy();
-    computeEfficiency();
-    computeSafety();
+    if(mAlpha > 0)
+    {
+        computeEfficacy();
+    }
+    if(mBeta > 0)
+    {
+        computeEfficiency();
+    }
+    if(mSigma > 0)
+    {
+        computeSafety();
+    }
     computeAgentCount();
 
     mCost = mAlpha*mEfficacy + mBeta*mEfficiency + mSigma*mSafety;
