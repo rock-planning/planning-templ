@@ -353,12 +353,18 @@ void TemplGui::importSolution(const QString& settingsLabel, const QString& filen
     MissionView* missionView = qobject_cast<templ::gui::MissionView*>(mpUi->tabWidget->currentWidget());
     if(missionView && missionView->getMission())
     {
-        Mission::Ptr mission = missionView->getMission();
-        SpaceTime::Network network = SpaceTime::Network::fromGraph(graph,
-                mission->getLocations(), mission->getTimepoints());
-        solvers::SolutionAnalysis sa(mission, network);
-        sa.analyse();
-        graph = sa.getSolutionNetwork().getGraph();
+        try {
+            Mission::Ptr mission = missionView->getMission();
+            SpaceTime::Network network = SpaceTime::Network::fromGraph(graph,
+                    mission->getLocations(), mission->getTimepoints());
+            solvers::SolutionAnalysis sa(mission, network);
+            sa.analyse();
+            graph = sa.getSolutionNetwork().getGraph();
+        } catch(const std::exception& e)
+        {
+            QMessageBox::warning(this, "Templ", QString(e.what()));
+            return;
+        }
     } else {
         QMessageBox::warning(this, "Templ", QString("No active mission view, will import solution as graph without annotations"));
     }
