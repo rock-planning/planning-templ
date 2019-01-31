@@ -54,7 +54,7 @@ std::string FluentTimeResource::toString(uint32_t indent) const
     std::stringstream ss;
     std::string hspace(indent,' ');
     ss << hspace << "FluentTimeResource: " << std::endl;
-    ss << hspace << "    resources: #";
+    ss << hspace << "    resources: ";
     owlapi::model::IRISet::const_iterator cit = mResources.begin();
     for(; cit != mResources.end(); )
     {
@@ -396,7 +396,7 @@ organization_model::ModelPool::Set FluentTimeResource::getDomain() const
     // organization model at initialization
     organization_model::ModelPool::Set combinations = mOrganizationModelAsk.getResourceSupport(requiredResources);
 
-    LOG_INFO_S << "Support for the following resource requests:" << std::endl
+    LOG_INFO_S << "Support for the following resource requested:" << std::endl
         << organization_model::Functionality::toString(requiredResources) << std::endl
         << "    agent combinations: " << organization_model::ModelPool::toString(combinations);
 

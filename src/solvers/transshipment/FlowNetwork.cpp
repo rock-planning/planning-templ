@@ -178,7 +178,10 @@ transshipment::Flaw::List FlowNetwork::getInvalidTransitions(double feasibilityC
                 if( coalitionStructure.empty() )
                 {
                     LOG_WARN_S << "Infeasible coalition detected for transition"
-                        << edge->toString(4);
+                        << edge->toString(4)
+                        << pool.toString(4)
+                        << "timeout: " << feasibilityCheckTimeoutInMs;
+
                     using namespace graph_analysis::algorithms;
                     ConstraintViolation v(MultiCommodityEdge::Ptr(),
                             std::set<uint32_t>(), 0, 0,0, ConstraintViolation::TotalTransFlow);

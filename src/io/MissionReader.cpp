@@ -181,7 +181,8 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
                 {
                     const SpatioTemporalRequirement& requirement = *cit;
 
-                    SpatioTemporalRequirement::Ptr requirementPtr(new SpatioTemporalRequirement(requirement));
+                    SpatioTemporalRequirement::Ptr requirementPtr =
+                        make_shared<SpatioTemporalRequirement>(requirement);
 
                     std::string locationId = requirement.spatial.location.id;
                     symbols::Constant::Ptr constant = mission.getConstant(locationId, symbols::Constant::LOCATION);
