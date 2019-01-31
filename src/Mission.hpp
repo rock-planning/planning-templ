@@ -102,6 +102,11 @@ public:
     organization_model::OrganizationModel::Ptr getOrganizationModel() const { return mpOrganizationModel; }
 
     /**
+      * Set the organization model ask object
+      */
+    void setOrganizationModelAsk(const organization_model::OrganizationModelAsk& ask) { mOrganizationModelAsk = ask; }
+
+    /**
      * Get access to the OrganizationModelAsk object to query information from
      * the associated organization model
      */

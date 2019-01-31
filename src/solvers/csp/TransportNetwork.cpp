@@ -451,6 +451,9 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const qxc
     , mpCurrentMaster(NULL)
    // , mCapacities(*this, (mLocations.size()+1)*(mLocations.size()+1)*mTimepoints.size()*mTimepoints.size(), 0, Gecode::Int::Limits::max)
 {
+    // FIXME: make sure we use the the same configuration of the ask object
+    mpMission->setOrganizationModelAsk(mAsk);
+
     assert( mpMission->getOrganizationModel() );
     assert(!mIntervals.empty());
     LOG_INFO_S << "TransportNetwork CSP Problem Construction" << std::endl
