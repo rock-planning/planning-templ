@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(mutually_exclusive)
     std::string missionFilename = rootDir + "/test/data/scenarios/test-mission-ftrs-0.xml";
 
     Mission m = io::MissionReader::fromFile(missionFilename);
-    Mission::Ptr mission(new Mission(m));
+    Mission::Ptr mission = make_shared<Mission>(m);
     mission->prepareTimeIntervals();
 
     FluentTimeResource::List requirements = Mission::getResourceRequirements(mission);
@@ -164,12 +164,16 @@ BOOST_AUTO_TEST_CASE(mutually_exclusive)
     Interval i1(t1,t7, tpc);
     Interval i2(t2,t4, tpc);
     Interval i3(t5,t6, tpc);
+    Interval i4(t6,t7, tpc);
 
-    Interval::List a = { i0,i2,i1};
-    Interval::List b = { i2,i1 };
-    Interval::List c = { i3,i1 };
+    Interval::List a = { i0,i1};
+    Interval::List b = { i0,i2};
+    Interval::List c = { i1,i2 };
+    Interval::List d = { i1,i3 };
+    Interval::List e = { i1,i4 };
+    Interval::List f = { i3,i4 };
 
-    std::vector<Interval::List> expected = { a,b,c};
+    std::vector<Interval::List> expected = { a,b,c,d,e,f };
 
     std::vector<Interval::List> actual;
     std::vector<FluentTimeResource::List> mutuallyExclusiveSets = FluentTimeResource::getMutualExclusive(requirements, tpc);
@@ -184,7 +188,24 @@ BOOST_AUTO_TEST_CASE(mutually_exclusive)
         }
         actual.push_back(concurrentIntervals);
     }
-    BOOST_REQUIRE_MESSAGE(expected == actual, "Concurrent intervals matches expected set of sets");
+
+    std::stringstream ssExcepted;
+    for(const Interval::List& list : expected)
+    {
+        ssExcepted << "Exclusive" << std::endl;
+        ssExcepted << Interval::toString(list,4);
+    }
+
+    std::stringstream ssActual;
+    for(const Interval::List& list : actual)
+    {
+        ssActual << "Exclusive" << std::endl;
+        ssActual << Interval::toString(list,4);
+    }
+
+    BOOST_REQUIRE_MESSAGE(expected == actual, "Concurrent intervals matches expected set of sets:"
+            << "expected: " << ssExcepted.str() << "\n"
+            << "actual: " << ssActual.str());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

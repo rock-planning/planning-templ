@@ -52,52 +52,109 @@ void Interval::validate() const
 
 bool Interval::contains(const point_algebra::TimePoint::Ptr& t) const
 {
-    return !mTimePointComparator.greaterThan(t, mpTo) && !mTimePointComparator.lessThan(t,mpFrom);
+    return contains(t, mTimePointComparator);
+}
+
+bool Interval::contains(const point_algebra::TimePoint::Ptr& t,
+            const temporal::point_algebra::TimePointComparator& tpc) const
+{
+    return !tpc.greaterThan(t, mpTo) && !tpc.lessThan(t,mpFrom);
 }
 
 bool Interval::before(const Interval& other) const
 {
     // assuming consistency of the interval, i.e.
     // mpTo before mpFrom
-    return mTimePointComparator.lessThan(mpTo, other.mpFrom);
+    return before(other, mTimePointComparator);
+}
+
+bool Interval::before(const Interval& other,
+            const temporal::point_algebra::TimePointComparator& tpc) const
+{
+    // assuming consistency of the interval, i.e.
+    // mpTo before mpFrom
+    return tpc.lessThan(mpTo, other.mpFrom);
 }
 
 bool Interval::equals(const Interval& other) const
 {
-    return mTimePointComparator.equals(mpTo, other.mpTo) &&
-        mTimePointComparator.equals(mpFrom, other.mpFrom);
+    return equals(other, mTimePointComparator);
+}
+
+bool Interval::equals(const Interval& other,
+            const temporal::point_algebra::TimePointComparator& tpc) const
+{
+    return tpc.equals(mpTo, other.mpTo) &&
+        tpc.equals(mpFrom, other.mpFrom);
 }
 
 bool Interval::meets(const Interval& other) const
 {
-    return mTimePointComparator.equals(mpTo, other.mpFrom);
+    return meets(other, mTimePointComparator);
+}
+
+bool Interval::meets(const Interval& other,
+        const temporal::point_algebra::TimePointComparator& tpc) const
+{
+    return tpc.equals(mpTo, other.mpFrom)
+        || tpc.equals(mpFrom, other.mpTo);
 }
 
 bool Interval::overlaps(const Interval& other) const
 {
-    return mTimePointComparator.hasIntervalOverlap(mpFrom, mpTo,
+    return overlaps(other, mTimePointComparator);
+}
+
+bool Interval::overlaps(const Interval& other,
+        const temporal::point_algebra::TimePointComparator& tpc) const
+{
+    return tpc.hasIntervalOverlap(mpFrom, mpTo,
             other.mpFrom, other.mpTo);
 }
 
 bool Interval::during(const Interval& other) const
 {
-    return mTimePointComparator.greaterThan(mpFrom, other.mpFrom)
-        && mTimePointComparator.lessThan(mpTo, other.mpTo);
+    return Interval::during(other, mTimePointComparator);
+}
+
+bool Interval::during(const Interval& other,
+        const temporal::point_algebra::TimePointComparator& tpc) const
+{
+    return tpc.greaterThan(mpFrom, other.mpFrom)
+        && tpc.lessThan(mpTo, other.mpTo);
 }
 
 bool Interval::starts(const Interval& other) const
 {
-    return mTimePointComparator.equals(mpFrom, other.mpFrom);
+    return Interval::starts(other, mTimePointComparator);
+}
+
+bool Interval::starts(const Interval& other,
+        const temporal::point_algebra::TimePointComparator& tpc) const
+{
+    return tpc.equals(mpFrom, other.mpFrom);
 }
 
 bool Interval::finishes(const Interval& other) const
 {
-    return mTimePointComparator.equals(mpTo, other.mpTo);
+    return Interval::finishes(other, mTimePointComparator);
+}
+
+bool Interval::finishes(const Interval& other,
+        const temporal::point_algebra::TimePointComparator& tpc) const
+{
+    return tpc.equals(mpTo, other.mpTo);
 }
 
 bool Interval::distinctFrom(const Interval& other) const
 {
-    return !equals(other);
+    return Interval::distinctFrom(other, mTimePointComparator);
+}
+
+bool Interval::distinctFrom(const Interval& other,
+        const temporal::point_algebra::TimePointComparator& tpc) const
+{
+    return !Interval::equals(other, tpc);
 }
 
 std::string Interval::toString(uint32_t indent, bool compact) const
@@ -126,6 +183,16 @@ std::string Interval::toString(uint32_t indent, bool compact) const
         } else {
             ss << hspace << "from: n/a - to: n/a";
         }
+    }
+    return ss.str();
+}
+
+std::string Interval::toString(const List& list, size_t indent, bool compact)
+{
+    std::stringstream ss;
+    for(const Interval& i : list)
+    {
+        ss << i.toString(indent, compact);
     }
     return ss.str();
 }

@@ -103,9 +103,26 @@
                 <id>base2</id>
             </location>
         </spatial-requirement>
-        <temporal-requirement type="persistence-condition | event" >
+        <temporal-requirement>
             <from>t5</from>
             <to>t6</to>
+        </temporal-requirement>
+        <resource-requirement>
+            <resource>
+                <model>http://www.rock-robotics.org/2014/01/om-schema#Sherpa</model>
+                <minCardinality>1</minCardinality>
+            </resource>
+        </resource-requirement>
+    </requirement>
+    <requirement id='4'>
+        <spatial-requirement>
+            <location>
+                <id>base1</id>
+            </location>
+        </spatial-requirement>
+        <temporal-requirement>
+            <from>t6</from>
+            <to>t7</to>
         </temporal-requirement>
         <resource-requirement>
             <resource>

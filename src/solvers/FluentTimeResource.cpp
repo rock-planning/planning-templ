@@ -331,7 +331,6 @@ void FluentTimeResource::addRequiredResource(const organization_model::Resource&
 
 void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements)
 {
-    LOG_DEBUG_S << "BEGIN compact requirements";
     std::vector<FluentTimeResource>::iterator it = requirements.begin();
     for(; it != requirements.end(); ++it)
     {
@@ -352,15 +351,10 @@ void FluentTimeResource::compact(std::vector<FluentTimeResource>& requirements)
             }
         }
     }
-    LOG_DEBUG_S << "END compact requirements";
 }
 
 void FluentTimeResource::merge(const FluentTimeResource& otherFtr)
 {
-    LOG_DEBUG_S << "Merging: " << std::endl
-        << toString() << std::endl
-        << otherFtr.toString() << std::endl;
-
     mResources.insert(otherFtr.mResources.begin(), otherFtr.mResources.end());
     mRequiredResources.insert(otherFtr.mRequiredResources.begin(),
             otherFtr.mRequiredResources.end());
@@ -370,8 +364,6 @@ void FluentTimeResource::merge(const FluentTimeResource& otherFtr)
             otherFtr.mMinCardinalities);
     mMaxCardinalities = organization_model::Algebra::min(mMaxCardinalities,
             otherFtr.mMaxCardinalities);
-
-    LOG_DEBUG_S << "Result:" << toString(8);
 }
 
 organization_model::ModelPool::Set FluentTimeResource::getDomain() const
@@ -455,13 +447,18 @@ bool FluentTimeResource::areMutualExclusive(const FluentTimeResource& ftrA,
 {
     if(ftrA.getLocation() != ftrB.getLocation())
     {
-        if(tpc.hasIntervalOverlap(ftrA.getInterval().getFrom(),
-                    ftrA.getInterval().getTo(),
-                    ftrB.getInterval().getFrom(),
-                    ftrB.getInterval().getTo()))
+        const temporal::Interval& intervalA = ftrA.getInterval();
+        const temporal::Interval& intervalB = ftrB.getInterval();
+
+        // either interval a prece
+        if(intervalA.before(intervalB, tpc)
+                || intervalB.before(intervalA, tpc))
         {
+            return false;
+        } else {
             return true;
         }
+
     }
     return false;
 }
@@ -472,13 +469,10 @@ bool FluentTimeResource::areOverlapping(const FluentTimeResource& ftrA,
 {
     if(ftrA.getLocation() == ftrB.getLocation())
     {
-        if(tpc.hasIntervalOverlap(ftrA.getInterval().getFrom(),
-                    ftrA.getInterval().getTo(),
-                    ftrB.getInterval().getFrom(),
-                    ftrB.getInterval().getTo()))
-        {
-            return true;
-        }
+        const temporal::Interval& intervalA = ftrA.getInterval();
+        const temporal::Interval& intervalB = ftrB.getInterval();
+
+        return intervalA.overlaps(intervalB, tpc);
     }
     return false;
 }

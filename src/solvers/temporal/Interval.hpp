@@ -61,6 +61,16 @@ public:
     bool contains(const point_algebra::TimePoint::Ptr& t) const;
 
     /**
+     * Check if interval [s,t) contains a particular timepoint t, i.e
+     * t in [s,t]
+     * \param t TimePoint
+     * \param tpc TimePointComparator which is associated with a particular
+     * temporal constraint network
+     */
+    bool contains(const point_algebra::TimePoint::Ptr& t,
+                const temporal::point_algebra::TimePointComparator& tpc) const;
+
+    /**
      * Check before:
      * Symbol: b , inverse: bi
      \verbatim
@@ -69,6 +79,20 @@ public:
      \endverbatim
      */
     bool before(const Interval& other) const;
+
+    /**
+     * Check before:
+     * Symbol: b , inverse: bi
+     \verbatim
+     [ ---- this ---- ]
+                             [ ---- other ---- ]
+     \endverbatim
+     * \param t TimePoint
+     * \param tpc TimePointComparator which is associated with a
+     temporal constraint network
+     */
+    bool before(const Interval& other,
+                const temporal::point_algebra::TimePointComparator& tpc) const;
 
     /**
      * Check equals
@@ -81,6 +105,17 @@ public:
     bool equals(const Interval& other) const;
 
     /**
+     * Check equals
+     * Symbol: =, inverse: =
+     \verbatim
+     [ ---- this ---- ]
+     [ --- other ---- ]
+     \endverbatim
+     */
+    bool equals(const Interval& other,
+                const temporal::point_algebra::TimePointComparator& tpc) const;
+
+    /**
      * Check meets
      * Symbol: m, inverse: m
      \verbatim
@@ -89,6 +124,17 @@ public:
      \endverbatim
      */
     bool meets(const Interval& other) const;
+
+    /**
+     * Check meets
+     * Symbol: m, inverse: m
+     \verbatim
+     [ ---- this ---- ]
+                      [ --- other ---- ]
+     \endverbatim
+     */
+    bool meets(const Interval& other,
+            const temporal::point_algebra::TimePointComparator& tpc) const;
 
     /**
      * Check overlaps
@@ -101,6 +147,19 @@ public:
     bool overlaps(const Interval& other) const;
 
     /**
+     * Check overlaps
+     * Symbol: o, inverse: oi
+     \verbatim
+     [ ---- this ---- ]
+                  [ --- other ---- ]
+     \endverbatim
+     \param other Other interval
+     \param tpc TimePointComparator which is related to a temporal constraint network
+     */
+    bool overlaps(const Interval& other,
+            const temporal::point_algebra::TimePointComparator& tpc) const;
+
+    /**
      * Check during
      * Symbol: d, inverse: di
      \verbatim
@@ -109,6 +168,17 @@ public:
      \endverbatim
      */
     bool during(const Interval& other) const;
+
+    /**
+     * Check during
+     * Symbol: d, inverse: di
+     \verbatim
+     [ ----           this          ---- ]
+                  [ --- other ---- ]
+     \endverbatim
+     */
+    bool during(const Interval& other,
+                const temporal::point_algebra::TimePointComparator& tpc) const;
 
     /**
      * Check starts
@@ -121,6 +191,17 @@ public:
     bool starts(const Interval& other) const;
 
     /**
+     * Check starts
+     * Symbol: s, inverse: si
+     \verbatim
+     [ ----           this          ---- ]
+     [ --- other ---- ]
+     \endverbatim
+     */
+    bool starts(const Interval& other,
+                const temporal::point_algebra::TimePointComparator& tpc) const;
+
+    /**
      * Check finishes
      * Symbol: f, inverse: fi
      \verbatim
@@ -131,14 +212,36 @@ public:
     bool finishes(const Interval& other) const;
 
     /**
+     * Check finishes
+     * Symbol: f, inverse: fi
+     \verbatim
+     [ ----           this          ---- ]
+                        [ --- other ---- ]
+     \endverbatim
+     */
+    bool finishes(const Interval& other,
+                const temporal::point_algebra::TimePointComparator& tpc) const;
+
+    /**
      * Negation of equals
      */
     bool distinctFrom(const Interval& other) const;
 
     /**
+     * Negation of equals
+     */
+    bool distinctFrom(const Interval& other,
+                const temporal::point_algebra::TimePointComparator& tpc) const;
+
+    /**
      * Stringify interval object
      */
     std::string toString(uint32_t indent = 0, bool compact = false) const;
+
+    /**
+     * Stringify list
+     */
+    static std::string toString(const List& list, size_t indent = 0, bool compact = false);
 
     /**
      * Check if all given intervals overlap with each other
