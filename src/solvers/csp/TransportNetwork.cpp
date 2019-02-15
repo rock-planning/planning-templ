@@ -1989,9 +1989,11 @@ std::string TransportNetwork::toString() const
 
 std::string TransportNetwork::modelUsageToString() const
 {
+    size_t firstcolumnwidth = 30;
+    size_t columnwidth = 20;
     std::stringstream ss;
     ss << "Model usage:" << std::endl;
-    ss << std::setw(30) << std::right << "    FluentTimeResource: ";
+    ss << std::setw(firstcolumnwidth) << std::right << "    FluentTimeResource: ";
     for(size_t r = 0; r < mResourceRequirements.size(); ++r)
     {
         const FluentTimeResource& fts = mResourceRequirements[r];
@@ -1999,7 +2001,7 @@ std::string TransportNetwork::modelUsageToString() const
         std::string s = fts.getFluent()->getInstanceName();
         s += "@[" + fts.getInterval().toString(0,true) + "]";
 
-        ss << std::setw(15) << std::left << s;
+        ss << std::setw(columnwidth) << std::left << s;
     }
     ss << std::endl;
 
@@ -2008,10 +2010,10 @@ std::string TransportNetwork::modelUsageToString() const
     for(; cit != mModelPool.end(); ++cit, ++modelIndex)
     {
         const owlapi::model::IRI& model = cit->first;
-        ss << std::setw(30) << std::left << model.getFragment() << ": ";
+        ss << std::setw(firstcolumnwidth) << std::left << model.getFragment() << ": ";
         for(size_t r = 0; r < mResourceRequirements.size(); ++r)
         {
-            ss << std::setw(15) << mModelUsage[r*mModelPool.size() + modelIndex] << " ";
+            ss << std::setw(columnwidth) << mModelUsage[r*mModelPool.size() + modelIndex] << " ";
         }
         ss << std::endl;
     }
