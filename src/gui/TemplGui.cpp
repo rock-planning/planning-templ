@@ -357,6 +357,17 @@ void TemplGui::importSolution(const QString& settingsLabel, const QString& filen
             Mission::Ptr mission = missionView->getMission();
             SpaceTime::Network network = SpaceTime::Network::fromGraph(graph,
                     mission->getLocations(), mission->getTimepoints());
+
+            // FIXME: mission loading should account for configuration setting
+            organization_model::OrganizationModelAsk ask(mission->getOrganizationModel()
+                    , mission->getAvailableResources()
+                    , true
+                    , mConfiguration.getValueAs<double>("TransportNetwork/search/options/connectivity/timeout_in_s",
+                        20)*1000
+                    , mConfiguration.getValue("TransportNetwork/search/options/connectivity/interface-type"
+                         , organization_model::vocabulary::OM::ElectroMechanicalInterface().toString())
+                    );
+            mission->setOrganizationModelAsk(ask);
             solvers::SolutionAnalysis sa(mission, network);
             sa.analyse();
             graph = sa.getSolutionNetwork().getGraph();
