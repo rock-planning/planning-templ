@@ -778,82 +778,124 @@ void TransportNetwork::applyAccessConstraints(ListOfAdjacencyLists& timelines,
 {
     // Location access contraints -- currently restricted to a single model
     using namespace organization_model;
-    std::map<symbols::constants::Location::Ptr, std::pair<organization_model::ModelPool, organization_model::ModelPool> >
-        locationMinMax;
+    typedef std::map<symbols::constants::Location::Ptr, std::pair<ModelPool, ModelPool> >
+        LocationConstraints;
+    LocationConstraints locationMinMax;
 
     Constraint::PtrList constraints = mpMission->getConstraints();
     constraints.insert(constraints.begin(),mConstraints.begin(), mConstraints.end());
 
     for(const Constraint::Ptr& constraint : constraints)
     {
+        using namespace templ::constraints;
         if(constraint->getCategory() == Constraint::MODEL)
         {
-            constraints::ModelConstraint::Ptr modelConstraint =
-                dynamic_pointer_cast<constraints::ModelConstraint>(constraint);
+            ModelConstraint::Ptr modelConstraint =
+                dynamic_pointer_cast<ModelConstraint>(constraint);
 
-            using namespace templ::constraints;
-            ModelPool min;
-            min[modelConstraint->getModel()] = 0;
-            ModelPool max;
-            max[modelConstraint->getModel()] = std::numeric_limits<size_t>::max();
+            ModelConstraint::Type modelConstraintType =
+                modelConstraint->getModelConstraintType();
 
-            switch(modelConstraint->getModelConstraintType())
+            if(modelConstraintType != ModelConstraint::MIN_ACCESS
+                    && modelConstraintType != ModelConstraint::MAX_ACCESS)
             {
-                case ModelConstraint::MIN_ACCESS:
-                    min[modelConstraint->getModel()] = modelConstraint->getValue();
-                    break;
-                case ModelConstraint::MAX_ACCESS:
-                    max[modelConstraint->getModel()] = modelConstraint->getValue();
-                    break;
-
-                default:
-                    continue;
+                continue;
             }
+
+            bool isGeneralAccessConstraint = false;
+            std::pair<ModelPool, ModelPool> minMax;
+            symbols::constants::Location::Ptr affectedLocation;
 
             for(const SpaceTime::SpaceIntervalTuple& t :
                     modelConstraint->getSpaceIntervalTuples())
             {
                 if(SpaceTime::isFullMissionInterval(t.second()))
                 {
-                    locationMinMax[t.first()] = std::pair<ModelPool, ModelPool>(min,max);
+                    isGeneralAccessConstraint = true;
+                    affectedLocation = t.first();
+                    LocationConstraints::const_iterator cit =
+                        locationMinMax.find(affectedLocation);
+                    if(cit != locationMinMax.end())
+                    {
+                        minMax = cit->second;
+                        break;
+                    }
                 }
             }
-        }
+            if(!isGeneralAccessConstraint)
+            {
+                // this is not covers
+                continue;
+            }
+
+            using namespace templ::constraints;
+            const owlapi::model::IRI& model = modelConstraint->getModel();
+
+            // min and max entries are maintained in parallel
+            if(minMax.first.count(model) == 0)
+            {
+                minMax.first[model] = 0;
+                minMax.second[model] = std::numeric_limits<size_t>::max();
+            }
+            size_t& min = minMax.first[model];
+            size_t& max = minMax.second[model];
+
+            switch(modelConstraint->getModelConstraintType())
+            {
+                case ModelConstraint::MIN_ACCESS:
+                    min = std::max(min, static_cast<size_t>(modelConstraint->getValue()));
+                    break;
+                case ModelConstraint::MAX_ACCESS:
+                    max = std::min(max, static_cast<size_t>(modelConstraint->getValue()));
+                    break;
+                default:
+                    continue;
+            }
+            // update the set of constraints
+            locationMinMax[affectedLocation] = minMax;
+        } // end for constraints
     }
 
-    for(const std::pair<symbols::constants::Location::Ptr, std::pair<ModelPool, ModelPool> >& p : locationMinMax)
+    for(const LocationConstraints::value_type& locationConstraint : locationMinMax)
     {
         ListOfAdjacencyLists selectedTimelines;
-        // Get all models that are a subclass of the given
-        owlapi::model::IRI model = p.second.first.begin()->first;
-        size_t min = p.second.first.begin()->second;
-        size_t max = p.second.second.begin()->second;
+        const symbols::constants::Location::Ptr& location = locationConstraint.first;
+        const ModelPool& minPool = locationConstraint.second.first;
+        const ModelPool& maxPool = locationConstraint.second.second;
 
-        for(size_t i = 0; i < roles.size(); ++i)
+        // handle location constraints for each model
+        for(const ModelPool::value_type& v : minPool)
         {
-            if(mAsk.ontology().isSubClassOf( roles[i].getModel(), model ))
+            // Get all models that are a subclass of the given
+            const owlapi::model::IRI& model = v.first;
+            for(size_t i = 0; i < roles.size(); ++i)
             {
-                selectedTimelines.push_back(timelines[i]);
+                if(mAsk.ontology().isSubClassOf( roles[i].getModel(), model ))
+                {
+                    selectedTimelines.push_back(timelines[i]);
+                }
             }
-        }
 
-        symbols::constants::Location::PtrList::const_iterator cit =  std::find(mLocations.begin(), mLocations.end(), p.first);
-        if(cit == mLocations.end())
-        {
-            throw std::runtime_error("templ::solvers::csp::TransportNetwork::applyAccessConstraints:"
-                        " failed to find location " + p.first->toString());
-        }
-        size_t locationIdx = cit - mLocations.begin();
+            symbols::constants::Location::PtrList::const_iterator cit =
+                std::find(mLocations.begin(), mLocations.end(), location);
+            if(cit == mLocations.end())
+            {
+                throw std::runtime_error("templ::solvers::csp::TransportNetwork::applyAccessConstraints:"
+                            " failed to find location " + location->toString());
+            }
+            size_t locationIdx = cit - mLocations.begin();
+            size_t min = minPool.at(model);
+            size_t max = maxPool.at(model);
 
-        propagators::restrictInEdges(*this,
-                selectedTimelines,
-                numberOfTimepoints,
-                numberOfLocations,
-                locationIdx,
-                min,
-                max,
-                // we assume ther is only one model
-                p.first->toString() + "-" + model.toString());
+            propagators::restrictInEdges(*this,
+                    selectedTimelines,
+                    numberOfTimepoints,
+                    numberOfLocations,
+                    locationIdx,
+                    min,
+                    max,
+                    location->toString() + "-" + model.toString());
+        }
     }
 }
 
