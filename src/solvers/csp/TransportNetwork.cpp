@@ -1460,6 +1460,10 @@ void TransportNetwork::postTemporalConstraints()
     Gecode::Rnd modelUsageRnd;
     modelUsageRnd.hw();
     branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_RND(modelUsageRnd));
+
+    branch(*this, mModelUsage, Gecode::tiebreak(Gecode::INT_VAR_DEGREE_MAX(),
+                                Gecode::INT_VAR_SIZE_MIN()),
+                                Gecode::INT_VAL_SPLIT_MIN());
     //Gecode::Gist::stopBranch(*this);
 
     // Regarding the use of INT_VALUES_MIN() and INT_VALUES_MAX(): "This is
@@ -1482,6 +1486,9 @@ void TransportNetwork::postTemporalConstraints()
     rnd.hw();
     branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_RND(rnd), symmetries);
     branch(*this, mRoleUsage, Gecode::INT_VAR_RND(rnd), Gecode::INT_VAL_RND(rnd), symmetries);
+    branch(*this, mRoleUsage, Gecode::tiebreak(Gecode::INT_VAR_DEGREE_MAX(),
+                                Gecode::INT_VAR_SIZE_MIN()),
+                                Gecode::INT_VAL_SPLIT_MIN());
 
     //Gecode::Gist::stopBranch(*this);
     // see 8.14 Executing code between branchers
@@ -1755,6 +1762,10 @@ void TransportNetwork::postRoleAssignments()
             Gecode::SetAFC timelineUsageAfc(*this, mTimelines[i], timelineAfcDecay);
             branch(*this, mTimelines[i],Gecode::SET_VAR_AFC_MIN(timelineAfcDecay), Gecode::SET_VAL_RND_EXC(rnd));
             branch(*this, mTimelines[i],Gecode::SET_VAR_RND(rnd),Gecode::SET_VAL_RND_EXC(rnd));
+            branch(*this, mTimelines[i], Gecode::tiebreak(
+                        Gecode::SET_VAR_DEGREE_MAX(),
+                        Gecode::SET_VAR_SIZE_MIN()),
+                    Gecode::SET_VAL_RND_EXC(rnd));
         }
     }
 
