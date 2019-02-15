@@ -2,8 +2,9 @@
 #define TEMPL_SOLVERS_COST_HPP
 
 #include "../symbols/constants/Location.hpp"
-#include <organization_model/OrganizationModelAsk.hpp>
 #include "../Role.hpp"
+#include <organization_model/OrganizationModelAsk.hpp>
+#include <organization_model/vocabularies/OM.hpp>
 
 namespace templ {
 namespace solvers {
@@ -11,7 +12,10 @@ namespace solvers {
 class Cost
 {
 public:
-    Cost(const organization_model::OrganizationModelAsk& organizationModelAsk);
+    Cost(const organization_model::OrganizationModelAsk& organizationModelAsk,
+            const owlapi::model::IRI& mobilityFunctionality =
+            organization_model::vocabulary::OM::resolve("MoveTo"),
+            double feasibilityCheckTimeoutInMs = 20000);
 
     /**
      * Compute the travel distance from a given path using the norm of the
@@ -37,6 +41,8 @@ public:
 
 private:
     organization_model::OrganizationModelAsk mOrganizationModelAsk;
+    organization_model::Resource::Set mMoveToResource;
+    double mFeasibilityCheckTimeoutInMs;
 };
 
 } // end namespace solvers

@@ -1,13 +1,20 @@
 #include "Cost.hpp"
 #include <organization_model/facades/Robot.hpp>
 #include <organization_model/OrganizationModelAsk.hpp>
+#include <organization_model/Agent.hpp>
+
+using namespace organization_model;
 
 namespace templ {
 namespace solvers {
 
-Cost::Cost(const organization_model::OrganizationModelAsk& organizationModelAsk)
+Cost::Cost(const organization_model::OrganizationModelAsk& organizationModelAsk,
+        const owlapi::model::IRI& mobilityFunctionality,
+        double feasibilityCheckTimeoutInMs)
     : mOrganizationModelAsk(organizationModelAsk)
+    , mFeasibilityCheckTimeoutInMs(feasibilityCheckTimeoutInMs)
 {
+    mMoveToResource.insert( organization_model::Resource( mobilityFunctionality ) );
 }
 
 double Cost::getTravelDistance(const symbols::constants::Location::PtrList& path)
@@ -48,15 +55,32 @@ double Cost::estimateTravelTime(const symbols::constants::Location::Ptr& from,
         return 0;
     }
 
-    organization_model::ModelPool modelPool = Role::getModelPool(coalition);
+    ModelPool modelPool = Role::getModelPool(coalition);
 
-    // Identify system that should be used for the transport
-    double minTime = std::numeric_limits<double>::max();
-    organization_model::facades::Robot robot = organization_model::facades::Robot::getInstance(modelPool, mOrganizationModelAsk);
-    if( robot.isMobile())
+    // Identify systems that should be combined for the transport
+    ModelPool::List coalitionStructure =
+        mOrganizationModelAsk.findFeasibleCoalitionStructure(modelPool, mMoveToResource, mFeasibilityCheckTimeoutInMs);
+
+    if(coalitionStructure.empty())
     {
-        double time = distance / robot.getNominalVelocity();
-        minTime = std::min(time, minTime);
+        LOG_WARN_S << "Infeasible transition for model pool "
+            << modelPool.toString(4)
+            << " from " << from->toString()
+            << " to " << to->toString()
+            << " timeout: " << mFeasibilityCheckTimeoutInMs;
+
+        return std::numeric_limits<double>::max();
+    }
+
+    double minTime = 0;
+    for(const ModelPool& coalition : coalitionStructure)
+    {
+        facades::Robot robot = organization_model::facades::Robot::getInstance(coalition, mOrganizationModelAsk);
+        if( robot.isMobile())
+        {
+            double time = distance / robot.getNominalVelocity();
+            minTime = std::max(time, minTime);
+        }
     }
     return minTime;
 }
