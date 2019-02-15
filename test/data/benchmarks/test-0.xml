@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mission>
+  <name>Golden_1</name>
+  <description/>
+  <organization_model>http://www.rock-robotics.org/2017/11/vrp#</organization_model>
+  <resources>
+    <resource>
+      <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+      <maxCardinality>10</maxCardinality>
+    </resource>
+    <resource>
+      <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+      <maxCardinality>2</maxCardinality>
+    </resource>
+  </resources>
+  <overrides>
+    <override>
+      <subject>http://www.rock-robotics.org/2017/11/vrp#Vehicle</subject>
+      <property>http://www.rock-robotics.org/2014/01/om-schema#transportCapacity</property>
+      <value>550</value>
+    </override>
+  </overrides>
+  <constants>
+    <location>
+      <id>l2</id>
+      <x>29.6306</x>
+      <y>4.693</y>
+      <z>0</z>
+    </location>
+    <location>
+      <id>l7</id>
+      <x>17.6336</x>
+      <y>24.2705</y>
+      <z>0</z>
+    </location>
+    <location>
+      <id>l1</id>
+      <x>30</x>
+      <y>0</y>
+      <z>0</z>
+    </location>
+    <location>
+      <id>l8</id>
+      <x>13.6197</x>
+      <y>26.7302</y>
+      <z>0</z>
+    </location>
+    <location>
+      <id>l9</id>
+      <x>9.2705</x>
+      <y>28.5317</y>
+      <z>0</z>
+    </location>
+    <location>
+      <id>l10</id>
+      <x>4.693</x>
+      <y>29.6306</y>
+      <z>0</z>
+    </location>
+    <location>
+      <id>depot0</id>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+    </location>
+    <location>
+      <id>l5</id>
+      <x>24.2705</x>
+      <y>17.6336</y>
+      <z>0</z>
+    </location>
+    <location>
+      <id>l4</id>
+      <x>26.7302</x>
+      <y>13.6197</y>
+      <z>0</z>
+    </location>
+    <location>
+      <id>l3</id>
+      <x>28.5317</x>
+      <y>9.2705</y>
+      <z>0</z>
+    </location>
+    <location>
+      <id>l6</id>
+      <x>21.2132</x>
+      <y>21.2132</y>
+      <z>0</z>
+    </location>
+  </constants>
+  <requirements>
+    <requirement id="0">
+      <spatial-requirement>
+        <location>
+          <id>l1</id>
+        </location>
+      </spatial-requirement>
+      <temporal-requirement>
+        <from>t1-0</from>
+        <to>t1-1</to>
+      </temporal-requirement>
+      <resource-requirement>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+      </resource-requirement>
+    </requirement>
+    <requirement id="1">
+      <spatial-requirement>
+        <location>
+          <id>l2</id>
+        </location>
+      </spatial-requirement>
+      <temporal-requirement>
+        <from>t2-0</from>
+        <to>t2-1</to>
+      </temporal-requirement>
+      <resource-requirement>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+      </resource-requirement>
+    </requirement>
+    <requirement id="2">
+      <spatial-requirement>
+        <location>
+          <id>l3</id>
+        </location>
+      </spatial-requirement>
+      <temporal-requirement>
+        <from>t3-0</from>
+        <to>t3-1</to>
+      </temporal-requirement>
+      <resource-requirement>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+      </resource-requirement>
+    </requirement>
+    <requirement id="3">
+      <spatial-requirement>
+        <location>
+          <id>l4</id>
+        </location>
+      </spatial-requirement>
+      <temporal-requirement>
+        <from>t4-0</from>
+        <to>t4-1</to>
+      </temporal-requirement>
+      <resource-requirement>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+      </resource-requirement>
+    </requirement>
+    <requirement id="4">
+      <spatial-requirement>
+        <location>
+          <id>l5</id>
+        </location>
+      </spatial-requirement>
+      <temporal-requirement>
+        <from>t5-0</from>
+        <to>t5-1</to>
+      </temporal-requirement>
+      <resource-requirement>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+      </resource-requirement>
+  </requirement>
+    <requirement id="5">
+      <spatial-requirement>
+        <location>
+          <id>l6</id>
+        </location>
+      </spatial-requirement>
+      <temporal-requirement>
+        <from>t6-0</from>
+        <to>t6-1</to>
+      </temporal-requirement>
+      <resource-requirement>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+      </resource-requirement>
+    </requirement>
+    <requirement id="6">
+      <spatial-requirement>
+        <location>
+          <id>l7</id>
+        </location>
+      </spatial-requirement>
+      <temporal-requirement>
+        <from>t7-0</from>
+        <to>t7-1</to>
+      </temporal-requirement>
+      <resource-requirement>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+      </resource-requirement>
+    </requirement>
+    <requirement id="7">
+      <spatial-requirement>
+        <location>
+          <id>l8</id>
+        </location>
+      </spatial-requirement>
+      <temporal-requirement>
+        <from>t8-0</from>
+        <to>t8-1</to>
+      </temporal-requirement>
+      <resource-requirement>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+      </resource-requirement>
+    </requirement>
+    <requirement id="8">
+      <spatial-requirement>
+        <location>
+          <id>l9</id>
+        </location>
+      </spatial-requirement>
+      <temporal-requirement>
+        <from>t9-0</from>
+        <to>t9-1</to>
+      </temporal-requirement>
+      <resource-requirement>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+      </resource-requirement>
+    </requirement>
+    <requirement id="9">
+      <spatial-requirement>
+        <location>
+          <id>l10</id>
+        </location>
+      </spatial-requirement>
+      <temporal-requirement>
+        <from>t10-0</from>
+        <to>t10-1</to>
+      </temporal-requirement>
+      <resource-requirement>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+          <minCardinality>1</minCardinality>
+        </resource>
+      </resource-requirement>
+  </requirement>
+    <requirement id="10">
+      <spatial-requirement>
+        <location>
+          <id>depot0</id>
+        </location>
+      </spatial-requirement>
+      <temporal-requirement>
+        <from>t-init-0</from>
+        <to>t-init-1</to>
+      </temporal-requirement>
+      <resource-requirement>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+          <minCardinality>10</minCardinality>
+        </resource>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+          <minCardinality>2</minCardinality>
+        </resource>
+      </resource-requirement>
+  </requirement>
+    <requirement id="11">
+      <spatial-requirement>
+        <location>
+          <id>depot0</id>
+        </location>
+      </spatial-requirement>
+      <temporal-requirement>
+        <from>t-end-0</from>
+        <to>t-end-1</to>
+      </temporal-requirement>
+      <resource-requirement>
+        <resource>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+          <minCardinality>2</minCardinality>
+        </resource>
+      </resource-requirement>
+    </requirement>
+  </requirements>
+  <constraints>
+    <temporal-constraints>
+      <lessThan lval="t1-0" rval="t1-1"/>
+      <lessThan lval="t2-0" rval="t2-1"/>
+      <lessThan lval="t3-0" rval="t3-1"/>
+      <lessThan lval="t4-0" rval="t4-1"/>
+      <lessThan lval="t5-0" rval="t5-1"/>
+      <lessThan lval="t6-0" rval="t6-1"/>
+      <lessThan lval="t7-0" rval="t7-1"/>
+      <lessThan lval="t8-0" rval="t8-1"/>
+      <lessThan lval="t9-0" rval="t9-1"/>
+      <lessThan lval="t10-0" rval="t10-1"/>
+      <lessThan lval="t-init-0" rval="t-init-1"/>
+      <lessThan lval="t-end-0" rval="t-end-1"/>
+      <lessThan lval="t-init-1" rval="t1-0"/>
+      <greaterThan lval="t-end-1" rval="t1-0"/>
+      <lessThan lval="t-init-1" rval="t1-1"/>
+      <greaterThan lval="t-end-1" rval="t1-1"/>
+      <lessThan lval="t-init-1" rval="t2-0"/>
+      <greaterThan lval="t-end-1" rval="t2-0"/>
+      <lessThan lval="t-init-1" rval="t2-1"/>
+      <greaterThan lval="t-end-1" rval="t2-1"/>
+      <lessThan lval="t-init-1" rval="t3-0"/>
+      <greaterThan lval="t-end-1" rval="t3-0"/>
+      <lessThan lval="t-init-1" rval="t3-1"/>
+      <greaterThan lval="t-end-1" rval="t3-1"/>
+      <lessThan lval="t-init-1" rval="t4-0"/>
+      <greaterThan lval="t-end-1" rval="t4-0"/>
+      <lessThan lval="t-init-1" rval="t4-1"/>
+      <greaterThan lval="t-end-1" rval="t4-1"/>
+      <lessThan lval="t-init-1" rval="t5-0"/>
+      <greaterThan lval="t-end-1" rval="t5-0"/>
+      <lessThan lval="t-init-1" rval="t5-1"/>
+      <greaterThan lval="t-end-1" rval="t5-1"/>
+      <lessThan lval="t-init-1" rval="t6-0"/>
+      <greaterThan lval="t-end-1" rval="t6-0"/>
+      <lessThan lval="t-init-1" rval="t6-1"/>
+      <greaterThan lval="t-end-1" rval="t6-1"/>
+      <lessThan lval="t-init-1" rval="t7-0"/>
+      <greaterThan lval="t-end-1" rval="t7-0"/>
+      <lessThan lval="t-init-1" rval="t7-1"/>
+      <greaterThan lval="t-end-1" rval="t7-1"/>
+      <lessThan lval="t-init-1" rval="t8-0"/>
+      <greaterThan lval="t-end-1" rval="t8-0"/>
+      <lessThan lval="t-init-1" rval="t8-1"/>
+      <greaterThan lval="t-end-1" rval="t8-1"/>
+      <lessThan lval="t-init-1" rval="t9-0"/>
+      <greaterThan lval="t-end-1" rval="t9-0"/>
+      <lessThan lval="t-init-1" rval="t9-1"/>
+      <greaterThan lval="t-end-1" rval="t9-1"/>
+      <lessThan lval="t-init-1" rval="t10-0"/>
+      <greaterThan lval="t-end-1" rval="t10-0"/>
+      <lessThan lval="t-init-1" rval="t10-1"/>
+      <greaterThan lval="t-end-1" rval="t10-1"/>
+    </temporal-constraints>
+    <model-constraints>
+      <all-distinct>
+          <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+          <requirements>0,1,2,3,4,5,6,7,8,9</requirements>
+      </all-distinct>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+        <requirements>l10</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+        <requirements>l9</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+        <requirements>l8</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+        <requirements>l7</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+        <requirements>l6</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+        <requirements>l5</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+        <requirements>l4</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+        <requirements>l3</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+        <requirements>l2</requirements>
+    </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Vehicle</model>
+        <requirements>l1</requirements>
+    </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+        <requirements>l10</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+        <requirements>l9</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+        <requirements>l8</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+        <requirements>l7</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+        <requirements>l6</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+        <requirements>l5</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+        <requirements>l4</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+        <requirements>l3</requirements>
+      </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+        <requirements>l2</requirements>
+    </max-access>
+      <max-access value="1">
+        <model>http://www.rock-robotics.org/2017/11/vrp#Commodity</model>
+        <requirements>l1</requirements>
+    </max-access>
+  </model-constraints>
+  </constraints>
+</mission>
