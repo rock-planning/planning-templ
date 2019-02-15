@@ -193,7 +193,20 @@ double SolutionAnalysis::getSafety(const FluentTimeResource& ftr, const SpaceTim
     ModelPool minRequired = getMinResourceRequirements(ftr);
     ModelPool minAvailable = getMinAvailableResources(tuple);
 
-    return getSafety(minRequired, minAvailable);
+    try {
+        double safety = getSafety(minRequired, minAvailable);
+        return safety;
+    } catch(const std::exception& e)
+    {
+        LOG_WARN_S << "Failed to compute safety at: "
+            << ftr.toString(4)
+            << tuple->toString(4)
+            << "Required: "
+            << minRequired.toString(4)
+            << "Available"
+            << minAvailable.toString(4);
+        return -1.0;
+    }
 }
 
 double SolutionAnalysis::getSafety(const FluentTimeResource& ftr) const
@@ -202,7 +215,20 @@ double SolutionAnalysis::getSafety(const FluentTimeResource& ftr) const
     ModelPool minRequired = getMinResourceRequirements(ftr);
     ModelPool minAvailable = getMinAvailableResources(ftr);
 
-    return getSafety(minRequired, minAvailable);
+    try {
+        double safety = getSafety(minRequired, minAvailable);
+        return safety;
+    } catch(const std::exception& e)
+    {
+        LOG_WARN_S << "Failed to compute safety at: "
+            << ftr.toString(4)
+            << "Required: "
+            << minRequired.toString(4)
+            << "Available"
+            << minAvailable.toString(4);
+
+        return -1.0;
+    }
 }
 
 double SolutionAnalysis::getSafety(const ModelPool& minRequired, const ModelPool& minAvailable) const
@@ -724,7 +750,7 @@ void SolutionAnalysis::quantifyTime()
 
         double distanceInM = cost.getTravelDistance({sourceLocation, targetLocation});
         double minTravelTime = cost.estimateTravelTime(sourceLocation, targetLocation, roles);
-        LOG_DEBUG_S << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
+        LOG_INFO_S << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
             << "    from: " << sourceLocation->toString() << "/" << sourceTuple->second()->toString() << std::endl
             << "    to: " << targetLocation->toString() << "/" << targetTuple->second()->toString() << std::endl
             << "    estimated travelDistance in m: " << distanceInM;
