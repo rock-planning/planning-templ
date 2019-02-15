@@ -43,9 +43,10 @@ int main(int argc, char** argv)
     Mission::Ptr mission;
     if(organizationModelFilename.empty())
     {
-        mission = Mission::Ptr(new Mission(io::MissionReader::fromFile(filename)));
+        mission = make_shared<Mission>(io::MissionReader::fromFile(filename));
     } else {
-        mission = Mission::Ptr(new Mission(io::MissionReader::fromFile(filename, organizationModelFilename)));
+        mission = make_shared<Mission>(io::MissionReader::fromFile(filename,
+                organizationModelFilename));
     }
 
     mission->prepareTimeIntervals();
