@@ -162,25 +162,27 @@ std::string Formatter::toString(const Gecode::SetVarArray& array,
 
 std::string Formatter::toString(const Gecode::IntVarArray& roleUsage, const Role::List& roles, const FluentTimeResource::List& requirements)
 {
+    size_t firstcolumnwidth = 30;
+    size_t columnwidth = 20;
     std::stringstream ss;
     ss << "Role usage:" << std::endl;
-    ss << std::setw(40) << std::right << "    FluentTimeResource: ";
+    ss << std::setw(firstcolumnwidth) << std::right << "    FluentTimeResource: ";
     for(const FluentTimeResource& fts : requirements)
     {
         /// construct string for proper alignment
         std::string s = fts.getFluent()->getInstanceName();
         s += "@[" + fts.getInterval().toString(0,true) + "]";
 
-        ss << std::setw(15) << std::left << s;
+        ss << std::setw(columnwidth) << std::left << s;
     }
     ss << std::endl;
 
     for(size_t i = 0; i < roles.size(); ++i)
     {
-        ss << std::setw(40) << std::left << roles[i].toString() << ": ";
+        ss << std::setw(firstcolumnwidth) << std::left << roles[i].getName() << ": ";
         for(size_t r = 0; r < requirements.size(); ++r)
         {
-            ss << std::setw(15) << roleUsage[r*roles.size() + i] << " ";
+            ss << std::setw(columnwidth) << roleUsage[r*roles.size() + i] << " ";
         }
         ss << std::endl;
     }
