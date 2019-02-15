@@ -1,5 +1,6 @@
 #include "ModelConstraint.hpp"
 #include <sstream>
+#include <organization_model/vocabularies/OM.hpp>
 
 namespace templ {
 namespace constraints {
@@ -111,6 +112,22 @@ ModelConstraint::Type ModelConstraint::getTypeFromTxt(const std::string& txt)
     }
 
     throw std::invalid_argument("templ::constraints::ModelConstraint::getTypeFromTxt: could not find type for '" + txt + "'");
+}
+
+void ModelConstraint::validate(const owlapi::model::OWLOntologyAsk& ask) const
+{
+    if(!mModel.empty() && !ask.isSubClassOf(mModel, organization_model::vocabulary::OM::Resource()))
+    {
+        throw std::invalid_argument("templ::constraints::ModelConstraint::validate: "
+            "resource of type '" + mModel.toString() + "' does not exist --");
+
+    }
+    if(!mProperty.empty() && !ask.isDataProperty(mProperty))
+    {
+        throw std::invalid_argument("templ::constraints::ModelConstraint::validate: "
+            "data property of type '" + mProperty.toString() + "' does not exist");
+
+    }
 }
 
 } // end namespace constraints

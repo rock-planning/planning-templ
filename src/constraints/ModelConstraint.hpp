@@ -4,6 +4,7 @@
 #include <map>
 #include <map>
 #include <owlapi/model/IRI.hpp>
+#include <owlapi/model/OWLOntologyAsk.hpp>
 #include "../SpaceTime.hpp"
 #include "HyperConstraint.hpp"
 
@@ -134,6 +135,11 @@ public:
      *
      */
     static Type getTypeFromTxt(const std::string& txt);
+
+    /**
+     * Validate the model constraints values with respect to a given ontology
+     */
+    void validate(const owlapi::model::OWLOntologyAsk& ask) const;
 
 
 protected:

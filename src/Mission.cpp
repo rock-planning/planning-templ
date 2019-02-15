@@ -223,6 +223,15 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addResourceLocationCardinalit
     ObjectVariable::Ptr locationCardinality =
         make_shared<object_variables::LocationCardinality>(location, cardinality, type);
 
+    if(!mOrganizationModelAsk.ontology().isSubClassOf(resourceModel,
+            organization_model::vocabulary::OM::Resource()))
+    {
+        throw
+            std::invalid_argument("templ::Mission::addResourceLocationCardinalityConstraint:"
+                    "'" + resourceModel.toString() + "' is "
+                    "not a known resource type");
+    }
+
     // the combination of resource, location and cardinality represents a state variable
     // which needs to be translated into resource based state variables
     symbols::StateVariable rloc(ObjectVariable::TypeTxt[ObjectVariable::LOCATION_CARDINALITY],
@@ -314,12 +323,21 @@ void Mission::addConstraint(const Constraint::Ptr& constraint)
     if(!hasConstraint(constraint))
     {
         using namespace solvers::temporal::point_algebra;
-        mConstraints.push_back(constraint);
 
-        if(constraint->getCategory() == Constraint::TEMPORAL_QUALITATIVE)
+        switch(constraint->getCategory())
         {
-            mpTemporalConstraintNetwork->addConstraint(constraint);
+            case Constraint::TEMPORAL_QUALITATIVE:
+                mpTemporalConstraintNetwork->addConstraint(constraint);
+                break;
+            case Constraint::MODEL:
+                dynamic_pointer_cast<constraints::ModelConstraint>(constraint)->validate(mOrganizationModelAsk.ontology());
+                break;
+            case Constraint::TEMPORAL_QUANTITATIVE:
+            case Constraint::UNKNOWN:
+            default:
+                break;
         }
+        mConstraints.push_back(constraint);
     }
 }
 
