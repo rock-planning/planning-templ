@@ -1,5 +1,6 @@
 #include "LatexWriter.hpp"
 #include "../solvers/FluentTimeResource.hpp"
+#include <boost/algorithm/string.hpp>
 
 using namespace organization_model;
 
@@ -14,16 +15,16 @@ std::string LatexWriter::toLatex(const Mission::Ptr& mission)
     ss << "\\begin{align*}" << std::endl;
 
     // General available
-    ss << "    \\widehat{GA}\n&= \\left \\{";
+    ss << "    \\widehat{GA}\n&= \\big \\{";
     ModelPool available = mission->getAvailableResources();
     for(const ModelPool::value_type& v : available)
     {
         const owlapi::model::IRI& model = v.first;
         size_t cardinality = v.second;
 
-        ss << "(" << model.getFragment() << "," << cardinality << ")";
+        ss << "(" << escape( model.getFragment() ) << "," << cardinality << ")";
     }
-    ss << "\\} \\\\" << std::endl;
+    ss << "\\big \\} \\\\" << std::endl;
 
 
     // Requirements
@@ -33,7 +34,7 @@ std::string LatexWriter::toLatex(const Mission::Ptr& mission)
     {
         if(!init)
         {
-            ss << "     &= \\left \\{";
+            ss << "     &= \\big \\{";
             init = true;
         } else {
             ss << "     & ";
@@ -41,42 +42,47 @@ std::string LatexWriter::toLatex(const Mission::Ptr& mission)
 
         ss << toLatex(ftr) << ", \\\\" << std::endl;
     }
-    ss << "    & \\right \\}\\\\" << std::endl;
+    ss << "    & \\big \\}\\\\" << std::endl;
 
     // Constraints
     ss << "    \\mathcal{X}" << std::endl;
-    ss << "    &= \\left \\{ \\\\"  << std::endl;
-    ss << "    & \\right \\}" << std::endl;
+    ss << "    &= \\big \\{ ";
+
+    std::string row;
+    for(const Constraint::Ptr& c : mission->getConstraints())
+    {
+        using namespace solvers::temporal::point_algebra;
+        if(c->getCategory() == Constraint::TEMPORAL_QUALITATIVE)
+        {
+            QualitativeTimePointConstraint::Ptr qtpc =
+                dynamic_pointer_cast<QualitativeTimePointConstraint>(c);
+
+            std::string constraintString = qtpc->getLVal()->getLabel() +
+                QualitativeTimePointConstraint::TypeTxt[ qtpc->getType() ]
+                + qtpc->getRVal()->getLabel();
+            row = wrap(ss, row, constraintString);
+        }
+    }
+    ss << row << " \\\\" << std::endl;
+    ss << "    & \\big \\} \\\\" << std::endl;
 
     // Organization Model
     ss << "    \\mathcal{OM}" << std::endl;
-    ss << "    &= \\left \\{ \\\\"  << std::endl;
-    ss << "    & \\right \\}" << std::endl;
+    ss << "    &= \\big \\{ \\\\"  << std::endl;
+    ss << "    & \\big \\} \\\\" << std::endl;
 
     // Timepoints
     ss << "    T\n";
+    ss << "     &= \\big \\{ ";
+    row = "";
     init = false;
-    std::string labelString;
     for(const solvers::temporal::point_algebra::TimePoint::Ptr& tp :
             mission->getTimepoints())
     {
-        if(labelString.size() < 40)
-        {
-            labelString += tp->getLabel() + ", ";
-        } else {
-            if(!init)
-            {
-                ss << "     &= \\left \\{ ";
-                init = true;
-            } else {
-                ss << "     & ";
-            }
-
-            labelString += tp->getLabel() + " \\\\";
-            ss << labelString << std::endl;
-        }
+        row = wrap(ss, row, tp->getLabel());
     }
-    ss << "    & \\right \\}\\\\" << std::endl;
+    ss << row <<  " \\\\" << std::endl;
+    ss << "    & \\big \\}\\\\" << std::endl;
 
     // Locations
     ss << "    L" << std::endl;
@@ -86,14 +92,14 @@ std::string LatexWriter::toLatex(const Mission::Ptr& mission)
     {
         if(!init)
         {
-            ss << "     &= \\left \\{ ";
+            ss << "     &= \\big \\{ ";
             init = true;
         } else {
             ss << "     & ";
         }
         ss << toLatex(location) << ", \\\\" << std::endl;
     }
-    ss << "    & \\right \\} \\\\" << std::endl;
+    ss << "    & \\big \\} \\\\" << std::endl;
 
     ss << "\\end{align*}" << std::endl;
     return ss.str();
@@ -106,7 +112,7 @@ std::string LatexWriter::toLatex(const symbols::constants::Location::Ptr& locati
     std::string locationLabel = location->getInstanceName();
     locationLabel = suffixNumber(locationLabel);
 
-    ss << locationLabel << "= (" << point.x() << ","
+    ss << escape( locationLabel ) << "= (" << point.x() << ","
         << point.y() << "," << point.z() << ") ";
     return ss.str();
 }
@@ -127,7 +133,7 @@ std::string LatexWriter::toLatex(const solvers::FluentTimeResource& ftr)
         {
             functionalities.push_back(model);
         } else {
-            ssAgents << "(" << model.getFragment() << "," << count << ")";
+            ssAgents << "(" << escape( model.getFragment() ) << "," << count << ")";
         }
     }
 
@@ -173,6 +179,39 @@ std::string LatexWriter::suffixNumber(const std::string& label)
         newlabel += "}";
     }
     return newlabel;
+}
+
+std::string LatexWriter::escape(const std::string& label,
+        const std::string& env)
+{
+    std::string escapedLabel = label;
+    boost::replace_all(escapedLabel, "_", + "\\_");
+    if(!env.empty())
+    {
+        return env + "{" + escapedLabel + "}";
+    } else {
+        return escapedLabel;
+    }
+}
+
+std::string LatexWriter::wrap(std::ostream& os,
+        const std::string& currentRow,
+        const std::string& newLabel,
+        const std::string& suffixNoWrap,
+        const std::string& suffixWrap,
+        size_t lineWidth)
+{
+    std::string row;
+    // Check row length
+    if(currentRow.size() + newLabel.size() > lineWidth)
+    {
+        // write the remaining label
+        os << currentRow <<  suffixWrap;
+        row = "    & " + newLabel + suffixNoWrap;
+    } else {
+        row = currentRow + newLabel + suffixNoWrap;
+    }
+    return row;
 }
 
 } // end namespace io

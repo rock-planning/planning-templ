@@ -17,6 +17,19 @@ public:
 
     static std::string suffixNumber(const std::string& label);
 
+    /**
+     * Escape string and wrap in enviroment
+     */
+    static std::string escape(const std::string& label, const std::string& env ="\\textit");
+
+    /**
+     */
+    static std::string wrap(std::ostream& os, const std::string& currentRow,
+        const std::string& appendLabel,
+        const std::string& suffixNoWrap = "," ,
+        const std::string& suffixWrap = " \\\\\n",
+        size_t lineWidth = 60);
+
 
 };
 
