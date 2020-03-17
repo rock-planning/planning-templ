@@ -4,6 +4,7 @@
 #include "../Types.hpp"
 #include <base-logging/Logging.hpp>
 #include <gecode/set/branch.hh>
+#include <random>
 
 namespace templ {
 namespace solvers {

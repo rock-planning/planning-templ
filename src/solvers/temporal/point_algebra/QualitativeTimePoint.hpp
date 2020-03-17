@@ -23,10 +23,10 @@ class QualitativeTimePoint : public TimePoint
 {
     std::vector<TimePoint::Label> mAliases;
 
+    static const graph_analysis::VertexRegistration< QualitativeTimePoint > __attribute__((used)) msRegistration;
+
 public:
     typedef shared_ptr<QualitativeTimePoint> Ptr;
-
-    static const graph_analysis::VertexRegistration< QualitativeTimePoint > msQualitativeTimePoint;
 
     /**
      * Default constructor

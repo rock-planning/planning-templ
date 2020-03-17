@@ -3,6 +3,7 @@
 
 #include <templ/constraints/SimpleConstraint.hpp>
 #include <templ/solvers/temporal/point_algebra/QualitativeTimePoint.hpp>
+#include <graph_analysis/EdgeRegistration.hpp>
 
 namespace templ {
 namespace solvers {
@@ -19,6 +20,7 @@ namespace point_algebra {
  */
 class QualitativeTimePointConstraint : public constraints::SimpleConstraint
 {
+    static const graph_analysis::EdgeRegistration<QualitativeTimePointConstraint> __attribute__((used)) msRegistration;
 public:
     /// Primitive relations are P = {<,=,>} and timepoints can be related in only
     /// these three ways

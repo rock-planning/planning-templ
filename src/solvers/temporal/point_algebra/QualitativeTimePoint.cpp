@@ -7,8 +7,6 @@ namespace solvers {
 namespace temporal {
 namespace point_algebra {
 
-const graph_analysis::VertexRegistration<QualitativeTimePoint> msQualitativeTimePoint;
-
 QualitativeTimePoint::QualitativeTimePoint(const TimePoint::Label& label)
     : TimePoint(0,0, QUALITATIVE)
 {

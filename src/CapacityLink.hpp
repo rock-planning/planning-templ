@@ -99,7 +99,7 @@ private:
 
     static Role msLocationTransitionRole;
 
-    static const graph_analysis::EdgeRegistration<CapacityLink> msRegistration;
+    static const graph_analysis::EdgeRegistration<CapacityLink> __attribute__((used)) msRegistration;
 };
 
 } // end namespace templ

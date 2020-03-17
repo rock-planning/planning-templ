@@ -132,13 +132,12 @@ BOOST_AUTO_TEST_CASE(role_info_weighted_edge_serialization_1)
 //
 //
 //
-    std::vector<std::string> attributes = eManager->getAttributes(edge->getClassName());
-    for(const std::string& attribute : attributes)
+    for(const graph_analysis::Attribute& attribute : eManager->getAttributes(edge->getClassName()) )
     {
-        graph_analysis::io::AttributeSerializationCallbacks callbacks = eManager->getAttributeSerializationCallbacks(edge->getClassName(), attribute);
+        graph_analysis::io::AttributeSerializationCallbacks callbacks = eManager->getAttributeSerializationCallbacks(attribute);
         std::set<Role> roles = edge->getRoles();
         BOOST_REQUIRE_MESSAGE(roles.size() == 5, "Number of roles " << roles.size());
-        std::string s = (edge.get()->*callbacks.serializeFunction)();
+        std::string s = callbacks.serializeFunction(edge);
         BOOST_TEST_MESSAGE("Serialized function: " << s);
         break;
     }

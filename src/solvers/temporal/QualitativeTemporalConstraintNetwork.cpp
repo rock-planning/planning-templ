@@ -18,12 +18,6 @@ namespace temporal {
 QualitativeTemporalConstraintNetwork::QualitativeTemporalConstraintNetwork()
     : TemporalConstraintNetwork()
 {
-    using namespace graph_analysis;
-    VertexTypeManager* vertexTypeManager = VertexTypeManager::getInstance();
-    vertexTypeManager->registerType("QualitativeTimePoint", Vertex::Ptr(new QualitativeTimePoint("default")), false);
-
-    EdgeTypeManager* edgeTypeManager = EdgeTypeManager::getInstance();
-    edgeTypeManager->registerType("QualitativeTimePointConstraint", Edge::Ptr(new QualitativeTimePointConstraint(Variable::Ptr(), Variable::Ptr(), QualitativeTimePointConstraint::Empty)), false);
 }
 
 QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getQualitativeConstraint(const TimePoint::Ptr& t1, const TimePoint::Ptr& t2)

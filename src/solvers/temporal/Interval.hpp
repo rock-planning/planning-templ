@@ -6,6 +6,9 @@
 #include <set>
 #include <vector>
 
+#include <boost/serialization/set.hpp>
+#include <boost/serialization/vector.hpp>
+
 namespace templ {
 namespace solvers {
 namespace temporal {

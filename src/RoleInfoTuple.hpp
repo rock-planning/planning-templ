@@ -32,8 +32,6 @@ public:
     typedef shared_ptr< RoleInfoTuple<A,B> > Ptr;
     typedef std::vector<Ptr> PtrList;
 
-    static const graph_analysis::VertexRegistration< RoleInfoTuple<A,B> > msRoleInfoTupleRegistration;
-
     RoleInfoTuple()
         : RoleInfo()
         , BaseClass()
@@ -161,6 +159,9 @@ public:
 
 
 protected:
+    static const graph_analysis::VertexRegistration< RoleInfoTuple<A,B> >
+        __attribute__((used))  msRoleInfoTupleRegistration;
+
     graph_analysis::Vertex* getClone() const override { return new RoleInfoTuple(*this); }
 };
 
