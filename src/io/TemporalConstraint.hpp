@@ -1,4 +1,4 @@
-#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
+#include "../solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
 
 namespace templ {
 namespace io {

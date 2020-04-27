@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 #include <utility>
-#include <templ/SharedPtr.hpp>
+#include "SharedPtr.hpp"
 
 namespace templ {
 

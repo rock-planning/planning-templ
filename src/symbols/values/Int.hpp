@@ -1,7 +1,7 @@
 #ifndef TEMPL_SYMBOLS_VALUES_INT_HPP
 #define TEMPL_SYMBOLS_VALUES_INT_HPP
 
-#include <templ/symbols/Value.hpp>
+#include "../Value.hpp"
 #include <base-logging/Logging.hpp>
 
 namespace templ {
@@ -23,7 +23,7 @@ public:
     virtual ~Int() {}
 
     bool equals(const Symbol::Ptr& other) const
-    { 
+    {
         Int::Ptr value = dynamic_pointer_cast<Int>(other);
         if(!value)
         {

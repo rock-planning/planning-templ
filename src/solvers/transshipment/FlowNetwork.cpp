@@ -3,8 +3,8 @@
 #include <organization_model/facades/Robot.hpp>
 #include <graph_analysis/GraphIO.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
-#include <templ/utils/Logger.hpp>
 #include <base-logging/Logging.hpp>
+#include "../../utils/Logger.hpp"
 
 namespace pa = templ::solvers::temporal::point_algebra;
 namespace co = templ::symbols::constants;

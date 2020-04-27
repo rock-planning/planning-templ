@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <libxml/parser.h>
 #include <libxml/tree.h>
-#include <templ/Mission.hpp>
+#include "../Mission.hpp"
 
 #include "MissionRequirements.hpp"
 #include "../constraints/ModelConstraint.hpp"

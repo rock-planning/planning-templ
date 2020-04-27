@@ -1,9 +1,9 @@
 #ifndef TEMPL_PERSISTENCE_CONDITION_HPP
 #define TEMPL_PERSISTENCE_CONDITION_HPP
 
-#include <templ/Symbol.hpp>
-#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
-#include <templ/solvers/temporal/TemporalAssertion.hpp>
+#include "../../Symbol.hpp"
+#include "point_algebra/TimePoint.hpp"
+#include "TemporalAssertion.hpp"
 
 namespace templ {
 namespace solvers {

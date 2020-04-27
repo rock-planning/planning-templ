@@ -1,7 +1,7 @@
 #ifndef TEMPL_SYMBOLS_CONSTANTS_LOCATION_HPP
 #define TEMPL_SYMBOLS_CONSTANTS_LOCATION_HPP
 
-#include <templ/symbols/Constant.hpp>
+#include "../Constant.hpp"
 #include <base/Point.hpp>
 #include <vector>
 

@@ -1,11 +1,11 @@
 #ifndef TEMPL_SOLVERS_TEMPORAL_TEMPORAL_CONSTRAINT_NETWORK
 #define TEMPL_SOLVERS_TEMPORAL_TEMPORAL_CONSTRAINT_NETWORK
 
-#include <templ/ConstraintNetwork.hpp>
-#include <templ/solvers/temporal/Bounds.hpp>
-#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
-#include <templ/solvers/temporal/IntervalConstraint.hpp>
-#include <templ/solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp>
+#include "../../ConstraintNetwork.hpp"
+#include "Bounds.hpp"
+#include "point_algebra/TimePoint.hpp"
+#include "IntervalConstraint.hpp"
+#include "point_algebra/QualitativeTimePointConstraint.hpp"
 
 namespace templ {
 namespace solvers {

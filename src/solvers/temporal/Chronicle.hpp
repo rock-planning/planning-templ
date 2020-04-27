@@ -2,8 +2,8 @@
 #define TEMPL_CHRONICLE_HPP
 
 #include <map>
-#include <templ/symbols/StateVariable.hpp>
-#include <templ/solvers/temporal/Timeline.hpp>
+#include "../../symbols/StateVariable.hpp"
+#include "Timeline.hpp"
 
 namespace templ {
 namespace solvers {

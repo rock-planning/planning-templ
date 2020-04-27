@@ -1,8 +1,8 @@
 #ifndef TEMPL_SYMBOLS_OBJECT_VARIABLES_LOCATION_NUMERIC_ATTRIBUTE_HPP
 #define TEMPL_SYMBOLS_OBJECT_VARIABLES_LOCATION_NUMERIC_ATTRIBUTE_HPP
 
-#include <templ/symbols/constants/Location.hpp>
-#include <templ/symbols/ObjectVariable.hpp>
+#include "../constants/Location.hpp"
+#include "../ObjectVariable.hpp"
 #include <owlapi/OWLApi.hpp>
 
 namespace templ {

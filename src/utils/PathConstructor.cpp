@@ -1,5 +1,5 @@
 #include "PathConstructor.hpp"
-#include <templ/RoleInfoTuple.hpp>
+#include "../RoleInfoTuple.hpp"
 
 namespace templ {
 

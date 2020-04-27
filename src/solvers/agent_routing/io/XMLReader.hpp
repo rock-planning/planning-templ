@@ -2,7 +2,7 @@
 #define TEMPL_AGENT_ROUTING_IO_XML_READER_HPP
 
 #include "../ArpIO.hpp"
-#include <templ/utils/XMLTCNUtils.hpp>
+#include "../../../utils/XMLTCNUtils.hpp"
 
 namespace templ {
 namespace solvers {

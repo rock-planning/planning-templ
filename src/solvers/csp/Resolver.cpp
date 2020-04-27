@@ -1,5 +1,5 @@
 #include "Resolver.hpp"
-#include <templ/PlanningState.hpp>
+#include "../../PlanningState.hpp"
 
 namespace templ {
 namespace solvers {

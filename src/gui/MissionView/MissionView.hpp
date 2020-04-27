@@ -12,7 +12,7 @@
 #include <QDomNode>
 
 #include <graph_analysis/Graph.hpp>
-#include <templ/Mission.hpp>
+#include "../../Mission.hpp"
 
 namespace templ {
 namespace gui {

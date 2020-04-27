@@ -3,9 +3,9 @@
 
 #include <vector>
 #include <map>
-#include <templ/symbols/StateVariable.hpp>
-#include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 #include <graph_analysis/Vertex.hpp>
+#include "../../symbols/StateVariable.hpp"
+#include "point_algebra/TimePointComparator.hpp"
 
 namespace templ {
 namespace solvers {

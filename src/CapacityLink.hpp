@@ -2,8 +2,8 @@
 #define TEMPL_CAPACITY_LINK_HPP
 
 #include <graph_analysis/Edge.hpp>
-#include <templ/SharedPtr.hpp>
-#include <templ/Role.hpp>
+#include "SharedPtr.hpp"
+#include "Role.hpp"
 #include <graph_analysis/EdgeRegistration.hpp>
 #include <boost/serialization/access.hpp>
 

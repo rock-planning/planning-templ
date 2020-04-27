@@ -3,7 +3,7 @@
 
 #include <string>
 #include <base/Time.hpp>
-#include <templ/SharedPtr.hpp>
+#include "../SharedPtr.hpp"
 
 namespace templ {
 namespace utils {

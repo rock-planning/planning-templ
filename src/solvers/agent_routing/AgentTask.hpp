@@ -2,8 +2,8 @@
 #define TEMPL_AGENT_ROUTING_AGENT_TASK_HPP
 
 #include <cstdint>
-#include <templ/symbols/constants/Location.hpp>
-#include <templ/solvers/temporal/Interval.hpp>
+#include "../../symbols/constants/Location.hpp"
+#include "../../solvers/temporal/Interval.hpp"
 
 namespace templ {
 namespace solvers {

@@ -6,7 +6,8 @@
 #include <QGraphicsRectItem>
 
 #include <graph_analysis/gui/GraphicsItemTypes.hpp>
-#include <templ/solvers/temporal/PersistenceCondition.hpp>
+
+#include "../solvers/temporal/PersistenceCondition.hpp"
 
 namespace templ {
 namespace gui {

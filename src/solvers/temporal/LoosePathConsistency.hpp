@@ -1,7 +1,7 @@
 #ifndef TEMPL_SOLVERS_TEMPORAL_LOOSE_PATH_CONSISTENCY
 #define TEMPL_SOLVERS_TEMPORAL_LOOSE_PATH_CONSISTENCY
 
-#include <templ/solvers/temporal/TemporalConstraintNetwork.hpp>
+#include "TemporalConstraintNetwork.hpp"
 
 namespace templ {
 namespace solvers {

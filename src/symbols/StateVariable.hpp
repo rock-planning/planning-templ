@@ -1,7 +1,7 @@
 #ifndef TEMPL_SYMBOLS_STATE_VARIABLE_HPP
 #define TEMPL_SYMBOLS_STATE_VARIABLE_HPP
 
-#include <templ/Symbol.hpp>
+#include "../Symbol.hpp"
 
 namespace templ {
 namespace symbols {

@@ -14,11 +14,14 @@
 
 #include <organization_model/Algebra.hpp>
 #include <organization_model/vocabularies/OM.hpp>
-#include <templ/SharedPtr.hpp>
-#include <templ/symbols/object_variables/LocationCardinality.hpp>
-#include <templ/SpaceTime.hpp>
 #include <organization_model/facades/Robot.hpp>
 
+#include <graph_analysis/GraphIO.hpp>
+#include <graph_analysis/algorithms/LPSolver.hpp>
+
+#include "../../SharedPtr.hpp"
+#include "../../symbols/object_variables/LocationCardinality.hpp"
+#include "../../SpaceTime.hpp"
 #include "ConstraintMatrix.hpp"
 #include "branchers/TimelineBrancher.hpp"
 #include "propagators/IsPath.hpp"
@@ -28,8 +31,6 @@
 #include "utils/Formatter.hpp"
 #include "utils/Converter.hpp"
 #include "../../utils/CSVLogger.hpp"
-#include <graph_analysis/GraphIO.hpp>
-#include <graph_analysis/algorithms/LPSolver.hpp>
 #include "MissionConstraints.hpp"
 #include "Search.hpp"
 #include "../SolutionAnalysis.hpp"

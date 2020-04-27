@@ -1,11 +1,11 @@
 #ifndef TEMPL_SPACE_TIME_NETWORK_HPP
 #define TEMPL_SPACE_TIME_NETWORK_HPP
 
-#include <templ/TemporallyExpandedNetwork.hpp>
-#include <templ/symbols/constants/Location.hpp>
-#include <templ/RoleInfoTuple.hpp>
-#include <templ/RoleInfoWeightedEdge.hpp>
-#include <templ/solvers/temporal/Interval.hpp>
+#include "TemporallyExpandedNetwork.hpp"
+#include "symbols/constants/Location.hpp"
+#include "RoleInfoTuple.hpp"
+#include "RoleInfoWeightedEdge.hpp"
+#include "solvers/temporal/Interval.hpp"
 
 namespace templ
 {

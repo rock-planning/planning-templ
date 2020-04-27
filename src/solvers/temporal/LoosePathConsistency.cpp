@@ -1,7 +1,7 @@
 #include "LoosePathConsistency.hpp"
 #include <graph_analysis/BaseGraph.hpp>
 #include <graph_analysis/GraphIO.hpp>
-#include <templ/SharedPtr.hpp>
+#include "../../SharedPtr.hpp"
 #include <limits>
 #include <numeric/Combinatorics.hpp>
 

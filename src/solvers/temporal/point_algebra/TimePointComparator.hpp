@@ -2,8 +2,8 @@
 #define TEMPL_TIMEPOINT_COMPARATOR_HPP
 
 #include <map>
-#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
-#include <templ/solvers/temporal/TemporalConstraintNetwork.hpp>
+#include "TimePoint.hpp"
+#include "../TemporalConstraintNetwork.hpp"
 
 namespace templ {
 namespace solvers {

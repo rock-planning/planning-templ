@@ -1,8 +1,8 @@
 #include "Timeline.hpp"
 #include <numeric/Combinatorics.hpp>
 
-#include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
-#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
+#include "point_algebra/TimePointComparator.hpp"
+#include "QualitativeTemporalConstraintNetwork.hpp"
 
 namespace templ {
 namespace solvers {

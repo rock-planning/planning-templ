@@ -1,4 +1,4 @@
-#include <templ/io/MissionReader.hpp>
+#include "MissionReader.hpp"
 
 #include <sstream>
 #include <regex>

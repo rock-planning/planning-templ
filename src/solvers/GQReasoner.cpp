@@ -1,6 +1,6 @@
 #include "GQReasoner.hpp"
-#include <templ/SharedPtr.hpp>
 #include <utilmm/configfile/pkgconfig.hh>
+#include "../SharedPtr.hpp"
 
 using namespace graph_analysis;
 

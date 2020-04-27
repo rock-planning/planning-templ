@@ -2,11 +2,11 @@
 #include <graph_analysis/WeightedEdge.hpp>
 #include <graph_analysis/algorithms/FloydWarshall.hpp>
 #include <graph_analysis/GraphIO.hpp>
-#include <templ/solvers/temporal/point_algebra/TimePointComparator.hpp>
 #include <limits>
 #include <boost/lexical_cast.hpp>
 #include <numeric/Combinatorics.hpp>
 
+#include "point_algebra/TimePointComparator.hpp"
 #include "../csp/TemporalConstraintNetwork.hpp"
 #include "QualitativeTemporalConstraintNetwork.hpp"
 

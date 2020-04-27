@@ -1,8 +1,9 @@
 #include "SpatioTemporalRequirementItem.hpp"
 #include <QPen>
 #include <base-logging/Logging.hpp>
-#include <templ/symbols/object_variables/LocationCardinality.hpp>
 #include <owlapi/model/OWLCardinalityRestriction.hpp>
+
+#include "../symbols/object_variables/LocationCardinality.hpp"
 
 namespace templ {
 namespace gui {

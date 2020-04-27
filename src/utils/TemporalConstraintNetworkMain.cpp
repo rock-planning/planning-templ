@@ -1,7 +1,7 @@
 #include <iostream>
 #include <graph_analysis/GraphIO.hpp>
-#include <templ/solvers/temporal/TemporalConstraintNetwork.hpp>
-#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
+#include "../solvers/temporal/TemporalConstraintNetwork.hpp"
+#include "../solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
 
 /// Dumping a temporal constraint network
 int main(int argc, char** argv)

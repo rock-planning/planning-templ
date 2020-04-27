@@ -4,9 +4,9 @@
 #include <vector>
 #include <graph_analysis/BipartiteGraph.hpp>
 #include <graph_analysis/algorithms/MultiCommodityMinCostFlow.hpp>
-#include <templ/Mission.hpp>
-#include <templ/solvers/csp/RoleTimeline.hpp>
-#include <templ/solvers/transshipment/FlowNetwork.hpp>
+#include "../../Mission.hpp"
+#include "../../solvers/csp/RoleTimeline.hpp"
+#include "FlowNetwork.hpp"
 #include "Flaw.hpp"
 
 namespace templ {

@@ -3,8 +3,8 @@
 
 #include <gecode/set.hh>
 #include <gecode/search.hh>
-#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
-#include <templ/solvers/temporal/Interval.hpp>
+#include "../temporal/QualitativeTemporalConstraintNetwork.hpp"
+#include "../temporal/Interval.hpp"
 
 namespace templ {
 namespace solvers {

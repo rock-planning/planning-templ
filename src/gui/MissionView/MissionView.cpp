@@ -1,5 +1,5 @@
 #include "MissionView.hpp"
-#include <templ/io/MissionReader.hpp>
+#include "../../io/MissionReader.hpp"
 
 // QT specific includes
 //#include "ui_MissionView.h"

@@ -2,8 +2,8 @@
 #define TEMPL_SOLVERS_TEMPORAL_QUALITATIVE_TEMPORAL_CONSTRAINT_NETWORK
 
 #include <set>
-#include <templ/solvers/temporal/TemporalConstraintNetwork.hpp>
-#include <templ/solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp>
+#include "TemporalConstraintNetwork.hpp"
+#include "point_algebra/QualitativeTimePointConstraint.hpp"
 
 namespace templ {
 namespace solvers {

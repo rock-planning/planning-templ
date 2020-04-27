@@ -4,8 +4,8 @@
 #include <map>
 #include <graph_analysis/Vertex.hpp>
 #include <graph_analysis/BaseGraph.hpp>
-#include <templ/Mission.hpp>
-#include <templ/CapacityLink.hpp>
+#include "Mission.hpp"
+#include "CapacityLink.hpp"
 
 namespace templ {
 

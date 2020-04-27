@@ -2,8 +2,8 @@
 #define TEMPL_PATH_CONSTRUCTOR_HPP
 
 #include <graph_analysis/algorithms/DFSVisitor.hpp>
-#include <templ/SharedPtr.hpp>
-#include <templ/Role.hpp>
+#include "../SharedPtr.hpp"
+#include "../Role.hpp"
 
 namespace templ {
 

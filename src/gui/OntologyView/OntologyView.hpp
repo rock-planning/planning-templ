@@ -4,7 +4,7 @@
 #include <owlapi/OWLApi.hpp>
 #include <QWidget>
 
-#include <templ/gui/OntologyView/OntologyTreeModel.hpp>
+#include "OntologyTreeModel.hpp"
 
 namespace Ui {
     class OntologyView;

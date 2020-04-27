@@ -2,7 +2,7 @@
 #define TEMPL_VARIABLE_HPP
 
 #include <graph_analysis/Vertex.hpp>
-#include <templ/SharedPtr.hpp>
+#include "SharedPtr.hpp"
 
 #define T_VAR(x) dynamic_pointer_cast< templ::Variable>(x)
 

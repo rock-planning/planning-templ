@@ -3,11 +3,11 @@
 #include <numeric/Stats.hpp>
 #include <base/Time.hpp>
 
-#include <templ/solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp>
-#include <templ/solvers/temporal/point_algebra/QualitativeTimePoint.hpp>
-#include <templ/solvers/temporal/QualitativeTemporalConstraintNetwork.hpp>
+#include "../solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp"
+#include "../solvers/temporal/point_algebra/QualitativeTimePoint.hpp"
+#include "../solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
 #ifdef WITH_GQR
-#include <templ/solvers/GQReasoner.hpp>
+#include "../solvers/GQReasoner.hpp"
 #endif
 
 using namespace templ;

@@ -1,8 +1,8 @@
 #ifndef TEMPL_SOLVERS_TEMPORAL_POINT_ALGEBRA_QUALITATIVE_TIME_POINT_HPP
 #define TEMPL_SOLVERS_TEMPORAL_POINT_ALGEBRA_QUALITATIVE_TIME_POINT_HPP
 
-#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
 #include <graph_analysis/VertexRegistration.hpp>
+#include "TimePoint.hpp"
 
 namespace templ {
 namespace solvers {

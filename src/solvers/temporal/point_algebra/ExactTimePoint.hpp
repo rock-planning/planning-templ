@@ -1,7 +1,7 @@
 #ifndef TEMPL_SOLVERS_TEMPORAL_POINT_ALGEBRA_EXACT_TIME_POINT_HPP
 #define TEMPL_SOLVERS_TEMPORAL_POINT_ALGEBRA_EXACT_TIME_POINT_HPP
 
-#include <templ/solvers/temporal/point_algebra/TimePoint.hpp>
+#include "TimePoint.hpp"
 
 namespace templ {
 namespace solvers {

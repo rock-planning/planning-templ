@@ -1,8 +1,9 @@
-#include <templ/io/MissionReader.hpp>
 #include <graph_analysis/GraphIO.hpp>
+#include <boost/program_options.hpp>
+
+#include "../io/MissionReader.hpp"
 #include "../solvers/SolutionAnalysis.hpp"
 #include "../solvers/Solver.hpp"
-#include <boost/program_options.hpp>
 
 using namespace templ;
 

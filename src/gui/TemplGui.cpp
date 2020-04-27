@@ -39,9 +39,9 @@
 #include <graph_analysis/gui/layouts/GridLayout.hpp>
 #include <graph_analysis/gui/dialogs/GridLayout.hpp>
 
-#include <templ/gui/MissionEditor/MissionEditor.hpp>
-#include <templ/gui/MissionView/MissionView.hpp>
-#include <templ/gui/OntologyView/OntologyView.hpp>
+#include "MissionEditor/MissionEditor.hpp"
+#include "MissionView/MissionView.hpp"
+#include "OntologyView/OntologyView.hpp"
 
 #include "../SpaceTime.hpp"
 #include "../RoleInfoWeightedEdge.hpp"

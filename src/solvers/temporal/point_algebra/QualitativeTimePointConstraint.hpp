@@ -1,9 +1,9 @@
 #ifndef TEMPL_SOLVERS_TEMPORAL_QUALITATIVE_TIMEPOINT_CONSTRAINT_HPP
 #define TEMPL_SOLVERS_TEMPORAL_QUALITATIVE_TIMEPOINT_CONSTRAINT_HPP
 
-#include <templ/constraints/SimpleConstraint.hpp>
-#include <templ/solvers/temporal/point_algebra/QualitativeTimePoint.hpp>
 #include <graph_analysis/EdgeRegistration.hpp>
+#include "QualitativeTimePoint.hpp"
+#include "../../../constraints/SimpleConstraint.hpp"
 
 namespace templ {
 namespace solvers {

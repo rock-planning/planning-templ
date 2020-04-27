@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <utility>
-#include <templ/Symbol.hpp>
+#include "../Symbol.hpp"
 
 namespace templ {
 namespace symbols {

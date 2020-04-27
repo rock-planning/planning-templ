@@ -5,7 +5,7 @@
 #include <QWidget>
 #include <QProcess>
 #include <graph_analysis/Graph.hpp>
-#include <templ/Mission.hpp>
+#include "../../Mission.hpp"
 
 namespace Ui {
     class MissionEditor;

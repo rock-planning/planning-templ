@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 #include "AgentRoutingProblem.hpp"
-#include <templ/SharedPtr.hpp>
+#include "../../SharedPtr.hpp"
 
 namespace templ {
 namespace solvers {

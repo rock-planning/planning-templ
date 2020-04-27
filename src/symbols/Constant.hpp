@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <map>
-#include <templ/Symbol.hpp>
+#include "../Symbol.hpp"
 
 namespace templ {
 namespace symbols {
@@ -18,7 +18,7 @@ class Constant : public Symbol
 public:
     typedef shared_ptr<Constant> Ptr;
 
-    enum Type { UNKNOWN, LOCATION };
+    enum Type : size_t { UNKNOWN, LOCATION, END };
     static std::map<Type, std::string> TypeTxt;
 
     Constant(const std::string& name, Type type);

@@ -1,12 +1,12 @@
 #ifndef TEMPL_TIMELINE_HPP
 #define TEMPL_TIMELINE_HPP
 
-#include <templ/symbols/Constant.hpp>
-#include <templ/symbols/ObjectVariable.hpp>
-#include <templ/Constraint.hpp>
-#include <templ/solvers/temporal/Event.hpp>
-#include <templ/solvers/temporal/PersistenceCondition.hpp>
-#include <templ/solvers/temporal/TemporalAssertion.hpp>
+#include "../../symbols/Constant.hpp"
+#include "../../symbols/ObjectVariable.hpp"
+#include "../../Constraint.hpp"
+#include "Event.hpp"
+#include "PersistenceCondition.hpp"
+#include "TemporalAssertion.hpp"
 
 namespace templ {
 namespace solvers {

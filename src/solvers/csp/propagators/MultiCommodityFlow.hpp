@@ -9,7 +9,7 @@
 
 #include <organization_model/OrganizationModel.hpp>
 #include <organization_model/OrganizationModelAsk.hpp>
-#include <templ/Role.hpp>
+#include "../../../Role.hpp"
 
 namespace templ {
 namespace solvers {

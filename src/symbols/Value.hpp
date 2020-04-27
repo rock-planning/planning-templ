@@ -3,8 +3,8 @@
 
 #include <map>
 #include <stdexcept>
-#include <boost/shared_ptr.hpp>
-#include <templ/Symbol.hpp>
+#include "../SharedPtr.hpp"
+#include "../Symbol.hpp"
 
 namespace templ {
 namespace symbols {
