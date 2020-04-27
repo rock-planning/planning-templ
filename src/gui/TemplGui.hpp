@@ -123,7 +123,7 @@ private slots:
     void updateVisualization();
     void closeTab(int tabIndex);
 
-    void openMissionEditor();
+    void openMissionEditor(const QString& settingsLabel = "IOMissions", const QString& filename = "");
     void openMissionView(const QString& settingsLabel = "IOMissions", const QString& filename = "");
     void openOntologyView();
 

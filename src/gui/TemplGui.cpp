@@ -133,18 +133,18 @@ void TemplGui::createMenus()
                                                     style->standardIcon(QStyle::SP_FileIcon),
                                                     QKeySequence( QKeySequence::Open & Qt::Key_E),
                                                     tr("Open mission editor"));
-    QAction* actionMissionView = comm.addAction("Mission View",
-                                                    SLOT(openMissionView()),
-                                                    style->standardIcon(QStyle::SP_FileIcon),
-                                                    QKeySequence( QKeySequence::Open & Qt::Key_M),
-                                                    tr("Open mission view"));
+    //QAction* actionMissionView = comm.addAction("Mission View",
+    //                                                SLOT(openMissionView()),
+    //                                                style->standardIcon(QStyle::SP_FileIcon),
+    //                                                QKeySequence( QKeySequence::Open & Qt::Key_M),
+    //                                                tr("Open mission view"));
     QAction* actionOntologyView = comm.addAction("Ontology View",
                                                     SLOT(openOntologyView()),
                                                     style->standardIcon(QStyle::SP_FileIcon),
                                                     QKeySequence( QKeySequence::Open & Qt::Key_O),
                                                     tr("Open ontology view"));
     newMenu->addAction(actionMissionEditor);
-    newMenu->addAction(actionMissionView);
+    //newMenu->addAction(actionMissionView);
     newMenu->addAction(actionOntologyView);
     fileMenu->addMenu(newMenu);
 
@@ -391,29 +391,55 @@ void TemplGui::importSolution(const QString& settingsLabel, const QString& filen
 
 void TemplGui::importMission(const QString& settingsLabel, const QString& filename)
 {
-    MissionView* missionView = qobject_cast<templ::gui::MissionView*>(mpUi->tabWidget->currentWidget());
-    if(missionView)
+    MissionEditor* missionEditor = qobject_cast<templ::gui::MissionEditor*>(mpUi->tabWidget->currentWidget());
+    if(missionEditor)
     {
-        if(!missionView->loadMission(settingsLabel, filename))
+        if(!missionEditor->loadMission(settingsLabel, filename))
         {
             return;
         }
 
-        int tabIndex = mpUi->tabWidget->indexOf(missionView);
-        mpUi->tabWidget->setTabToolTip(tabIndex, missionView->getFilename());
-        mpUi->tabWidget->setTabWhatsThis(tabIndex, missionView->getFilename());
+        int tabIndex = mpUi->tabWidget->indexOf(missionEditor);
+        mpUi->tabWidget->setTabToolTip(tabIndex, missionEditor->getFilename());
+        mpUi->tabWidget->setTabWhatsThis(tabIndex, missionEditor->getFilename());
 
-        QFileInfo fileInfo(missionView->getFilename());
-        mpUi->tabWidget->setTabText(tabIndex, QString("MissionView: ") + fileInfo.baseName());
+        QFileInfo fileInfo(missionEditor->getFilename());
+        mpUi->tabWidget->setTabText(tabIndex, QString("MissionEditor: ") + fileInfo.baseName());
 
         // Update organization model upon import
         // TODO: use global session setup/active mission to import solution?
-        mpsOrganizationModel = missionView->getMission()->getOrganizationModel();
+        mpsOrganizationModel = missionEditor->getMission()->getOrganizationModel();
     } else {
-        openMissionView(settingsLabel, filename);
+        openMissionEditor(settingsLabel, filename);
     }
-
 }
+
+
+//void TemplGui::importMission(const QString& settingsLabel, const QString& filename)
+//{
+//    MissionView* missionView = qobject_cast<templ::gui::MissionView*>(mpUi->tabWidget->currentWidget());
+//    if(missionView)
+//    {
+//        if(!missionView->loadMission(settingsLabel, filename))
+//        {
+//            return;
+//        }
+//
+//        int tabIndex = mpUi->tabWidget->indexOf(missionView);
+//        mpUi->tabWidget->setTabToolTip(tabIndex, missionView->getFilename());
+//        mpUi->tabWidget->setTabWhatsThis(tabIndex, missionView->getFilename());
+//
+//        QFileInfo fileInfo(missionView->getFilename());
+//        mpUi->tabWidget->setTabText(tabIndex, QString("MissionView: ") + fileInfo.baseName());
+//
+//        // Update organization model upon import
+//        // TODO: use global session setup/active mission to import solution?
+//        mpsOrganizationModel = missionView->getMission()->getOrganizationModel();
+//    } else {
+//        openMissionView(settingsLabel, filename);
+//    }
+//
+//}
 
 void TemplGui::importOrganizationModel()
 {
@@ -745,19 +771,6 @@ graph_analysis::gui::BaseGraphView* TemplGui::getCurrentBaseGraphView() const
     return qobject_cast<graph_analysis::gui::BaseGraphView*>(mpUi->tabWidget->currentWidget());
 }
 
-void TemplGui::openMissionEditor()
-{
-    if(mpMissionEditor)
-    {
-        QMessageBox::warning(this, "Templ", "Mission editor is already opened");
-    } else {
-        mpMissionEditor = new MissionEditor(this);
-        mpUi->tabWidget->addTab(mpMissionEditor,
-                                mpMissionEditor->getClassName());
-        mpUi->tabWidget->setCurrentWidget(mpMissionEditor);
-    }
-}
-
 void TemplGui::openMissionView(const QString& settingsLabel, const QString& filename)
 {
     MissionView* missionView = new MissionView;
@@ -768,6 +781,21 @@ void TemplGui::openMissionView(const QString& settingsLabel, const QString& file
     // assumes that only the one in the front is sending updates. otherwise
     // they would interleave...
     connect(missionView, SIGNAL(currentStatus(QString, int)),
+            mpUi->statusbar, SLOT(showMessage(QString, int)));
+
+    importMission(settingsLabel, filename);
+}
+
+void TemplGui::openMissionEditor(const QString& settingsLabel, const QString& filename)
+{
+    MissionEditor* missionEditor = new MissionEditor;
+    mpUi->tabWidget->addTab(missionEditor,
+                            "Mission Editor");
+    mpUi->tabWidget->setCurrentWidget(missionEditor);
+    // and show both' widgets status-messages on the statusbar. this simply
+    // assumes that only the one in the front is sending updates. otherwise
+    // they would interleave...
+    connect(missionEditor, SIGNAL(currentStatus(QString, int)),
             mpUi->statusbar, SLOT(showMessage(QString, int)));
 
     importMission(settingsLabel, filename);

@@ -1,9 +1,10 @@
 #ifndef TEMPL_GUI_MISSION_EDITOR_HPP
 #define TEMPL_GUI_MISSION_EDITOR_HPP
 
-#include <QTreeWidget>
 #include <QWidget>
-#include <QProcess>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QPushButton>
 #include <graph_analysis/Graph.hpp>
 #include "../../Mission.hpp"
 
@@ -27,15 +28,38 @@ public:
         return "templ::gui::MissionEditor";
     }
 
+    Mission::Ptr getMission() const { return mpMission; }
+
 private:
     // GUI Elements
     Ui::MissionEditor* mpUi;
 
-    Mission::Ptr mMission;
+    QVBoxLayout* mLayoutResources;
+
+    Mission::Ptr mpMission;
+    QString mMissionFilename;
 
     // Adding/Removing Constraints
     void on_addConstraintButton_clicked();
     void on_removeConstraintButton_clicked();
+
+
+
+    // (Re)load the data from the current mission
+    void updateVisualization();
+    void save(const QString& filename);
+
+public slots:
+    void on_planMission_clicked();
+    /**
+     *  Loading/Storing Missions
+     *  \return True, when mission was loaded, false otherwise
+     */
+    bool loadMission(const QString& settingsLabel ="IOMission",
+            const QString& filename = "");
+
+    bool loadOrganizationModel(const QString& settingsLabel = "IOMission",
+            const QString& filenameOrIri = "");
 
     // Loading/Storing Missions
     void on_loadMissionButton_clicked();
@@ -45,10 +69,11 @@ private:
     void on_updateButton_clicked();
     void on_clearButton_clicked();
 
-    void updateVisualization();
+    void addResourceCardinality();
+    void removeResourceCardinalities();
+    void removeResourceCardinality(QHBoxLayout* rowLayout);
 
-public slots:
-    void on_planMission_clicked();
+    const QString& getFilename() const { return mMissionFilename; }
 
 };
 
