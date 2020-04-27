@@ -2,7 +2,6 @@
 #define TEMPL_GUI_MISSION_EDITOR_HPP
 
 #include <QWidget>
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <graph_analysis/Graph.hpp>
@@ -33,8 +32,6 @@ public:
 private:
     // GUI Elements
     Ui::MissionEditor* mpUi;
-
-    QVBoxLayout* mLayoutResources;
 
     Mission::Ptr mpMission;
     QString mMissionFilename;
@@ -69,9 +66,14 @@ public slots:
     void on_updateButton_clicked();
     void on_clearButton_clicked();
 
+    void removeCheckedRows(QLayout* parent);
+    void removeRow(QLayout* parent, QHBoxLayout* rowLayout);
+
     void addResourceCardinality();
     void removeResourceCardinalities();
-    void removeResourceCardinality(QHBoxLayout* rowLayout);
+
+    void addConstant();
+    void removeConstants();
 
     const QString& getFilename() const { return mMissionFilename; }
 

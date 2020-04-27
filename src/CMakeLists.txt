@@ -310,10 +310,12 @@ rock_library(templ_gui
         gui/MissionView/MissionView.hpp
         gui/OntologyView/OntologyView.hpp
         gui/OntologyView/OntologyTreeModel.hpp
+        gui/dialogs/AddLocation.hpp
         gui/edge_items/RoleInfoItem.hpp
         gui/edge_items/CapacityLinkItem.hpp
         gui/vertex_items/RoleInfoItem.hpp
         gui/models/AgentStyleModel.hpp
+        gui/widgets/Location.hpp
         gui/widgets/PenStyle.hpp
     SOURCES
         gui/TemplGui.cpp
@@ -322,10 +324,12 @@ rock_library(templ_gui
         gui/MissionView/MissionView.cpp
         gui/OntologyView/OntologyView.cpp
         gui/OntologyView/OntologyTreeModel.cpp
+        gui/dialogs/AddLocation.cpp
         gui/edge_items/RoleInfoItem.cpp
         gui/edge_items/CapacityLinkItem.cpp
         gui/vertex_items/RoleInfoItem.cpp
         gui/models/AgentStyleModel.cpp
+        gui/widgets/Location.cpp
         gui/widgets/PenStyle.cpp
         ../resources.qrc
     MOC
@@ -335,10 +339,12 @@ rock_library(templ_gui
         gui/MissionView/MissionView.hpp
         gui/OntologyView/OntologyView.hpp
         gui/OntologyView/OntologyTreeModel.hpp
+        gui/dialogs/AddLocation.hpp
         gui/edge_items/RoleInfoItem.hpp
         gui/edge_items/CapacityLinkItem.hpp
         gui/vertex_items/RoleInfoItem.hpp
         gui/models/AgentStyleModel.hpp
+        gui/widgets/Location.hpp
         gui/widgets/PenStyle.hpp
     DEPS
         templ
@@ -347,8 +353,10 @@ rock_library(templ_gui
         QtXml
     UI
         gui/TemplGui.ui
+        gui/dialogs/AddLocation.ui
         gui/MissionEditor/MissionEditor.ui
         gui/OntologyView/OntologyView.ui
+        gui/widgets/Location.ui
         gui/widgets/PenStyle.ui
 )
 

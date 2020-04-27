@@ -1,5 +1,8 @@
 #include "MissionEditor.hpp"
+
 #include "../../io/MissionReader.hpp"
+#include "../dialogs/AddLocation.hpp"
+#include "../widgets/Location.hpp"
 
 // QT specific includes
 #include "ui_MissionEditor.h"
@@ -21,12 +24,10 @@ namespace gui {
 MissionEditor::MissionEditor(QWidget* parent)
     : QWidget(parent)
     , mpUi(new Ui::MissionEditor)
-    , mLayoutResources(new QVBoxLayout)
 {
     mpMission = make_shared<Mission>();
 
     mpUi->setupUi(this);
-    mpUi->verticalLayoutResources->addLayout(mLayoutResources);
 
     connect(mpUi->pushButtonSelectOrganizationModel, SIGNAL(clicked()),
             this, SLOT(loadOrganizationModel()));
@@ -34,8 +35,13 @@ MissionEditor::MissionEditor(QWidget* parent)
             this, SLOT(on_saveButton_clicked));
     connect(mpUi->pushButtonAddResource, SIGNAL(clicked()),
             this, SLOT(addResourceCardinality()));
-    connect(mpUi->pushButtonDeleteResources, SIGNAL(clicked()),
+    connect(mpUi->pushButtonRemoveResources, SIGNAL(clicked()),
             this, SLOT(removeResourceCardinalities()));
+
+    connect(mpUi->pushButtonAddConstant, SIGNAL(clicked()),
+            this, SLOT(addConstant()));
+    connect(mpUi->pushButtonRemoveConstants, SIGNAL(clicked()),
+            this, SLOT(removeConstants()));
 }
 
 MissionEditor::~MissionEditor()
@@ -324,7 +330,12 @@ void MissionEditor::addResourceCardinality()
     QSpacerItem* spacer = new QSpacerItem(50,0);
     rowLayout->addItem(spacer);
 
-    mLayoutResources->addLayout(rowLayout);
+    //QStandardItemModel* comboBoxModel = qobject_cast<QStandardItemModel*>(mpUi->comboBoxResourceModel->model());
+    //int rowIdx = comboBoxModel->currentIndex();
+    //QStandardItem* item = comboBoxModel->item(rowIdx, 0);
+    //item->setEnabled(false);
+
+    mpUi->verticalLayoutResources->addLayout(rowLayout);
     for(int i = 0; i < rowLayout->count(); ++i)
     {
         qDebug() << "#" << i << " in layout";
@@ -333,10 +344,20 @@ void MissionEditor::addResourceCardinality()
 
 void MissionEditor::removeResourceCardinalities()
 {
+    removeCheckedRows(mpUi->verticalLayoutResources);
+}
+
+void MissionEditor::removeConstants()
+{
+    removeCheckedRows(mpUi->verticalLayoutConstants);
+}
+
+void MissionEditor::removeCheckedRows(QLayout* parentLayout)
+{
     QList<QHBoxLayout*> removeLayouts;
-    for(int i = 0; i < mLayoutResources->count();++i)
+    for(int i = 0; i < parentLayout->count();++i)
     {
-        QHBoxLayout* rowLayout = qobject_cast<QHBoxLayout*>(mLayoutResources->itemAt(i)->layout());
+        QHBoxLayout* rowLayout = qobject_cast<QHBoxLayout*>(parentLayout->itemAt(i)->layout());
         if(rowLayout)
         {
             QCheckBox* checkbox =
@@ -351,11 +372,11 @@ void MissionEditor::removeResourceCardinalities()
 
     for(int i = 0; i < removeLayouts.size(); ++i)
     {
-        removeResourceCardinality(removeLayouts[i]);
+        removeRow(parentLayout, removeLayouts[i]);
     }
 }
 
-void MissionEditor::removeResourceCardinality(QHBoxLayout* rowLayout)
+void MissionEditor::removeRow(QLayout* parent, QHBoxLayout* rowLayout)
 {
     while(rowLayout->count() != 0)
     {
@@ -376,8 +397,36 @@ void MissionEditor::removeResourceCardinality(QHBoxLayout* rowLayout)
         }
     }
 
-    mLayoutResources->removeItem(rowLayout);
+    parent->removeItem(rowLayout);
     delete rowLayout;
+}
+
+void MissionEditor::addConstant()
+{
+    qDebug() << "Add constant";
+    QString constantsType = mpUi->comboBoxConstantsType->currentText();
+    using namespace templ::symbols;
+    if(constantsType.toStdString() == Constant::TypeTxt[Constant::LOCATION] )
+    {
+        dialogs::AddLocation dialog;
+        dialog.exec();
+        if(dialog.result() == QDialog::Accepted)
+        {
+            qDebug() << "Add Location: " << dialog.getLocation()->toString().c_str();
+
+            QHBoxLayout* rowLayout = new QHBoxLayout;
+            QCheckBox* checkbox = new QCheckBox;
+            rowLayout->addWidget(checkbox);
+
+            widgets::Location* locationWidget = new widgets::Location;
+            locationWidget->setValue( dialog.getLocation() );
+            rowLayout->addWidget(locationWidget);
+
+            mpUi->verticalLayoutConstants->addLayout(rowLayout);
+        }
+    }
+
+
 }
 
 } // end namespace gui
