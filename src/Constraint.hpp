@@ -26,7 +26,8 @@ public:
     enum Category { UNKNOWN,
         TEMPORAL_QUALITATIVE,
         TEMPORAL_QUANTITATIVE,
-        MODEL
+        MODEL,
+        END
     };
 
     static std::map<Category, std::string> CategoryTxt;

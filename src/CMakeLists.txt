@@ -311,11 +311,13 @@ rock_library(templ_gui
         gui/OntologyView/OntologyView.hpp
         gui/OntologyView/OntologyTreeModel.hpp
         gui/dialogs/AddLocation.hpp
+        gui/dialogs/AddModelConstraint.hpp
         gui/edge_items/RoleInfoItem.hpp
         gui/edge_items/CapacityLinkItem.hpp
         gui/vertex_items/RoleInfoItem.hpp
         gui/models/AgentStyleModel.hpp
         gui/widgets/Location.hpp
+        gui/widgets/ModelConstraint.hpp
         gui/widgets/PenStyle.hpp
     SOURCES
         gui/TemplGui.cpp
@@ -325,11 +327,13 @@ rock_library(templ_gui
         gui/OntologyView/OntologyView.cpp
         gui/OntologyView/OntologyTreeModel.cpp
         gui/dialogs/AddLocation.cpp
+        gui/dialogs/AddModelConstraint.cpp
         gui/edge_items/RoleInfoItem.cpp
         gui/edge_items/CapacityLinkItem.cpp
         gui/vertex_items/RoleInfoItem.cpp
         gui/models/AgentStyleModel.cpp
         gui/widgets/Location.cpp
+        gui/widgets/ModelConstraint.cpp
         gui/widgets/PenStyle.cpp
         ../resources.qrc
     MOC
@@ -340,11 +344,13 @@ rock_library(templ_gui
         gui/OntologyView/OntologyView.hpp
         gui/OntologyView/OntologyTreeModel.hpp
         gui/dialogs/AddLocation.hpp
+        gui/dialogs/AddModelConstraint.hpp
         gui/edge_items/RoleInfoItem.hpp
         gui/edge_items/CapacityLinkItem.hpp
         gui/vertex_items/RoleInfoItem.hpp
         gui/models/AgentStyleModel.hpp
         gui/widgets/Location.hpp
+        gui/widgets/ModelConstraint.hpp
         gui/widgets/PenStyle.hpp
     DEPS
         templ
@@ -354,9 +360,11 @@ rock_library(templ_gui
     UI
         gui/TemplGui.ui
         gui/dialogs/AddLocation.ui
+        gui/dialogs/AddModelConstraint.ui
         gui/MissionEditor/MissionEditor.ui
         gui/OntologyView/OntologyView.ui
         gui/widgets/Location.ui
+        gui/widgets/ModelConstraint.ui
         gui/widgets/PenStyle.ui
 )
 

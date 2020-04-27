@@ -1,0 +1,46 @@
+#ifndef TEMPL_GUI_WIDGETS_MODEL_CONSTRAINT_HPP
+#define TEMPL_GUI_WIDGETS_MODEL_CONSTRAINT_HPP
+
+#include "../../constraints/ModelConstraint.hpp"
+#include <organization_model/OrganizationModelAsk.hpp>
+
+#include <QWidget>
+
+namespace Ui
+{
+    class ModelConstraint;
+}
+
+namespace templ {
+namespace gui {
+namespace widgets {
+
+class ModelConstraint : public QWidget
+{
+    Q_OBJECT
+
+public:
+    ModelConstraint(QWidget* parent = NULL);
+    ~ModelConstraint();
+
+    void prepare(const organization_model::OrganizationModelAsk& ask);
+
+    void setValue(const constraints::ModelConstraint::Ptr& modelConstraint);
+
+    constraints::ModelConstraint::Ptr getConstraint() const;
+
+    std::vector<SpaceTime::SpaceIntervalTuple> getIntervals() const;
+
+public slots:
+    void typeChanged(const QString& type);
+    void modelChanged(const QString& type);
+
+private:
+    Ui::ModelConstraint* mpUi;
+};
+
+} // namespace widgets
+} // namespace gui
+} // namespace templ
+
+#endif // TEMPL_GUI_WIDGETS_MODEL_CONSTRAINT_HPP

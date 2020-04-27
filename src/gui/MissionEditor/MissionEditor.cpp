@@ -3,6 +3,7 @@
 #include "../../io/MissionReader.hpp"
 #include "../dialogs/AddLocation.hpp"
 #include "../widgets/Location.hpp"
+#include "../dialogs/AddModelConstraint.hpp"
 
 // QT specific includes
 #include "ui_MissionEditor.h"
@@ -42,6 +43,11 @@ MissionEditor::MissionEditor(QWidget* parent)
             this, SLOT(addConstant()));
     connect(mpUi->pushButtonRemoveConstants, SIGNAL(clicked()),
             this, SLOT(removeConstants()));
+
+    connect(mpUi->pushButtonAddConstraint, SIGNAL(clicked()),
+            this, SLOT(addConstraint()));
+    connect(mpUi->pushButtonRemoveConstraints, SIGNAL(clicked()),
+            this, SLOT(removeConstraints()));
 }
 
 MissionEditor::~MissionEditor()
@@ -220,7 +226,7 @@ void MissionEditor::updateVisualization()
         for(size_t c = static_cast<size_t>(Constant::UNKNOWN) + 1;
                 c < static_cast<size_t>(Constant::END); ++c)
         {
-            mpUi->comboBoxConstantsType->addItem(
+            mpUi->comboBoxConstantTypes->addItem(
                     QString::fromStdString(
                         Constant::TypeTxt[static_cast<Constant::Type>(c)]
                     )
@@ -234,6 +240,18 @@ void MissionEditor::updateVisualization()
 
     // Constraints
     {
+        using namespace templ::constraints;
+        for(size_t c = static_cast<size_t>(Constraint::UNKNOWN) +1;
+                c < static_cast<size_t>(Constraint::END); ++c)
+        {
+            mpUi->comboBoxConstraintTypes->addItem(
+                    QString::fromStdString(
+                        Constraint::CategoryTxt[static_cast<Constraint::Category>(c)]
+
+                    )
+            );
+        }
+
         for(const Constraint::Ptr& c : mpMission->getConstraints())
         {
             qDebug() << "    constraint: " << QString::fromStdString(c->toString());
@@ -292,14 +310,47 @@ void MissionEditor::on_clearButton_clicked()
 {
 }
 
-void MissionEditor::on_addConstraintButton_clicked()
+// Adding/Removing Constraints
+void MissionEditor::addConstant()
 {
-    LOG_INFO_S << "addConstraintButton clicked";
+    qDebug() << "Add constant";
+
+    QString constantsType = mpUi->comboBoxConstantTypes->currentText();
+    using namespace templ::symbols;
+    if(constantsType.toStdString() == Constant::TypeTxt[Constant::LOCATION] )
+    {
+        dialogs::AddLocation dialog;
+        dialog.exec();
+        if(dialog.result() == QDialog::Accepted)
+        {
+            addLocation(dialog.getLocation());
+        }
+    }
 }
 
-void MissionEditor::on_removeConstraintButton_clicked()
+void MissionEditor::addConstraint()
 {
-    LOG_INFO_S << "removeConstraintButton clicked";
+    qDebug() << "Add constraint";
+    QString constraintType = mpUi->comboBoxConstraintTypes->currentText();
+
+    using namespace templ::constraints;
+    if(constraintType.toStdString() == Constraint::CategoryTxt[Constraint::MODEL])
+    {
+        dialogs::AddModelConstraint dialog(mpMission->getOrganizationModelAsk());
+        dialog.exec();
+        if(dialog.result() == QDialog::Accepted)
+        {
+            addModelConstraint(dialog.getConstraint());
+        }
+    }
+    if(constraintType.toStdString() ==
+            Constraint::CategoryTxt[Constraint::TEMPORAL_QUALITATIVE])
+    {
+    }
+    if(constraintType.toStdString() ==
+            Constraint::CategoryTxt[Constraint::TEMPORAL_QUANTITATIVE])
+    {
+    }
 }
 
 void MissionEditor::on_planMission_clicked()
@@ -352,6 +403,13 @@ void MissionEditor::removeConstants()
     removeCheckedRows(mpUi->verticalLayoutConstants);
 }
 
+void MissionEditor::removeConstraints()
+{
+    removeCheckedRows(mpUi->verticalLayoutConstraintsTemporalQualitative);
+    removeCheckedRows(mpUi->verticalLayoutConstraintsTemporalQuantitative);
+    removeCheckedRows(mpUi->verticalLayoutConstraintsModel);
+}
+
 void MissionEditor::removeCheckedRows(QLayout* parentLayout)
 {
     QList<QHBoxLayout*> removeLayouts;
@@ -401,31 +459,35 @@ void MissionEditor::removeRow(QLayout* parent, QHBoxLayout* rowLayout)
     delete rowLayout;
 }
 
-void MissionEditor::addConstant()
+void MissionEditor::addLocation(const symbols::constants::Location::Ptr&
+        location)
 {
-    qDebug() << "Add constant";
-    QString constantsType = mpUi->comboBoxConstantsType->currentText();
-    using namespace templ::symbols;
-    if(constantsType.toStdString() == Constant::TypeTxt[Constant::LOCATION] )
-    {
-        dialogs::AddLocation dialog;
-        dialog.exec();
-        if(dialog.result() == QDialog::Accepted)
-        {
-            qDebug() << "Add Location: " << dialog.getLocation()->toString().c_str();
+    QHBoxLayout* rowLayout = new QHBoxLayout;
+    QCheckBox* checkbox = new QCheckBox;
+    rowLayout->addWidget(checkbox);
 
-            QHBoxLayout* rowLayout = new QHBoxLayout;
-            QCheckBox* checkbox = new QCheckBox;
-            rowLayout->addWidget(checkbox);
+    widgets::Location* locationWidget = new widgets::Location;
+    locationWidget->setValue( location );
+    rowLayout->addWidget(locationWidget);
 
-            widgets::Location* locationWidget = new widgets::Location;
-            locationWidget->setValue( dialog.getLocation() );
-            rowLayout->addWidget(locationWidget);
+    mpUi->verticalLayoutConstants->addLayout(rowLayout);
+}
 
-            mpUi->verticalLayoutConstants->addLayout(rowLayout);
-        }
-    }
+void MissionEditor::addModelConstraint(const constraints::ModelConstraint::Ptr&
+        constraint)
+{
+    qDebug() << "Adding model constraint";
 
+    QHBoxLayout* rowLayout = new QHBoxLayout;
+    QCheckBox* checkbox = new QCheckBox;
+    rowLayout->addWidget(checkbox);
+
+    widgets::ModelConstraint* constraintWidget = new widgets::ModelConstraint;
+    constraintWidget->prepare(mpMission->getOrganizationModelAsk());
+    constraintWidget->setValue( constraint );
+    rowLayout->addWidget(constraintWidget);
+
+    mpUi->verticalLayoutConstraintsModel->addLayout(rowLayout);
 
 }
 

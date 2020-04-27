@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <graph_analysis/Graph.hpp>
 #include "../../Mission.hpp"
+#include "../../constraints/ModelConstraint.hpp"
 
 namespace Ui {
     class MissionEditor;
@@ -36,12 +37,6 @@ private:
     Mission::Ptr mpMission;
     QString mMissionFilename;
 
-    // Adding/Removing Constraints
-    void on_addConstraintButton_clicked();
-    void on_removeConstraintButton_clicked();
-
-
-
     // (Re)load the data from the current mission
     void updateVisualization();
     void save(const QString& filename);
@@ -66,14 +61,20 @@ public slots:
     void on_updateButton_clicked();
     void on_clearButton_clicked();
 
-    void removeCheckedRows(QLayout* parent);
-    void removeRow(QLayout* parent, QHBoxLayout* rowLayout);
-
     void addResourceCardinality();
     void removeResourceCardinalities();
 
     void addConstant();
     void removeConstants();
+    void addLocation(const symbols::constants::Location::Ptr& location);
+
+    void addConstraint();
+    void removeConstraints();
+    void addModelConstraint(const constraints::ModelConstraint::Ptr& constraint);
+
+
+    void removeCheckedRows(QLayout* parent);
+    void removeRow(QLayout* parent, QHBoxLayout* rowLayout);
 
     const QString& getFilename() const { return mMissionFilename; }
 
