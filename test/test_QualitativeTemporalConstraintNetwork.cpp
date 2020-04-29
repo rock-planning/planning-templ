@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_CASE(timepoint_comparison)
         BOOST_REQUIRE_MESSAGE( qtcn->isConsistent(), "QualitativeTemporalConstraintNetwork is consistent" );
 
         point_algebra::QualitativeTimePointConstraint::Type constraint = qtcn->getQualitativeConstraint(tp0, tp1);
-        BOOST_REQUIRE_MESSAGE(constraint == point_algebra::QualitativeTimePointConstraint::Greater, "Query result of constraint between two vertices" << point_algebra::QualitativeTimePointConstraint::TypeTxt[constraint]);
+        BOOST_REQUIRE_MESSAGE(constraint == point_algebra::QualitativeTimePointConstraint::Greater, "Query result of constraint between two vertices" << point_algebra::QualitativeTimePointConstraint::TypeSymbol[constraint]);
 
         qtcn->addQualitativeConstraint(tp1, tp2, point_algebra::QualitativeTimePointConstraint::Greater);
 
@@ -72,13 +72,13 @@ BOOST_AUTO_TEST_CASE(timepoint_comparison)
         {
             point_algebra::QualitativeTimePointConstraint::Type constraint0 = qtcn->getQualitativeConstraint(t0_start, t1_end);
             point_algebra::QualitativeTimePointConstraint::Type constraint1 = qtcn->getQualitativeConstraint(t1_end, t0_start);
-            BOOST_REQUIRE_MESSAGE(constraint0 == point_algebra::QualitativeTimePointConstraint::Less || constraint1 == point_algebra::QualitativeTimePointConstraint::GreaterOrEqual, "Query result of constraint between two vertices " << point_algebra::QualitativeTimePointConstraint::TypeTxt[constraint0] <<  "--"<< point_algebra::QualitativeTimePointConstraint::TypeTxt[constraint1]);
+            BOOST_REQUIRE_MESSAGE(constraint0 == point_algebra::QualitativeTimePointConstraint::Less || constraint1 == point_algebra::QualitativeTimePointConstraint::GreaterOrEqual, "Query result of constraint between two vertices " << point_algebra::QualitativeTimePointConstraint::TypeSymbol[constraint0] <<  "--"<< point_algebra::QualitativeTimePointConstraint::TypeSymbol[constraint1]);
             BOOST_REQUIRE_MESSAGE(comparator.lessThan(t0_start, t1_end), "t0_start < t1_end");
         }
         {
             point_algebra::QualitativeTimePointConstraint::Type constraint0 = qtcn->getQualitativeConstraint(t0_end, t1_start);
             point_algebra::QualitativeTimePointConstraint::Type constraint1 = qtcn->getQualitativeConstraint(t1_start, t0_end);
-            BOOST_REQUIRE_MESSAGE(constraint0 == point_algebra::QualitativeTimePointConstraint::Greater || constraint1 == point_algebra::QualitativeTimePointConstraint::LessOrEqual, "Query result of constraint between two vertices " << point_algebra::QualitativeTimePointConstraint::TypeTxt[constraint0] << "--" << point_algebra::QualitativeTimePointConstraint::TypeTxt[constraint1]);
+            BOOST_REQUIRE_MESSAGE(constraint0 == point_algebra::QualitativeTimePointConstraint::Greater || constraint1 == point_algebra::QualitativeTimePointConstraint::LessOrEqual, "Query result of constraint between two vertices " << point_algebra::QualitativeTimePointConstraint::TypeSymbol[constraint0] << "--" << point_algebra::QualitativeTimePointConstraint::TypeSymbol[constraint1]);
             BOOST_REQUIRE_MESSAGE(comparator.greaterThan(t0_end, t1_start), "t0_end > t1_start");
         }
 

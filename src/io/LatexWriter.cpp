@@ -58,7 +58,7 @@ std::string LatexWriter::toLatex(const Mission::Ptr& mission)
                 dynamic_pointer_cast<QualitativeTimePointConstraint>(c);
 
             std::string constraintString = qtpc->getLVal()->getLabel() +
-                QualitativeTimePointConstraint::TypeTxt[ qtpc->getType() ]
+                QualitativeTimePointConstraint::TypeSymbol[ qtpc->getType() ]
                 + qtpc->getRVal()->getLabel();
             row = wrap(ss, row, constraintString);
         }

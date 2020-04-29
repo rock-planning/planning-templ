@@ -45,7 +45,7 @@ void TemporalConstraintNetworkBase::addConstraints(const temporal::QualitativeTe
         size_t sourceIdx = getVertexIdx( constraint->getSourceVertex(), mVertices );
         size_t targetIdx = getVertexIdx( constraint->getTargetVertex(), mVertices );
 
-        LOG_DEBUG_S << "Add constraint: " << point_algebra::QualitativeTimePointConstraint::TypeTxt[constraint->getType() ] << " from: " << constraint->getSourceVertex()->toString() <<
+        LOG_DEBUG_S << "Add constraint: " << point_algebra::QualitativeTimePointConstraint::TypeSymbol[constraint->getType() ] << " from: " << constraint->getSourceVertex()->toString() <<
             " (idx: " << sourceIdx << ") " << " --> " << constraint->getTargetVertex()->toString() << " (idx: " << targetIdx << ")";
 
 

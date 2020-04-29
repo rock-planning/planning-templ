@@ -12,16 +12,27 @@ bool QualitativeTimePointConstraint::msInitializedSymmetryTable = false;
 QualitativeTimePointConstraint::Type QualitativeTimePointConstraint::msCompositionTable[8][8];
 QualitativeTimePointConstraint::Type QualitativeTimePointConstraint::msSymmetryTable[8];
 
-std::map<QualitativeTimePointConstraint::Type, std::string> QualitativeTimePointConstraint::TypeTxt = boost::assign::map_list_of
-    (QualitativeTimePointConstraint::Empty, "{}")
-    (QualitativeTimePointConstraint::Greater, ">")
-    (QualitativeTimePointConstraint::Less, "<")
-    (QualitativeTimePointConstraint::Equal, "=")
-    //(QualitativeTimePointConstraint::Distinct, "!=") // > <
-    (QualitativeTimePointConstraint::GreaterOrEqual, ">=")
-    (QualitativeTimePointConstraint::LessOrEqual, "<=")
-    (QualitativeTimePointConstraint::Universal, "P")
-    ;
+std::map<QualitativeTimePointConstraint::Type, std::string> QualitativeTimePointConstraint::TypeSymbol = {
+    {QualitativeTimePointConstraint::Empty, "{}"},
+    {QualitativeTimePointConstraint::Greater, ">"},
+    {QualitativeTimePointConstraint::Less, "<"},
+    {QualitativeTimePointConstraint::Equal, "="},
+    {QualitativeTimePointConstraint::Distinct, "!="}, // > <
+    {QualitativeTimePointConstraint::GreaterOrEqual, ">="},
+    {QualitativeTimePointConstraint::LessOrEqual, "<="},
+    {QualitativeTimePointConstraint::Universal, "P"}
+};
+
+std::map<QualitativeTimePointConstraint::Type, std::string> QualitativeTimePointConstraint::TypeWord = {
+    {QualitativeTimePointConstraint::Empty, "empty"},
+    {QualitativeTimePointConstraint::Greater, "greaterThan"},
+    {QualitativeTimePointConstraint::Less, "lessThan"},
+    {QualitativeTimePointConstraint::Equal, "equals"},
+    {QualitativeTimePointConstraint::Distinct, "distinct"},
+    {QualitativeTimePointConstraint::GreaterOrEqual, "greaterOrEqual"},
+    {QualitativeTimePointConstraint::LessOrEqual, "lessOrEqual"},
+    {QualitativeTimePointConstraint::Universal, "universal"}
+};
 
 std::map<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type> QualitativeTimePointConstraint::SymmetricType = boost::assign::map_list_of
     (QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Empty)
@@ -101,7 +112,7 @@ QualitativeTimePointConstraint::QualitativeTimePointConstraint()
     : SimpleConstraint(Constraint::TEMPORAL_QUALITATIVE)
     , mConstraintType(Empty)
 {
-    SimpleConstraint::setLabel(TypeTxt[mConstraintType]);
+    SimpleConstraint::setLabel(TypeSymbol[mConstraintType]);
 }
 
 QualitativeTimePointConstraint::QualitativeTimePointConstraint(const Variable::Ptr& source,
@@ -110,7 +121,7 @@ QualitativeTimePointConstraint::QualitativeTimePointConstraint(const Variable::P
     : SimpleConstraint(Constraint::TEMPORAL_QUALITATIVE, source, target)
     , mConstraintType(constraintType)
 {
-    SimpleConstraint::setLabel(TypeTxt[constraintType]);
+    SimpleConstraint::setLabel(TypeSymbol[constraintType]);
 }
 
 bool QualitativeTimePointConstraint::operator==(const QualitativeTimePointConstraint& other) const
@@ -121,8 +132,9 @@ bool QualitativeTimePointConstraint::operator==(const QualitativeTimePointConstr
 
 void QualitativeTimePointConstraint::setLabel(const std::string& label)
 {
-    std::map<QualitativeTimePointConstraint::Type, std::string>::const_iterator cit = TypeTxt.begin();
-    for(; cit != TypeTxt.end(); ++cit)
+    std::map<QualitativeTimePointConstraint::Type, std::string>::const_iterator
+        cit = TypeSymbol.begin();
+    for(; cit != TypeSymbol.end(); ++cit)
     {
         if(cit->second == label)
         {
@@ -137,7 +149,7 @@ void QualitativeTimePointConstraint::setLabel(const std::string& label)
 void QualitativeTimePointConstraint::setType(QualitativeTimePointConstraint::Type type)
 {
     mConstraintType = type;
-    SimpleConstraint::setLabel(QualitativeTimePointConstraint::TypeTxt[type]);
+    SimpleConstraint::setLabel(QualitativeTimePointConstraint::TypeSymbol[type]);
 }
 
 
@@ -223,7 +235,11 @@ QualitativeTimePointConstraint::Type QualitativeTimePointConstraint::getComposit
                         }
                     }
 
-                    throw std::runtime_error("QualitativeTimePointConstraint::getComposition found no match for composition of: " + TypeTxt[(QualitativeTimePointConstraint::Type) a] + " and " + TypeTxt[(QualitativeTimePointConstraint::Type) b]);
+                    throw
+                        std::runtime_error("QualitativeTimePointConstraint::getComposition found no match for composition of: " +
+                                TypeSymbol[(QualitativeTimePointConstraint::Type) a] +
+                                " and " +
+                                TypeSymbol[(QualitativeTimePointConstraint::Type) b]);
                 }
             }
         }
@@ -384,9 +400,35 @@ std::string QualitativeTimePointConstraint::toString(uint32_t indent) const
     std::string hspace(indent,' ');
     std::stringstream ss;
     ss << hspace << getSourceVariable()->getLabel();
-    ss << " " << TypeTxt[getType()] << " ";
+    ss << " " << TypeSymbol[getType()] << " ";
     ss << getTargetVariable()->getLabel();
     return ss.str();
+}
+
+QualitativeTimePointConstraint::Type QualitativeTimePointConstraint::getTypeFromSymbol(const std::string& symbol)
+{
+    for(const auto& v : TypeSymbol)
+    {
+        if(v.second == symbol)
+        {
+            return v.first;
+        }
+    }
+    throw std::invalid_argument("templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::getTypeFromSymbol: "
+            " could not find type for '" + symbol + "'");
+}
+
+QualitativeTimePointConstraint::Type QualitativeTimePointConstraint::getTypeFromWord(const std::string& word)
+{
+    for(const auto& v : TypeWord)
+    {
+        if(v.second == word)
+        {
+            return v.first;
+        }
+    }
+    throw std::invalid_argument("templ::solvers::temporal::point_algebra::QualitativeTimePointConstraint::getTypeFromWord: "
+            " could not find type for '" + word + "'");
 }
 
 } // end namespace point_algebra

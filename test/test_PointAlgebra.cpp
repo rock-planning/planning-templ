@@ -136,10 +136,10 @@ BOOST_AUTO_TEST_CASE(qualitative_constraints)
     numeric::Combination<QualitativeTimePointConstraint::Type> combination(types, 2, numeric::EXACT);
     do {
         std::vector<QualitativeTimePointConstraint::Type> testPair = combination.current();
-        BOOST_REQUIRE_MESSAGE( QualitativeTimePointConstraint::isConsistent(testPair[0], testPair[1]) == QualitativeTimePointConstraint::isConsistent(testPair[1], testPair[0]), "Check commutative constraint: " << QualitativeTimePointConstraint::TypeTxt[ testPair[0] ] << " and " << QualitativeTimePointConstraint::TypeTxt[ testPair[1] ] );
+        BOOST_REQUIRE_MESSAGE( QualitativeTimePointConstraint::isConsistent(testPair[0], testPair[1]) == QualitativeTimePointConstraint::isConsistent(testPair[1], testPair[0]), "Check commutative constraint: " << QualitativeTimePointConstraint::TypeSymbol[ testPair[0] ] << " and " << QualitativeTimePointConstraint::TypeSymbol[ testPair[1] ] );
 
         try {
-            BOOST_CHECK_MESSAGE( QualitativeTimePointConstraint::getComposition(testPair[0], testPair[1]) == QualitativeTimePointConstraint::getComposition(testPair[1], testPair[0]), "Check composition constraint: " << QualitativeTimePointConstraint::TypeTxt[ testPair[0] ] << " and " << QualitativeTimePointConstraint::TypeTxt[ testPair[1] ] );
+            BOOST_CHECK_MESSAGE( QualitativeTimePointConstraint::getComposition(testPair[0], testPair[1]) == QualitativeTimePointConstraint::getComposition(testPair[1], testPair[0]), "Check composition constraint: " << QualitativeTimePointConstraint::TypeSymbol[ testPair[0] ] << " and " << QualitativeTimePointConstraint::TypeSymbol[ testPair[1] ] );
         } catch(const std::runtime_error& e)
         {
             BOOST_TEST_MESSAGE(e.what());

@@ -54,6 +54,10 @@ public:
 
     Type getType() const { return mConstraintType; }
 
+    static Type getTypeFromSymbol(const std::string& symbol);
+
+    static Type getTypeFromWord(const std::string& word);
+
     static QualitativeTimePointConstraint::Ptr create(const Variable::Ptr& source,
             const Variable::Ptr& target,
             Type constraintType);
@@ -117,7 +121,8 @@ public:
 
     /// Symmetric constraint: change the primitive '<' by '>' and vice versa
     static std::map<Type, Type> SymmetricType;
-    static std::map<Type, std::string> TypeTxt;
+    static std::map<Type, std::string> TypeSymbol;
+    static std::map<Type, std::string> TypeWord;
 
     /// Composition table for the time-point algebra for '<','=','>' and the
     /// additional '<=','>='

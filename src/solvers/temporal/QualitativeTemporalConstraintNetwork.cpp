@@ -25,7 +25,7 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getQu
     QualitativeTimePointConstraint::Type type = getBidirectionalConstraintType(t1, t2);
     LOG_DEBUG_S << "Return bidirectionalconstraint type for '"
         << t1->toString() << " --> " << t2->toString() << " : "
-        << QualitativeTimePointConstraint::TypeTxt[type];
+        << QualitativeTimePointConstraint::TypeSymbol[type];
     return type;
 }
 
@@ -219,8 +219,8 @@ QualitativeTemporalConstraintNetwork::VertexPair QualitativeTemporalConstraintNe
     QualitativeTimePointConstraint::Type ij = QualitativeTemporalConstraintNetwork::getDirectionalConstraintType(i,j);
     QualitativeTimePointConstraint::Type intersectionType = QualitativeTimePointConstraint::getIntersection(ij, pathConstraintType);
 
-    LOG_DEBUG_S << "Revise: (i: " << i->getLabel() << ", j: " << j->getLabel() << "): " << QualitativeTimePointConstraint::TypeTxt[pathConstraintType] << ":  and bidirectional: " << QualitativeTimePointConstraint::TypeTxt[ij] << " --> "
-       << QualitativeTimePointConstraint::TypeTxt[intersectionType];
+    LOG_DEBUG_S << "Revise: (i: " << i->getLabel() << ", j: " << j->getLabel() << "): " << QualitativeTimePointConstraint::TypeSymbol[pathConstraintType] << ":  and bidirectional: " << QualitativeTimePointConstraint::TypeSymbol[ij] << " --> "
+       << QualitativeTimePointConstraint::TypeSymbol[intersectionType];
 
     if(intersectionType == QualitativeTimePointConstraint::Empty)
     {
@@ -401,21 +401,21 @@ QualitativeTimePointConstraint::Type QualitativeTemporalConstraintNetwork::getBi
 
     QualitativeTimePointConstraint::Type constraintTypeJI_sym = QualitativeTimePointConstraint::getSymmetric(constraintTypeJI);
 
-    LOG_DEBUG_S << "IJ: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << " and JI" << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI] << " (JI' " << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI_sym];
+    LOG_DEBUG_S << "IJ: " << QualitativeTimePointConstraint::TypeSymbol[constraintTypeIJ] << " and JI" << QualitativeTimePointConstraint::TypeSymbol[constraintTypeJI] << " (JI' " << QualitativeTimePointConstraint::TypeSymbol[constraintTypeJI_sym];
 
     if(!QualitativeTimePointConstraint::isConsistent(constraintTypeIJ, constraintTypeJI_sym))
     {
         LOG_DEBUG_S << "IJ symmetry assumption does not hold" <<
-            " ij: " << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << " vs. ji' " << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI_sym];
+            " ij: " << QualitativeTimePointConstraint::TypeSymbol[constraintTypeIJ] << " vs. ji' " << QualitativeTimePointConstraint::TypeSymbol[constraintTypeJI_sym];
         throw std::runtime_error("QualitativeTimePointConstraint::getBidirectionalConstraintType: IJ - JI with inconsistent constraints: '" + i->toString() + "' - '" + j->toString());
     }
 
    LOG_DEBUG_S << "Checking bidirectional type for: " << i->toString() << " -- " << j->toString();
     QualitativeTimePointConstraint::Type intersectionType = QualitativeTimePointConstraint::getIntersection(constraintTypeIJ, constraintTypeJI_sym);
 
-   LOG_DEBUG_S << "Intersection of IJ (" << QualitativeTimePointConstraint::TypeTxt[constraintTypeIJ] << ")"
-        << " and JI' (symmetric IJ) (" << QualitativeTimePointConstraint::TypeTxt[constraintTypeJI_sym] << ")"
-        << " --> " << QualitativeTimePointConstraint::TypeTxt[intersectionType];
+   LOG_DEBUG_S << "Intersection of IJ (" << QualitativeTimePointConstraint::TypeSymbol[constraintTypeIJ] << ")"
+        << " and JI' (symmetric IJ) (" << QualitativeTimePointConstraint::TypeSymbol[constraintTypeJI_sym] << ")"
+        << " --> " << QualitativeTimePointConstraint::TypeSymbol[intersectionType];
 
     return intersectionType;
 }
