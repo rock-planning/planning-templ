@@ -1,5 +1,4 @@
 #include "QualitativeTimePointConstraint.hpp"
-#include <boost/assign/list_of.hpp>
 #include <base-logging/Logging.hpp>
 
 namespace templ {
@@ -34,79 +33,79 @@ std::map<QualitativeTimePointConstraint::Type, std::string> QualitativeTimePoint
     {QualitativeTimePointConstraint::Universal, "universal"}
 };
 
-std::map<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type> QualitativeTimePointConstraint::SymmetricType = boost::assign::map_list_of
-    (QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Empty)
-    (QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Less)
-    (QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Greater)
-    (QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Equal)
-    (QualitativeTimePointConstraint::Distinct, QualitativeTimePointConstraint::Distinct)
-    (QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::LessOrEqual)
-    (QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::GreaterOrEqual)
-    (QualitativeTimePointConstraint::Universal, QualitativeTimePointConstraint::Universal)
-    ;
+std::map<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type> QualitativeTimePointConstraint::SymmetricType = {
+    {QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Empty},
+    {QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Less},
+    {QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Greater},
+    {QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Equal},
+    {QualitativeTimePointConstraint::Distinct, QualitativeTimePointConstraint::Distinct},
+    {QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::LessOrEqual},
+    {QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::GreaterOrEqual},
+    {QualitativeTimePointConstraint::Universal, QualitativeTimePointConstraint::Universal}
+};
 
-std::map< std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>, QualitativeTimePointConstraint::Type> QualitativeTimePointConstraint::TypeAlgebra = boost::assign::map_list_of
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Less)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::Less)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Universal)
+std::map< std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>, QualitativeTimePointConstraint::Type> QualitativeTimePointConstraint::TypeAlgebra = {
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Less},
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::Less},
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Universal},
     // {<}o{<,=} --> {<}o{<} \cup {<}o{=} = {<} \cup {<}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::Less)
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::Less},
     // {<}o{>,=} --> {<}o{>} \cup {<}o{=} = {P} \cup {<}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::Universal)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Distinct), QualitativeTimePointConstraint::Distinct)
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::Universal},
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Less, QualitativeTimePointConstraint::Distinct), QualitativeTimePointConstraint::Distinct},
 
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Less)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::Equal)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Greater)
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Less},
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::Equal},
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Greater},
     // {=}o{<,=} --> {=}o{<} \cup {=}o{=} = {<} \cup {=}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::LessOrEqual)
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::LessOrEqual},
     // {=}o{>,=} --> {=}o{>} \cup {=}o{=} = {>} \cup {=}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::GreaterOrEqual)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Distinct), QualitativeTimePointConstraint::Universal )
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::GreaterOrEqual},
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Equal, QualitativeTimePointConstraint::Distinct), QualitativeTimePointConstraint::Universal },
 
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Universal)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::Greater)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Greater)
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Universal},
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::Greater},
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Greater},
     // {>}o{<,=} --> {>}o{<} \cup {>}o{=} = {P} \cup {>}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::Universal)
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::Universal},
     // {>}o{>,=} --> {>}o{>} \cup {>}o{=} = {>} \cup {>}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::Greater )
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Distinct), QualitativeTimePointConstraint::Distinct )
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::Greater },
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Greater, QualitativeTimePointConstraint::Distinct), QualitativeTimePointConstraint::Distinct },
 
     // {>,=}o{<} --> {>}o{<} \cup {=}o{<} = {P} \cup {<}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Universal )
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Universal },
     // {>,=}o{=} --> {>}o{=} \cup {=}o{=} = {>} \cup {=}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::GreaterOrEqual )
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::GreaterOrEqual },
     // {>,=}o{>} --> {>}o{=} \cup {=}o{>} = {>} \cup {>}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Greater )
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Greater },
     // {>,=}o{<,=} --> {>}o{<} \cup {>}o{=} \cup {=}o{<} \cup {=}o{=} = {P} \cup {>} \cup {<} \cup {=}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::Universal)
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::Universal },
     // {>,=}o{>,=} --> {>}o{>} \cup {>}o{=} \cup {=}o{>} \cup {=}o{=} = {>} \cup {>} \cup {>} \cup {=}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::GreaterOrEqual )
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::Distinct), QualitativeTimePointConstraint::Universal )
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::GreaterOrEqual },
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::GreaterOrEqual, QualitativeTimePointConstraint::Distinct), QualitativeTimePointConstraint::Universal },
 
     // {<,=}o{<} --> {<}o{<} \cup {=}o{<} = {<} \cup {<}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Less )
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Less },
     // {<,=}o{=} --> {<}o{=} \cup {=}o{=} = {<} \cup {=}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::LessOrEqual)
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::LessOrEqual},
     // {<,=}o{>} --> {<}o{>} \cup {=}o{>} = {P} \cup {>}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Universal)
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Universal},
     // {<,=}o{<,=} --> {<}o{<} \cup {=}o{=} \cup {=}o{<} \cup {=}o{=}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::LessOrEqual)
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::LessOrEqual},
     // {<,=}o{>,=} --> {<}o{>} \cup {<}o{=} \cup {=}o{>} \cup {=}o{=} = {P} \cup
     // {<} \cup {>} \cup{=}
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::Universal )
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::Distinct), QualitativeTimePointConstraint::Universal )
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::Universal },
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::LessOrEqual, QualitativeTimePointConstraint::Distinct), QualitativeTimePointConstraint::Universal },
 
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Empty), QualitativeTimePointConstraint::Empty)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Less)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::LessOrEqual)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Greater )
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::GreaterOrEqual)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::Equal)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Distinct), QualitativeTimePointConstraint::Distinct)
-    ( std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Universal), QualitativeTimePointConstraint::Universal)
-    ;
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Empty), QualitativeTimePointConstraint::Empty},
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Less), QualitativeTimePointConstraint::Less},
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::LessOrEqual), QualitativeTimePointConstraint::LessOrEqual},
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Greater), QualitativeTimePointConstraint::Greater },
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::GreaterOrEqual), QualitativeTimePointConstraint::GreaterOrEqual },
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Equal), QualitativeTimePointConstraint::Equal },
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Distinct), QualitativeTimePointConstraint::Distinct },
+    { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Universal), QualitativeTimePointConstraint::Universal }
+};
 
 QualitativeTimePointConstraint::QualitativeTimePointConstraint()
     : SimpleConstraint(Constraint::TEMPORAL_QUALITATIVE)
