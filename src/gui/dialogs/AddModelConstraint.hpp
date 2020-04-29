@@ -9,7 +9,7 @@
 
 namespace Ui
 {
-    class AddModelConstraint;
+    class EmptyDialog;
 }
 
 namespace templ {
@@ -29,7 +29,7 @@ public:
     constraints::ModelConstraint::Ptr getConstraint() const;
 
 private:
-    Ui::AddModelConstraint* mpUi;
+    Ui::EmptyDialog* mpUi;
     widgets::ModelConstraint* mpModelConstraint;
 
     organization_model::OrganizationModelAsk mAsk;

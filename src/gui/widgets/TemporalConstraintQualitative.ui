@@ -1,19 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ModelConstraint</class>
- <widget class="QWidget" name="ModelConstraint">
+ <class>TemporalConstraintQualitative</class>
+ <widget class="QWidget" name="TemporalConstraintQualitative">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1046</width>
-    <height>67</height>
+    <width>1079</width>
+    <height>47</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetMaximumSize</enum>
+   </property>
    <property name="margin">
     <number>0</number>
    </property>
@@ -23,57 +32,24 @@
    <item row="0" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLabel" name="labelType">
-       <property name="minimumSize">
-        <size>
-         <width>50</width>
-         <height>0</height>
-        </size>
-       </property>
+      <widget class="QLabel" name="labelLVal">
        <property name="text">
-        <string>Type</string>
+        <string>Timepoint (lval)</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="comboBoxTypes">
+      <widget class="QComboBox" name="comboBoxLVal">
        <property name="minimumSize">
         <size>
-         <width>100</width>
+         <width>75</width>
          <height>0</height>
         </size>
        </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Maximum</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
+       <property name="maximumSize">
         <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QLabel" name="labelModel">
-       <property name="text">
-        <string>Model</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBoxModels">
-       <property name="minimumSize">
-        <size>
-         <width>300</width>
-         <height>0</height>
+         <width>75</width>
+         <height>16777215</height>
         </size>
        </property>
       </widget>
@@ -95,14 +71,27 @@
       </spacer>
      </item>
      <item>
-      <widget class="QLabel" name="labelValue">
+      <widget class="QLabel" name="labelRelation">
        <property name="text">
-        <string>Value</string>
+        <string>Relation</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="spinBoxValue"/>
+      <widget class="QComboBox" name="comboBoxRelation">
+       <property name="minimumSize">
+        <size>
+         <width>50</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>50</width>
+         <height>16777215</height>
+        </size>
+       </property>
+      </widget>
      </item>
      <item>
       <spacer name="horizontalSpacer_2">
@@ -121,24 +110,36 @@
       </spacer>
      </item>
      <item>
-      <widget class="QLabel" name="labelProperty">
+      <widget class="QLabel" name="labelRVal">
+       <property name="minimumSize">
+        <size>
+         <width>50</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="text">
-        <string>Property</string>
+        <string>Timepoint (rval)</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="comboBoxProperties">
+      <widget class="QComboBox" name="comboBoxRVal">
        <property name="minimumSize">
         <size>
-         <width>300</width>
+         <width>75</width>
          <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>75</width>
+         <height>16777215</height>
         </size>
        </property>
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer_4">
+      <spacer name="horizontalSpacer_3">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -151,9 +152,6 @@
       </spacer>
      </item>
     </layout>
-   </item>
-   <item row="1" column="0">
-    <layout class="QVBoxLayout" name="verticalLayoutRequirements"/>
    </item>
   </layout>
  </widget>

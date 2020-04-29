@@ -305,6 +305,7 @@ rock_executable(templ-bm-tcn utils/TCNBenchmark.cpp
 rock_library(templ_gui
     HEADERS
         gui/TemplGui.hpp
+        gui/Utils.hpp
         gui/SpatioTemporalRequirementItem.hpp
         gui/MissionEditor/MissionEditor.hpp
         gui/MissionView/MissionView.hpp
@@ -312,15 +313,22 @@ rock_library(templ_gui
         gui/OntologyView/OntologyTreeModel.hpp
         gui/dialogs/AddLocation.hpp
         gui/dialogs/AddModelConstraint.hpp
+        gui/dialogs/AddTemporalConstraintQualitative.hpp
+        gui/dialogs/AddTemporalConstraintQuantitative.hpp
         gui/edge_items/RoleInfoItem.hpp
         gui/edge_items/CapacityLinkItem.hpp
         gui/vertex_items/RoleInfoItem.hpp
         gui/models/AgentStyleModel.hpp
         gui/widgets/Location.hpp
+        gui/widgets/ModelCardinality.hpp
         gui/widgets/ModelConstraint.hpp
         gui/widgets/PenStyle.hpp
+        gui/widgets/SpatioTemporalRequirement.hpp
+        gui/widgets/TemporalConstraintQualitative.hpp
+        gui/widgets/TemporalConstraintQuantitative.hpp
     SOURCES
         gui/TemplGui.cpp
+        gui/Utils.cpp
         gui/SpatioTemporalRequirementItem.cpp
         gui/MissionEditor/MissionEditor.cpp
         gui/MissionView/MissionView.cpp
@@ -328,13 +336,19 @@ rock_library(templ_gui
         gui/OntologyView/OntologyTreeModel.cpp
         gui/dialogs/AddLocation.cpp
         gui/dialogs/AddModelConstraint.cpp
+        gui/dialogs/AddTemporalConstraintQualitative.cpp
+        gui/dialogs/AddTemporalConstraintQuantitative.cpp
         gui/edge_items/RoleInfoItem.cpp
         gui/edge_items/CapacityLinkItem.cpp
         gui/vertex_items/RoleInfoItem.cpp
         gui/models/AgentStyleModel.cpp
         gui/widgets/Location.cpp
+        gui/widgets/ModelCardinality.cpp
         gui/widgets/ModelConstraint.cpp
         gui/widgets/PenStyle.cpp
+        gui/widgets/SpatioTemporalRequirement.cpp
+        gui/widgets/TemporalConstraintQualitative.cpp
+        gui/widgets/TemporalConstraintQuantitative.cpp
         ../resources.qrc
     MOC
         gui/TemplGui.hpp
@@ -345,13 +359,19 @@ rock_library(templ_gui
         gui/OntologyView/OntologyTreeModel.hpp
         gui/dialogs/AddLocation.hpp
         gui/dialogs/AddModelConstraint.hpp
+        gui/dialogs/AddTemporalConstraintQualitative.hpp
+        gui/dialogs/AddTemporalConstraintQuantitative.hpp
         gui/edge_items/RoleInfoItem.hpp
         gui/edge_items/CapacityLinkItem.hpp
         gui/vertex_items/RoleInfoItem.hpp
         gui/models/AgentStyleModel.hpp
         gui/widgets/Location.hpp
+        gui/widgets/ModelCardinality.hpp
         gui/widgets/ModelConstraint.hpp
         gui/widgets/PenStyle.hpp
+        gui/widgets/SpatioTemporalRequirement.hpp
+        gui/widgets/TemporalConstraintQualitative.hpp
+        gui/widgets/TemporalConstraintQuantitative.hpp
     DEPS
         templ
     DEPS_PKGCONFIG
@@ -360,12 +380,16 @@ rock_library(templ_gui
     UI
         gui/TemplGui.ui
         gui/dialogs/AddLocation.ui
-        gui/dialogs/AddModelConstraint.ui
+        gui/dialogs/EmptyDialog.ui
         gui/MissionEditor/MissionEditor.ui
         gui/OntologyView/OntologyView.ui
         gui/widgets/Location.ui
+        gui/widgets/ModelCardinality.ui
         gui/widgets/ModelConstraint.ui
         gui/widgets/PenStyle.ui
+        gui/widgets/SpatioTemporalRequirement.ui
+        gui/widgets/TemporalConstraintQualitative.ui
+        gui/widgets/TemporalConstraintQuantitative.ui
 )
 
 rock_executable(templ-gui gui/Main.cpp

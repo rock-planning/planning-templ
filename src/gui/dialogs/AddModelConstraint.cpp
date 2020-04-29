@@ -1,6 +1,6 @@
 #include "AddModelConstraint.hpp"
 #include <QDialog>
-#include "ui_AddModelConstraint.h"
+#include "ui_EmptyDialog.h"
 
 namespace templ {
 namespace gui {
@@ -11,13 +11,13 @@ AddModelConstraint::AddModelConstraint(
         QWidget* parent
         )
     : QDialog(parent)
-    , mpUi(new Ui::AddModelConstraint)
+    , mpUi(new Ui::EmptyDialog)
     , mpModelConstraint(new widgets::ModelConstraint)
     , mAsk(ask)
 {
     mpUi->setupUi(this);
     mpModelConstraint->prepare(mAsk);
-    mpUi->gridLayoutModelConstraint->addWidget(mpModelConstraint);
+    mpUi->gridLayout->addWidget(mpModelConstraint);
 }
 
 AddModelConstraint::~AddModelConstraint()

@@ -4,6 +4,12 @@
 #include "../dialogs/AddLocation.hpp"
 #include "../widgets/Location.hpp"
 #include "../dialogs/AddModelConstraint.hpp"
+#include "../widgets/TemporalConstraintQualitative.hpp"
+#include "../dialogs/AddTemporalConstraintQualitative.hpp"
+#include "../widgets/TemporalConstraintQuantitative.hpp"
+#include "../dialogs/AddTemporalConstraintQuantitative.hpp"
+#include "../widgets/SpatioTemporalRequirement.hpp"
+#include "../Utils.hpp"
 
 // QT specific includes
 #include "ui_MissionEditor.h"
@@ -48,6 +54,11 @@ MissionEditor::MissionEditor(QWidget* parent)
             this, SLOT(addConstraint()));
     connect(mpUi->pushButtonRemoveConstraints, SIGNAL(clicked()),
             this, SLOT(removeConstraints()));
+
+    connect(mpUi->pushButtonAddRequirement, SIGNAL(clicked()),
+                this, SLOT(addRequirement()));
+    connect(mpUi->pushButtonRemoveRequirements, SIGNAL(clicked()),
+                this, SLOT(removeRequirements()));
 }
 
 MissionEditor::~MissionEditor()
@@ -328,6 +339,34 @@ void MissionEditor::addConstant()
     }
 }
 
+void MissionEditor::addRequirement()
+{
+    QHBoxLayout* rowLayout = new QHBoxLayout;
+
+    QCheckBox* checkbox = new QCheckBox;
+    rowLayout->addWidget(checkbox);
+
+    widgets::SpatioTemporalRequirement* str = new
+        widgets::SpatioTemporalRequirement( mpMission->getOrganizationModelAsk() );
+
+    symbols::constants::Location::PtrList locations = getLocations();
+    QList<QString> locationNames;
+    for(const symbols::constants::Location::Ptr& l : locations)
+    {
+        locationNames.append( QString::fromStdString(l->getInstanceName()) );
+    }
+    str->prepareLocations(locationNames);
+    //str->prepareTimepoints(mTimepoints);
+    rowLayout->addWidget(str);
+
+    mpUi->verticalLayoutRequirements->addLayout(rowLayout);
+}
+
+void MissionEditor::removeRequirements()
+{
+    Utils::removeCheckedRows( mpUi->verticalLayoutRequirements );
+}
+
 void MissionEditor::addConstraint()
 {
     qDebug() << "Add constraint";
@@ -346,10 +385,22 @@ void MissionEditor::addConstraint()
     if(constraintType.toStdString() ==
             Constraint::CategoryTxt[Constraint::TEMPORAL_QUALITATIVE])
     {
+        dialogs::AddTemporalConstraintQualitative dialog;
+        dialog.exec();
+        if(dialog.result() == QDialog::Accepted)
+        {
+            addTemporalConstraintQualitative(dialog.getConstraint());
+        }
     }
     if(constraintType.toStdString() ==
             Constraint::CategoryTxt[Constraint::TEMPORAL_QUANTITATIVE])
     {
+        dialogs::AddTemporalConstraintQuantitative dialog;
+        dialog.exec();
+        if(dialog.result() == QDialog::Accepted)
+        {
+            addTemporalConstraintQuantitative(dialog.getConstraint());
+        }
     }
 }
 
@@ -387,76 +438,23 @@ void MissionEditor::addResourceCardinality()
     //item->setEnabled(false);
 
     mpUi->verticalLayoutResources->addLayout(rowLayout);
-    for(int i = 0; i < rowLayout->count(); ++i)
-    {
-        qDebug() << "#" << i << " in layout";
-    }
 }
 
 void MissionEditor::removeResourceCardinalities()
 {
-    removeCheckedRows(mpUi->verticalLayoutResources);
+    Utils::removeCheckedRows(mpUi->verticalLayoutResources);
 }
 
 void MissionEditor::removeConstants()
 {
-    removeCheckedRows(mpUi->verticalLayoutConstants);
+    Utils::removeCheckedRows(mpUi->verticalLayoutConstants);
 }
 
 void MissionEditor::removeConstraints()
 {
-    removeCheckedRows(mpUi->verticalLayoutConstraintsTemporalQualitative);
-    removeCheckedRows(mpUi->verticalLayoutConstraintsTemporalQuantitative);
-    removeCheckedRows(mpUi->verticalLayoutConstraintsModel);
-}
-
-void MissionEditor::removeCheckedRows(QLayout* parentLayout)
-{
-    QList<QHBoxLayout*> removeLayouts;
-    for(int i = 0; i < parentLayout->count();++i)
-    {
-        QHBoxLayout* rowLayout = qobject_cast<QHBoxLayout*>(parentLayout->itemAt(i)->layout());
-        if(rowLayout)
-        {
-            QCheckBox* checkbox =
-                qobject_cast<QCheckBox*>(rowLayout->itemAt(0)->widget());
-
-            if(checkbox && checkbox->checkState() == Qt::Checked)
-            {
-                removeLayouts.append(rowLayout);
-            }
-        }
-    }
-
-    for(int i = 0; i < removeLayouts.size(); ++i)
-    {
-        removeRow(parentLayout, removeLayouts[i]);
-    }
-}
-
-void MissionEditor::removeRow(QLayout* parent, QHBoxLayout* rowLayout)
-{
-    while(rowLayout->count() != 0)
-    {
-        QLayoutItem* item = rowLayout->itemAt(0);
-        if(!item)
-        {
-            break;
-        }
-
-        QWidget* widget = item->widget();
-        if(widget)
-        {
-            rowLayout->removeWidget(widget);
-            delete widget;
-        } else {
-            rowLayout->removeItem(item);
-            delete item;
-        }
-    }
-
-    parent->removeItem(rowLayout);
-    delete rowLayout;
+    Utils::removeCheckedRows(mpUi->verticalLayoutConstraintsTemporalQualitative);
+    Utils::removeCheckedRows(mpUi->verticalLayoutConstraintsTemporalQuantitative);
+    Utils::removeCheckedRows(mpUi->verticalLayoutConstraintsModel);
 }
 
 void MissionEditor::addLocation(const symbols::constants::Location::Ptr&
@@ -467,10 +465,22 @@ void MissionEditor::addLocation(const symbols::constants::Location::Ptr&
     rowLayout->addWidget(checkbox);
 
     widgets::Location* locationWidget = new widgets::Location;
+
     locationWidget->setValue( location );
     rowLayout->addWidget(locationWidget);
 
     mpUi->verticalLayoutConstants->addLayout(rowLayout);
+}
+
+symbols::constants::Location::PtrList MissionEditor::getLocations() const
+{
+    symbols::constants::Location::PtrList locations;
+    QList<widgets::Location*> widgets = Utils::getWidgets<widgets::Location>(mpUi->verticalLayoutConstants, 1);
+    for(const widgets::Location* widget : widgets)
+    {
+        locations.push_back( widget->getValue() );
+    }
+    return locations;
 }
 
 void MissionEditor::addModelConstraint(const constraints::ModelConstraint::Ptr&
@@ -489,6 +499,45 @@ void MissionEditor::addModelConstraint(const constraints::ModelConstraint::Ptr&
 
     mpUi->verticalLayoutConstraintsModel->addLayout(rowLayout);
 
+}
+
+void MissionEditor::addTemporalConstraintQualitative(const io::TemporalConstraint& constraint)
+{
+    qDebug() << "Adding temporal constraint (qualitative)";
+
+    QHBoxLayout* rowLayout = new QHBoxLayout;
+    QCheckBox* checkbox = new QCheckBox;
+    rowLayout->addWidget(checkbox);
+
+    widgets::TemporalConstraintQualitative* constraintWidget = new widgets::TemporalConstraintQualitative;
+    //constraintWidget->prepare();
+    constraintWidget->setConstraint( constraint );
+    rowLayout->addWidget(constraintWidget);
+
+    mpUi->verticalLayoutConstraintsTemporalQualitative->addLayout(rowLayout);
+}
+
+void MissionEditor::addTemporalConstraintQuantitative(const io::TemporalConstraint& constraint)
+{
+    qDebug() << "Adding temporal constraint (quantitative)";
+
+    QHBoxLayout* rowLayout = new QHBoxLayout;
+    QCheckBox* checkbox = new QCheckBox;
+    rowLayout->addWidget(checkbox);
+
+    widgets::TemporalConstraintQuantitative* constraintWidget = new widgets::TemporalConstraintQuantitative;
+    //constraintWidget->prepare();
+    constraintWidget->setConstraint( constraint );
+    rowLayout->addWidget(constraintWidget);
+
+    mpUi->verticalLayoutConstraintsTemporalQuantitative->addLayout(rowLayout);
+}
+
+solvers::temporal::point_algebra::TimePoint::PtrList MissionEditor::getTimepoints()
+    const
+{
+    solvers::temporal::point_algebra::TimePoint::PtrList timepoints;
+    return timepoints;
 }
 
 } // end namespace gui

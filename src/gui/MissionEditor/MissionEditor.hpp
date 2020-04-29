@@ -7,6 +7,7 @@
 #include <graph_analysis/Graph.hpp>
 #include "../../Mission.hpp"
 #include "../../constraints/ModelConstraint.hpp"
+#include "../../io/TemporalConstraint.hpp"
 
 namespace Ui {
     class MissionEditor;
@@ -29,6 +30,9 @@ public:
     }
 
     Mission::Ptr getMission() const { return mpMission; }
+
+    symbols::constants::Location::PtrList getLocations() const;
+    solvers::temporal::point_algebra::TimePoint::PtrList getTimepoints() const;
 
 private:
     // GUI Elements
@@ -68,16 +72,16 @@ public slots:
     void removeConstants();
     void addLocation(const symbols::constants::Location::Ptr& location);
 
+    void addRequirement();
+    void removeRequirements();
+
     void addConstraint();
     void removeConstraints();
     void addModelConstraint(const constraints::ModelConstraint::Ptr& constraint);
-
-
-    void removeCheckedRows(QLayout* parent);
-    void removeRow(QLayout* parent, QHBoxLayout* rowLayout);
+    void addTemporalConstraintQualitative(const io::TemporalConstraint& constraint);
+    void addTemporalConstraintQuantitative(const io::TemporalConstraint& constraint);
 
     const QString& getFilename() const { return mMissionFilename; }
-
 };
 
 } // end namespace gui
