@@ -1,3 +1,6 @@
+#ifndef TEMPL_IO_TEMPORAL_CONSTRAINT_HPP
+#define TEMPL_IO_TEMPORAL_CONSTRAINT_HPP
+
 #include "../solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
 
 namespace templ {
@@ -27,4 +30,6 @@ struct TemporalConstraint
 
 } // end namespace io
 } // end namespace templ
+
+#endif // TEMPL_IO_TEMPORAL_CONSTRAINT_HPP
 
