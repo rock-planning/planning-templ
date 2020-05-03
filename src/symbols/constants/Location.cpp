@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
+#include "../../utils/CartographicMapping.hpp"
 
 namespace templ {
 namespace symbols {
@@ -65,19 +66,14 @@ std::string Location::toString(const Location::PtrList& l, size_t indent)
 }
 
 
-Location::Ptr Location::create(const Location& location)
+Location::Ptr Location::create(const Location& l)
 {
-    PtrList::iterator cit = std::find_if(msLocations.begin(), msLocations.end(),
-            [location](const Location::Ptr& other)
-            {
-                return location.getInstanceName() == other->getInstanceName();
-            });
-
-    if(cit != msLocations.end())
+    Location::Ptr location = get(l.getInstanceName());
+    if(location)
     {
-        return *cit;
+        return location;
     } else {
-        Location::Ptr locationPtr(new Location(location));
+        Location::Ptr locationPtr = make_shared<Location>(l);
         msLocations.push_back(locationPtr);
         return locationPtr;
     }
@@ -89,7 +85,37 @@ Location::Ptr Location::create(const std::string& name, const base::Point& posit
     return create(l);
 }
 
+Location::Ptr Location::create(const std::string& name,
+        double latitude, double longitude, const std::string& radius)
+{
+    utils::CartographicMapping mapping(radius);
+    base::Point point(latitude, longitude, 0.0);
+    base::Point position = mapping.latitudeLongitudeToMetric(point);
 
+    Location l(name, position);
+    return create(l);
+}
+
+Location::Ptr Location::get(const std::string& name)
+{
+    if(name.empty())
+    {
+        return Location::Ptr();
+    }
+
+    PtrList::iterator cit = std::find_if(msLocations.begin(), msLocations.end(),
+            [name](const Location::Ptr& other)
+            {
+                return name == other->getInstanceName();
+            });
+
+    if(cit != msLocations.end())
+    {
+        return *cit;
+    } else {
+        return Location::Ptr();
+    }
+}
 
 } // end namespace constants
 } // end namespace symbols

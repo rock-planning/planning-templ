@@ -47,8 +47,16 @@ public:
 
     static std::string toString(const PtrList& l, size_t indent = 0);
 
+    /**
+      * Get a location by name
+      */
+    static Location::Ptr get(const std::string& name);
+
     static Location::Ptr create(const Location& location);
-    static Location::Ptr create(const std::string& name, const base::Point& position = base::Point::Zero());
+    static Location::Ptr create(const std::string& name,
+            const base::Point& position = base::Point::Zero());
+    static Location::Ptr create(const std::string& name,
+            double latitude, double longitude, const std::string& radius = "earth");
 
     template<class Archive>
     void save(Archive& ar, const unsigned int version) const
