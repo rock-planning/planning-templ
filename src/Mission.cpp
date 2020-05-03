@@ -49,6 +49,7 @@ Mission::Mission(const Mission& other)
     , mModels(other.mModels)
     , mPersistenceConditions(other.mPersistenceConditions)
     , mConstraints(other.mConstraints)
+    , mImplicitConstraints(other.mImplicitConstraints)
     , mRequestedResources(other.mRequestedResources)
     , mTimeIntervals(other.mTimeIntervals)
     , mTimePoints(other.mTimePoints)
@@ -313,13 +314,14 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addTemporalAssertion(const sy
     }
 
     LOG_DEBUG_S << "Adding implicitly defined temporal constraint for time interval";
+    bool implicit = true;
     pa::QualitativeTimePointConstraint::Ptr constraint = make_shared<pa::QualitativeTimePointConstraint>(fromTp, toTp, pa::QualitativeTimePointConstraint::Less);
-    addConstraint(constraint);
+    addConstraint(constraint, implicit);
 
     return persistenceCondition;
 }
 
-void Mission::addConstraint(const Constraint::Ptr& constraint)
+void Mission::addConstraint(const Constraint::Ptr& constraint, bool implicit)
 {
     if(!hasConstraint(constraint))
     {
@@ -339,6 +341,10 @@ void Mission::addConstraint(const Constraint::Ptr& constraint)
                 break;
         }
         mConstraints.push_back(constraint);
+        if(implicit)
+        {
+            mImplicitConstraints.push_back(constraint);
+        }
     }
 }
 
@@ -346,6 +352,15 @@ bool Mission::hasConstraint(const Constraint::Ptr& constraint) const
 {
     return mConstraints.end() != std::find_if(mConstraints.begin(),
             mConstraints.end(), [&constraint](const Constraint::Ptr& other)
+            {
+                return *constraint == *other;
+            });
+}
+
+bool Mission::isImplicitConstraint(const Constraint::Ptr& constraint) const
+{
+    return mImplicitConstraints.end() != std::find_if(mImplicitConstraints.begin(),
+            mImplicitConstraints.end(), [&constraint](const Constraint::Ptr& other)
             {
                 return *constraint == *other;
             });

@@ -383,16 +383,24 @@ public:
      /**
       * Add general constraint
       * \param constraint
+      * \param implicit Set to true to mark implicit constraints
       * TODO: this is current limited to constraint edges -- better would be a
       * hyperedge
       */
-    void addConstraint(const Constraint::Ptr& constraint);
+    void addConstraint(const Constraint::Ptr& constraint, bool implicit = false);
 
     /**
      * Check if mission has a particular constraint
      * \return True, if the mission has this constraint, false otherwise
      */
     bool hasConstraint(const Constraint::Ptr& constraint) const;
+
+    /**
+     * Check if the constraint is implicitly defined through a spatio temporal
+     * constraint (mainly used for Mission Editing)
+     * \return True, if the constraint is implicit, false otherwise
+     */
+    bool isImplicitConstraint(const Constraint::Ptr& constraint) const;
 
     /**
      * Adds a temporal assertion, i.e. the assertion of a state variable to a
@@ -566,6 +574,8 @@ private:
     /// Any mission constraints such as: model constraints and temporal
     /// constraints
     Constraint::PtrList mConstraints;
+    /// Allow to distinguish between explicit and implict constraints
+    Constraint::PtrList mImplicitConstraints;
 
     /// The list of resources that are defining the domain for
     /// the CSP
