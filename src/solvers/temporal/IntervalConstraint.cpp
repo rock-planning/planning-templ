@@ -111,6 +111,16 @@ double IntervalConstraint::getLowerBound() const
     return minimum;
 }
 
+double IntervalConstraint::getUpperBound() const
+{
+    double max = std::numeric_limits<double>::min();
+    for(const Bounds& bounds : mIntervals)
+    {
+        max = std::max(max, bounds.getUpperBound());
+    }
+    return max;
+}
+
 void IntervalConstraint::appendBounds(const IntervalConstraint& other)
 {
     mIntervals.insert(mIntervals.begin(), other.mIntervals.begin(), other.mIntervals.end());

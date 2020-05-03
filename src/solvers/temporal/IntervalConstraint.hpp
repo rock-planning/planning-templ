@@ -90,6 +90,11 @@ public:
     double getLowerBound() const;
 
     /**
+     * Get upper bound
+     */
+    double getUpperBound() const;
+
+    /**
      * Get number of intervals of this constraint
      * \returns the number of intervals of an interval constraint
      */
