@@ -14,6 +14,7 @@ namespace templ {
 class Variable : public graph_analysis::Vertex
 {
 public:
+    Variable(const std::string& label = std::string());
     virtual ~Variable() {}
 
     typedef shared_ptr<Variable> Ptr;
