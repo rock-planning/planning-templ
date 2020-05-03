@@ -25,7 +25,10 @@ public:
 
     void prepare(const organization_model::OrganizationModelAsk& ask);
 
-    void setRequirement(const io::ResourceRequirement& requrirement);
+    void setRequirement(const io::ResourceRequirement& requirement);
+
+    void setMinVisible(bool visible);
+    void setMaxVisible(bool visible);
 
     io::ResourceRequirement getRequirement() const;
 

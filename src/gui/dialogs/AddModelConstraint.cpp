@@ -16,7 +16,11 @@ AddModelConstraint::AddModelConstraint(
     , mAsk(ask)
 {
     mpUi->setupUi(this);
+
     mpModelConstraint->prepare(mAsk);
+    // Adding of reference to requirements should be done in the main gui
+    mpModelConstraint->setButtonVisibility(false);
+
     mpUi->gridLayout->addWidget(mpModelConstraint);
 }
 

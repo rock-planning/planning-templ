@@ -3,6 +3,7 @@
 
 #include "../../io/MissionRequirements.hpp"
 #include "ModelCardinality.hpp"
+#include "../../solvers/temporal/PersistenceCondition.hpp"
 #include <organization_model/OrganizationModelAsk.hpp>
 
 #include <QWidget>
@@ -32,11 +33,28 @@ public:
 
     void setRequirement(const io::SpatioTemporalRequirement::Ptr& requirement);
 
+    void updateRequirement(const solvers::temporal::PersistenceCondition& pc);
+
     io::SpatioTemporalRequirement::Ptr getRequirement() const;
+
+    /**
+     * Get the key label for this spatio temporal requirement
+     * constisting of the location and timeinterval
+     */
+    QString getKey() const;
+
+    void setLocation(const std::string& location);
+    void setTimepointFrom(const std::string& from);
+    void setTimepointTo(const std::string& to);
 
 public slots:
     ModelCardinality* addModelCardinality();
     void removeModelCardinalities();
+    void updateKey();
+
+signals:
+    void keyChanged(const QString& s);
+
 
 private:
     Ui::SpatioTemporalRequirement* mpUi;

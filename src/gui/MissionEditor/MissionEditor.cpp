@@ -4,12 +4,15 @@
 #include "../dialogs/AddLocation.hpp"
 #include "../widgets/Location.hpp"
 #include "../dialogs/AddModelConstraint.hpp"
-#include "../widgets/TemporalConstraintQualitative.hpp"
+#include "../widgets/ModelConstraint.hpp"
 #include "../dialogs/AddTemporalConstraintQualitative.hpp"
-#include "../widgets/TemporalConstraintQuantitative.hpp"
+#include "../widgets/TemporalConstraintQualitative.hpp"
 #include "../dialogs/AddTemporalConstraintQuantitative.hpp"
+#include "../widgets/TemporalConstraintQuantitative.hpp"
 #include "../widgets/SpatioTemporalRequirement.hpp"
 #include "../Utils.hpp"
+#include "../../symbols/object_variables/LocationCardinality.hpp"
+#include "../../SpaceTime.hpp"
 
 // QT specific includes
 #include "ui_MissionEditor.h"
@@ -25,6 +28,8 @@
 // Rock specific includes
 #include <base-logging/Logging.hpp>
 #include <graph_analysis/gui/RegisterQtMetatypes.hpp>
+#include <tuple>
+#include <algorithm>
 
 namespace templ {
 namespace gui {
@@ -194,9 +199,7 @@ bool MissionEditor::loadOrganizationModel(const QString& settingsLabel, const QS
 
 void MissionEditor::updateVisualization()
 {
-    qDebug() << "Loading mission";
     QString name = QString::fromStdString( mpMission->getName());
-    qDebug() << "    name: " << name;
     mpUi->lineEditName->setText(name);
 
     QString description = QString::fromStdString( mpMission->getDescription() );
@@ -205,7 +208,6 @@ void MissionEditor::updateVisualization()
 
     std::string organizationModelIri = mpMission->getOrganizationModel()->ontology()->getIRI().toString();
     QString organizationModel = QString::fromStdString( organizationModelIri );
-    qDebug() << "    organization Model: " << organizationModelIri.c_str();
     mpUi->lineEditOrganizationModel->setText(organizationModel);
 
 
@@ -223,12 +225,14 @@ void MissionEditor::updateVisualization()
         organization_model::ModelPool availableResources = mpMission->getAvailableResources();
         for(const organization_model::ModelPool::value_type pair : availableResources)
         {
-            const owlapi::model::IRI& iri = pair.first;
-            const size_t cardinality = pair.second;
+            io::ResourceRequirement r;
+            r.model = pair.first;
+            r.minCardinality = 0;
+            r.maxCardinality = pair.second;
 
-            qDebug() << "    resource: " << iri.toString().c_str() << ", max: " << cardinality;
+            widgets::ModelCardinality* cardinality = addResourceCardinality();
+            cardinality->setRequirement(r);
         }
-
     }
 
     // Constants
@@ -245,7 +249,53 @@ void MissionEditor::updateVisualization()
         }
         for(const Constant::Ptr& c : mpMission->getConstants())
         {
-            qDebug() << "    constant: " << QString::fromStdString(c->toString());
+            switch(c->getConstantType())
+            {
+                case Constant::LOCATION:
+                    addLocation(dynamic_pointer_cast<symbols::constants::Location>(c));
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    // Requirements
+    {
+        std::map< std::tuple< std::string, std::string, std::string>, widgets::SpatioTemporalRequirement*> requirementWidgets;
+        std::vector<solvers::temporal::PersistenceCondition::Ptr> pcs =
+            mpMission->getPersistenceConditions();
+
+        for(const solvers::temporal::PersistenceCondition::Ptr& pc : pcs)
+        {
+            // pc:
+            //  statevariable --> rloc : location cardinality + resourceModel(as string)
+            //  objectvariable: location, cardinality, restriction type
+            //  from
+            //  to
+            owlapi::model::IRI resourceModel(pc->getStateVariable().getResource());
+            symbols::object_variables::LocationCardinality::Ptr lc =
+                dynamic_pointer_cast<symbols::object_variables::LocationCardinality>(pc->getValue());
+            symbols::constants::Location::Ptr location = lc->getLocation();
+            solvers::temporal::point_algebra::TimePoint::Ptr from = pc->getFromTimePoint();
+            solvers::temporal::point_algebra::TimePoint::Ptr to = pc->getToTimePoint();
+
+            widgets::SpatioTemporalRequirement* str;
+
+            auto widgetKey = std::make_tuple(location->getInstanceName(),
+                    from->getLabel(), to->getLabel());
+            auto widgetsIt = requirementWidgets.find(widgetKey);
+            if(widgetsIt == requirementWidgets.end())
+            {
+                qDebug() << "Add new requirement";
+                str = addRequirement();
+                requirementWidgets[widgetKey] = str;
+            } else {
+                qDebug() << "Found existing";
+                str = widgetsIt->second;
+            }
+
+            str->updateRequirement(*pc.get());
         }
     }
 
@@ -258,14 +308,51 @@ void MissionEditor::updateVisualization()
             mpUi->comboBoxConstraintTypes->addItem(
                     QString::fromStdString(
                         Constraint::CategoryTxt[static_cast<Constraint::Category>(c)]
-
                     )
             );
         }
 
         for(const Constraint::Ptr& c : mpMission->getConstraints())
         {
+            if(mpMission->isImplicitConstraint(c))
+            {
+                continue;
+            }
+
             qDebug() << "    constraint: " << QString::fromStdString(c->toString());
+            switch(c->getCategory())
+            {
+                case Constraint::MODEL:
+                    addModelConstraint(dynamic_pointer_cast<constraints::ModelConstraint>(c));
+                    break;
+                case Constraint::TEMPORAL_QUALITATIVE:
+                {
+                    namespace pa = solvers::temporal::point_algebra;
+                    pa::QualitativeTimePointConstraint::Ptr qtpc = dynamic_pointer_cast<pa::QualitativeTimePointConstraint>(c);
+
+                    io::TemporalConstraint tc;
+                    tc.rval = qtpc->getRVal()->getLabel();
+                    tc.lval = qtpc->getLVal()->getLabel();
+                    tc.type = qtpc->getType();
+                    addTemporalConstraintQualitative(tc);
+                    break;
+                }
+                case Constraint::TEMPORAL_QUANTITATIVE:
+                {
+                    namespace tp = solvers::temporal;
+                    tp::IntervalConstraint::Ptr ic = dynamic_pointer_cast<tp::IntervalConstraint>(c);
+
+                    io::TemporalConstraint tc;
+                    tc.rval = ic->getSourceTimePoint()->getLabel();
+                    tc.lval = ic->getTargetTimePoint()->getLabel();
+                    tc.minDuration = ic->getLowerBound();
+                    tc.maxDuration = ic->getUpperBound();
+                    addTemporalConstraintQualitative(tc);
+                    break;
+                }
+                default:
+                    break;
+            }
         }
     }
 }
@@ -337,9 +424,11 @@ void MissionEditor::addConstant()
             addLocation(dialog.getLocation());
         }
     }
+
+    requirementsUpdated();
 }
 
-void MissionEditor::addRequirement()
+widgets::SpatioTemporalRequirement* MissionEditor::addRequirement()
 {
     QHBoxLayout* rowLayout = new QHBoxLayout;
 
@@ -348,6 +437,9 @@ void MissionEditor::addRequirement()
 
     widgets::SpatioTemporalRequirement* str = new
         widgets::SpatioTemporalRequirement( mpMission->getOrganizationModelAsk() );
+
+    connect(str, SIGNAL(keyChanged(QString)),
+            this, SLOT(requirementsUpdated()));
 
     symbols::constants::Location::PtrList locations = getLocations();
     QList<QString> locationNames;
@@ -358,13 +450,50 @@ void MissionEditor::addRequirement()
     str->prepareLocations(locationNames);
     //str->prepareTimepoints(mTimepoints);
     rowLayout->addWidget(str);
-
     mpUi->verticalLayoutRequirements->addLayout(rowLayout);
+
+    return str;
 }
 
 void MissionEditor::removeRequirements()
 {
     Utils::removeCheckedRows( mpUi->verticalLayoutRequirements );
+    requirementsUpdated();
+}
+
+QList<QString> MissionEditor::getRequirementsKeys() const
+{
+    QList<QString> keys;
+
+    QList<widgets::Location*> locations =
+        Utils::getWidgets<widgets::Location>(mpUi->verticalLayoutConstants);
+    for(const widgets::Location* l : locations)
+    {
+        keys.append( QString::fromStdString(l->getValue()->getInstanceName()) );
+    }
+
+
+    QList<widgets::SpatioTemporalRequirement*> strs = Utils::getWidgets<widgets::SpatioTemporalRequirement>(mpUi->verticalLayoutRequirements);
+    for(const widgets::SpatioTemporalRequirement* str : strs)
+    {
+        keys.append(str->getKey());
+    }
+
+    std::sort(keys.begin(), keys.end());
+
+    return keys;
+}
+
+void MissionEditor::requirementsUpdated()
+{
+    QList<QString> keys = getRequirementsKeys();
+    qDebug() << "Requirements updated" << keys;
+    QList<widgets::ModelConstraint*> widgets =
+        Utils::getWidgets<widgets::ModelConstraint>(mpUi->verticalLayoutConstraintsModel);
+    for(widgets::ModelConstraint* c : widgets)
+    {
+        c->updateRequirements(keys);
+    }
 }
 
 void MissionEditor::addConstraint()
@@ -414,30 +543,20 @@ void MissionEditor::on_updateButton_clicked()
     LOG_DEBUG_S << "updateButton clicked";
 }
 
-void MissionEditor::addResourceCardinality()
+widgets::ModelCardinality* MissionEditor::addResourceCardinality()
 {
     QHBoxLayout* rowLayout = new QHBoxLayout;
 
-    QString resourceModel = mpUi->comboBoxResourceModels->currentText();
-    int value = mpUi->spinBoxMaxCardinality->value();
-
-    qDebug() << "Add resource: " << resourceModel << " <= " << value;
-
     QCheckBox* checkbox = new QCheckBox;
     rowLayout->addWidget(checkbox);
-    QLabel* labelModel = new QLabel( resourceModel );
-    rowLayout->addWidget(labelModel);
-    QLabel* labelValue = new QLabel( "<= " + QString::number(value));
-    rowLayout->addWidget(labelValue);
-    QSpacerItem* spacer = new QSpacerItem(50,0);
-    rowLayout->addItem(spacer);
 
-    //QStandardItemModel* comboBoxModel = qobject_cast<QStandardItemModel*>(mpUi->comboBoxResourceModel->model());
-    //int rowIdx = comboBoxModel->currentIndex();
-    //QStandardItem* item = comboBoxModel->item(rowIdx, 0);
-    //item->setEnabled(false);
+    widgets::ModelCardinality* cardinality = new widgets::ModelCardinality;
+    cardinality->prepare(mpMission->getOrganizationModelAsk());
+    cardinality->setMinVisible(false);
+    rowLayout->addWidget(cardinality);
 
     mpUi->verticalLayoutResources->addLayout(rowLayout);
+    return cardinality;
 }
 
 void MissionEditor::removeResourceCardinalities()
@@ -457,7 +576,7 @@ void MissionEditor::removeConstraints()
     Utils::removeCheckedRows(mpUi->verticalLayoutConstraintsModel);
 }
 
-void MissionEditor::addLocation(const symbols::constants::Location::Ptr&
+widgets::Location* MissionEditor::addLocation(const symbols::constants::Location::Ptr&
         location)
 {
     QHBoxLayout* rowLayout = new QHBoxLayout;
@@ -465,11 +584,14 @@ void MissionEditor::addLocation(const symbols::constants::Location::Ptr&
     rowLayout->addWidget(checkbox);
 
     widgets::Location* locationWidget = new widgets::Location;
+    qDebug() << "Found location: " << location->getInstanceName().c_str() << " " <<
+        location->getPosition().x() << "/" << location->getPosition().y();
 
     locationWidget->setValue( location );
     rowLayout->addWidget(locationWidget);
 
     mpUi->verticalLayoutConstants->addLayout(rowLayout);
+    return locationWidget;
 }
 
 symbols::constants::Location::PtrList MissionEditor::getLocations() const
@@ -483,7 +605,7 @@ symbols::constants::Location::PtrList MissionEditor::getLocations() const
     return locations;
 }
 
-void MissionEditor::addModelConstraint(const constraints::ModelConstraint::Ptr&
+widgets::ModelConstraint* MissionEditor::addModelConstraint(const constraints::ModelConstraint::Ptr&
         constraint)
 {
     qDebug() << "Adding model constraint";
@@ -494,14 +616,17 @@ void MissionEditor::addModelConstraint(const constraints::ModelConstraint::Ptr&
 
     widgets::ModelConstraint* constraintWidget = new widgets::ModelConstraint;
     constraintWidget->prepare(mpMission->getOrganizationModelAsk());
+    QList<QString> keys = getRequirementsKeys();
+    qDebug() << "Requirement keys " << keys;
+    constraintWidget->updateRequirements(keys);
     constraintWidget->setValue( constraint );
     rowLayout->addWidget(constraintWidget);
 
     mpUi->verticalLayoutConstraintsModel->addLayout(rowLayout);
-
+    return constraintWidget;
 }
 
-void MissionEditor::addTemporalConstraintQualitative(const io::TemporalConstraint& constraint)
+widgets::TemporalConstraintQualitative* MissionEditor::addTemporalConstraintQualitative(const io::TemporalConstraint& constraint)
 {
     qDebug() << "Adding temporal constraint (qualitative)";
 
@@ -515,9 +640,10 @@ void MissionEditor::addTemporalConstraintQualitative(const io::TemporalConstrain
     rowLayout->addWidget(constraintWidget);
 
     mpUi->verticalLayoutConstraintsTemporalQualitative->addLayout(rowLayout);
+    return constraintWidget;
 }
 
-void MissionEditor::addTemporalConstraintQuantitative(const io::TemporalConstraint& constraint)
+widgets::TemporalConstraintQuantitative* MissionEditor::addTemporalConstraintQuantitative(const io::TemporalConstraint& constraint)
 {
     qDebug() << "Adding temporal constraint (quantitative)";
 
@@ -531,6 +657,7 @@ void MissionEditor::addTemporalConstraintQuantitative(const io::TemporalConstrai
     rowLayout->addWidget(constraintWidget);
 
     mpUi->verticalLayoutConstraintsTemporalQuantitative->addLayout(rowLayout);
+    return constraintWidget;
 }
 
 solvers::temporal::point_algebra::TimePoint::PtrList MissionEditor::getTimepoints()

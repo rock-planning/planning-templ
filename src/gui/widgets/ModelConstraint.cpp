@@ -1,10 +1,12 @@
 #include "ModelConstraint.hpp"
 #include "ui_ModelConstraint.h"
+#include "../Utils.hpp"
 
 #include <owlapi/model/IRI.hpp>
 
 #include <QString>
 #include <QDebug>
+#include <QCheckBox>
 
 namespace templ {
 namespace gui {
@@ -15,6 +17,15 @@ ModelConstraint::ModelConstraint(QWidget* parent)
     , mpUi(new Ui::ModelConstraint)
 {
     mpUi->setupUi(this);
+    connect(mpUi->pushButtonAddRequirement, SIGNAL(clicked()),
+            this, SLOT(addRequirement()));
+    connect(mpUi->pushButtonRemoveRequirements, SIGNAL(clicked()),
+            this, SLOT(removeRequirements()));
+
+    mpUi->labelProperty->setVisible(false);
+    mpUi->comboBoxProperties->setVisible(false);
+    mpUi->labelValue->setVisible(false);
+    mpUi->spinBoxValue->setVisible(false);
 }
 
 ModelConstraint::~ModelConstraint()
@@ -33,8 +44,8 @@ void ModelConstraint::prepare(const organization_model::OrganizationModelAsk& as
                 )
         );
     }
-    connect(mpUi->comboBoxTypes, SLOT(currentIndexChanged(QString)),
-                this, SIGNAL(typeChanged(QString)));
+    connect(mpUi->comboBoxTypes, SIGNAL(currentIndexChanged(QString)),
+                this, SLOT(typeChanged(QString)));
 
     owlapi::model::IRIList agentModels = ask.getAgentModels();
     for(const owlapi::model::IRI iri : agentModels)
@@ -42,8 +53,8 @@ void ModelConstraint::prepare(const organization_model::OrganizationModelAsk& as
         mpUi->comboBoxModels->addItem(QString::fromStdString( iri.toString() ) );
     }
 
-    connect(mpUi->comboBoxModels, SLOT(currentIndexChanged(QString)),
-                this, SIGNAL(modelChanged(QString)));
+    connect(mpUi->comboBoxModels, SIGNAL(currentIndexChanged(QString)),
+                this, SLOT(modelChanged(QString)));
 
     owlapi::model::IRIList agentProperties = ask.getAgentProperties();
     for(const owlapi::model::IRI iri : agentProperties)
@@ -51,6 +62,12 @@ void ModelConstraint::prepare(const organization_model::OrganizationModelAsk& as
         mpUi->comboBoxProperties->addItem(QString::fromStdString( iri.toString() ) );
     }
 
+}
+
+void ModelConstraint::setButtonVisibility(bool visible)
+{
+    mpUi->pushButtonAddRequirement->setVisible(visible);
+    mpUi->pushButtonRemoveRequirements->setVisible(visible);
 }
 
 void ModelConstraint::setValue(const constraints::ModelConstraint::Ptr& constraint)
@@ -146,14 +163,102 @@ std::vector<SpaceTime::SpaceIntervalTuple> ModelConstraint::getIntervals() const
     return affectedIntervals;
 }
 
-void ModelConstraint::typeChanged(const QString& type)
+void ModelConstraint::typeChanged(const QString& typeTxt)
 {
-    qDebug() << "Type changed to : " << type;
+    qDebug() << "Type changed to : " << typeTxt;
+    constraints::ModelConstraint::Type type =
+        constraints::ModelConstraint::getTypeFromTxt(typeTxt.toStdString());
+
+    mpUi->labelProperty->setVisible(false);
+    mpUi->comboBoxProperties->setVisible(false);
+    mpUi->labelValue->setVisible(false);
+    mpUi->spinBoxValue->setVisible(false);
+
+    switch(type)
+    {
+        case constraints::ModelConstraint::MIN_PROPERTY:
+        case constraints::ModelConstraint::MAX_PROPERTY:
+            mpUi->labelProperty->setVisible(true);
+            mpUi->comboBoxProperties->setVisible(true);
+        case constraints::ModelConstraint::MIN_FUNCTION:
+        case constraints::ModelConstraint::MAX_FUNCTION:
+        case constraints::ModelConstraint::MIN_EQUAL:
+        case constraints::ModelConstraint::MAX_EQUAL:
+        case constraints::ModelConstraint::MIN_DISTINCT:
+        case constraints::ModelConstraint::MAX_DISTINCT:
+        case constraints::ModelConstraint::MAX_ACCESS:
+        case constraints::ModelConstraint::MIN_ACCESS:
+        case constraints::ModelConstraint::MAX:
+        case constraints::ModelConstraint::MIN:
+            mpUi->labelValue->setVisible(true);
+            mpUi->spinBoxValue->setVisible(true);
+            break;
+        case constraints::ModelConstraint::ALL_EQUAL:
+        case constraints::ModelConstraint::ALL_DISTINCT:
+            break;
+        default:
+            break;
+    }
 }
 
 void ModelConstraint::modelChanged(const QString& model)
 {
     qDebug() << "Model changed to : " << model;
+}
+
+QComboBox* ModelConstraint::addRequirement()
+{
+    QHBoxLayout* rowLayout = new QHBoxLayout;
+    QCheckBox* checkbox = new QCheckBox;
+    rowLayout->addWidget(checkbox);
+
+    QComboBox* dropbox = new QComboBox;
+    for(const QString& option : mRequirements)
+    {
+        dropbox->addItem(option);
+    }
+
+    rowLayout->addWidget(dropbox);
+
+    mpUi->verticalLayoutRequirements->addLayout(rowLayout);
+    return dropbox;
+}
+
+void ModelConstraint::updateRequirements(const QList<QString>& options)
+{
+    // cache latest update for new additions
+    mRequirements = options;
+    mRequirements.insert(0, QString());
+    QList<QComboBox*> requirements = Utils::getWidgets<QComboBox>(mpUi->verticalLayoutRequirements);
+    for(QComboBox* dropbox : requirements)
+    {
+        QString currentText = dropbox->currentText();
+        dropbox->clear();
+
+        for(const QString& option : mRequirements)
+        {
+            dropbox->addItem(option);
+        }
+
+        if(!currentText.isEmpty())
+        {
+            int index = dropbox->findText(currentText);
+            if(index == -1)
+            {
+                qDebug() << "debug cleanup requirement -- requirement " << currentText <<
+                    " does not exist anymore";
+                dropbox->setCurrentIndex(0);
+            } else {
+                dropbox->setCurrentIndex(index);
+            }
+        }
+    }
+
+}
+
+void ModelConstraint::removeRequirements()
+{
+    Utils::removeCheckedRows(mpUi->verticalLayoutRequirements);
 }
 
 } // namespace widgets

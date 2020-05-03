@@ -32,13 +32,17 @@ void Location::setValue(const symbols::constants::Location::Ptr& location)
 
 symbols::constants::Location::Ptr Location::getValue() const
 {
-    QString name = mpUi->lineEditName->text();
     base::Point position( mpUi->doubleSpinBoxX->value(),
             mpUi->doubleSpinBoxY->value(),
             mpUi->doubleSpinBoxZ->value()
     );
-    return make_shared<symbols::constants::Location>(name.toStdString(),
+    return make_shared<symbols::constants::Location>(getLocationName().toStdString(),
             position);
+}
+
+QString Location::getLocationName() const
+{
+    return mpUi->lineEditName->text();
 }
 
 } // namespace widgets

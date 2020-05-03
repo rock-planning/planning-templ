@@ -19,11 +19,30 @@ ModelCardinality::~ModelCardinality()
 
 void ModelCardinality::prepare(const organization_model::OrganizationModelAsk& ask)
 {
+    mpUi->comboBoxModels->clear();
+
     owlapi::model::IRIList agentModels = ask.getAgentModels();
     for(const owlapi::model::IRI iri : agentModels)
     {
         mpUi->comboBoxModels->addItem(QString::fromStdString( iri.toString() ) );
     }
+    owlapi::model::IRIList serviceModels = ask.getServiceModels();
+    for(const owlapi::model::IRI iri : serviceModels)
+    {
+        mpUi->comboBoxModels->addItem(QString::fromStdString( iri.toString() ) );
+    }
+}
+
+void ModelCardinality::setMinVisible(bool visible)
+{
+    mpUi->labelMin->setVisible(visible);
+    mpUi->spinBoxMin->setVisible(visible);
+}
+
+void ModelCardinality::setMaxVisible(bool visible)
+{
+    mpUi->labelMax->setVisible(visible);
+    mpUi->spinBoxMax->setVisible(visible);
 }
 
 void ModelCardinality::setRequirement(const io::ResourceRequirement& requirement)
@@ -36,7 +55,7 @@ void ModelCardinality::setRequirement(const io::ResourceRequirement& requirement
             mpUi->comboBoxModels->setCurrentIndex(index);
         } else {
             throw std::runtime_error("templ::gui::widgets::ModelCardinality::setRequirement:"
-                    " no model " + model.toStdString() + " known - (internal error: did you call prepare?)");
+                    " no model '" + model.toStdString() + "' known - (internal error: did you call prepare?)");
         }
     }
     mpUi->spinBoxMin->setValue(requirement.minCardinality);

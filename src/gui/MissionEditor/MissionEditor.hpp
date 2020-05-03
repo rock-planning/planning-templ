@@ -16,6 +16,15 @@ namespace Ui {
 namespace templ {
 namespace gui {
 
+namespace widgets {
+    class ModelCardinality;
+    class ModelConstraint;
+    class Location;
+    class TemporalConstraintQualitative;
+    class TemporalConstraintQuantitative;
+    class SpatioTemporalRequirement;
+}
+
 class MissionEditor : public QWidget
 {
     Q_OBJECT
@@ -65,21 +74,23 @@ public slots:
     void on_updateButton_clicked();
     void on_clearButton_clicked();
 
-    void addResourceCardinality();
+    widgets::ModelCardinality* addResourceCardinality();
     void removeResourceCardinalities();
 
     void addConstant();
     void removeConstants();
-    void addLocation(const symbols::constants::Location::Ptr& location);
+    widgets::Location* addLocation(const symbols::constants::Location::Ptr& location);
 
-    void addRequirement();
+    widgets::SpatioTemporalRequirement* addRequirement();
     void removeRequirements();
+    void requirementsUpdated();
+    QList<QString> getRequirementsKeys() const;
 
     void addConstraint();
     void removeConstraints();
-    void addModelConstraint(const constraints::ModelConstraint::Ptr& constraint);
-    void addTemporalConstraintQualitative(const io::TemporalConstraint& constraint);
-    void addTemporalConstraintQuantitative(const io::TemporalConstraint& constraint);
+    widgets::ModelConstraint* addModelConstraint(const constraints::ModelConstraint::Ptr& constraint);
+    widgets::TemporalConstraintQualitative* addTemporalConstraintQualitative(const io::TemporalConstraint& constraint);
+    widgets::TemporalConstraintQuantitative* addTemporalConstraintQuantitative(const io::TemporalConstraint& constraint);
 
     const QString& getFilename() const { return mMissionFilename; }
 };

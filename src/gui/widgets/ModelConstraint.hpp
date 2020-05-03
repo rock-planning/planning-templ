@@ -5,6 +5,7 @@
 #include <organization_model/OrganizationModelAsk.hpp>
 
 #include <QWidget>
+#include <QComboBox>
 
 namespace Ui
 {
@@ -24,8 +25,9 @@ public:
     ~ModelConstraint();
 
     void prepare(const organization_model::OrganizationModelAsk& ask);
-
     void setValue(const constraints::ModelConstraint::Ptr& modelConstraint);
+
+    void setButtonVisibility(bool visible);
 
     constraints::ModelConstraint::Ptr getConstraint() const;
 
@@ -35,8 +37,13 @@ public slots:
     void typeChanged(const QString& type);
     void modelChanged(const QString& type);
 
+    QComboBox* addRequirement();
+    void removeRequirements();
+    void updateRequirements(const QList<QString>& requirements);
+
 private:
     Ui::ModelConstraint* mpUi;
+    QList<QString> mRequirements;
 };
 
 } // namespace widgets

@@ -25,6 +25,8 @@ public:
     void setValue(const symbols::constants::Location::Ptr& location);
 
     symbols::constants::Location::Ptr getValue() const;
+
+    QString getLocationName() const;
 private:
     Ui::Location* mpUi;
 };
