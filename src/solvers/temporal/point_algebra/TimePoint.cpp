@@ -2,6 +2,7 @@
 #include "QualitativeTimePoint.hpp"
 #include <sstream>
 #include <algorithm>
+#include <limits>
 
 namespace templ {
 namespace solvers {
@@ -10,28 +11,37 @@ namespace point_algebra {
 
 TimePoint::PtrList TimePoint::msTimePoints;
 
-TimePoint::TimePoint()
-    : mLowerBound(0)
-    , mUpperBound(0)
-    , mType(QUANTITATIVE)
-{}
+std::map<TimePoint::Type, std::string> TimePoint::TypeTxt = {
+    { TimePoint::UNKNOWN, "unknown" },
+    { TimePoint::QUALITATIVE, "qualitative" },
+    { TimePoint::QUANTITATIVE, "quantitative" }
+};
 
-TimePoint::TimePoint(uint64_t lowerBound, uint64_t upperBound, Type type)
-    : mLowerBound(lowerBound)
+TimePoint::TimePoint(const Label& label,
+        uint64_t lowerBound, uint64_t upperBound,
+        Type type)
+    : Variable(label)
+    , mLowerBound(lowerBound)
     , mUpperBound(upperBound)
     , mType(type)
 {
     TimePoint::validateBounds(mLowerBound, mUpperBound);
 }
 
-TimePoint::TimePoint(uint64_t lowerBound, uint64_t upperBound)
-    : mLowerBound(lowerBound)
-    , mUpperBound(upperBound)
-    , mType(QUANTITATIVE)
+TimePoint::TimePoint(const Label& label)
+    : TimePoint(label, 0, std::numeric_limits<uint64_t>::max(), QUANTITATIVE)
+{}
 
+TimePoint::TimePoint(uint64_t lowerBound, uint64_t upperBound, Type type)
+    : TimePoint("", lowerBound, upperBound, type)
 {
-    TimePoint::validateBounds(mLowerBound, mUpperBound);
 }
+
+TimePoint::TimePoint(uint64_t lowerBound, uint64_t upperBound)
+    : TimePoint("", lowerBound, upperBound, QUANTITATIVE)
+{
+}
+
 
 void TimePoint::validateBounds(uint64_t lowerBound, uint64_t upperBound)
 {
@@ -80,31 +90,59 @@ TimePoint::Ptr TimePoint::create(const Label& label)
 
 TimePoint::Ptr TimePoint::create(const TimePoint& tp)
 {
-    if(tp.getType() == QUALITATIVE)
+    TimePoint::Ptr t = TimePoint::get(tp.getLabel());
+    if(t)
     {
-        PtrList::iterator cit = std::find_if(msTimePoints.begin(), msTimePoints.end(),
-                [tp](const TimePoint::Ptr& otherTp) -> bool
-                {
-                    return otherTp->getLabel() == tp.getLabel();
-                });
-
-        if(cit != msTimePoints.end())
+        if(tp.getType() != t->getType())
         {
-            // return existing shared pointer
-            return *cit;
+            throw std::runtime_error("templ::solvers::temporal::TimePoint::create"
+                    " type mismatch: a timepoint with label '" + tp.getLabel() + "' already exists"
+                    ", but as '" + TimePoint::TypeTxt[t->getType()] + "'");
         } else {
-            TimePoint::Ptr timepoint = QualitativeTimePoint::getInstance( tp.getLabel() );
-            msTimePoints.push_back(timepoint);
-            return timepoint;
+            return t;
         }
     } else {
-        return create(tp.mLowerBound, tp.mUpperBound);
+        switch(tp.getType())
+        {
+            case QUALITATIVE:
+            {
+                TimePoint::Ptr timepoint = QualitativeTimePoint::getInstance( tp.getLabel() );
+                msTimePoints.push_back(timepoint);
+                return timepoint;
+            }
+            case QUANTITATIVE:
+                return create(tp.mLowerBound, tp.mUpperBound,tp.getLabel());
+            default:
+                break;
+        }
     }
 }
 
-TimePoint::Ptr TimePoint::create(uint64_t lowerBound, uint64_t upperBound)
+TimePoint::Ptr TimePoint::get(const Label& label)
 {
-    return TimePoint::Ptr( new TimePoint(lowerBound, upperBound) );
+    if(label.empty())
+    {
+        return TimePoint::Ptr();
+    }
+
+    PtrList::iterator cit = std::find_if(msTimePoints.begin(), msTimePoints.end(),
+            [label](const TimePoint::Ptr& otherTp) -> bool
+            {
+                return otherTp->getLabel() == label;
+            });
+    if(cit != msTimePoints.end())
+    {
+        return *cit;
+    } else {
+        return TimePoint::Ptr();
+    }
+}
+
+TimePoint::Ptr TimePoint::create(uint64_t lowerBound, uint64_t upperBound,
+        const Label& label)
+{
+    TimePoint::Ptr t = make_shared<TimePoint>(label, lowerBound, upperBound);
+    msTimePoints.push_back(t);
 }
 
 std::string TimePoint::toString() const

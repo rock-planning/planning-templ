@@ -19,7 +19,8 @@ namespace point_algebra {
 class TimePoint : public Variable
 {
 public:
-    enum Type { UNKNOWN, QUANTITATIVE, QUALITATIVE };
+    enum Type { UNKNOWN, QUANTITATIVE, QUALITATIVE, END };
+    static std::map<Type, std::string> TypeTxt;
 
     typedef shared_ptr<TimePoint> Ptr;
     typedef std::string Label;
@@ -32,10 +33,11 @@ protected:
 public:
     friend class boost::serialization::access;
 
+    TimePoint(const Label& label, uint64_t lowerBound, uint64_t upperBound, Type type = QUANTITATIVE);
     /**
      * Add default constructor to allow for serialization
      */
-    TimePoint();
+    TimePoint(const Label& label = "");
 
     TimePoint(uint64_t lowerBound, uint64_t upperBound);
 
@@ -49,14 +51,25 @@ public:
     static TimePoint::Ptr create(const TimePoint& t);
 
     /**
-     * Creates a new (qualitative) TimePoint
+      * Retrieve an existing timepoint by name
+      */
+    static TimePoint::Ptr get(const Label& label);
+
+    /**
+     * Creates a new (qualitative) TimePoint using the existing label.
+     * If a timepoint with the given label already exists, then the corresponding
+     * pointer is returned
+     *
      */
     static TimePoint::Ptr create(const Label& label);
 
     /**
-     * Create a new (quantitative) TimePoint
+     * Create a new (quantitative) TimePoint,
+     * when providing a label, the timepoint is registered
      */
-    static TimePoint::Ptr create(uint64_t lowerBound, uint64_t upperBound);
+    static TimePoint::Ptr create(uint64_t lowerBound,
+            uint64_t upperBound,
+            const Label& label = Label());
 
     virtual bool equals(const TimePoint::Ptr& other) const;
 
