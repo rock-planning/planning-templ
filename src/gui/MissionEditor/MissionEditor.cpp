@@ -46,6 +46,8 @@ MissionEditor::MissionEditor(QWidget* parent)
             this, SLOT(loadOrganizationModel()));
     connect(mpUi->pushButtonLoad, SIGNAL(clicked()),
             this, SLOT(on_loadMissionButton_clicked()));
+    connect(mpUi->pushButtonClear, SIGNAL(clicked()),
+            this, SLOT(on_clearButton_clicked()));
     connect(mpUi->pushButtonSave, SIGNAL(clicked()),
             this, SLOT(on_saveButton_clicked()));
     connect(mpUi->pushButtonAddResource, SIGNAL(clicked()),
@@ -67,6 +69,8 @@ MissionEditor::MissionEditor(QWidget* parent)
                 this, SLOT(addRequirement()));
     connect(mpUi->pushButtonRemoveRequirements, SIGNAL(clicked()),
                 this, SLOT(removeRequirements()));
+
+    deactivateOrganizationModelDependants();
 }
 
 MissionEditor::~MissionEditor()
@@ -124,6 +128,7 @@ bool MissionEditor::loadMission(const QString& settingsLabel, const QString& _fi
             mpMission = make_shared<Mission>(mission);
             mpMission->prepareTimeIntervals();
 
+            clear();
             updateVisualization();
             show();
 
@@ -187,7 +192,6 @@ bool MissionEditor::loadOrganizationModel(const QString& settingsLabel, const QS
             {
                 mpMission->setOrganizationModel(om);
             }
-
             updateVisualization();
             show();
 
@@ -212,19 +216,10 @@ void MissionEditor::updateVisualization()
     std::string organizationModelIri = mpMission->getOrganizationModel()->ontology()->getIRI().toString();
     QString organizationModel = QString::fromStdString( organizationModelIri );
     mpUi->lineEditOrganizationModel->setText(organizationModel);
-
+    activateOrganizationModelDependants();
 
     // Resources
     {
-        organization_model::OrganizationModelAsk ask =
-            mpMission->getOrganizationModelAsk();
-
-        owlapi::model::IRIList agentModels = ask.getAgentModels();
-        for(const owlapi::model::IRI iri : agentModels)
-        {
-            mpUi->comboBoxResourceModels->addItem(QString::fromStdString( iri.toString() ) );
-        }
-
         organization_model::ModelPool availableResources = mpMission->getAvailableResources();
         for(const organization_model::ModelPool::value_type pair : availableResources)
         {
@@ -476,6 +471,23 @@ void MissionEditor::save(const QString& filename)
     io::MissionWriter::write(filename.toStdString(), *m.get());
 }
 
+void MissionEditor::clear()
+{
+   mpUi->lineEditName->clear();
+   mpUi->textEditDescription->clear();
+   mpUi->lineEditOrganizationModel->clear();
+
+   Utils::removeRows( mpUi->verticalLayoutResources );
+   Utils::removeRows( mpUi->verticalLayoutConstants );
+   Utils::removeRows( mpUi->verticalLayoutRequirements );
+
+   Utils::removeRows( mpUi->verticalLayoutConstraintsModel );
+   Utils::removeRows( mpUi->verticalLayoutConstraintsTemporalQuantitative );
+   Utils::removeRows( mpUi->verticalLayoutConstraintsTemporalQualitative );
+
+   deactivateOrganizationModelDependants();
+}
+
 void MissionEditor::on_loadMissionButton_clicked()
 {
     QString filename = QFileDialog::getOpenFileName(
@@ -518,6 +530,7 @@ void MissionEditor::on_saveButton_clicked()
 
 void MissionEditor::on_clearButton_clicked()
 {
+    clear();
 }
 
 // Adding/Removing Constraints
@@ -777,6 +790,20 @@ solvers::temporal::point_algebra::TimePoint::PtrList MissionEditor::getTimepoint
 {
     solvers::temporal::point_algebra::TimePoint::PtrList timepoints;
     return timepoints;
+}
+
+void MissionEditor::activateOrganizationModelDependants()
+{
+    mpUi->groupBoxResources->setEnabled(true);
+    mpUi->groupBoxRequirements->setEnabled(true);
+    mpUi->groupBoxConstraints->setEnabled(true);
+}
+
+void MissionEditor::deactivateOrganizationModelDependants()
+{
+    mpUi->groupBoxResources->setEnabled(false);
+    mpUi->groupBoxRequirements->setEnabled(false);
+    mpUi->groupBoxConstraints->setEnabled(false);
 }
 
 } // end namespace gui

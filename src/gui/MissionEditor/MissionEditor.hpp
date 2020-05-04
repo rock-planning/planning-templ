@@ -54,6 +54,9 @@ private:
     void updateVisualization();
     void save(const QString& filename);
 
+    void activateOrganizationModelDependants();
+    void deactivateOrganizationModelDependants();
+
     Mission::Ptr currentMission() const;
 
 public slots:
@@ -93,6 +96,8 @@ public slots:
     widgets::ModelConstraint* addModelConstraint(const constraints::ModelConstraint::Ptr& constraint);
     widgets::TemporalConstraintQualitative* addTemporalConstraintQualitative(const io::TemporalConstraint& constraint);
     widgets::TemporalConstraintQuantitative* addTemporalConstraintQuantitative(const io::TemporalConstraint& constraint);
+
+    void clear();
 
     const QString& getFilename() const { return mMissionFilename; }
 };
