@@ -8,7 +8,7 @@ namespace dialogs {
 
 AddLocation::AddLocation(QWidget* parent)
     : QDialog(parent)
-    , mpUi(new Ui::Dialog)
+    , mpUi(new Ui::AddLocation)
 {
     mpUi->setupUi(this);
 }

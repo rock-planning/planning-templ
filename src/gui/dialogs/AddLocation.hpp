@@ -6,7 +6,7 @@
 
 namespace Ui
 {
-    class Dialog;
+    class AddLocation;
 }
 
 namespace templ {
@@ -24,7 +24,7 @@ public:
     symbols::constants::Location::Ptr getLocation() const;
 
 private:
-    Ui::Dialog* mpUi;
+    Ui::AddLocation* mpUi;
 };
 
 } // end namespace dialogs
