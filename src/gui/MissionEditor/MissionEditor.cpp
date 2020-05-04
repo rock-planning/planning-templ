@@ -44,6 +44,8 @@ MissionEditor::MissionEditor(QWidget* parent)
 
     connect(mpUi->pushButtonSelectOrganizationModel, SIGNAL(clicked()),
             this, SLOT(loadOrganizationModel()));
+    connect(mpUi->pushButtonLoad, SIGNAL(clicked()),
+            this, SLOT(on_loadMissionButton_clicked()));
     connect(mpUi->pushButtonSave, SIGNAL(clicked()),
             this, SLOT(on_saveButton_clicked()));
     connect(mpUi->pushButtonAddResource, SIGNAL(clicked()),
@@ -483,8 +485,7 @@ void MissionEditor::on_loadMissionButton_clicked()
 
     if(!filename.isEmpty())
     {
-        templ::io::MissionReader reader;
-        //reader.read(filename.toStdString(), mpGraph);
+        loadMission("IOMission", filename);
     }
 }
 

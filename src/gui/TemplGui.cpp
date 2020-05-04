@@ -88,7 +88,7 @@ TemplGui::TemplGui()
     connect(mpUi->tabWidget,SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 
     openOntologyView(); //MissionEditor();
-    openMissionEditor();
+    openMissionEditor("IOMissions","",false);
 
     GraphLayoutManager* layoutManager = GraphLayoutManager::getInstance();
     GraphLayout::Ptr layout = layoutManager->getGraphLayout("grid-layout-default");
@@ -391,6 +391,7 @@ void TemplGui::importSolution(const QString& settingsLabel, const QString& filen
 
 void TemplGui::importMission(const QString& settingsLabel, const QString& filename)
 {
+    qDebug() << "Import mission";
     MissionEditor* missionEditor = qobject_cast<templ::gui::MissionEditor*>(mpUi->tabWidget->currentWidget());
     if(missionEditor)
     {
@@ -786,7 +787,8 @@ void TemplGui::openMissionView(const QString& settingsLabel, const QString& file
     importMission(settingsLabel, filename);
 }
 
-void TemplGui::openMissionEditor(const QString& settingsLabel, const QString& filename)
+void TemplGui::openMissionEditor(const QString& settingsLabel, const QString&
+        filename, bool autoload)
 {
     MissionEditor* missionEditor = new MissionEditor;
     mpUi->tabWidget->addTab(missionEditor,
@@ -798,7 +800,10 @@ void TemplGui::openMissionEditor(const QString& settingsLabel, const QString& fi
     connect(missionEditor, SIGNAL(currentStatus(QString, int)),
             mpUi->statusbar, SLOT(showMessage(QString, int)));
 
-    importMission(settingsLabel, filename);
+    if(autoload)
+    {
+        importMission(settingsLabel, filename);
+    }
 }
 
 void TemplGui::openOntologyView()
