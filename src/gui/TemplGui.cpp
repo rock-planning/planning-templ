@@ -862,7 +862,8 @@ void TemplGui::runPlanner()
     mpProcess->start(program, arguments);
     if(!mpProcess->waitForStarted())
     {
-        QMessageBox::warning(this, "Templ", "Failed to start planner");
+        QMessageBox::warning(this, "Templ", "Failed to start planner - make sure '"
+                + program + "' is in your PATH");
     } else {
         qDebug() << "Planner started";
     }
