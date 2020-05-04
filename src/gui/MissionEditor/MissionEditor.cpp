@@ -1,6 +1,7 @@
 #include "MissionEditor.hpp"
 
 #include "../../io/MissionReader.hpp"
+#include "../../io/MissionWriter.hpp"
 #include "../dialogs/AddLocation.hpp"
 #include "../widgets/Location.hpp"
 #include "../dialogs/AddModelConstraint.hpp"
@@ -44,7 +45,7 @@ MissionEditor::MissionEditor(QWidget* parent)
     connect(mpUi->pushButtonSelectOrganizationModel, SIGNAL(clicked()),
             this, SLOT(loadOrganizationModel()));
     connect(mpUi->pushButtonSave, SIGNAL(clicked()),
-            this, SLOT(on_saveButton_clicked));
+            this, SLOT(on_saveButton_clicked()));
     connect(mpUi->pushButtonAddResource, SIGNAL(clicked()),
             this, SLOT(addResourceCardinality()));
     connect(mpUi->pushButtonRemoveResources, SIGNAL(clicked()),
@@ -287,11 +288,9 @@ void MissionEditor::updateVisualization()
             auto widgetsIt = requirementWidgets.find(widgetKey);
             if(widgetsIt == requirementWidgets.end())
             {
-                qDebug() << "Add new requirement";
                 str = addRequirement();
                 requirementWidgets[widgetKey] = str;
             } else {
-                qDebug() << "Found existing";
                 str = widgetsIt->second;
             }
 
@@ -319,7 +318,6 @@ void MissionEditor::updateVisualization()
                 continue;
             }
 
-            qDebug() << "    constraint: " << QString::fromStdString(c->toString());
             switch(c->getCategory())
             {
                 case Constraint::MODEL:
@@ -357,10 +355,123 @@ void MissionEditor::updateVisualization()
     }
 }
 
+Mission::Ptr MissionEditor::currentMission() const
+{
+    Mission::Ptr m = make_shared<Mission>();
+
+    m->setName(mpUi->lineEditName->text().toStdString());
+    m->setDescription(mpUi->textEditDescription->toPlainText().toStdString());
+    QString organizationModel = mpUi->lineEditOrganizationModel->text();
+    m->setOrganizationModel(organizationModel.toStdString());
+
+    qDebug() << "Set organization model: " << organizationModel;
+
+    QList<widgets::Location*> locationWidgets = Utils::getWidgets<widgets::Location>(mpUi->verticalLayoutConstants);
+    for(widgets::Location* w : locationWidgets)
+    {
+        symbols::constants::Location::Ptr location = w->getValue();
+        qDebug() << "Add constant: " << QString::fromStdString( location->getInstanceName() );
+        m->addConstant(location);
+    }
+
+    QList<widgets::ModelCardinality*> resourceWidgets = Utils::getWidgets<widgets::ModelCardinality>(mpUi->verticalLayoutResources);
+    organization_model::ModelPool availableResources;
+    for(widgets::ModelCardinality* w : resourceWidgets)
+    {
+        io::ResourceRequirement r = w->getRequirement();
+        availableResources[r.model] = r.maxCardinality;
+    }
+    qDebug() << "Set available resources: " << QString::fromStdString( availableResources.toString() );
+    m->setAvailableResources(availableResources);
+
+    // Requirements
+    {
+        namespace pa = solvers::temporal::point_algebra;
+        QList<widgets::SpatioTemporalRequirement*> strWidgets =
+            Utils::getWidgets<widgets::SpatioTemporalRequirement>(mpUi->verticalLayoutRequirements);
+        for(widgets::SpatioTemporalRequirement* w : strWidgets)
+        {
+            io::SpatioTemporalRequirement::Ptr str = w->getRequirement();
+
+            // Retrieve constant from mission object
+            std::string locationId = str->spatial.location.id;
+            symbols::Constant::Ptr constant = m->getConstant(locationId, symbols::Constant::LOCATION);
+            symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(constant);
+
+            pa::TimePoint::Ptr from = pa::TimePoint::get(str->temporal.from);
+            pa::TimePoint::Ptr to = pa::TimePoint::get(str->temporal.to);
+
+            for(const io::ResourceRequirement& resource : str->resources)
+            {
+                // setting the min cardinality by default
+                m->addResourceLocationCardinalityConstraint(location, from, to,
+                    resource.model,
+                    resource.minCardinality,
+                    owlapi::model::OWLCardinalityRestriction::MIN);
+
+                //// setting the max cardinality by default
+                //m->addResourceLocationCardinalityConstraint(location, from, to,
+                //    resource.model,
+                //    resource.maxCardinality,
+                //    owlapi::model::OWLCardinalityRestriction::MAX);
+            }
+        }
+    }
+
+    // Constraints
+    {
+        QList<widgets::ModelConstraint*> modelConstraintWidgets = Utils::getWidgets<widgets::ModelConstraint>(mpUi->verticalLayoutConstraintsModel);
+        for(widgets::ModelConstraint* w : modelConstraintWidgets)
+        {
+            constraints::ModelConstraint::Ptr c = w->getConstraint();
+            if(!c)
+            {
+                throw
+                    std::runtime_error("templ::gui::MissionEditor::currentMission:"
+                            " failed to get model constraint");
+            } else {
+                m->addConstraint(c);
+            }
+        }
+        namespace pa = solvers::temporal::point_algebra;
+        QList<widgets::TemporalConstraintQualitative*> qualitativeConstraintWidgets = Utils::getWidgets<widgets::TemporalConstraintQualitative>(mpUi->verticalLayoutConstraintsTemporalQualitative);
+        for(widgets::TemporalConstraintQualitative* w : qualitativeConstraintWidgets)
+        {
+            pa::QualitativeTimePointConstraint::Ptr c =
+                w->getQualitativeTemporalConstraint();
+            if(!c)
+            {
+                throw
+                    std::runtime_error("templ::gui::MissionEditor::currentMission:"
+                            " failed to get temporal (qualitative) constraint");
+            } else {
+                m->addConstraint(c);
+            }
+        }
+
+        QList<widgets::TemporalConstraintQuantitative*> quantitativeConstraintWidgets = Utils::getWidgets<widgets::TemporalConstraintQuantitative>(mpUi->verticalLayoutConstraintsTemporalQuantitative);
+        for(widgets::TemporalConstraintQuantitative* w : quantitativeConstraintWidgets)
+        {
+            solvers::temporal::IntervalConstraint::Ptr c = w->getIntervalConstraint();
+            if(!c)
+            {
+                throw
+                    std::runtime_error("templ::gui::MissionEditor::currentMission:"
+                            " failed to get temporal (quantitative) constraint");
+            } else {
+                m->addConstraint(c);
+            }
+        }
+    }
+    return m;
+}
+
 void MissionEditor::save(const QString& filename)
 {
-    qDebug() << "save mission to:" << filename;
+    qDebug() << "Save mission to:" << filename;
+    Mission::Ptr m = currentMission();
 
+    io::MissionWriter::write(filename.toStdString(), *m.get());
 }
 
 void MissionEditor::on_loadMissionButton_clicked()

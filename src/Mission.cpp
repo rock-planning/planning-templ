@@ -20,6 +20,10 @@ namespace templ {
 namespace pa = solvers::temporal::point_algebra;
 
 Mission::Mission()
+    : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
+    , mpRelations(graph_analysis::BaseGraph::getInstance())
+    , mpTransferLocation(new symbols::constants::Location("transfer-location"))
+    , mpLogger(new utils::Logger())
 {}
 
 Mission::Mission(const organization_model::OrganizationModel::Ptr& om, const std::string& name)
@@ -72,6 +76,12 @@ Mission::Mission(const Mission& other)
         ConstraintNetwork::Ptr constraintNetwork = other.mpTemporalConstraintNetwork->clone();
         mpTemporalConstraintNetwork = dynamic_pointer_cast<solvers::temporal::QualitativeTemporalConstraintNetwork>(constraintNetwork);
     }
+}
+
+void Mission::setOrganizationModel(const owlapi::model::IRI& model)
+{
+    organization_model::OrganizationModel::Ptr om = make_shared<organization_model::OrganizationModel>(model);
+    setOrganizationModel(om);
 }
 
 void Mission::setOrganizationModel(const organization_model::OrganizationModel::Ptr& organizationModel)

@@ -116,6 +116,8 @@ TimePoint::Ptr TimePoint::create(const TimePoint& tp)
                 break;
         }
     }
+    throw std::runtime_error("templ::solvers::temporal::TimePoint::create"
+            " internal error - pls notify the developer");
 }
 
 TimePoint::Ptr TimePoint::get(const Label& label)

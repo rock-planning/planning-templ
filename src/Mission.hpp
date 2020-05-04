@@ -38,6 +38,10 @@ namespace solvers {
     struct FluentTimeResource;
 } // end namespace solvers
 
+namespace gui {
+    class MissionEditor;
+}
+
 /**
  * \class Mission
  * \brief Description of a mission involving a reconfigurable multi-robot system
@@ -49,6 +53,7 @@ class Mission
     friend class io::MissionReader;
     friend class PlanningState;
     friend class benchmark::MissionGenerator;
+    friend class gui::MissionEditor;
 
     solvers::temporal::TemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
     graph_analysis::BaseGraph::Ptr mpRelations;
@@ -88,6 +93,11 @@ public:
      * \return description
      */
     const std::string& getDescription() const { return mDescription; }
+
+    /**
+     * Set the organization in use
+     */
+    void setOrganizationModel(const owlapi::model::IRI& model);
 
     /**
      * Set the organization model in use -- property values assigned through the

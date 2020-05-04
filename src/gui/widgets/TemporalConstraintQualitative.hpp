@@ -2,6 +2,7 @@
 #define TEMPL_GUI_WIDGETS_TEMPORAL_CONSTRAINT_QUALITATIVE_HPP
 
 #include "../../io/TemporalConstraint.hpp"
+#include "../../solvers/temporal/point_algebra/QualitativeTimePointConstraint.hpp"
 #include <QWidget>
 
 namespace Ui
@@ -25,6 +26,8 @@ public:
 
     void setConstraint(const io::TemporalConstraint& constraint);
     io::TemporalConstraint getConstraint() const;
+
+    solvers::temporal::point_algebra::QualitativeTimePointConstraint::Ptr getQualitativeTemporalConstraint() const;
 
 private:
     Ui::TemporalConstraintQualitative* mpUi;

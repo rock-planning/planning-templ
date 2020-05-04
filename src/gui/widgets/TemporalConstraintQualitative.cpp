@@ -87,6 +87,35 @@ io::TemporalConstraint TemporalConstraintQualitative::getConstraint() const
     return constraint;
 }
 
+solvers::temporal::point_algebra::QualitativeTimePointConstraint::Ptr
+    TemporalConstraintQualitative::getQualitativeTemporalConstraint() const
+{
+    namespace pa = solvers::temporal::point_algebra;
+
+    io::TemporalConstraint tc = getConstraint();
+    pa::QualitativeTimePointConstraint::Ptr qtpc = make_shared<pa::QualitativeTimePointConstraint>();
+    qtpc->setType(tc.type);
+
+    pa::TimePoint::Ptr from = pa::TimePoint::create(tc.lval);
+    if(!from)
+    {
+        throw std::runtime_error("templ::gui::widgets::TemporalConstraintQualitative::getQualitativeTemporalConstraint:"
+                " no timepoint '" + tc.lval + "' known");
+    } else {
+        qtpc->setSourceVertex(from);
+    }
+
+    pa::TimePoint::Ptr to = pa::TimePoint::create(tc.rval);
+    if(!to)
+    {
+        throw std::runtime_error("templ::gui::widgets::TemporalConstraintQualitative::getQualitativeTemporalConstraint:"
+                " no timepoint '" + tc.rval + "' known");
+    } else {
+        qtpc->setTargetVertex(to);
+    }
+    return qtpc;
+}
+
 } // namespace widgets
 } // namespace gui
 } // namespace templ

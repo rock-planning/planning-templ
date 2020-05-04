@@ -41,7 +41,7 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
                 " start document:  '" + path + "'");
     }
 
-    Mission::Ptr mission_p(new Mission(mission));
+    Mission::Ptr mission_p = make_shared<Mission>(mission);
     mission_p->prepareTimeIntervals();
 
     XMLUtils::startElement(writer, "mission");
@@ -99,7 +99,8 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
     for(symbols::Constant::Ptr c : mission.getConstants())
     {
         symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(c);
-        if(location->getInstanceName() == mission_p->getTransferLocation()->getInstanceName())
+        symbols::constants::Location::Ptr transferLocation = mission_p->getTransferLocation();
+        if(transferLocation && location->getInstanceName() == transferLocation->getInstanceName())
         {
             // skip internally generated type
             continue;

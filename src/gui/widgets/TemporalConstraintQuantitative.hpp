@@ -2,6 +2,7 @@
 #define TEMPL_GUI_WIDGETS_TEMPORAL_CONSTRAINT_QUANTITATIVE_HPP
 
 #include "../../io/TemporalConstraint.hpp"
+#include "../../solvers/temporal/IntervalConstraint.hpp"
 #include <QWidget>
 
 namespace Ui
@@ -25,6 +26,8 @@ public:
 
     void setConstraint(const io::TemporalConstraint& constraint);
     io::TemporalConstraint getConstraint() const;
+
+    solvers::temporal::IntervalConstraint::Ptr getIntervalConstraint() const;
 
 private:
     Ui::TemporalConstraintQuantitative* mpUi;

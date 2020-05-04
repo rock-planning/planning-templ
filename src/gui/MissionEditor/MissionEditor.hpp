@@ -54,6 +54,8 @@ private:
     void updateVisualization();
     void save(const QString& filename);
 
+    Mission::Ptr currentMission() const;
+
 public slots:
     void on_planMission_clicked();
     /**

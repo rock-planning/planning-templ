@@ -73,6 +73,30 @@ io::TemporalConstraint TemporalConstraintQuantitative::getConstraint() const
     return constraint;
 }
 
+solvers::temporal::IntervalConstraint::Ptr TemporalConstraintQuantitative::getIntervalConstraint() const
+{
+    io::TemporalConstraint tc = getConstraint();
+    pa::TimePoint::Ptr from = pa::TimePoint::get(tc.lval);
+    if(!from)
+    {
+        throw std::runtime_error("templ::gui::widgets::TemporalConstraintQuantitative::getQuantitativeTemporalConstraint:"
+                " no timepoint '" + tc.lval + "' known");
+    }
+
+    pa::TimePoint::Ptr to = pa::TimePoint::get(tc.rval);
+    if(!to)
+    {
+        throw std::runtime_error("templ::gui::widgets::TemporalConstraintQuantitative::getQuantitativeTemporalConstraint:"
+                " no timepoint '" + tc.rval + "' known");
+    }
+
+    solvers::temporal::IntervalConstraint::Ptr ic = make_shared<solvers::temporal::IntervalConstraint>(from,to);
+
+    solvers::temporal::Bounds bounds(tc.minDuration, tc.maxDuration);
+    ic->addInterval(bounds);
+    return ic;
+}
+
 } // namespace widgets
 } // namespace gui
 } // namespace templ
