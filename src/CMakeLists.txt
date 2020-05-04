@@ -1,6 +1,6 @@
 find_package(Boost REQUIRED system filesystem serialization program_options)
 
-pkg_check_modules(GECODE REQUIRED gecode)
+pkg_check_modules(GECODE gecode)
 if(NOT GECODE_FOUND)
     set(GECODE_COMPONENTS
             flatzinc
