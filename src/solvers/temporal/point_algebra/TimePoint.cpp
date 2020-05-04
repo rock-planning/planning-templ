@@ -145,6 +145,7 @@ TimePoint::Ptr TimePoint::create(uint64_t lowerBound, uint64_t upperBound,
 {
     TimePoint::Ptr t = make_shared<TimePoint>(label, lowerBound, upperBound);
     msTimePoints.push_back(t);
+    return t;
 }
 
 std::string TimePoint::toString() const
