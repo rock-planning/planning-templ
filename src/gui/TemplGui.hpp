@@ -86,6 +86,8 @@ private:
 private slots:
     void importSolution(const QString& settingsLabel ="IOSolutions",
             const QString& filename = "");
+    void editMission(const QString& settingsLabel = "IOMissions",
+            const QString& filename = "");
     void importMission(const QString& settingsLabel = "IOMissions",
             const QString& filename = "");
     void importGraph(const QString& settingsLabel = "IOGraphs");

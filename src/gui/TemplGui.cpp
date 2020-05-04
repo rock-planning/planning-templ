@@ -133,18 +133,18 @@ void TemplGui::createMenus()
                                                     style->standardIcon(QStyle::SP_FileIcon),
                                                     QKeySequence( QKeySequence::Open & Qt::Key_E),
                                                     tr("Open mission editor"));
-    //QAction* actionMissionView = comm.addAction("Mission View",
-    //                                                SLOT(openMissionView()),
-    //                                                style->standardIcon(QStyle::SP_FileIcon),
-    //                                                QKeySequence( QKeySequence::Open & Qt::Key_M),
-    //                                                tr("Open mission view"));
+    QAction* actionMissionView = comm.addAction("Mission View",
+                                                    SLOT(openMissionView()),
+                                                    style->standardIcon(QStyle::SP_FileIcon),
+                                                    QKeySequence( QKeySequence::Open & Qt::Key_M),
+                                                    tr("Open mission view"));
     QAction* actionOntologyView = comm.addAction("Ontology View",
                                                     SLOT(openOntologyView()),
                                                     style->standardIcon(QStyle::SP_FileIcon),
                                                     QKeySequence( QKeySequence::Open & Qt::Key_O),
                                                     tr("Open ontology view"));
     newMenu->addAction(actionMissionEditor);
-    //newMenu->addAction(actionMissionView);
+    newMenu->addAction(actionMissionView);
     newMenu->addAction(actionOntologyView);
     fileMenu->addMenu(newMenu);
 
@@ -389,9 +389,8 @@ void TemplGui::importSolution(const QString& settingsLabel, const QString& filen
     activateGraph(graph);
 }
 
-void TemplGui::importMission(const QString& settingsLabel, const QString& filename)
+void TemplGui::editMission(const QString& settingsLabel, const QString& filename)
 {
-    qDebug() << "Import mission";
     MissionEditor* missionEditor = qobject_cast<templ::gui::MissionEditor*>(mpUi->tabWidget->currentWidget());
     if(missionEditor)
     {
@@ -416,31 +415,31 @@ void TemplGui::importMission(const QString& settingsLabel, const QString& filena
 }
 
 
-//void TemplGui::importMission(const QString& settingsLabel, const QString& filename)
-//{
-//    MissionView* missionView = qobject_cast<templ::gui::MissionView*>(mpUi->tabWidget->currentWidget());
-//    if(missionView)
-//    {
-//        if(!missionView->loadMission(settingsLabel, filename))
-//        {
-//            return;
-//        }
-//
-//        int tabIndex = mpUi->tabWidget->indexOf(missionView);
-//        mpUi->tabWidget->setTabToolTip(tabIndex, missionView->getFilename());
-//        mpUi->tabWidget->setTabWhatsThis(tabIndex, missionView->getFilename());
-//
-//        QFileInfo fileInfo(missionView->getFilename());
-//        mpUi->tabWidget->setTabText(tabIndex, QString("MissionView: ") + fileInfo.baseName());
-//
-//        // Update organization model upon import
-//        // TODO: use global session setup/active mission to import solution?
-//        mpsOrganizationModel = missionView->getMission()->getOrganizationModel();
-//    } else {
-//        openMissionView(settingsLabel, filename);
-//    }
-//
-//}
+void TemplGui::importMission(const QString& settingsLabel, const QString& filename)
+{
+    MissionView* missionView = qobject_cast<templ::gui::MissionView*>(mpUi->tabWidget->currentWidget());
+    if(missionView)
+    {
+        if(!missionView->loadMission(settingsLabel, filename))
+        {
+            return;
+        }
+
+        int tabIndex = mpUi->tabWidget->indexOf(missionView);
+        mpUi->tabWidget->setTabToolTip(tabIndex, missionView->getFilename());
+        mpUi->tabWidget->setTabWhatsThis(tabIndex, missionView->getFilename());
+
+        QFileInfo fileInfo(missionView->getFilename());
+        mpUi->tabWidget->setTabText(tabIndex, QString("MissionView: ") + fileInfo.baseName());
+
+        // Update organization model upon import
+        // TODO: use global session setup/active mission to import solution?
+        mpsOrganizationModel = missionView->getMission()->getOrganizationModel();
+    } else {
+        openMissionView(settingsLabel, filename);
+    }
+
+}
 
 void TemplGui::importOrganizationModel()
 {
@@ -790,6 +789,7 @@ void TemplGui::openMissionView(const QString& settingsLabel, const QString& file
 void TemplGui::openMissionEditor(const QString& settingsLabel, const QString&
         filename, bool autoload)
 {
+    qDebug() << "Open mission editor";
     MissionEditor* missionEditor = new MissionEditor;
     mpUi->tabWidget->addTab(missionEditor,
                             "Mission Editor");
@@ -802,7 +802,7 @@ void TemplGui::openMissionEditor(const QString& settingsLabel, const QString&
 
     if(autoload)
     {
-        importMission(settingsLabel, filename);
+        editMission(settingsLabel, filename);
     }
 }
 
