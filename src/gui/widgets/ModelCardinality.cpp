@@ -1,6 +1,8 @@
 #include "ModelCardinality.hpp"
 #include "ui_ModelCardinality.h"
 
+#include "../MouseWheelGuard.hpp"
+
 namespace templ {
 namespace gui {
 namespace widgets {
@@ -10,6 +12,10 @@ ModelCardinality::ModelCardinality(QWidget* parent)
     , mpUi(new Ui::ModelCardinality)
 {
     mpUi->setupUi(this);
+    mpUi->spinBoxMin->installEventFilter(new
+            MouseWheelGuard(mpUi->spinBoxMin));
+    mpUi->spinBoxMax->installEventFilter(new
+            MouseWheelGuard(mpUi->spinBoxMax));
 }
 
 ModelCardinality::~ModelCardinality()

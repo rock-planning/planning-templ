@@ -1,5 +1,6 @@
 #include "Location.hpp"
 #include "ui_Location.h"
+#include "../MouseWheelGuard.hpp"
 
 namespace templ {
 namespace gui {
@@ -10,6 +11,12 @@ Location::Location(QWidget* parent)
     , mpUi(new Ui::Location)
 {
     mpUi->setupUi(this);
+    mpUi->doubleSpinBoxX->installEventFilter(new
+            MouseWheelGuard(mpUi->doubleSpinBoxX));
+    mpUi->doubleSpinBoxY->installEventFilter(new
+            MouseWheelGuard(mpUi->doubleSpinBoxY));
+    mpUi->doubleSpinBoxZ->installEventFilter(new
+            MouseWheelGuard(mpUi->doubleSpinBoxZ));
 }
 
 Location::~Location()

@@ -72,7 +72,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="spinBoxMin"/>
+      <widget class="QSpinBox" name="spinBoxMin">
+       <property name="focusPolicy">
+        <enum>Qt::StrongFocus</enum>
+       </property>
+      </widget>
      </item>
      <item>
       <spacer name="horizontalSpacer_6">
@@ -98,7 +102,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="spinBoxMax"/>
+      <widget class="QSpinBox" name="spinBoxMax">
+       <property name="focusPolicy">
+        <enum>Qt::StrongFocus</enum>
+       </property>
+      </widget>
      </item>
      <item>
       <spacer name="horizontalSpacer">

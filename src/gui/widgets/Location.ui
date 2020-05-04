@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>579</width>
+    <width>582</width>
     <height>47</height>
    </rect>
   </property>
@@ -53,6 +53,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="focusPolicy">
+        <enum>Qt::StrongFocus</enum>
+       </property>
        <property name="minimum">
         <double>-1000000000.000000000000000</double>
        </property>
@@ -76,6 +79,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="focusPolicy">
+        <enum>Qt::StrongFocus</enum>
+       </property>
        <property name="minimum">
         <double>-1000000000.000000000000000</double>
        </property>
@@ -98,6 +104,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::StrongFocus</enum>
        </property>
        <property name="minimum">
         <double>-1000000000.000000000000000</double>

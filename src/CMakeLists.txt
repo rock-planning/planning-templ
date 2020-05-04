@@ -324,6 +324,7 @@ rock_library(templ_gui
         gui/SpatioTemporalRequirementItem.hpp
         gui/MissionEditor/MissionEditor.hpp
         gui/MissionView/MissionView.hpp
+        gui/MouseWheelGuard.hpp
         gui/OntologyView/OntologyView.hpp
         gui/OntologyView/OntologyTreeModel.hpp
         gui/dialogs/AddLocation.hpp
@@ -347,6 +348,7 @@ rock_library(templ_gui
         gui/SpatioTemporalRequirementItem.cpp
         gui/MissionEditor/MissionEditor.cpp
         gui/MissionView/MissionView.cpp
+        gui/MouseWheelGuard.cpp
         gui/OntologyView/OntologyView.cpp
         gui/OntologyView/OntologyTreeModel.cpp
         gui/dialogs/AddLocation.cpp
