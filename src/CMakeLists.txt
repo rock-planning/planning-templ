@@ -339,6 +339,7 @@ rock_library(templ_gui
         gui/widgets/ModelCardinality.hpp
         gui/widgets/ModelConstraint.hpp
         gui/widgets/PenStyle.hpp
+        gui/widgets/PropertyOverride.hpp
         gui/widgets/SpatioTemporalRequirement.hpp
         gui/widgets/TemporalConstraintQualitative.hpp
         gui/widgets/TemporalConstraintQuantitative.hpp
@@ -363,6 +364,7 @@ rock_library(templ_gui
         gui/widgets/ModelCardinality.cpp
         gui/widgets/ModelConstraint.cpp
         gui/widgets/PenStyle.cpp
+        gui/widgets/PropertyOverride.cpp
         gui/widgets/SpatioTemporalRequirement.cpp
         gui/widgets/TemporalConstraintQualitative.cpp
         gui/widgets/TemporalConstraintQuantitative.cpp
@@ -386,6 +388,7 @@ rock_library(templ_gui
         gui/widgets/ModelCardinality.hpp
         gui/widgets/ModelConstraint.hpp
         gui/widgets/PenStyle.hpp
+        gui/widgets/PropertyOverride.hpp
         gui/widgets/SpatioTemporalRequirement.hpp
         gui/widgets/TemporalConstraintQualitative.hpp
         gui/widgets/TemporalConstraintQuantitative.hpp
@@ -404,6 +407,7 @@ rock_library(templ_gui
         gui/widgets/ModelCardinality.ui
         gui/widgets/ModelConstraint.ui
         gui/widgets/PenStyle.ui
+        gui/widgets/PropertyOverride.ui
         gui/widgets/SpatioTemporalRequirement.ui
         gui/widgets/TemporalConstraintQualitative.ui
         gui/widgets/TemporalConstraintQuantitative.ui

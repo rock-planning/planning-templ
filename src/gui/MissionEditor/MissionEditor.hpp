@@ -82,6 +82,9 @@ public slots:
     widgets::ModelCardinality* addResourceCardinality();
     void removeResourceCardinalities();
 
+    void addOverride();
+    void removeOverrides();
+
     void addConstant();
     void removeConstants();
     widgets::Location* addLocation(const symbols::constants::Location::Ptr& location);

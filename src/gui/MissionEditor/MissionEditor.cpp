@@ -11,6 +11,7 @@
 #include "../dialogs/AddTemporalConstraintQuantitative.hpp"
 #include "../widgets/TemporalConstraintQuantitative.hpp"
 #include "../widgets/SpatioTemporalRequirement.hpp"
+#include "../widgets/PropertyOverride.hpp"
 #include "../Utils.hpp"
 #include "../../symbols/object_variables/LocationCardinality.hpp"
 #include "../../SpaceTime.hpp"
@@ -54,6 +55,11 @@ MissionEditor::MissionEditor(QWidget* parent)
             this, SLOT(addResourceCardinality()));
     connect(mpUi->pushButtonRemoveResources, SIGNAL(clicked()),
             this, SLOT(removeResourceCardinalities()));
+
+    connect(mpUi->pushButtonAddOverride, SIGNAL(clicked()),
+            this, SLOT(addOverride()));
+    connect(mpUi->pushButtonRemoveOverrides, SIGNAL(clicked()),
+            this, SLOT(removeOverrides()));
 
     connect(mpUi->pushButtonAddConstant, SIGNAL(clicked()),
             this, SLOT(addConstant()));
@@ -381,6 +387,17 @@ Mission::Ptr MissionEditor::currentMission() const
     qDebug() << "Set available resources: " << QString::fromStdString( availableResources.toString() );
     m->setAvailableResources(availableResources);
 
+    // Overrides
+    {
+        QList<widgets::PropertyOverride*> overrideWidgets =
+            Utils::getWidgets<widgets::PropertyOverride>(mpUi->verticalLayoutOverrides);
+        for(widgets::PropertyOverride* w : overrideWidgets)
+        {
+            DataPropertyAssignment dpa = w->getDataPropertyAssignment();
+            m->addDataPropertyAssignment(dpa);
+        }
+    }
+
     // Requirements
     {
         namespace pa = solvers::temporal::point_algebra;
@@ -395,8 +412,8 @@ Mission::Ptr MissionEditor::currentMission() const
             symbols::Constant::Ptr constant = m->getConstant(locationId, symbols::Constant::LOCATION);
             symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(constant);
 
-            pa::TimePoint::Ptr from = pa::TimePoint::get(str->temporal.from);
-            pa::TimePoint::Ptr to = pa::TimePoint::get(str->temporal.to);
+            pa::TimePoint::Ptr from = pa::TimePoint::create(str->temporal.from);
+            pa::TimePoint::Ptr to = pa::TimePoint::create(str->temporal.to);
 
             for(const io::ResourceRequirement& resource : str->resources)
             {
@@ -531,6 +548,27 @@ void MissionEditor::on_saveButton_clicked()
 void MissionEditor::on_clearButton_clicked()
 {
     clear();
+}
+
+void MissionEditor::addOverride()
+{
+    qDebug() << "Add override";
+
+    QHBoxLayout* rowLayout = new QHBoxLayout;
+
+    QCheckBox* checkbox = new QCheckBox;
+    rowLayout->addWidget(checkbox);
+
+    widgets::PropertyOverride* po = new
+        widgets::PropertyOverride(mpMission->getOrganizationModelAsk());
+    rowLayout->addWidget(po);
+
+    mpUi->verticalLayoutOverrides->addLayout(rowLayout);
+}
+
+void MissionEditor::removeOverrides()
+{
+    Utils::removeCheckedRows(mpUi->verticalLayoutOverrides);
 }
 
 // Adding/Removing Constraints
@@ -797,6 +835,7 @@ void MissionEditor::activateOrganizationModelDependants()
     mpUi->groupBoxResources->setEnabled(true);
     mpUi->groupBoxRequirements->setEnabled(true);
     mpUi->groupBoxConstraints->setEnabled(true);
+    mpUi->groupBoxOverrides->setEnabled(true);
 }
 
 void MissionEditor::deactivateOrganizationModelDependants()
@@ -804,6 +843,7 @@ void MissionEditor::deactivateOrganizationModelDependants()
     mpUi->groupBoxResources->setEnabled(false);
     mpUi->groupBoxRequirements->setEnabled(false);
     mpUi->groupBoxConstraints->setEnabled(false);
+    mpUi->groupBoxOverrides->setEnabled(false);
 }
 
 } // end namespace gui
