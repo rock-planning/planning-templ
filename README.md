@@ -1,6 +1,8 @@
 # TemPl: A temporal mission planner for reconfigurable multi-robot systems
 
-TemPl is a planning system for reconfigurable multi-robot systems.
+TemPl is a planning system for reconfigurable multi-robot systems which is
+described in the PhD Thesis "Autonomous Operation of a Reconfigurable Multi-Robot System for Planetary Space
+Missions" ([Roehr 2019](http://nbn-resolving.de/urn:nbn:de:gbv:46-00107698-18))
 To solve the highly combinatorial optimization problem it combines the 
 use of knowledge-based engineering, constraint-based programming and linear
 programming.
@@ -9,8 +11,8 @@ The current focus of TemPl is to allow planning and optimization of medium sized
 set of so-called atomic agents.
 
 ## Installation
-Please use autoproj to bootstrap and include the package-set rock.dfki and
-dfki.planning in you manifest.
+Please use autoproj to bootstrap and include the package-set
+[ric.backbone](https://git.hb.dfki.de/sw-backbone/package_sets/ric-backbone) in your manifest.
 Afterwards you can install templ via:
 ```
     amake planning/templ
@@ -21,18 +23,18 @@ you are encouraged to contact the author of this library.
 
 
 ## Testing
-For testing the library boost testing is being heavily used, along with the
+For testing the library boost testing is used, along with the
 definition of a number of so-called test-scenario, i.e. sample missions.
 
 ### Test Scenarios
 
-The folder test/data/scenarios contains a set of missions that try to test
+The folder test/data/scenarios contains a set of missions that cover
 different aspects of the mission planner.
 
 ## Usage Examples:
 After building the library, the executables are typically available in the
 corresponding build/ folder.
-All executable support the --help command.
+All executables support the '--help' arguments to show describe their current usage.
 
 ### Planner ###
 The actual planner:
@@ -47,7 +49,9 @@ allowed options:
   --min_solutions arg   Minimum number of solutions (optional)
 ```
 
-The default configuration can be found under: test/data/configuration/default-configuration.xml
+The default configuration can be found under:
+test/data/configuration/default-configuration.xml, further
+details can be found [here](doc/configuration.md).
 Solution analysis allows to recompute the cost analysis that is performed for
 each solution: 
 
@@ -62,8 +66,8 @@ So check /tmp/<current-time-date>_temp/ for the corresponding folder.
 ### Templ GUI ###
 The graphical interface templ-gui allows to read solutions in order to generate
 an easier understanding of the solutions. 
-Start the GUI and import the *.gexf files, e.g., use final_plan.gexf to import
-the final solutions found by the planner.
+
+Details can be found [here](doc/gui.md).
 
 ### Solution analysis ###
 Solution analysis allows to recompute the cost analysis that is performed for
@@ -72,6 +76,11 @@ each solution:
 ./build/src/templ-solution_analysis test/data/solution_analysis/0_deviation-0.xml /tmp/.../final_plan.gexf
 ```
 
+# Further Details
+ * [Configuration](doc/configuration.md)
+ * [GUI](doc/gui.md)
+ * [IO](doc/io.md)
+
 # Copyright
 
-Copyright (c) 2015-2018 Thomas M. Roehr, DFKI GmbH Robotics Innovation Center
+Copyright (c) 2015-2020 Thomas M. Roehr, DFKI GmbH Robotics Innovation Center
