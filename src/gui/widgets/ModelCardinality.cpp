@@ -28,12 +28,12 @@ void ModelCardinality::prepare(const organization_model::OrganizationModelAsk& a
     mpUi->comboBoxModels->clear();
 
     owlapi::model::IRIList agentModels = ask.getAgentModels();
-    for(const owlapi::model::IRI iri : agentModels)
+    for(const owlapi::model::IRI& iri : agentModels)
     {
         mpUi->comboBoxModels->addItem(QString::fromStdString( iri.toString() ) );
     }
     owlapi::model::IRIList serviceModels = ask.getServiceModels();
-    for(const owlapi::model::IRI iri : serviceModels)
+    for(const owlapi::model::IRI& iri : serviceModels)
     {
         mpUi->comboBoxModels->addItem(QString::fromStdString( iri.toString() ) );
     }
