@@ -263,6 +263,11 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
     XMLUtils::startElement(writer, "temporal-constraints");
     for(const Constraint::Ptr& c : constraints)
     {
+        if(mission.isImplicitConstraint(c))
+        {
+            continue;
+        }
+
         if(c->getCategory() == Constraint::TEMPORAL_QUALITATIVE)
         {
             pa::QualitativeTimePointConstraint::Ptr qtpc = dynamic_pointer_cast<pa::QualitativeTimePointConstraint>(c);
