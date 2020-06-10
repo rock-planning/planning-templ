@@ -1,20 +1,20 @@
 #include "Cost.hpp"
-#include <organization_model/facades/Robot.hpp>
-#include <organization_model/OrganizationModelAsk.hpp>
-#include <organization_model/Agent.hpp>
+#include <moreorg/facades/Robot.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
+#include <moreorg/Agent.hpp>
 
-using namespace organization_model;
+using namespace moreorg;
 
 namespace templ {
 namespace solvers {
 
-Cost::Cost(const organization_model::OrganizationModelAsk& organizationModelAsk,
+Cost::Cost(const moreorg::OrganizationModelAsk& organizationModelAsk,
         const owlapi::model::IRI& mobilityFunctionality,
         double feasibilityCheckTimeoutInMs)
     : mOrganizationModelAsk(organizationModelAsk)
     , mFeasibilityCheckTimeoutInMs(feasibilityCheckTimeoutInMs)
 {
-    mMoveToResource.insert( organization_model::Resource( mobilityFunctionality ) );
+    mMoveToResource.insert( moreorg::Resource( mobilityFunctionality ) );
 }
 
 double Cost::getTravelDistance(const symbols::constants::Location::PtrList& path)
@@ -75,7 +75,7 @@ double Cost::estimateTravelTime(const symbols::constants::Location::Ptr& from,
     double minTime = 0;
     for(const ModelPool& coalition : coalitionStructure)
     {
-        facades::Robot robot = organization_model::facades::Robot::getInstance(coalition, mOrganizationModelAsk);
+        facades::Robot robot = moreorg::facades::Robot::getInstance(coalition, mOrganizationModelAsk);
         if( robot.isMobile())
         {
             double time = distance / robot.getNominalVelocity();

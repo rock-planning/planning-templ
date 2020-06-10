@@ -3,7 +3,7 @@
 #include "../../SharedPtr.hpp"
 #include "MissionConstraints.hpp"
 #include "MissionConstraintManager.hpp"
-#include <organization_model/PropertyConstraint.hpp>
+#include <moreorg/PropertyConstraint.hpp>
 #include "../../constraints/ModelConstraint.hpp"
 
 namespace ga = graph_analysis::algorithms;
@@ -304,7 +304,7 @@ Constraint::Ptr FlawResolution::translate(Gecode::Space& space,
 
                         constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(
                                 constraints::ModelConstraint::MIN_FUNCTION,
-                                organization_model::vocabulary::OM::resolve("TransportProvider"),
+                                moreorg::vocabulary::OM::resolve("TransportProvider"),
                                 MissionConstraintManager::mapToSpaceTime(ftrs),
                                 1
                                 );
@@ -327,10 +327,10 @@ Constraint::Ptr FlawResolution::translate(Gecode::Space& space,
 
                     constraints::ModelConstraint::Ptr constraint = make_shared<constraints::ModelConstraint>(
                             constraints::ModelConstraint::MIN_PROPERTY,
-                            organization_model::vocabulary::OM::resolve("TransportProvider"),
+                            moreorg::vocabulary::OM::resolve("TransportProvider"),
                             MissionConstraintManager::mapToSpaceTime(ftrs),
                             flaw.getViolation().getInFlow() + abs(flaw.getViolation().getDelta()),
-                            organization_model::vocabulary::OM::resolve("transportCapacity")
+                            moreorg::vocabulary::OM::resolve("transportCapacity")
                             );
                     return constraint;
 

@@ -5,15 +5,15 @@
 #include "Cost.hpp"
 
 #include <fstream>
-#include <organization_model/Algebra.hpp>
+#include <moreorg/Algebra.hpp>
 #include <graph_analysis/algorithms/DFS.hpp>
 #include <graph_analysis/GraphIO.hpp>
 #include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
-#include <organization_model/facades/Robot.hpp>
+#include <moreorg/facades/Robot.hpp>
 
 using namespace graph_analysis;
-using namespace organization_model;
+using namespace moreorg;
 
 namespace templ {
 namespace solvers {
@@ -30,7 +30,7 @@ SolutionAnalysis::SolutionAnalysis()
     , mReconfigurationCost(0)
     , mTotalNumberOfAgents(0)
     , mNumberOfMobileAgents(0)
-    , mAnalyser(organization_model::OrganizationModelAsk())
+    , mAnalyser(moreorg::OrganizationModelAsk())
 {}
 
 SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
@@ -189,7 +189,7 @@ std::set<Role> SolutionAnalysis::getRequiredRoles(size_t minRequirement) const
 
 double SolutionAnalysis::getSafety(const FluentTimeResource& ftr, const SpaceTime::Network::tuple_t::Ptr& tuple) const
 {
-    using namespace organization_model;
+    using namespace moreorg;
     ModelPool minRequired = getMinResourceRequirements(ftr);
     ModelPool minAvailable = getMinAvailableResources(tuple);
 
@@ -211,7 +211,7 @@ double SolutionAnalysis::getSafety(const FluentTimeResource& ftr, const SpaceTim
 
 double SolutionAnalysis::getSafety(const FluentTimeResource& ftr) const
 {
-    using namespace organization_model;
+    using namespace moreorg;
     ModelPool minRequired = getMinResourceRequirements(ftr);
     ModelPool minAvailable = getMinAvailableResources(ftr);
 
@@ -236,27 +236,27 @@ double SolutionAnalysis::getSafety(const ModelPool& minRequired, const ModelPool
     return mAnalyser.getMetric()->computeSharedUse(minRequired, minAvailable);
 }
 
-organization_model::ModelPool SolutionAnalysis::getMinAvailableResources(const FluentTimeResource& ftr) const
+moreorg::ModelPool SolutionAnalysis::getMinAvailableResources(const FluentTimeResource& ftr) const
 {
     symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(ftr.getFluent());
     assert(location);
 
-    std::vector<organization_model::ModelPool> availableResources = getAvailableResources(location, ftr.getInterval());
+    std::vector<moreorg::ModelPool> availableResources = getAvailableResources(location, ftr.getInterval());
 
-    using namespace organization_model;
+    using namespace moreorg;
     // return the minimum available resources
     // ( min(M_0), min(M_1), ...)
-    ModelPool minAvailableResources = organization_model::Algebra::min( availableResources);
+    ModelPool minAvailableResources = moreorg::Algebra::min( availableResources);
 
     // Infer functionality from this set of resources
     ModelPool functionalities = mAsk.getSupportedFunctionalities(minAvailableResources);
-    ModelPool pool = organization_model::Algebra::max(minAvailableResources, functionalities);
+    ModelPool pool = moreorg::Algebra::max(minAvailableResources, functionalities);
     return pool;
 }
 
-organization_model::ModelPool SolutionAnalysis::getMinAvailableResources(const SpaceTime::Network::tuple_t::Ptr& tuple) const
+moreorg::ModelPool SolutionAnalysis::getMinAvailableResources(const SpaceTime::Network::tuple_t::Ptr& tuple) const
 {
-    using namespace organization_model;
+    using namespace moreorg;
     ModelPool minAvailableResources = getAvailableResources(tuple->first(), tuple->second());
 
 //    // Infer functionality from this set of resources
@@ -265,18 +265,18 @@ organization_model::ModelPool SolutionAnalysis::getMinAvailableResources(const S
 //            true);
 //    // Creating model pool from available functionalities
 //    ModelPool functionalities = ask.getSupportedFunctionalities();
-//    return organization_model::Algebra::max(minAvailableResources, functionalities);
+//    return moreorg::Algebra::max(minAvailableResources, functionalities);
     return minAvailableResources;
 }
 
-organization_model::ModelPool SolutionAnalysis::getMaxAvailableResources(const FluentTimeResource& ftr) const
+moreorg::ModelPool SolutionAnalysis::getMaxAvailableResources(const FluentTimeResource& ftr) const
 {
     symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(ftr.getFluent());
     assert(location);
 
-    std::vector<organization_model::ModelPool> availableResources = getAvailableResources(location, ftr.getInterval());
+    std::vector<moreorg::ModelPool> availableResources = getAvailableResources(location, ftr.getInterval());
 
-    using namespace organization_model;
+    using namespace moreorg;
     // return the minimum available resources of the
     ModelPool maxAvailableResources = Algebra::max( availableResources );
 
@@ -286,14 +286,14 @@ organization_model::ModelPool SolutionAnalysis::getMaxAvailableResources(const F
             true);
     // Creating model pool from available functionalities
     ModelPool functionalities = ask.getSupportedFunctionalities();
-    return organization_model::Algebra::max(maxAvailableResources, functionalities);
+    return moreorg::Algebra::max(maxAvailableResources, functionalities);
 }
 
-std::vector<organization_model::ModelPool> SolutionAnalysis::getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::Interval& interval) const
+std::vector<moreorg::ModelPool> SolutionAnalysis::getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::Interval& interval) const
 {
     using namespace temporal::point_algebra;
 
-    std::vector<organization_model::ModelPool> modelPools;
+    std::vector<moreorg::ModelPool> modelPools;
 
     // Iterate over all known timepoints and check if the timepoint belongs to
     // the interval (the list of timepoints is sorted)
@@ -315,7 +315,7 @@ std::vector<organization_model::ModelPool> SolutionAnalysis::getAvailableResourc
 
                 identifiedRoles.insert(foundRoles.begin(), foundRoles.end());
 
-                organization_model::ModelPool currentPool = Role::getModelPool(roles);
+                moreorg::ModelPool currentPool = Role::getModelPool(roles);
                 modelPools.push_back(currentPool);
             } catch(const std::exception& e)
             {
@@ -341,7 +341,7 @@ std::vector<organization_model::ModelPool> SolutionAnalysis::getAvailableResourc
     return modelPools;
 }
 
-organization_model::ModelPool SolutionAnalysis::getAvailableResources(const symbols::constants::Location::Ptr& location,
+moreorg::ModelPool SolutionAnalysis::getAvailableResources(const symbols::constants::Location::Ptr& location,
         const solvers::temporal::point_algebra::TimePoint::Ptr& timepoint) const
 {
     ModelPool modelPool;
@@ -400,7 +400,7 @@ SolutionAnalysis::MinMaxModelPools SolutionAnalysis::getRequiredResources(const 
                 ftr.getInterval() == requirementFtr.getInterval())
         {
             ModelPool minCardinalities = ftr.getMinCardinalities();
-            for(const organization_model::Resource& resource : ftr.getRequiredResources())
+            for(const moreorg::Resource& resource : ftr.getRequiredResources())
             {
                 // Assuming the functionalities have max
                 if(mAsk.ontology().isSubClassOf(resource.getModel(),
@@ -576,15 +576,15 @@ double SolutionAnalysis::degreeOfFulfillment(const solvers::FluentTimeResource& 
     return 1.0;
 }
 
-organization_model::ModelPool SolutionAnalysis::getMinResourceRequirements(const FluentTimeResource& ftr) const
+moreorg::ModelPool SolutionAnalysis::getMinResourceRequirements(const FluentTimeResource& ftr) const
 {
-    using namespace organization_model;
+    using namespace moreorg;
     return getRequiredResources(ftr).first.front();
 }
 
-organization_model::ModelPool SolutionAnalysis::getMaxResourceRequirements(const FluentTimeResource& ftr) const
+moreorg::ModelPool SolutionAnalysis::getMaxResourceRequirements(const FluentTimeResource& ftr) const
 {
-    using namespace organization_model;
+    using namespace moreorg;
     return getRequiredResources(ftr).second.front();
 }
 
@@ -605,21 +605,21 @@ SpaceTime::Network::tuple_t::PtrList SolutionAnalysis::getTuples(const
             ftr.getInterval().getFrom(), ftr.getLocation());
 }
 
-organization_model::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequirements(const solvers::FluentTimeResource& ftr) const
+moreorg::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequirements(const solvers::FluentTimeResource& ftr) const
 {
     ModelPool requiredResources = getMinResourceRequirements(ftr);
     ModelPool maxAvailableResources = getMinAvailableResources(ftr);
 
     // Creating model pool from available functionalities
     ModelPool functionalities = mAsk.getSupportedFunctionalities(maxAvailableResources);
-    ModelPool availableResources = organization_model::Algebra::max(maxAvailableResources, functionalities);
+    ModelPool availableResources = moreorg::Algebra::max(maxAvailableResources, functionalities);
 
     return Algebra::delta(requiredResources, availableResources);
 }
 
-organization_model::ModelPoolDelta SolutionAnalysis::getMaxMissingResources(const solvers::FluentTimeResource& ftr) const
+moreorg::ModelPoolDelta SolutionAnalysis::getMaxMissingResources(const solvers::FluentTimeResource& ftr) const
 {
-    using namespace organization_model;
+    using namespace moreorg;
     ModelPool requiredResources = getMinResourceRequirements(ftr);
     ModelPool minAvailableResources = getMinAvailableResources(ftr);
 
@@ -629,7 +629,7 @@ organization_model::ModelPoolDelta SolutionAnalysis::getMaxMissingResources(cons
             true);
     // Creating model pool from available functionalities
     ModelPool functionalities = ask.getSupportedFunctionalities();
-    ModelPool availableResources = organization_model::Algebra::min(minAvailableResources, functionalities);
+    ModelPool availableResources = moreorg::Algebra::min(minAvailableResources, functionalities);
 
     return Algebra::delta(requiredResources, availableResources);
 }

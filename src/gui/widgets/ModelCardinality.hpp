@@ -2,7 +2,7 @@
 #define TEMPL_GUI_WIDGETS_MODEL_CARDINALITY_HPP
 
 #include "../../io/MissionRequirements.hpp"
-#include <organization_model/OrganizationModelAsk.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
 
 #include <QWidget>
 
@@ -23,7 +23,7 @@ public:
     ModelCardinality(QWidget* parent = NULL);
     ~ModelCardinality();
 
-    void prepare(const organization_model::OrganizationModelAsk& ask);
+    void prepare(const moreorg::OrganizationModelAsk& ask);
 
     void setRequirement(const io::ResourceRequirement& requirement);
 

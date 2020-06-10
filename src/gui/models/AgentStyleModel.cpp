@@ -3,10 +3,10 @@
 #include <QColor>
 #include <QColorDialog>
 
-#include <organization_model/ModelPool.hpp>
+#include <moreorg/ModelPool.hpp>
 #include "../../Role.hpp"
 
-using namespace organization_model;
+using namespace moreorg;
 
 namespace templ {
 namespace gui {
@@ -18,7 +18,7 @@ namespace models {
 // Qt::CheckedStateRole (Qt::CheckState)
 //
 
-AgentStyleModel::AgentStyleModel(const organization_model::ModelPool& modelPool)
+AgentStyleModel::AgentStyleModel(const moreorg::ModelPool& modelPool)
     : QAbstractTableModel()
     , mModelPool(modelPool)
 {

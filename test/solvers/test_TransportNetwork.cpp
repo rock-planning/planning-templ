@@ -2,12 +2,12 @@
 #include <templ/Mission.hpp>
 #include <templ/io/MissionReader.hpp>
 #include <templ/solvers/csp/TransportNetwork.hpp>
-#include <organization_model/vocabularies/OM.hpp>
+#include <moreorg/vocabularies/OM.hpp>
 
 #include "../test_utils.hpp"
 
 using namespace templ;
-using namespace organization_model;
+using namespace moreorg;
 namespace pa = templ::solvers::temporal::point_algebra;
 
 BOOST_AUTO_TEST_SUITE(csp_transport_network)
@@ -24,7 +24,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
     // --> mission should contain sychronization points
 
     owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(organizationModelIRI);
+    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(organizationModelIRI);
     owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
     using namespace solvers;
     {
         Mission::Ptr mission(new Mission(baseMission));
-        organization_model::ModelPool modelPool;
+        moreorg::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
         mission->setAvailableResources(modelPool);
         BOOST_REQUIRE_MESSAGE(mission->getOrganizationModel(), "Mission has organization model set");
@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
 
     {
         Mission::Ptr mission(new Mission(baseMission));
-        organization_model::ModelPool modelPool;
+        moreorg::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
         mission->setAvailableResources(modelPool);
 
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
 
     {
         Mission::Ptr mission(new Mission(baseMission));
-        organization_model::ModelPool modelPool;
+        moreorg::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
         modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
         mission->setAvailableResources(modelPool);
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(mission_0)
 
     {
         Mission::Ptr mission(new Mission(baseMission));
-        organization_model::ModelPool modelPool;
+        moreorg::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
         modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
         modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     // --> translate into systems and update timings accordingly
     // --> mission should contain sychronization points
 
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
+    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(
                 getRootDir() + "test/data/om-schema-latest.owl");
     owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
@@ -145,7 +145,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     //{
     //    Mission::Ptr mission(new Mission(baseMission));
 
-    //    organization_model::ModelPool modelPool;
+    //    moreorg::ModelPool modelPool;
     //    modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
     //    mission->setAvailableResources(modelPool);
     //    BOOST_REQUIRE_THROW(solvers::csp::TransportNetwork::solve(mission), std::runtime_error);
@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     {
         Mission::Ptr mission(new Mission(baseMission));
 
-        organization_model::ModelPool modelPool;
+        moreorg::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 10;
         mission->setAvailableResources(modelPool);
         // Set starting position of resources
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     //{
     //    Mission::Ptr mission(new Mission(baseMission));
 
-    //    organization_model::ModelPool modelPool;
+    //    moreorg::ModelPool modelPool;
     //    modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
     //    modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
     //    mission->setAvailableResources(modelPool);
@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     //{
     //    Mission::Ptr mission(new Mission(baseMission));
 
-    //    organization_model::ModelPool modelPool;
+    //    moreorg::ModelPool modelPool;
     //    modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
     //    modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
     //    modelPool[ vocabulary::OM::resolve("Payload") ] = 1;
@@ -228,7 +228,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     //{
     //    Mission::Ptr mission(new Mission(baseMission));
 
-    //    organization_model::ModelPool modelPool;
+    //    moreorg::ModelPool modelPool;
     //    modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
     //    modelPool[ vocabulary::OM::resolve("CREX") ] = 3;
     //    modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
@@ -255,7 +255,7 @@ BOOST_AUTO_TEST_CASE(mission_2)
     // --> mission should contain sychronization points
 
     owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(organizationModelIRI);
+    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(organizationModelIRI);
     owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
@@ -293,7 +293,7 @@ BOOST_AUTO_TEST_CASE(mission_2)
     using namespace solvers;
     {
         Mission::Ptr mission(new Mission(baseMission));
-        organization_model::ModelPool modelPool;
+        moreorg::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
         modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
         modelPool[ vocabulary::OM::resolve("Payload") ] = 1;
@@ -308,7 +308,7 @@ BOOST_AUTO_TEST_CASE(mission_2)
 
 BOOST_AUTO_TEST_CASE(mission_from_file)
 {
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(owlapi::model::IRI("http://www.rock-robotics.org/2015/12/projects/TransTerrA"));
+    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(owlapi::model::IRI("http://www.rock-robotics.org/2015/12/projects/TransTerrA"));
     std::string missionFilename = getRootDir() + "test/data/scenarios/transport_network_mission.xml";
     Mission baseMission = templ::io::MissionReader::fromFile(missionFilename, om);
     baseMission.prepareTimeIntervals();
@@ -334,7 +334,7 @@ BOOST_AUTO_TEST_CASE(mission_tt)
     // --> mission should contain sychronization points
 
     owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(organizationModelIRI);
+    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(organizationModelIRI);
     owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 
     using namespace solvers::temporal;
@@ -366,7 +366,7 @@ BOOST_AUTO_TEST_CASE(mission_tt)
     {
         Mission::Ptr mission(new Mission(baseMission));
 
-        organization_model::ModelPool modelPool;
+        moreorg::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
         mission->setAvailableResources(modelPool);
@@ -388,7 +388,7 @@ BOOST_AUTO_TEST_CASE(symmetry_breaking)
     // --> mission should contain sychronization points
 
     owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(organizationModelIRI);
+    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(organizationModelIRI);
     owlapi::model::IRI payloadModel = vocabulary::OM::resolve("Payload");
 
     using namespace solvers::temporal;
@@ -417,7 +417,7 @@ BOOST_AUTO_TEST_CASE(symmetry_breaking)
     using namespace solvers;
     {
         Mission::Ptr mission(new Mission(baseMission));
-        organization_model::ModelPool modelPool;
+        moreorg::ModelPool modelPool;
         modelPool[ vocabulary::OM::resolve("Payload") ] = 100;
         mission->setAvailableResources(modelPool);
 
@@ -433,7 +433,7 @@ BOOST_AUTO_TEST_CASE(mission_3)
 // locations: loc0-loc2
 {
     owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(organizationModelIRI);
+    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(organizationModelIRI);
     owlapi::model::IRI sherpa = vocabulary::OM::resolve("Sherpa");
     owlapi::model::IRI payload = vocabulary::OM::resolve("Payload");
 
@@ -470,7 +470,7 @@ BOOST_AUTO_TEST_CASE(mission_3)
     using namespace solvers;
     {
         Mission::Ptr mission(new Mission(baseMission));
-        organization_model::ModelPool modelPool;
+        moreorg::ModelPool modelPool;
         modelPool[ sherpa ] = 1;
         modelPool[ payload ] = 1;
         mission->setAvailableResources(modelPool);
@@ -488,7 +488,7 @@ BOOST_AUTO_TEST_CASE(mission_4)
 // locations: loc0-loc2
 {
     owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(organizationModelIRI);
+    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(organizationModelIRI);
     owlapi::model::IRI sherpa = vocabulary::OM::resolve("Sherpa");
     owlapi::model::IRI payload = vocabulary::OM::resolve("Payload");
 
@@ -539,7 +539,7 @@ BOOST_AUTO_TEST_CASE(mission_4)
     using namespace solvers;
     {
         Mission::Ptr mission(new Mission(baseMission));
-        organization_model::ModelPool modelPool;
+        moreorg::ModelPool modelPool;
         modelPool[ sherpa ] = 5;
         modelPool[ payload ] = 10;
         mission->setAvailableResources(modelPool);

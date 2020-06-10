@@ -33,7 +33,7 @@ ModelConstraint::~ModelConstraint()
     delete mpUi;
 }
 
-void ModelConstraint::prepare(const organization_model::OrganizationModelAsk& ask)
+void ModelConstraint::prepare(const moreorg::OrganizationModelAsk& ask)
 {
     for(size_t c = static_cast<size_t>(constraints::ModelConstraint::UNKNOWN) + 1;
             c < static_cast<size_t>(constraints::ModelConstraint::END_TYPE); ++c)

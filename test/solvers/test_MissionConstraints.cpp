@@ -4,7 +4,7 @@
 #include <templ/Mission.hpp>
 #include <templ/solvers/csp/TransportNetwork.hpp>
 #include <templ/io/MissionReader.hpp>
-#include <organization_model/vocabularies/OM.hpp>
+#include <moreorg/vocabularies/OM.hpp>
 
 #include "../test_utils.hpp"
 
@@ -100,7 +100,7 @@ BOOST_FIXTURE_TEST_CASE(min, MissionFixture)
     setup();
 
     ModelConstraint::Ptr constraint = make_shared<ModelConstraint>(ModelConstraint::MIN,
-            organization_model::vocabulary::OM::resolve("Payload"),
+            moreorg::vocabulary::OM::resolve("Payload"),
             intervals,
             2);
 
@@ -113,7 +113,7 @@ BOOST_FIXTURE_TEST_CASE(max, MissionFixture)
     setup();
 
     ModelConstraint::Ptr constraint = make_shared<ModelConstraint>(ModelConstraint::MAX,
-            organization_model::vocabulary::OM::resolve("Payload"),
+            moreorg::vocabulary::OM::resolve("Payload"),
             intervals,
             1);
 
@@ -126,7 +126,7 @@ BOOST_FIXTURE_TEST_CASE(all_distinct, MissionFixture)
     setup();
 
     ModelConstraint::Ptr constraint = make_shared<ModelConstraint>(ModelConstraint::ALL_DISTINCT,
-            organization_model::vocabulary::OM::resolve("Payload"),
+            moreorg::vocabulary::OM::resolve("Payload"),
             intervals);
 
     test(constraint);
@@ -138,7 +138,7 @@ BOOST_FIXTURE_TEST_CASE(min_distinct, MissionFixture)
     setup();
 
     ModelConstraint::Ptr constraint = make_shared<ModelConstraint>(ModelConstraint::MIN_DISTINCT,
-            organization_model::vocabulary::OM::resolve("Payload"),
+            moreorg::vocabulary::OM::resolve("Payload"),
             intervals,
             2);
 
@@ -150,7 +150,7 @@ BOOST_FIXTURE_TEST_CASE(max_distinct, MissionFixture)
     setup();
 
     ModelConstraint::Ptr constraint = make_shared<ModelConstraint>(ModelConstraint::MAX_DISTINCT,
-            organization_model::vocabulary::OM::resolve("Payload"),
+            moreorg::vocabulary::OM::resolve("Payload"),
             intervals,
             2);
 
@@ -162,7 +162,7 @@ BOOST_FIXTURE_TEST_CASE(all_equal, MissionFixture)
     setup();
 
     ModelConstraint::Ptr constraint = make_shared<ModelConstraint>(ModelConstraint::ALL_EQUAL,
-            organization_model::vocabulary::OM::resolve("Payload"),
+            moreorg::vocabulary::OM::resolve("Payload"),
             intervals);
 
     test(constraint);
@@ -173,7 +173,7 @@ BOOST_FIXTURE_TEST_CASE(min_function, MissionFixture)
     setup();
 
     ModelConstraint::Ptr constraint = make_shared<ModelConstraint>(ModelConstraint::MIN_FUNCTION,
-            organization_model::vocabulary::OM::resolve("TransportProvider"),
+            moreorg::vocabulary::OM::resolve("TransportProvider"),
             intervals,
             1
             );
@@ -186,10 +186,10 @@ BOOST_FIXTURE_TEST_CASE(min_property, MissionFixture)
     setup();
 
     ModelConstraint::Ptr constraint = make_shared<ModelConstraint>(ModelConstraint::MIN_PROPERTY,
-            organization_model::vocabulary::OM::resolve("TransportProvider"),
+            moreorg::vocabulary::OM::resolve("TransportProvider"),
             intervals,
             3,
-            organization_model::vocabulary::OM::resolve("transportCapacity")
+            moreorg::vocabulary::OM::resolve("transportCapacity")
             );
 
     test(constraint);

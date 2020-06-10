@@ -16,7 +16,7 @@ BOOST_AUTO_TEST_CASE(copy_construct)
     std::string missionFilename = rootDir + "/test/data/scenarios/test-mission-0.xml";
     std::string organizationModelFilename = rootDir + "/test/data/om-schema-v0.13.owl";
 
-    using namespace organization_model;
+    using namespace moreorg;
     OrganizationModel::Ptr organizationModel = OrganizationModel::getInstance(organizationModelFilename);
 
     Mission mission = io::MissionReader::fromFile(missionFilename, organizationModel);
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(reader_writer)
     std::string missionFilename = rootDir + "/test/data/scenarios/should_succeed/1.xml";
     std::string organizationModelFilename = rootDir + "/test/data/om-schema-v0.13.owl";
 
-    using namespace organization_model;
+    using namespace moreorg;
     OrganizationModel::Ptr organizationModel = OrganizationModel::getInstance(organizationModelFilename);
 
     Mission mission = io::MissionReader::fromFile(missionFilename, organizationModel);

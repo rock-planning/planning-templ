@@ -7,7 +7,7 @@
 #include <graph_analysis/gui/layouts/GridLayout.hpp>
 #include <qxcfg/Configuration.hpp>
 #include <QProcess>
-#include <organization_model/OrganizationModel.hpp>
+#include <moreorg/OrganizationModel.hpp>
 
 namespace Ui {
     class TemplGui;
@@ -34,7 +34,7 @@ public:
     TemplGui();
     ~TemplGui();
 
-    static organization_model::OrganizationModel::Ptr getOrganizationModel() { return mpsOrganizationModel; }
+    static moreorg::OrganizationModel::Ptr getOrganizationModel() { return mpsOrganizationModel; }
 
 private:
     // gui elements
@@ -57,7 +57,7 @@ private:
 
     QProcess* mpProcess;
 
-    static organization_model::OrganizationModel::Ptr mpsOrganizationModel;
+    static moreorg::OrganizationModel::Ptr mpsOrganizationModel;
 
     void notifyAll();
 

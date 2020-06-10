@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(available_resources)
 {
     SolutionAnalysis sa(mission, solution);
 
-    //std::vector<organization_model::ModelPool> getAvailableResources(location, interval);
+    //std::vector<moreorg::ModelPool> getAvailableResources(location, interval);
 }
 
 

@@ -1,7 +1,7 @@
 #include "Plan.hpp"
 #include <sstream>
 #include <fstream>
-#include <organization_model/facades/Robot.hpp>
+#include <moreorg/facades/Robot.hpp>
 #include <base-logging/Logging.hpp>
 #include "SpaceTime.hpp"
 #include "RoleInfoTuple.hpp"
@@ -229,7 +229,7 @@ void Plan::computeGraph() const
         throw std::runtime_error("templ::Plan: plan has no associated mission -- cannot proceed generating action plan");
     }
 
-    organization_model::OrganizationModelAsk organizationModelAsk(mpMission->getOrganizationModel(), mpMission->getAvailableResources(), true);
+    moreorg::OrganizationModelAsk organizationModelAsk(mpMission->getOrganizationModel(), mpMission->getAvailableResources(), true);
 
     // handle mobile robots first
     // for each mobile system we add capacity links
@@ -252,7 +252,7 @@ void Plan::computeGraph() const
             }
 
             // getTransportSystem
-            using namespace organization_model::facades;
+            using namespace moreorg::facades;
             Robot robot = Robot::getInstance(role.getModel(), organizationModelAsk);
             if(!robot.isMobile())
             {
@@ -317,7 +317,7 @@ void Plan::computeGraph() const
                 continue;
             }
 
-            organization_model::facades::Robot robot(role.getModel(), organizationModelAsk);
+            moreorg::facades::Robot robot(role.getModel(), organizationModelAsk);
             if(robot.isMobile())
             {
                 continue;

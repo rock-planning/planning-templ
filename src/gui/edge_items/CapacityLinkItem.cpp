@@ -11,9 +11,9 @@
 #include <QtCore/qmath.h>
 #include <QDebug>
 
-#include <organization_model/OrganizationModel.hpp>
-#include <organization_model/OrganizationModelAsk.hpp>
-#include <organization_model/ModelPool.hpp>
+#include <moreorg/OrganizationModel.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
+#include <moreorg/ModelPool.hpp>
 
 #include "../TemplGui.hpp"
 #include "../../SpaceTime.hpp"
@@ -189,18 +189,18 @@ CapacityLink::Ptr CapacityLinkItem::toCapacityLink(const RoleInfoWeightedEdge::P
         capacityLink->addProvider( CapacityLink::getLocalTransitionRole(), std::numeric_limits<uint32_t>::max() );
     }
 
-    organization_model::ModelPool pool;
+    moreorg::ModelPool pool;
     for(const Role& r : transitionRoles)
     {
         pool[r.getModel()] = 1;
     }
 
-    organization_model::OrganizationModel::Ptr om = TemplGui::getOrganizationModel();
-    organization_model::OrganizationModelAsk ask = organization_model::OrganizationModelAsk::getInstance(om, pool);
+    moreorg::OrganizationModel::Ptr om = TemplGui::getOrganizationModel();
+    moreorg::OrganizationModelAsk ask = moreorg::OrganizationModelAsk::getInstance(om, pool);
 
     for(const Role& r : transitionRoles)
     {
-        using namespace organization_model::facades;
+        using namespace moreorg::facades;
         Robot robot = Robot::getInstance(r.getModel(), ask);
         if(robot.isMobile())
         {

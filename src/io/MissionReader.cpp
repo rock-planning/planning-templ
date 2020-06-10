@@ -23,17 +23,17 @@ namespace io {
 
 Mission MissionReader::fromFile(const std::string& url, const std::string& organizationModelUrl)
 {
-    organization_model::OrganizationModel::Ptr organizationModel;
+    moreorg::OrganizationModel::Ptr organizationModel;
     if(!organizationModelUrl.empty())
     {
-        organizationModel = organization_model::OrganizationModel::getInstance(organizationModelUrl);
+        organizationModel = moreorg::OrganizationModel::getInstance(organizationModelUrl);
     }
     return fromFile(url, organizationModel);
 }
 
-organization_model::OrganizationModel::Ptr MissionReader::getOrganizationModel(const std::string& url)
+moreorg::OrganizationModel::Ptr MissionReader::getOrganizationModel(const std::string& url)
 {
-    organization_model::OrganizationModel::Ptr organizationModel;
+    moreorg::OrganizationModel::Ptr organizationModel;
     /*
      * this initialize the library and check potential ABI mismatches
      * between the version it was compiled for and the actual shared
@@ -74,7 +74,7 @@ organization_model::OrganizationModel::Ptr MissionReader::getOrganizationModel(c
             {
                 owlapi::model::IRI iri( XMLUtils::getContent(doc, firstLevelChild) );
                 LOG_DEBUG_S << "Found first node: 'organization_model' " << iri;
-                using namespace organization_model;
+                using namespace moreorg;
                 organizationModel = OrganizationModel::getInstance(iri);
                 break;
             }
@@ -95,9 +95,9 @@ organization_model::OrganizationModel::Ptr MissionReader::getOrganizationModel(c
     return organizationModel;
 }
 
-Mission MissionReader::fromFile(const std::string& url, const organization_model::OrganizationModel::Ptr& om)
+Mission MissionReader::fromFile(const std::string& url, const moreorg::OrganizationModel::Ptr& om)
 {
-    organization_model::OrganizationModel::Ptr organizationModel;
+    moreorg::OrganizationModel::Ptr organizationModel;
     if(!om)
     {
         organizationModel = getOrganizationModel(url);
@@ -165,7 +165,7 @@ Mission MissionReader::fromFile(const std::string& url, const organization_model
             } else if(XMLUtils::nameMatches(firstLevelChild, "resources"))
             {
                 LOG_DEBUG_S << "Found first level node: 'resources' ";
-                organization_model::ModelPool modelPool = parseResources(doc, firstLevelChild);
+                moreorg::ModelPool modelPool = parseResources(doc, firstLevelChild);
                 mission.setAvailableResources(modelPool);
             } else if(XMLUtils::nameMatches(firstLevelChild, "overrides"))
             {
@@ -372,11 +372,11 @@ std::pair<owlapi::model::IRI, size_t> MissionReader::parseResource(xmlDocPtr doc
     throw std::invalid_argument("templ::io::MissionReader::parseResource: expected tag 'resource' found '" + std::string((const char*) current->name) + "'");
 }
 
-organization_model::ModelPool MissionReader::parseResources(xmlDocPtr doc, xmlNodePtr current)
+moreorg::ModelPool MissionReader::parseResources(xmlDocPtr doc, xmlNodePtr current)
 {
     LOG_INFO_S << "Parsing: " << current->name;
 
-    organization_model::ModelPool pool;
+    moreorg::ModelPool pool;
     current = current->xmlChildrenNode;
     while(current != NULL)
     {
@@ -384,7 +384,7 @@ organization_model::ModelPool MissionReader::parseResources(xmlDocPtr doc, xmlNo
         {
             std::pair<owlapi::model::IRI, size_t> resourceBound = parseResource(doc, current);
 
-            organization_model::ModelPool::const_iterator cit = pool.find(resourceBound.first);
+            moreorg::ModelPool::const_iterator cit = pool.find(resourceBound.first);
             if(cit != pool.end())
             {
                 throw std::invalid_argument("templ::io::MissionReader::parseResources: multiple resource entry of type '" +resourceBound.first.toString() + "'");

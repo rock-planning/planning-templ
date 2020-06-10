@@ -7,7 +7,7 @@
 #include <gecode/set.hh>
 #include <gecode/search.hh>
 
-#include <organization_model/OrganizationModelAsk.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
 #include <qxcfg/Configuration.hpp>
 
 #include "../../Mission.hpp"
@@ -39,7 +39,7 @@ class TransportNetwork : public Gecode::Space, public Solver
     friend class MissionConstraintManager;
 
 public:
-    typedef std::map<FluentTimeResource, organization_model::ModelPool > ModelDistribution;
+    typedef std::map<FluentTimeResource, moreorg::ModelPool > ModelDistribution;
     typedef std::map<FluentTimeResource, Role::List> RoleDistribution;
 
     /**
@@ -87,9 +87,9 @@ protected:
 
     /// The model pool -- in terms of available resources that can be used for
     /// planning
-    organization_model::ModelPool mModelPool;
+    moreorg::ModelPool mModelPool;
     /// The organization model
-    organization_model::OrganizationModelAsk mAsk;
+    moreorg::OrganizationModelAsk mAsk;
 
     /// All available services
     owlapi::model::IRIList mServices;
@@ -218,8 +218,8 @@ protected:
 private:
     std::stringstream mInteractiveMessageStream;
 
-    std::set< std::vector<uint32_t> > toCSP(const organization_model::ModelPool::Set& set) const;
-    std::vector<uint32_t> toCSP(const organization_model::ModelPool& combination) const;
+    std::set< std::vector<uint32_t> > toCSP(const moreorg::ModelPool::Set& set) const;
+    std::vector<uint32_t> toCSP(const moreorg::ModelPool& combination) const;
 
     /**
      * Get the index of the system model in the csp representation
@@ -232,7 +232,7 @@ private:
      * extensional constraints out of the combination set
      * \return TupleSet
      */
-    void appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPool::Set& combinations) const;
+    void appendToTupleSet(Gecode::TupleSet& tupleSet, const moreorg::ModelPool::Set& combinations) const;
 
     /**
      * Map the resource model to its index (id)
@@ -259,7 +259,7 @@ private:
     /**
      * Get the current (minimum) model assignment for a FluentTimeResource
      */
-    organization_model::ModelPool currentMinModelAssignment(const FluentTimeResource& ftr) const;
+    moreorg::ModelPool currentMinModelAssignment(const FluentTimeResource& ftr) const;
 
     static void doPostTemporalConstraints(Gecode::Space& home);
     void postTemporalConstraints();

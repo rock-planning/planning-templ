@@ -7,7 +7,7 @@ namespace gui {
 namespace dialogs {
 
 AddModelConstraint::AddModelConstraint(
-        const organization_model::OrganizationModelAsk& ask,
+        const moreorg::OrganizationModelAsk& ask,
         QWidget* parent
         )
     : QDialog(parent)

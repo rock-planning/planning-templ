@@ -12,9 +12,9 @@
 #include <fstream>
 #include <Eigen/Dense>
 
-#include <organization_model/Algebra.hpp>
-#include <organization_model/vocabularies/OM.hpp>
-#include <organization_model/facades/Robot.hpp>
+#include <moreorg/Algebra.hpp>
+#include <moreorg/vocabularies/OM.hpp>
+#include <moreorg/facades/Robot.hpp>
 
 #include <graph_analysis/GraphIO.hpp>
 #include <graph_analysis/algorithms/LPSolver.hpp>
@@ -60,7 +60,7 @@ std::string TransportNetwork::Solution::toString(uint32_t indent) const
             ss << hspace << "--- requirement #" << count++ << std::endl;
             ss << hspace << fts.toString() << std::endl;
 
-            const organization_model::ModelPool& modelPool = cit->second;
+            const moreorg::ModelPool& modelPool = cit->second;
             ss << modelPool.toString(indent) << std::endl;
         }
     }
@@ -341,7 +341,7 @@ TransportNetwork::ModelDistribution TransportNetwork::getModelDistribution() con
     // Check if resource requirements holds
     for(size_t i = 0; i < mResourceRequirements.size(); ++i)
     {
-        organization_model::ModelPool modelPool;
+        moreorg::ModelPool modelPool;
         for(size_t mi = 0; mi < mpMission->getAvailableResources().size(); ++mi)
         {
             Gecode::IntVar var = resourceDistribution(mi, i);
@@ -433,7 +433,7 @@ TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const qxc
     , mAsk(mpMission->getOrganizationModel(),
             mpMission->getAvailableResources(), true,
             1000*configuration.getValueAs<double>("TransportNetwork/search/options/connectivity/timeout_in_s",20),
-            configuration.getValue("TransportNetwork/search/options/connectivity/interface-type",organization_model::vocabulary::OM::ElectroMechanicalInterface().toString())
+            configuration.getValue("TransportNetwork/search/options/connectivity/interface-type",moreorg::vocabulary::OM::ElectroMechanicalInterface().toString())
           )
     , mResources(mpMission->getRequestedResources())
     , mIntervals(mpMission->getTimeIntervals())
@@ -511,7 +511,7 @@ void TransportNetwork::initializeMinMaxConstraints()
                 // default min requirement is 0 for a model
                 /// Consider resource cardinality constraint
                 /// Check what is set for the given model
-                organization_model::ModelPool::const_iterator cardinalityIt =
+                moreorg::ModelPool::const_iterator cardinalityIt =
                     fts.getMinCardinalities().find(model);
                 if(cardinalityIt != fts.getMinCardinalities().end())
                 {
@@ -566,7 +566,7 @@ void TransportNetwork::addExtensionalConstraints()
    {
         // Prepare the extensional constraints, i.e. specifying the allowed
         // combinations for each requirement
-        organization_model::ModelPool::Set allowedCombinations = ftr.getDomain();
+        moreorg::ModelPool::Set allowedCombinations = ftr.getDomain();
         if(allowedCombinations.empty())
         {
             LOG_WARN_S << "No allowed combinations available with the given constraints: failing this space";
@@ -664,7 +664,7 @@ void TransportNetwork::initializeRoleDistributionConstraints()
             Gecode::IntVar immobileModelBound(*this,0, immobileRoleUsageBoundOffset);
             immobileModelBounds << immobileModelBound;
 
-            using namespace organization_model::facades;
+            using namespace moreorg::facades;
             Robot robot = Robot::getInstance(model, mAsk);
             bool isMobile = robot.isMobile();
             uint32_t maxCardinality = mModelPool[ model ];
@@ -778,7 +778,7 @@ void TransportNetwork::applyAccessConstraints(ListOfAdjacencyLists& timelines,
         const Role::List& roles)
 {
     // Location access contraints -- currently restricted to a single model
-    using namespace organization_model;
+    using namespace moreorg;
     typedef std::map<symbols::constants::Location::Ptr, std::pair<ModelPool, ModelPool> >
         LocationConstraints;
     LocationConstraints locationMinMax;
@@ -1120,7 +1120,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             delete best;
             best = current;
 
-            using namespace organization_model;
+            using namespace moreorg;
 
             LOG_INFO_S << "#" << i << "/" << minNumberOfSolutions << " solution found:" << current->toString();
             std::cout << "Solution found:" << std::endl;
@@ -1219,7 +1219,7 @@ void TransportNetwork::addConstraint(const Constraint::Ptr& constraint, Transpor
 
 Constraint::PtrList TransportNetwork::getAssignmentsAsConstraints() const
 {
-    using namespace organization_model;
+    using namespace moreorg;
     Constraint::PtrList constraints;
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
 
@@ -1281,7 +1281,7 @@ Mission::Ptr TransportNetwork::getAugmentedMission() const
     return augmentedMission;
 }
 
-void TransportNetwork::appendToTupleSet(Gecode::TupleSet& tupleSet, const organization_model::ModelPool::Set& combinations) const
+void TransportNetwork::appendToTupleSet(Gecode::TupleSet& tupleSet, const moreorg::ModelPool::Set& combinations) const
 {
     std::set< std::vector<uint32_t> > csp = utils::Converter::toCSP(mpMission, combinations);
     std::set< std::vector<uint32_t> >::const_iterator cit = csp.begin();
@@ -1326,7 +1326,7 @@ const owlapi::model::IRI& TransportNetwork::getResourceModelFromIndex(size_t ind
 
 size_t TransportNetwork::getResourceModelMaxCardinality(size_t index) const
 {
-    organization_model::ModelPool::const_iterator cit = mModelPool.find(getResourceModelFromIndex(index));
+    moreorg::ModelPool::const_iterator cit = mModelPool.find(getResourceModelFromIndex(index));
     if(cit != mModelPool.end())
     {
         return cit->second;
@@ -1372,9 +1372,9 @@ std::vector<uint32_t> TransportNetwork::computeActiveRoles() const
     return activeRoles;
 }
 
-organization_model::ModelPool TransportNetwork::currentMinModelAssignment(const FluentTimeResource& ftr) const
+moreorg::ModelPool TransportNetwork::currentMinModelAssignment(const FluentTimeResource& ftr) const
 {
-    organization_model::ModelPool modelPool;
+    moreorg::ModelPool modelPool;
     Gecode::Matrix<Gecode::IntVarArray> roleDistribution(mRoleUsage, /*width --> col*/ mRoles.size(), /*height --> row*/ mResourceRequirements.size());
 
     size_t ftrIdx = FluentTimeResource::getIndex(mResourceRequirements, ftr);
@@ -1724,7 +1724,7 @@ void TransportNetwork::postRoleAssignments()
         for(uint32_t roleIdx = 0; roleIdx < mActiveRoles.size(); ++roleIdx)
         {
             const Role& role = mRoles[ mActiveRoles[roleIdx] ];
-            using namespace organization_model::facades;
+            using namespace moreorg::facades;
             Robot robot = Robot::getInstance(role.getModel(), mAsk);
             if(robot.isMobile())
             {
@@ -1756,7 +1756,7 @@ void TransportNetwork::postRoleAssignments()
                 numberOfTimepoints, numberOfLocations);
 
         // Only branch on the mobile systems
-        using namespace organization_model::facades;
+        using namespace moreorg::facades;
         Robot robot = Robot::getInstance(role.getModel(), mAsk);
         if(robot.isMobile())
         {
@@ -2007,7 +2007,7 @@ std::string TransportNetwork::modelUsageToString() const
     ss << std::endl;
 
     int modelIndex = 0;
-    organization_model::ModelPool::const_iterator cit = mModelPool.begin();
+    moreorg::ModelPool::const_iterator cit = mModelPool.begin();
     for(; cit != mModelPool.end(); ++cit, ++modelIndex)
     {
         const owlapi::model::IRI& model = cit->first;
@@ -2106,7 +2106,7 @@ Gecode::ExecStatus TransportNetwork::propagateImmobileAgentConstraints(const Spa
     for(size_t idx = 0; idx < mActiveRoleList.size(); ++idx)
     {
         const Role& role = mActiveRoleList[idx];
-        using namespace organization_model::facades;
+        using namespace moreorg::facades;
         Robot robot = Robot::getInstance(role.getModel(), mAsk);
         if(!robot.isMobile())
         {

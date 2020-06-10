@@ -7,14 +7,14 @@
 #include <templ/solvers/temporal/Chronicle.hpp>
 #include "test_utils.hpp"
 
-#include <organization_model/vocabularies/OM.hpp>
-#include <organization_model/OrganizationModel.hpp>
+#include <moreorg/vocabularies/OM.hpp>
+#include <moreorg/OrganizationModel.hpp>
 #include <templ/Mission.hpp>
 
 using namespace templ;
 using namespace templ::symbols;
 using namespace templ::solvers::temporal;
-using namespace organization_model;
+using namespace moreorg;
 
 namespace pa = templ::solvers::temporal::point_algebra;
 
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     // --> translate into systems and update timings accordingly
     // --> mission should contain sychronization points
 
-    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
+    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(
                 getRootDir() + "test/data/om-schema-v0.8.owl");
     owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("LocationImageProvider");
 
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(mission_1)
     Constraint::Ptr t1_t2_constraint =  point_algebra::QualitativeTimePointConstraint::create(t1,t2, point_algebra::QualitativeTimePointConstraint::Less);
     mission.addConstraint(t1_t2_constraint);
 
-    organization_model::ModelPool modelPool;
+    moreorg::ModelPool modelPool;
     modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
     mission.setAvailableResources(modelPool);
 

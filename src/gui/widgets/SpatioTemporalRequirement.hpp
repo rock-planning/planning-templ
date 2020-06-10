@@ -4,7 +4,7 @@
 #include "../../io/MissionRequirements.hpp"
 #include "ModelCardinality.hpp"
 #include "../../solvers/temporal/PersistenceCondition.hpp"
-#include <organization_model/OrganizationModelAsk.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
 
 #include <QWidget>
 
@@ -23,7 +23,7 @@ class SpatioTemporalRequirement : public QWidget
 
 public:
     SpatioTemporalRequirement(
-            const organization_model::OrganizationModelAsk& ask,
+            const moreorg::OrganizationModelAsk& ask,
             QWidget* parent = NULL);
 
     ~SpatioTemporalRequirement();
@@ -58,7 +58,7 @@ signals:
 
 private:
     Ui::SpatioTemporalRequirement* mpUi;
-    organization_model::OrganizationModelAsk mAsk;
+    moreorg::OrganizationModelAsk mAsk;
 };
 
 } // namespace widgets

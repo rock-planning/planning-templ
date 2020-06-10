@@ -4,7 +4,7 @@
 #include "../Mission.hpp"
 #include "VRPProblem.hpp"
 #include "../SpaceTime.hpp"
-#include <organization_model/OrganizationModel.hpp>
+#include <moreorg/OrganizationModel.hpp>
 
 namespace templ {
 namespace benchmark {
@@ -49,9 +49,9 @@ protected:
 
     size_t mNumberOfLocations;
     size_t mNumberOfTimepoints;
-    organization_model::ModelPool mMinPool;
-    organization_model::ModelPool mMaxPool;
-    organization_model::ModelPool mAgentPool;
+    moreorg::ModelPool mMinPool;
+    moreorg::ModelPool mMaxPool;
+    moreorg::ModelPool mAgentPool;
     size_t mMinAgentCount;
     size_t mMaxAgentCount;
 
@@ -62,7 +62,7 @@ protected:
     // or maybe mix the mission
     double mRatioFunctionaltiesAgents;
 
-    organization_model::OrganizationModel::Ptr mpOrganizationModel;
+    moreorg::OrganizationModel::Ptr mpOrganizationModel;
 };
 
 } // end namespace benchmark

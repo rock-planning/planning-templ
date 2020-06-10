@@ -59,7 +59,7 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
     XMLUtils::endElement(writer); // end organization_model
 
     XMLUtils::startElement(writer, "resources");
-    for(const organization_model::ModelPool::value_type& r : mission.getAvailableResources())
+    for(const moreorg::ModelPool::value_type& r : mission.getAvailableResources())
     {
         XMLUtils::startElement(writer, "resource");
         XMLUtils::startElement(writer, "model");
@@ -195,12 +195,12 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
             size_t maxCardinality = std::numeric_limits<size_t>::max();
 
             // minCardinalities
-            organization_model::ModelPool::const_iterator minIt =  ftr.getMinCardinalities().find(model);
+            moreorg::ModelPool::const_iterator minIt =  ftr.getMinCardinalities().find(model);
             if(minIt != ftr.getMinCardinalities().end())
             {
                 minCardinality = minIt->second;
             }
-            organization_model::ModelPool::const_iterator maxIt =  ftr.getMaxCardinalities().find(model);
+            moreorg::ModelPool::const_iterator maxIt =  ftr.getMaxCardinalities().find(model);
             if(maxIt != ftr.getMaxCardinalities().end())
             {
                 if(maxIt->second != std::numeric_limits<size_t>::max())
@@ -237,7 +237,7 @@ void MissionWriter::write(const std::string& path, const Mission& mission, const
             }
         }
 
-        for(const organization_model::Resource& r : ftr.getRequiredResources())
+        for(const moreorg::Resource& r : ftr.getRequiredResources())
         {
             XMLUtils::startElement(writer, "resource");
             XMLUtils::startElement(writer, "model");

@@ -5,9 +5,9 @@
 #include <vector>
 #include <cstdint>
 #include <owlapi/model/OWLOntologyAsk.hpp>
-#include <organization_model/OrganizationModelAsk.hpp>
-#include <organization_model/vocabularies/OM.hpp>
-#include <organization_model/Resource.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
+#include <moreorg/vocabularies/OM.hpp>
+#include <moreorg/Resource.hpp>
 #include "temporal/Interval.hpp"
 #include "../symbols/constants/Location.hpp"
 
@@ -40,11 +40,11 @@ public:
      * \param time
      */
     FluentTimeResource(
-            const organization_model::OrganizationModelAsk& ask,
+            const moreorg::OrganizationModelAsk& ask,
             const owlapi::model::IRI& resource,
             symbols::constants::Location::Ptr& location,
             temporal::Interval timeInterval,
-            const organization_model::ModelPool& availableModels = organization_model::ModelPool());
+            const moreorg::ModelPool& availableModels = moreorg::ModelPool());
 
     bool operator==(const FluentTimeResource& other) const;
     bool operator<(const FluentTimeResource& other) const;
@@ -52,8 +52,8 @@ public:
     std::string toString(uint32_t indent = 0) const;
     static std::string toString(const List& list, uint32_t indent = 0);
 
-    void setOrganizationModelAsk(const organization_model::OrganizationModelAsk& ask) { mOrganizationModelAsk = ask; }
-    const organization_model::OrganizationModelAsk& getOrganizationModelAsk() const { return mOrganizationModelAsk; }
+    void setOrganizationModelAsk(const moreorg::OrganizationModelAsk& ask) { mOrganizationModelAsk = ask; }
+    const moreorg::OrganizationModelAsk& getOrganizationModelAsk() const { return mOrganizationModelAsk; }
 
     /**
      * Compute only the spatio-temporal qualification for identification of the
@@ -144,12 +144,12 @@ public:
     /**
      * Get the minimum cardinalities for a number of resources
      */
-    const organization_model::ModelPool& getMinCardinalities() const { return mMinCardinalities; }
+    const moreorg::ModelPool& getMinCardinalities() const { return mMinCardinalities; }
 
     /**
      * Set the minimum cardinalities for resources
      */
-    void setMinCardinalities(const organization_model::ModelPool& m) { mMinCardinalities = m; }
+    void setMinCardinalities(const moreorg::ModelPool& m) { mMinCardinalities = m; }
 
     /**
      * Set the minimum cardinality for a particular resource
@@ -159,12 +159,12 @@ public:
     /**
      * Get the maximum cardinalities for the required resources
      */
-    const organization_model::ModelPool& getMaxCardinalities() const { return mMaxCardinalities; }
+    const moreorg::ModelPool& getMaxCardinalities() const { return mMaxCardinalities; }
 
     /**
      * Set the maximum cardinalities for resources
      */
-    void setMaxCardinalities(const organization_model::ModelPool& m) { mMaxCardinalities = m; }
+    void setMaxCardinalities(const moreorg::ModelPool& m) { mMaxCardinalities = m; }
 
     /**
      * Set the maximum cardinality for a particular resource
@@ -231,18 +231,18 @@ public:
      * Get the set of functionalities this FluentTimeResource requires
      * This is a subset of the overall required resources
      */
-    organization_model::Resource::Set getRequiredResources() const;
+    moreorg::Resource::Set getRequiredResources() const;
 
     /**
      * Set the functionalities, i.e. overwrite all existing
      */
-    void setRequiredResources(const organization_model::Resource::Set& resources) { mRequiredResources = resources; }
+    void setRequiredResources(const moreorg::Resource::Set& resources) { mRequiredResources = resources; }
 
     /**
      * Add a functionality constraint
      * \param constraint Functionality constraint
      */
-    void addRequiredResource(const organization_model::Resource& resource);
+    void addRequiredResource(const moreorg::Resource& resource);
 
     /**
      * Create a compact representation for all requirement that
@@ -267,7 +267,7 @@ public:
 
      * \return ModelPools that fulfill the requirement
      */
-    organization_model::ModelPool::Set getDomain() const;
+    moreorg::ModelPool::Set getDomain() const;
 
     /**
      * Get the index of a fluent in a list of fluents
@@ -306,7 +306,7 @@ public:
 
 private:
     /// Allow to map between indexes and symbols
-    organization_model::OrganizationModelAsk mOrganizationModelAsk;
+    moreorg::OrganizationModelAsk mOrganizationModelAsk;
 
     /// Location idx for processing in CSP
     size_t mFluentIdx;
@@ -319,12 +319,12 @@ private:
     temporal::Interval mTimeInterval;
 
     // Set of required resources including additional constraints
-    mutable organization_model::Resource::Set mRequiredResources;
+    mutable moreorg::Resource::Set mRequiredResources;
 
     /// min cardinalities of the available models
-    organization_model::ModelPool mMinCardinalities;
+    moreorg::ModelPool mMinCardinalities;
     /// max cardinalities of the available models
-    organization_model::ModelPool mMaxCardinalities;
+    moreorg::ModelPool mMaxCardinalities;
 };
 
 } // end namespace solvers

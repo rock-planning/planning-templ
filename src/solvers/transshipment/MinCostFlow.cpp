@@ -3,7 +3,7 @@
 #include <graph_analysis/BipartiteGraph.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
 #include <graph_analysis/GraphIO.hpp>
-#include <organization_model/facades/Robot.hpp>
+#include <moreorg/facades/Robot.hpp>
 #include <graph_analysis/algorithms/ConstraintViolation.hpp>
 
 #include "../FluentTimeResource.hpp"
@@ -22,7 +22,7 @@ MinCostFlow::MinCostFlow(
         const std::map<Role, csp::RoleTimeline>& minRequiredTimelines,
         const symbols::constants::Location::PtrList& locations,
         const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
-        const organization_model::OrganizationModelAsk& ask,
+        const moreorg::OrganizationModelAsk& ask,
         const utils::Logger::Ptr& logger,
         graph_analysis::algorithms::LPSolver::Type solverType,
         double feasibilityTimeoutInMs)
@@ -142,7 +142,7 @@ void MinCostFlow::setCommoditySupplyAndDemand()
         std::vector<Role>::const_iterator cit = std::find(mCommoditiesRoles.begin(), mCommoditiesRoles.end(), role);
         if(cit != mCommoditiesRoles.end())
         {
-            organization_model::facades::Robot robot = role.getFacade(mAsk);
+            moreorg::facades::Robot robot = role.getFacade(mAsk);
             uint32_t transportDemand = robot.getTransportDemand();
             if(transportDemand == 0)
             {

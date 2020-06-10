@@ -1,7 +1,7 @@
 #include "MissionGenerator.hpp"
 #include <sstream>
-#include <organization_model/OrganizationModel.hpp>
-#include <organization_model/vocabularies/VRP.hpp>
+#include <moreorg/OrganizationModel.hpp>
+#include <moreorg/vocabularies/VRP.hpp>
 #include <graph_analysis/algorithms/MultiCommodityMinCostFlow.hpp>
 
 #include "../symbols/constants/Location.hpp"
@@ -10,7 +10,7 @@
 #include "../solvers/transshipment/MinCostFlow.hpp"
 #include "../constraints/ModelConstraint.hpp"
 
-using namespace organization_model;
+using namespace moreorg;
 using namespace templ::symbols;
 using namespace templ::solvers::temporal::point_algebra;
 using namespace templ::solvers::temporal;
@@ -40,10 +40,10 @@ void MissionGenerator::loadConfiguration(const std::string& configurationFile)
     mNumberOfTimepoints = configuration.getValueAs<size_t>("MissionGenerator/timepoints",0);
     owlapi::model::IRI organizationModelIRI = configuration.getValueAs<std::string>("MissionGenerator/organization_model");
 
-    mpOrganizationModel = organization_model::OrganizationModel::getInstance(organizationModelIRI);
+    mpOrganizationModel = moreorg::OrganizationModel::getInstance(organizationModelIRI);
 
-    organization_model::OrganizationModelAsk ask(mpOrganizationModel);
-    owlapi::model::IRIList agents = ask.ontology().allSubClassesOf(organization_model::vocabulary::OM::Actor());
+    moreorg::OrganizationModelAsk ask(mpOrganizationModel);
+    owlapi::model::IRIList agents = ask.ontology().allSubClassesOf(moreorg::vocabulary::OM::Actor());
 
     mMinPool.clear();
     mMaxPool.clear();
@@ -84,7 +84,7 @@ Mission::Ptr MissionGenerator::convert(const VRPProblem& vrp)
     // Add constants
     size_t idx = 0;
     TimePoint::Ptr endOfFirstInterval;
-    organization_model::ModelPool availableResources;
+    moreorg::ModelPool availableResources;
     availableResources[vocabulary::VRP::Commodity()] = vrp.getTotalDemand();
     availableResources[vocabulary::VRP::Vehicle()] = vrp.getVehicles();
     mission->setAvailableResources(availableResources);
@@ -282,7 +282,7 @@ Mission::Ptr MissionGenerator::generate()
     SpaceTime::Network network = generateNetwork();
     Mission::Ptr mission = sampleFromNetwork(network);
     // create a network
-    //organization_model::ModelPool
+    //moreorg::ModelPool
     return mission;
 }
 
@@ -311,7 +311,7 @@ Mission::Ptr MissionGenerator::sampleFromNetwork(const SpaceTime::Network& netwo
         SpaceTime::RoleInfoSpaceTimeTuple::Ptr tuple =
             network.tupleByKeys(location, timepoints[0]);
 
-        organization_model::ModelPool agentPool = tuple->getModelPool({ RoleInfo::ASSIGNED, RoleInfo::AVAILABLE});
+        moreorg::ModelPool agentPool = tuple->getModelPool({ RoleInfo::ASSIGNED, RoleInfo::AVAILABLE});
         for(const std::pair<owlapi::model::IRI, size_t>& v : agentPool)
         {
             mission->addResourceLocationCardinalityConstraint(location,
@@ -344,7 +344,7 @@ Mission::Ptr MissionGenerator::sampleFromNetwork(const SpaceTime::Network& netwo
         {
             continue;
         }
-        organization_model::ModelPool agentPool =
+        moreorg::ModelPool agentPool =
             dynamic_pointer_cast<RoleInfoWeightedEdge>(edge)->getModelPool({
                     RoleInfo::ASSIGNED, RoleInfo::AVAILABLE });
         if(agentPool.isNull())
@@ -377,7 +377,7 @@ Mission::Ptr MissionGenerator::sampleFromNetwork(const SpaceTime::Network& netwo
             dynamic_pointer_cast<SpaceTime::RoleInfoSpaceTimeTuple>(edge->getTargetVertex());
         relevantEdges.erase(relevantEdges.begin() + edgeIdx);
 
-        organization_model::ModelPool agentPool = stEdge->getModelPool({
+        moreorg::ModelPool agentPool = stEdge->getModelPool({
                 RoleInfo::ASSIGNED, RoleInfo::AVAILABLE});
 
         try {
@@ -482,7 +482,7 @@ SpaceTime::Network MissionGenerator::generateNetwork()
     std::cout << mAgentPool.toString() <<
         std::endl;
     // create role path for existing roles
-    organization_model::OrganizationModelAsk ask(mpOrganizationModel, mAgentPool,
+    moreorg::OrganizationModelAsk ask(mpOrganizationModel, mAgentPool,
             true);
     Role::List roles = Role::toList(mAgentPool);
 
@@ -579,7 +579,7 @@ SpaceTime::Network MissionGenerator::generateNetwork()
                         {
                             candidates.push_back(value);
                         } else {
-                            organization_model::Resource::Set moveToResource = {
+                            moreorg::Resource::Set moveToResource = {
                                 Resource(vocabulary::OM::resolve("MoveTo")) };
 
                             RoleInfoWeightedEdge::Ptr roleEdge =
@@ -588,7 +588,7 @@ SpaceTime::Network MissionGenerator::generateNetwork()
                                     RoleInfo::AVAILABLE});
 
                             pool[role.getModel()] += 1;
-                            organization_model::ModelPool::List coalitionStructure = ask.findFeasibleCoalitionStructure(pool,moveToResource, 1);
+                            moreorg::ModelPool::List coalitionStructure = ask.findFeasibleCoalitionStructure(pool,moveToResource, 1);
                             if(!coalitionStructure.empty())
                             {
                                 candidates.push_back(value);

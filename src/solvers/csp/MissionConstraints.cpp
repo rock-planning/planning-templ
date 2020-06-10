@@ -1,7 +1,7 @@
 #include "MissionConstraints.hpp"
 #include <gecode/minimodel.hh>
 #include "utils/Converter.hpp"
-#include <organization_model/Algebra.hpp>
+#include <moreorg/Algebra.hpp>
 
 namespace templ {
 namespace solvers {
@@ -537,8 +537,8 @@ void MissionConstraints::addModelRequirement(
 
 void MissionConstraints::addResourceRequirement(std::vector<FluentTimeResource>& resourceRequirements,
         const FluentTimeResource& fts,
-        const organization_model::Resource& resource,
-        organization_model::OrganizationModelAsk ask)
+        const moreorg::Resource& resource,
+        moreorg::OrganizationModelAsk ask)
 {
     // identify the fluent time resource
     size_t idx = FluentTimeResource::getIndex(resourceRequirements, fts);
@@ -551,14 +551,14 @@ void MissionConstraints::addResourceRequirement(std::vector<FluentTimeResource>&
     // TODO: should max be really changed here, it should be rather min to be
     // updated -- though it can be checked here if max cardinalities are not
     // exceeded
-    ftr.setMaxCardinalities( organization_model::Algebra::max(ftr.getMaxCardinalities(), ask.getFunctionalSaturationBound(resource) ));
+    ftr.setMaxCardinalities( moreorg::Algebra::max(ftr.getMaxCardinalities(), ask.getFunctionalSaturationBound(resource) ));
     LOG_DEBUG_S << "Fluent after adding function requirement: " << ftr.toString();
 }
 
 void MissionConstraints::addResourceRequirement(std::vector<FluentTimeResource>& resourceRequirements,
         const FluentTimeResource::Set& ftrs,
-        const organization_model::Resource& resource,
-        organization_model::OrganizationModelAsk ask)
+        const moreorg::Resource& resource,
+        moreorg::OrganizationModelAsk ask)
 {
     for(const FluentTimeResource& ftr : ftrs)
     {
@@ -570,7 +570,7 @@ void MissionConstraints::addResourceRequirement(std::vector<FluentTimeResource>&
 }
 
 size_t MissionConstraints::getResourceIndex(const owlapi::model::IRIList& allAvailableResources,
-        const organization_model::Resource& resource)
+        const moreorg::Resource& resource)
 {
     // Find the function requirement index
     size_t index = 0;

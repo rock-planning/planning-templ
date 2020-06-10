@@ -91,7 +91,7 @@ rock_library(templ_core
     DEPS_PKGCONFIG graph_analysis
         numeric
         owlapi
-        organization_model
+        moreorg
         libxml-2.0
         base-types
         eigen3

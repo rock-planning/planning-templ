@@ -2,7 +2,7 @@
 #include "../solvers/FluentTimeResource.hpp"
 #include <boost/algorithm/string.hpp>
 
-using namespace organization_model;
+using namespace moreorg;
 
 namespace templ {
 namespace io {
@@ -122,7 +122,7 @@ std::string LatexWriter::toLatex(const solvers::FluentTimeResource& ftr)
     owlapi::model::IRIList functionalities;
     std::stringstream ssAgents;
 
-    organization_model::OrganizationModelAsk ask = ftr.getOrganizationModelAsk();
+    moreorg::OrganizationModelAsk ask = ftr.getOrganizationModelAsk();
 
     ModelPool pool = ftr.getMinCardinalities();
     for(ModelPool::value_type& v : pool)

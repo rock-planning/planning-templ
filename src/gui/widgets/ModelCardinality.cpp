@@ -23,7 +23,7 @@ ModelCardinality::~ModelCardinality()
     delete mpUi;
 }
 
-void ModelCardinality::prepare(const organization_model::OrganizationModelAsk& ask)
+void ModelCardinality::prepare(const moreorg::OrganizationModelAsk& ask)
 {
     mpUi->comboBoxModels->clear();
 

@@ -2,7 +2,7 @@
 #define TEMPL_GUI_WIDGETS_PROPERTY_OVERRIDE_HPP
 
 #include "../../DataPropertyAssignment.hpp"
-#include <organization_model/OrganizationModelAsk.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
 
 #include <QWidget>
 
@@ -21,14 +21,14 @@ class PropertyOverride : public QWidget
 
 public:
     PropertyOverride(
-        const organization_model::OrganizationModelAsk& ask,
+        const moreorg::OrganizationModelAsk& ask,
         QWidget* parent = NULL);
     ~PropertyOverride();
 
     void clear();
     void prepare();
 
-    void setOrganizationModelAsk(const organization_model::OrganizationModelAsk& ask);
+    void setOrganizationModelAsk(const moreorg::OrganizationModelAsk& ask);
 
 
     DataPropertyAssignment getDataPropertyAssignment() const;
@@ -41,7 +41,7 @@ private slots:
 
 private:
     Ui::PropertyOverride* mpUi;
-    organization_model::OrganizationModelAsk mAsk;
+    moreorg::OrganizationModelAsk mAsk;
 };
 
 } // end namespace widgets

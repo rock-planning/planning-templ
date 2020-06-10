@@ -3,9 +3,9 @@
 
 #include <unordered_set>
 
-#include <organization_model/OrganizationModel.hpp>
-#include <organization_model/OrganizationModelAsk.hpp>
-#include <organization_model/ModelPool.hpp>
+#include <moreorg/OrganizationModel.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
+#include <moreorg/ModelPool.hpp>
 
 #include "Constraint.hpp"
 #include "solvers/temporal/Interval.hpp"
@@ -66,7 +66,7 @@ public:
      */
     Mission();
 
-    Mission(const organization_model::OrganizationModel::Ptr& om, const std::string& name = "");
+    Mission(const moreorg::OrganizationModel::Ptr& om, const std::string& name = "");
 
     Mission(const Mission& other);
 
@@ -103,24 +103,24 @@ public:
      * Set the organization model in use -- property values assigned through the
      * organization model, can be overriden using the data property assignment
      */
-    void setOrganizationModel(const organization_model::OrganizationModel::Ptr& organizationModel);
+    void setOrganizationModel(const moreorg::OrganizationModel::Ptr& organizationModel);
 
     /**
      * Get the organization model
-     * \return organization_model
+     * \return moreorg
      */
-    organization_model::OrganizationModel::Ptr getOrganizationModel() const { return mpOrganizationModel; }
+    moreorg::OrganizationModel::Ptr getOrganizationModel() const { return mpOrganizationModel; }
 
     /**
       * Set the organization model ask object
       */
-    void setOrganizationModelAsk(const organization_model::OrganizationModelAsk& ask) { mOrganizationModelAsk = ask; }
+    void setOrganizationModelAsk(const moreorg::OrganizationModelAsk& ask) { mOrganizationModelAsk = ask; }
 
     /**
      * Get access to the OrganizationModelAsk object to query information from
      * the associated organization model
      */
-    const organization_model::OrganizationModelAsk& getOrganizationModelAsk() const { return mOrganizationModelAsk; }
+    const moreorg::OrganizationModelAsk& getOrganizationModelAsk() const { return mOrganizationModelAsk; }
 
     /**
      * Set a list of DataPropertyAssignments
@@ -149,13 +149,13 @@ public:
      * bound
      * \param modelPool List of resources and cardinalities
      */
-    void setAvailableResources(const organization_model::ModelPool& modelPool);
+    void setAvailableResources(const moreorg::ModelPool& modelPool);
 
     /**
      * Get the model pool of available resources in terms of available agent
      * models
      */
-    const organization_model::ModelPool& getAvailableResources() const { return mModelPool; }
+    const moreorg::ModelPool& getAvailableResources() const { return mModelPool; }
 
     /**
      * Get all locations as defined along with the mission specification
@@ -565,14 +565,14 @@ protected:
     void setScenarioFile(const std::string& filename) { mScenarioFile = filename; }
 
 private:
-    organization_model::OrganizationModel::Ptr mpOrganizationModel;
-    organization_model::OrganizationModelAsk mOrganizationModelAsk;
+    moreorg::OrganizationModel::Ptr mpOrganizationModel;
+    moreorg::OrganizationModelAsk mOrganizationModelAsk;
     /// Name of the mission
     std::string mName;
     /// Description of the mission
     std::string mDescription;
     // The set of available resources
-    organization_model::ModelPool mModelPool;
+    moreorg::ModelPool mModelPool;
     // Set of available roles that exists within this mission based on the
     // possible instantiations of the model pool
     Role::List mRoles;

@@ -39,7 +39,7 @@ public:
         const std::map<Role, csp::RoleTimeline>& minRequiredTimelines,
         const symbols::constants::Location::PtrList& locations,
         const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
-        const organization_model::OrganizationModelAsk& ask,
+        const moreorg::OrganizationModelAsk& ask,
         const utils::Logger::Ptr& logger = utils::Logger::Ptr());
 
     /**
@@ -96,9 +96,9 @@ private:
 
     SpaceTime::Network mSpaceTimeNetwork;
     /// Allow to check valid transitions
-    organization_model::Resource::Set mMoveToResource;
+    moreorg::Resource::Set mMoveToResource;
 
-    organization_model::OrganizationModelAsk mAsk;
+    moreorg::OrganizationModelAsk mAsk;
     utils::Logger::Ptr mpLogger;
 };
 

@@ -3,8 +3,8 @@
 
 #include "../symbols/constants/Location.hpp"
 #include "../Role.hpp"
-#include <organization_model/OrganizationModelAsk.hpp>
-#include <organization_model/vocabularies/OM.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
+#include <moreorg/vocabularies/OM.hpp>
 
 namespace templ {
 namespace solvers {
@@ -12,9 +12,9 @@ namespace solvers {
 class Cost
 {
 public:
-    Cost(const organization_model::OrganizationModelAsk& organizationModelAsk,
+    Cost(const moreorg::OrganizationModelAsk& organizationModelAsk,
             const owlapi::model::IRI& mobilityFunctionality =
-            organization_model::vocabulary::OM::resolve("MoveTo"),
+            moreorg::vocabulary::OM::resolve("MoveTo"),
             double feasibilityCheckTimeoutInMs = 20000);
 
     /**
@@ -40,8 +40,8 @@ public:
         const CoalitionStructure& to);
 
 private:
-    organization_model::OrganizationModelAsk mOrganizationModelAsk;
-    organization_model::Resource::Set mMoveToResource;
+    moreorg::OrganizationModelAsk mOrganizationModelAsk;
+    moreorg::Resource::Set mMoveToResource;
     double mFeasibilityCheckTimeoutInMs;
 };
 

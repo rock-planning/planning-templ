@@ -27,7 +27,7 @@ public:
     /**
      * Construct a mission from given specification and organization model
      */
-    static Mission fromFile(const std::string& url, const organization_model::OrganizationModel::Ptr& organizationModel = organization_model::OrganizationModel::Ptr());
+    static Mission fromFile(const std::string& url, const moreorg::OrganizationModel::Ptr& organizationModel = moreorg::OrganizationModel::Ptr());
 
 private:
     static std::pair<owlapi::model::IRI, size_t> parseResource(xmlDocPtr doc, xmlNodePtr current);
@@ -35,7 +35,7 @@ private:
     /**
      * Extrac the set of available resources
      */
-    static organization_model::ModelPool parseResources(xmlDocPtr doc, xmlNodePtr current);
+    static moreorg::ModelPool parseResources(xmlDocPtr doc, xmlNodePtr current);
 
     static SpatialRequirement parseSpatialRequirement(xmlDocPtr doc, xmlNodePtr current);
 
@@ -159,11 +159,11 @@ private:
      \verbatim
      <mission>
         ...
-        <organization_model>http://www.rock-robotics.org/2015/12/projects/TransTerrA</organization_model>
+        <moreorg>http://www.rock-robotics.org/2015/12/projects/TransTerrA</moreorg>
      </mission>
      \endverbatim
      */
-    static organization_model::OrganizationModel::Ptr getOrganizationModel(const std::string& url);
+    static moreorg::OrganizationModel::Ptr getOrganizationModel(const std::string& url);
 };
 
 } // end namespace io

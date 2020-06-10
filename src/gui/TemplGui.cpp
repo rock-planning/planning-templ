@@ -60,7 +60,7 @@ using namespace graph_analysis::gui;
 namespace templ {
 namespace gui {
 
-organization_model::OrganizationModel::Ptr TemplGui::mpsOrganizationModel;
+moreorg::OrganizationModel::Ptr TemplGui::mpsOrganizationModel;
 
 TemplGui::TemplGui()
     : QMainWindow()
@@ -218,7 +218,7 @@ void TemplGui::createMenus()
     mpUi->filesystemTreeView->setRootIndex(model->index(QDir::currentPath()));
     mpUi->filesystemTab->setEnabled(true);
 
-    organization_model::ModelPool modelPool;
+    moreorg::ModelPool modelPool;
     modelPool["http://test/sherpa#model"] = 5;
     QAbstractTableModel* agentStyleModel = new models::AgentStyleModel(modelPool);
     mpUi->agentStyleModelView->setModel(agentStyleModel);
@@ -359,13 +359,13 @@ void TemplGui::importSolution(const QString& settingsLabel, const QString& filen
                     mission->getLocations(), mission->getTimepoints());
 
             // FIXME: mission loading should account for configuration setting
-            organization_model::OrganizationModelAsk ask(mission->getOrganizationModel()
+            moreorg::OrganizationModelAsk ask(mission->getOrganizationModel()
                     , mission->getAvailableResources()
                     , true
                     , mConfiguration.getValueAs<double>("TransportNetwork/search/options/connectivity/timeout_in_s",
                         20)*1000
                     , mConfiguration.getValue("TransportNetwork/search/options/connectivity/interface-type"
-                         , organization_model::vocabulary::OM::ElectroMechanicalInterface().toString())
+                         , moreorg::vocabulary::OM::ElectroMechanicalInterface().toString())
                     );
             mission->setOrganizationModelAsk(ask);
             solvers::SolutionAnalysis sa(mission, network);
@@ -451,7 +451,7 @@ void TemplGui::importOrganizationModel()
         QDir::currentPath(),
         tr("Organization Model File (*.xml *.owl)"));
 
-    mpsOrganizationModel = organization_model::OrganizationModel::getInstance(filename.toStdString());
+    mpsOrganizationModel = moreorg::OrganizationModel::getInstance(filename.toStdString());
 
     settings.setValue("iri", mpsOrganizationModel->ontology()->getIRI().toString().c_str());
 }
@@ -465,7 +465,7 @@ void TemplGui::importRecentOrganizationModel()
         QMessageBox::warning(this, "Templ", QString("OrganizationModel: not recent model detected"));
     } else {
         owlapi::model::IRI iri(iriSetting.toStdString());
-        mpsOrganizationModel = organization_model::OrganizationModel::getInstance(iri);
+        mpsOrganizationModel = moreorg::OrganizationModel::getInstance(iri);
     }
 }
 

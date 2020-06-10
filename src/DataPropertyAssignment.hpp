@@ -2,7 +2,7 @@
 #define TEMPL_DATA_PROPERTY_ASSIGNMENT_HPP
 
 #include <owlapi/model/IRI.hpp>
-#include <organization_model/OrganizationModel.hpp>
+#include <moreorg/OrganizationModel.hpp>
 
 namespace owlapi {
 namespace model {
@@ -107,7 +107,7 @@ public:
      * Apply a set of DataPropertyAssignment onto an existing
      * ontology/organization model
      */
-    static void apply(organization_model::OrganizationModel::Ptr& om, const DataPropertyAssignment::List& assignments);
+    static void apply(moreorg::OrganizationModel::Ptr& om, const DataPropertyAssignment::List& assignments);
 
     /**
      * Apply this assignment to a ontology

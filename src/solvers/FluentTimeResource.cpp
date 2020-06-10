@@ -1,5 +1,5 @@
 #include "FluentTimeResource.hpp"
-#include <organization_model/Algebra.hpp>
+#include <moreorg/Algebra.hpp>
 #include <base-logging/Logging.hpp>
 #include <numeric/Combinatorics.hpp>
 #include "../utils/Index.hpp"
@@ -15,18 +15,18 @@ FluentTimeResource::FluentTimeResource()
 {}
 
 FluentTimeResource::FluentTimeResource(
-        const organization_model::OrganizationModelAsk& ask,
+        const moreorg::OrganizationModelAsk& ask,
         const owlapi::model::IRI& resourceModel,
         symbols::constants::Location::Ptr& location,
         temporal::Interval timeInterval,
-        const organization_model::ModelPool& availableModels)
+        const moreorg::ModelPool& availableModels)
     : mOrganizationModelAsk(ask)
     , mFluentIdx(0)
     , mpLocation(location)
     , mTimeInterval(timeInterval)
     , mMaxCardinalities(availableModels)
 {
-    organization_model::Resource resource(resourceModel);
+    moreorg::Resource resource(resourceModel);
     addRequiredResource(resource);
 }
 
@@ -74,14 +74,14 @@ std::string FluentTimeResource::toString(uint32_t indent) const
     ss << hspace << "    min cardinalities: " << std::endl
         << mMinCardinalities.toString(indent + 8) << std::endl;
     ss << hspace << "    resulting domain: " << std::endl;
-    organization_model::ModelPool::Set domain = getDomain();
-    organization_model::ModelPool::Set::const_iterator dit = domain.begin();
+    moreorg::ModelPool::Set domain = getDomain();
+    moreorg::ModelPool::Set::const_iterator dit = domain.begin();
     for(;dit != domain.end(); ++dit)
     {
         ss << dit->toString(indent + 8) << std::endl;
     }
     ss << hspace << "    required resources: " << std::endl;
-    ss << organization_model::Resource::toString(mRequiredResources, indent + 8) << std::endl;
+    ss << moreorg::Resource::toString(mRequiredResources, indent + 8) << std::endl;
     return ss.str();
 }
 
@@ -302,10 +302,10 @@ FluentTimeResource::List FluentTimeResource::createNonOverlappingRequirements(co
 
 bool FluentTimeResource::hasFunctionalityConstraint() const
 {
-    for(const organization_model::Resource& resource : mRequiredResources)
+    for(const moreorg::Resource& resource : mRequiredResources)
     {
         if( mOrganizationModelAsk.ontology().isSubClassOf(resource.getModel(),
-                    organization_model::vocabulary::OM::Functionality()))
+                    moreorg::vocabulary::OM::Functionality()))
         {
             return true;
         }
@@ -313,19 +313,19 @@ bool FluentTimeResource::hasFunctionalityConstraint() const
     return false;
 }
 
-organization_model::Resource::Set FluentTimeResource::getRequiredResources() const
+moreorg::Resource::Set FluentTimeResource::getRequiredResources() const
 {
     return mRequiredResources;
 }
 
-void FluentTimeResource::addRequiredResource(const organization_model::Resource& resource)
+void FluentTimeResource::addRequiredResource(const moreorg::Resource& resource)
 {
     mResources.insert(resource.getModel());
     if(mOrganizationModelAsk.ontology().isSubClassOf(resource.getModel(),
-                    organization_model::vocabulary::OM::Functionality()))
+                    moreorg::vocabulary::OM::Functionality()))
     {
         mRequiredResources.insert(resource);
-        mRequiredResources = organization_model::Resource::merge(mRequiredResources);
+        mRequiredResources = moreorg::Resource::merge(mRequiredResources);
     }
 }
 
@@ -358,17 +358,17 @@ void FluentTimeResource::merge(const FluentTimeResource& otherFtr)
     mResources.insert(otherFtr.mResources.begin(), otherFtr.mResources.end());
     mRequiredResources.insert(otherFtr.mRequiredResources.begin(),
             otherFtr.mRequiredResources.end());
-    mRequiredResources = organization_model::Resource::merge(mRequiredResources);
+    mRequiredResources = moreorg::Resource::merge(mRequiredResources);
 
-    mMinCardinalities = organization_model::Algebra::max(mMinCardinalities,
+    mMinCardinalities = moreorg::Algebra::max(mMinCardinalities,
             otherFtr.mMinCardinalities);
-    mMaxCardinalities = organization_model::Algebra::min(mMaxCardinalities,
+    mMaxCardinalities = moreorg::Algebra::min(mMaxCardinalities,
             otherFtr.mMaxCardinalities);
 }
 
-organization_model::ModelPool::Set FluentTimeResource::getDomain() const
+moreorg::ModelPool::Set FluentTimeResource::getDomain() const
 {
-    using namespace organization_model;
+    using namespace moreorg;
 
     // The domain definition accounts for service requirements as well as explicitly stated
     // resource model requirements
@@ -377,7 +377,7 @@ organization_model::ModelPool::Set FluentTimeResource::getDomain() const
     // where solutions can be picked
     //
     // Collect requiredResource, including functionality requirements
-    organization_model::Resource::Set requiredResources = getRequiredResources();
+    moreorg::Resource::Set requiredResources = getRequiredResources();
 
     // When retrieving combinations for requested functionality, then this is not the
     // complete set since this might conflict with the minCardinalities
@@ -386,11 +386,11 @@ organization_model::ModelPool::Set FluentTimeResource::getDomain() const
     //
     // The functional saturation bound has already been applied to the
     // organization model at initialization
-    organization_model::ModelPool::Set combinations = mOrganizationModelAsk.getResourceSupport(requiredResources);
+    moreorg::ModelPool::Set combinations = mOrganizationModelAsk.getResourceSupport(requiredResources);
 
     LOG_INFO_S << "Support for the following resource requested:" << std::endl
-        << organization_model::Functionality::toString(requiredResources) << std::endl
-        << "    agent combinations: " << organization_model::ModelPool::toString(combinations);
+        << moreorg::Functionality::toString(requiredResources) << std::endl
+        << "    agent combinations: " << moreorg::ModelPool::toString(combinations);
 
     LOG_INFO_S << "    max cardinalities: " << mMaxCardinalities.toString(8);
 

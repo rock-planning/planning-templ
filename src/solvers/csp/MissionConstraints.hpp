@@ -3,7 +3,7 @@
 
 #include <gecode/int.hh>
 #include <set>
-#include <organization_model/OrganizationModelAsk.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
 #include "../../Mission.hpp"
 #include "../FluentTimeResource.hpp"
 #include <numeric/Combinatorics.hpp>
@@ -308,8 +308,8 @@ public:
      */
     static void addResourceRequirement(std::vector<FluentTimeResource>& resourceRequirements,
             const FluentTimeResource& fts,
-            const organization_model::Resource& resource,
-            organization_model::OrganizationModelAsk ask);
+            const moreorg::Resource& resource,
+            moreorg::OrganizationModelAsk ask);
 
     /**
      * Add a particular resource (function) requirement to the current mission with respect
@@ -318,12 +318,12 @@ public:
      */
     static void addResourceRequirement(std::vector<FluentTimeResource>& resourceRequirements,
             const FluentTimeResource::Set& ftrs,
-            const organization_model::Resource& resource,
-            organization_model::OrganizationModelAsk ask);
+            const moreorg::Resource& resource,
+            moreorg::OrganizationModelAsk ask);
 
 private:
     static size_t getResourceIndex(const owlapi::model::IRIList& allAvailableResources,
-            const organization_model::Resource& resource);
+            const moreorg::Resource& resource);
 };
 
 } // end namespace csp

@@ -5,7 +5,7 @@
 
 #include <owlapi/Vocabulary.hpp>
 #include <owlapi/io/OWLOntologyIO.hpp>
-#include <organization_model/Algebra.hpp>
+#include <moreorg/Algebra.hpp>
 #include "solvers/FluentTimeResource.hpp"
 #include "solvers/temporal/point_algebra/TimePointComparator.hpp"
 #include "solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
@@ -26,7 +26,7 @@ Mission::Mission()
     , mpLogger(new utils::Logger())
 {}
 
-Mission::Mission(const organization_model::OrganizationModel::Ptr& om, const std::string& name)
+Mission::Mission(const moreorg::OrganizationModel::Ptr& om, const std::string& name)
     : mpTemporalConstraintNetwork(new solvers::temporal::QualitativeTemporalConstraintNetwork())
     , mpRelations(graph_analysis::BaseGraph::getInstance())
     , mpOrganizationModel(om)
@@ -37,7 +37,7 @@ Mission::Mission(const organization_model::OrganizationModel::Ptr& om, const std
 {
     // add all functionalities (which could be requested)
     //
-    owlapi::model::IRIList list = mOrganizationModelAsk.ontology().allSubClassesOf(organization_model::vocabulary::OM::Functionality());
+    owlapi::model::IRIList list = mOrganizationModelAsk.ontology().allSubClassesOf(moreorg::vocabulary::OM::Functionality());
     mRequestedResources.insert(mRequestedResources.begin(), list.begin(), list.end());
 }
 
@@ -80,14 +80,14 @@ Mission::Mission(const Mission& other)
 
 void Mission::setOrganizationModel(const owlapi::model::IRI& model)
 {
-    organization_model::OrganizationModel::Ptr om = make_shared<organization_model::OrganizationModel>(model);
+    moreorg::OrganizationModel::Ptr om = make_shared<moreorg::OrganizationModel>(model);
     setOrganizationModel(om);
 }
 
-void Mission::setOrganizationModel(const organization_model::OrganizationModel::Ptr& organizationModel)
+void Mission::setOrganizationModel(const moreorg::OrganizationModel::Ptr& organizationModel)
 {
     mpOrganizationModel = organizationModel;
-    mOrganizationModelAsk = organization_model::OrganizationModelAsk(organizationModel);
+    mOrganizationModelAsk = moreorg::OrganizationModelAsk(organizationModel);
 }
 
 void Mission::applyOrganizationModelOverrides()
@@ -95,7 +95,7 @@ void Mission::applyOrganizationModelOverrides()
     DataPropertyAssignment::apply(mpOrganizationModel, mDataPropertyAssignments);
 }
 
-void Mission::setAvailableResources(const organization_model::ModelPool& modelPool)
+void Mission::setAvailableResources(const moreorg::ModelPool& modelPool)
 {
     mModelPool = modelPool;
     refresh();
@@ -115,7 +115,7 @@ void Mission::refresh()
     {
         throw std::invalid_argument("templ::Mission::refresh: organization model is not set, so cannot refresh");
     }
-    mOrganizationModelAsk = organization_model::OrganizationModelAsk(mpOrganizationModel, mModelPool, true /*functional saturation bound*/);
+    mOrganizationModelAsk = moreorg::OrganizationModelAsk(mpOrganizationModel, mModelPool, true /*functional saturation bound*/);
 }
 
 symbols::ObjectVariable::Ptr Mission::getObjectVariable(const std::string& name, symbols::ObjectVariable::Type type) const
@@ -236,7 +236,7 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addResourceLocationCardinalit
         make_shared<object_variables::LocationCardinality>(location, cardinality, type);
 
     if(!mOrganizationModelAsk.ontology().isSubClassOf(resourceModel,
-            organization_model::vocabulary::OM::Resource()))
+            moreorg::vocabulary::OM::Resource()))
     {
         throw
             std::invalid_argument("templ::Mission::addResourceLocationCardinalityConstraint:"
@@ -416,10 +416,10 @@ void Mission::validateAvailableResources() const
 
 void Mission::updateMaxCardinalities(solvers::FluentTimeResource& ftr) const
 {
-    organization_model::ModelPool maxCardinalities = ftr.getMaxCardinalities();
+    moreorg::ModelPool maxCardinalities = ftr.getMaxCardinalities();
 
-    organization_model::ModelPool newMax =
-        organization_model::Algebra::min(maxCardinalities,
+    moreorg::ModelPool newMax =
+        moreorg::Algebra::min(maxCardinalities,
                 mModelPool);
     ftr.setMaxCardinalities(newMax);
 }
@@ -691,7 +691,7 @@ solvers::FluentTimeResource Mission::fromLocationCardinality(const solvers::temp
     );
 
     owlapi::model::OWLOntologyAsk ask = mission->getOrganizationModelAsk().ontology();
-    if(ask.isSubClassOf(resourceModel, organization_model::vocabulary::OM::Actor()))
+    if(ask.isSubClassOf(resourceModel, moreorg::vocabulary::OM::Actor()))
     {
         switch(locationCardinality->getCardinalityRestrictionType())
         {
@@ -711,7 +711,7 @@ solvers::FluentTimeResource Mission::fromLocationCardinality(const solvers::temp
                 break;
         }
     } else if(ask.isSubClassOf(resourceModel,
-                organization_model::vocabulary::OM::Functionality()))
+                moreorg::vocabulary::OM::Functionality()))
     {
         //  nothing to do since constructor of FluentTimeResource will handle
         //  the existence constraint min/maxCard == 1 for functionality
@@ -728,7 +728,7 @@ void Mission::saveInputData(const std::string& path) const
     if(boost::filesystem::create_directories(specDir) )
     {
         {
-            std::string filename = specDir.string() + "/organization_model.owl";
+            std::string filename = specDir.string() + "/moreorg.owl";
             owlapi::io::OWLOntologyIO::write(filename, getOrganizationModel()->ontology(), owlapi::io::RDFXML );
         }
         {

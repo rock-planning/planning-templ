@@ -12,7 +12,7 @@ namespace gui {
 namespace widgets {
 
 SpatioTemporalRequirement::SpatioTemporalRequirement(
-        const organization_model::OrganizationModelAsk& ask,
+        const moreorg::OrganizationModelAsk& ask,
         QWidget* parent)
     : QWidget(parent)
     , mpUi(new Ui::SpatioTemporalRequirement)

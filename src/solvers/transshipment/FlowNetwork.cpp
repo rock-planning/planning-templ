@@ -1,6 +1,6 @@
 #include "FlowNetwork.hpp"
 
-#include <organization_model/facades/Robot.hpp>
+#include <moreorg/facades/Robot.hpp>
 #include <graph_analysis/GraphIO.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
 #include <base-logging/Logging.hpp>
@@ -20,7 +20,7 @@ FlowNetwork::FlowNetwork(
         const std::map<Role, csp::RoleTimeline>& minRequiredTimelines,
         const symbols::constants::Location::PtrList& locations,
         const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
-        const organization_model::OrganizationModelAsk& ask,
+        const moreorg::OrganizationModelAsk& ask,
         const utils::Logger::Ptr& logger
     )
     : mExpandedTimelines(expandedTimelines)
@@ -35,7 +35,7 @@ FlowNetwork::FlowNetwork(
     /// register fully routed agent
     initialize(expandedTimelines, false);
 
-    using namespace organization_model;
+    using namespace moreorg;
     mMoveToResource.insert( Resource(vocabulary::OM::resolve("MoveTo")) );
 }
 
@@ -77,7 +77,7 @@ void FlowNetwork::initialize(const std::map<Role, csp::RoleTimeline>& timelines,
         // Check if this item is mobile, i.e. change change the location
         // WARNING: this is domain specific
         // transportCapacity
-        using namespace organization_model::facades;
+        using namespace moreorg::facades;
         const Robot& robot = roleTimeline.getRobot();
         if(!robot.isMobile())
         {
@@ -151,7 +151,7 @@ void FlowNetwork::initialize(const std::map<Role, csp::RoleTimeline>& timelines,
 
 transshipment::Flaw::List FlowNetwork::getInvalidTransitions(double feasibilityCheckTimeoutInMs) const
 {
-    organization_model::OrganizationModelAsk ask = mAsk;
+    moreorg::OrganizationModelAsk ask = mAsk;
     transshipment::Flaw::List flaws;
     if(feasibilityCheckTimeoutInMs <= 0)
     {
@@ -169,11 +169,11 @@ transshipment::Flaw::List FlowNetwork::getInvalidTransitions(double feasibilityC
             if(roleInfo->getWeight() < std::numeric_limits<uint32_t>::max())
             {
                 Role::Set roles = roleInfo->getRoles({ RoleInfo::ASSIGNED });
-                organization_model::ModelPool pool = roleInfo->getModelPool( { RoleInfo::ASSIGNED } );
+                moreorg::ModelPool pool = roleInfo->getModelPool( { RoleInfo::ASSIGNED } );
 
                 LOG_INFO_S << "Checking for infeasible coalition on transition:"
                     << pool.toString(4);
-                organization_model::ModelPool::List coalitionStructure =
+                moreorg::ModelPool::List coalitionStructure =
                     ask.findFeasibleCoalitionStructure(pool, mMoveToResource, feasibilityCheckTimeoutInMs);
                 if( coalitionStructure.empty() )
                 {

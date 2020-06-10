@@ -2,7 +2,7 @@
 #define TEMPL_GUI_MODELS_AGENT_STYLE_MODEL_HPP
 
 #include <QAbstractTableModel>
-#include <organization_model/ModelPool.hpp>
+#include <moreorg/ModelPool.hpp>
 #include "../../Role.hpp"
 
 namespace templ {
@@ -13,7 +13,7 @@ class AgentStyleModel : public QAbstractTableModel
     Q_OBJECT
 
 public:
-    AgentStyleModel(const organization_model::ModelPool& modelPool);
+    AgentStyleModel(const moreorg::ModelPool& modelPool);
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
 
@@ -39,7 +39,7 @@ public slots:
     void setColor(const QModelIndex& modelIndex);
 
 private:
-    organization_model::ModelPool mModelPool;
+    moreorg::ModelPool mModelPool;
     Role::List mRoles;
 
     QMap< QModelIndex, QMap<int, QVariant> > mModelData;

@@ -4,7 +4,7 @@
 #include <owlapi/model/OWLOntologyTell.hpp>
 #include <owlapi/model/OWLLiteral.hpp>
 
-using namespace organization_model;
+using namespace moreorg;
 using namespace owlapi::model;
 
 namespace templ {
@@ -18,7 +18,7 @@ DataPropertyAssignment::DataPropertyAssignment(const owlapi::model::IRI& subject
 {
 }
 
-void DataPropertyAssignment::apply(organization_model::OrganizationModel::Ptr& om, const DataPropertyAssignment::List& assignments)
+void DataPropertyAssignment::apply(moreorg::OrganizationModel::Ptr& om, const DataPropertyAssignment::List& assignments)
 {
     OWLOntologyAsk ask(om->ontology());
     OWLOntologyTell tell(om->ontology());

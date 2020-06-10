@@ -13,14 +13,14 @@ public:
  * pool combination
  * \return set of vectors
  */
-static std::set< std::vector<uint32_t> > toCSP(const Mission::Ptr& mission, const organization_model::ModelPool::Set& combinations);
+static std::set< std::vector<uint32_t> > toCSP(const Mission::Ptr& mission, const moreorg::ModelPool::Set& combinations);
 
 /**
  * Create a fully expanded vector sized the number of the missions available resources
  * The model pool updates the cardinality of relevant resources
  * \return a vector of resource cardinalities
  */
-static std::vector<uint32_t> toCSP(const Mission::Ptr& mission, const organization_model::ModelPool& combination);
+static std::vector<uint32_t> toCSP(const Mission::Ptr& mission, const moreorg::ModelPool& combination);
 
 /**
  * Get the model index in the available models of the mission

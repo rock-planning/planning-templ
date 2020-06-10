@@ -1,12 +1,12 @@
 #include <boost/test/unit_test.hpp>
 #include <templ/Mission.hpp>
 #include <templ/solvers/csp/FlawResolution.hpp>
-#include <organization_model/vocabularies/OM.hpp>
+#include <moreorg/vocabularies/OM.hpp>
 
 #include "../test_utils.hpp"
 
 using namespace templ;
-using namespace organization_model;
+using namespace moreorg;
 using namespace templ::symbols;
 
 namespace pa = templ::solvers::temporal::point_algebra;
@@ -24,7 +24,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //    // --> translate into systems and update timings accordingly
 //    // --> mission should contain sychronization points
 //
-//    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
+//    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(
 //                getRootDir() + "test/data/om-schema-latest.owl");
 //    owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 //
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //    using namespace solvers;
 //    {
 //        Mission::Ptr mission(new Mission(baseMission));
-//        organization_model::ModelPool modelPool;
+//        moreorg::ModelPool modelPool;
 //        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
 //        mission->setAvailableResources(modelPool);
 //        BOOST_REQUIRE_MESSAGE(mission->getOrganizationModel(), "Mission has organization model set");
@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //
 //    {
 //        Mission::Ptr mission(new Mission(baseMission));
-//        organization_model::ModelPool modelPool;
+//        moreorg::ModelPool modelPool;
 //        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
 //        mission->setAvailableResources(modelPool);
 //
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //
 //    {
 //        Mission::Ptr mission(new Mission(baseMission));
-//        organization_model::ModelPool modelPool;
+//        moreorg::ModelPool modelPool;
 //        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
 //        modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
 //        mission->setAvailableResources(modelPool);
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //
 //    {
 //        Mission::Ptr mission(new Mission(baseMission));
-//        organization_model::ModelPool modelPool;
+//        moreorg::ModelPool modelPool;
 //        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
 //        modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
 //        modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //    // --> translate into systems and update timings accordingly
 //    // --> mission should contain sychronization points
 //
-//    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
+//    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(
 //                getRootDir() + "test/data/om-schema-latest.owl");
 //    owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 //
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //    {
 //        Mission::Ptr mission(new Mission(baseMission));
 //
-//        organization_model::ModelPool modelPool;
+//        moreorg::ModelPool modelPool;
 //        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
 //        mission->setAvailableResources(modelPool);
 //        BOOST_REQUIRE_THROW(solvers::csp::ModelDistribution::solve(mission), std::runtime_error);
@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //    {
 //        Mission::Ptr mission(new Mission(baseMission));
 //
-//        organization_model::ModelPool modelPool;
+//        moreorg::ModelPool modelPool;
 //        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 10;
 //        mission->setAvailableResources(modelPool);
 //        std::vector<solvers::csp::ModelDistribution::Solution> solutions = solvers::csp::ModelDistribution::solve(mission);
@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //    {
 //        Mission::Ptr mission(new Mission(baseMission));
 //
-//        organization_model::ModelPool modelPool;
+//        moreorg::ModelPool modelPool;
 //        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
 //        modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
 //        mission->setAvailableResources(modelPool);
@@ -183,7 +183,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //    {
 //        Mission::Ptr mission(new Mission(baseMission));
 //
-//        organization_model::ModelPool modelPool;
+//        moreorg::ModelPool modelPool;
 //        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
 //        modelPool[ vocabulary::OM::resolve("CREX") ] = 3;
 //        modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
@@ -249,7 +249,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //    {
 //        Mission::Ptr mission(new Mission(baseMission));
 //
-//        organization_model::ModelPool modelPool;
+//        moreorg::ModelPool modelPool;
 //        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
 //        modelPool[ vocabulary::OM::resolve("CREX") ] = 3;
 //        modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
@@ -279,7 +279,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //    // --> translate into systems and update timings accordingly
 //    // --> mission should contain sychronization points
 //
-//    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
+//    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(
 //                getRootDir() + "test/data/om-schema-latest.owl");
 //    owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("ImageProvider");
 //
@@ -312,7 +312,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //    {
 //        Mission::Ptr mission(new Mission(baseMission));
 //
-//        organization_model::ModelPool modelPool;
+//        moreorg::ModelPool modelPool;
 //        modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
 //        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
 //        mission->setAvailableResources(modelPool);
@@ -333,7 +333,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //    // --> translate into systems and update timings accordingly
 //    // --> mission should contain sychronization points
 //
-//    organization_model::OrganizationModel::Ptr om = organization_model::OrganizationModel::getInstance(
+//    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(
 //                getRootDir() + "test/data/om-schema-latest.owl");
 //    owlapi::model::IRI payloadModel = vocabulary::OM::resolve("Payload");
 //
@@ -363,7 +363,7 @@ BOOST_AUTO_TEST_SUITE(csp)
 //    using namespace solvers;
 //    {
 //        Mission::Ptr mission(new Mission(baseMission));
-//        organization_model::ModelPool modelPool;
+//        moreorg::ModelPool modelPool;
 //        modelPool[ vocabulary::OM::resolve("Payload") ] = 100;
 //        mission->setAvailableResources(modelPool);
 //

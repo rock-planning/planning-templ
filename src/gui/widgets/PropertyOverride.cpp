@@ -8,7 +8,7 @@ namespace gui {
 namespace widgets {
 
 PropertyOverride::PropertyOverride(
-        const organization_model::OrganizationModelAsk& ask,
+        const moreorg::OrganizationModelAsk& ask,
         QWidget* parent)
     : QWidget(parent)
     , mpUi(new Ui::PropertyOverride)
@@ -29,7 +29,7 @@ PropertyOverride::~PropertyOverride()
     delete mpUi;
 }
 
-void PropertyOverride::setOrganizationModelAsk(const organization_model::OrganizationModelAsk& ask)
+void PropertyOverride::setOrganizationModelAsk(const moreorg::OrganizationModelAsk& ask)
 {
     mAsk = ask;
     prepare();

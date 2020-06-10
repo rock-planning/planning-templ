@@ -8,7 +8,7 @@
 #include "FluentTimeResource.hpp"
 #include "../Plan.hpp"
 #include "temporal/TemporalConstraintNetwork.hpp"
-#include <organization_model/Analyser.hpp>
+#include <moreorg/Analyser.hpp>
 
 namespace templ {
 namespace solvers {
@@ -20,7 +20,7 @@ namespace solvers {
 class SolutionAnalysis
 {
 public:
-    typedef std::pair< organization_model::ModelPool::List, organization_model::ModelPool::List >
+    typedef std::pair< moreorg::ModelPool::List, moreorg::ModelPool::List >
         MinMaxModelPools;
 
     SolutionAnalysis();
@@ -84,8 +84,8 @@ public:
      * Get the metric value for minimum requirement and minimum available
      * resources
      */
-    double getSafety(const organization_model::ModelPool& minRequired,
-            const organization_model::ModelPool& minAvailable) const;
+    double getSafety(const moreorg::ModelPool& minRequired,
+            const moreorg::ModelPool& minAvailable) const;
 
     /**
      * Retrieve the list of required roles / all roles that are involved in this
@@ -100,13 +100,13 @@ public:
      * Get the minimum required resource for the given fluent time resource
      * \return model pool of the minimum required resources
      */
-    organization_model::ModelPool getMinResourceRequirements(const FluentTimeResource& ftr) const;
+    moreorg::ModelPool getMinResourceRequirements(const FluentTimeResource& ftr) const;
 
     /**
      * Get the maximum required resource for the given fluent time resource
      * \return model pool of the maximum required resources
      */
-    organization_model::ModelPool getMaxResourceRequirements(const FluentTimeResource& ftr) const;
+    moreorg::ModelPool getMaxResourceRequirements(const FluentTimeResource& ftr) const;
 
     /**
      * Get the corresponding space time tuple for source time of a fluent time resource
@@ -132,7 +132,7 @@ public:
      * This takes into account resolution of functionality to actual agents to
      * come to a particular solution
      */
-    organization_model::ModelPoolDelta getMinMissingResourceRequirements(const FluentTimeResource& ftr) const;
+    moreorg::ModelPoolDelta getMinMissingResourceRequirements(const FluentTimeResource& ftr) const;
 
     /**
      * Get the minimum number of missing resource requirements, i.e.
@@ -141,7 +141,7 @@ public:
      * This takes into account resolution of functionality to actual agents to
      * come to a particular solution
      */
-    organization_model::ModelPoolDelta getMaxMissingResourceRequirements(const FluentTimeResource& ftr) const;
+    moreorg::ModelPoolDelta getMaxMissingResourceRequirements(const FluentTimeResource& ftr) const;
 
     /**
      * Get the maximum number of missing resources, i.e.
@@ -150,7 +150,7 @@ public:
      * This takes into account resolution of functionality to actual agents to
      * come to a particular solution
      */
-    organization_model::ModelPoolDelta getMaxMissingResources(const FluentTimeResource& ftr) const;
+    moreorg::ModelPoolDelta getMaxMissingResources(const FluentTimeResource& ftr) const;
 
     /**
      * Get the minimum number of missing resources, i.e.
@@ -159,7 +159,7 @@ public:
      * This takes into account resolution of functionality to actual agents to
      * come to a particular solution
      */
-    organization_model::ModelPoolDelta getMinMissingResources(const FluentTimeResource& ftr) const;
+    moreorg::ModelPoolDelta getMinMissingResources(const FluentTimeResource& ftr) const;
 
     /**
      * Get the minimum number of available resources for the given fluent time
@@ -167,9 +167,9 @@ public:
      * \return ModelPool containing the available resources (including inferred
      * functionalities)
      */
-    organization_model::ModelPool getMinAvailableResources(const FluentTimeResource& ftr) const;
+    moreorg::ModelPool getMinAvailableResources(const FluentTimeResource& ftr) const;
 
-    organization_model::ModelPool getMinAvailableResources(const SpaceTime::Network::tuple_t::Ptr& tuple) const;
+    moreorg::ModelPool getMinAvailableResources(const SpaceTime::Network::tuple_t::Ptr& tuple) const;
 
     /**
      * Get the maximum number of available resources for the given fluent time
@@ -179,7 +179,7 @@ public:
      * \return ModelPool containing the available resources (including inferred
      * functionalities)
      */
-    organization_model::ModelPool getMaxAvailableResources(const FluentTimeResource& ftr) const;
+    moreorg::ModelPool getMaxAvailableResources(const FluentTimeResource& ftr) const;
 
     /**
      * Get the required resources as a pair of two model pool list for min
@@ -198,9 +198,9 @@ public:
      * Get the availability as list of model pools over the course of one interval
      * This accounts for all included (known) qualitative timepoints
      */
-    std::vector<organization_model::ModelPool> getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::Interval& interval) const;
+    std::vector<moreorg::ModelPool> getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::Interval& interval) const;
 
-    organization_model::ModelPool getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::point_algebra::TimePoint::Ptr& timepoint) const;
+    moreorg::ModelPool getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::point_algebra::TimePoint::Ptr& timepoint) const;
     /**
      * Compute a hypergraph
      * The hypergaph contains a number of RoleInfoVertex (as HyperEdge)
@@ -225,7 +225,7 @@ public:
     /**
      * Get the set of available resources
      */
-    //organization_model::ModelPool getAvailableResources(const solvers::FluentTimeResource& e) const;
+    //moreorg::ModelPool getAvailableResources(const solvers::FluentTimeResource& e) const;
 
     std::string toString(size_t indent = 0) const;
 
@@ -328,8 +328,8 @@ private:
     /// The cost per role
     std::map<Role, double> mEfficiencyPerRole;
 
-    organization_model::OrganizationModelAsk mAsk;
-    organization_model::Analyser mAnalyser;
+    moreorg::OrganizationModelAsk mAsk;
+    moreorg::Analyser mAnalyser;
 
     qxcfg::Configuration mConfiguration;
 };

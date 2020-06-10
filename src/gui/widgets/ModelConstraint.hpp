@@ -2,7 +2,7 @@
 #define TEMPL_GUI_WIDGETS_MODEL_CONSTRAINT_HPP
 
 #include "../../constraints/ModelConstraint.hpp"
-#include <organization_model/OrganizationModelAsk.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
 
 #include <QWidget>
 #include <QComboBox>
@@ -24,7 +24,7 @@ public:
     ModelConstraint(QWidget* parent = NULL);
     ~ModelConstraint();
 
-    void prepare(const organization_model::OrganizationModelAsk& ask);
+    void prepare(const moreorg::OrganizationModelAsk& ask);
     void setValue(const constraints::ModelConstraint::Ptr& modelConstraint);
 
     void setButtonVisibility(bool visible);

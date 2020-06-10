@@ -5,7 +5,7 @@
 #include "../widgets/ModelConstraint.hpp"
 
 #include <QDialog>
-#include <organization_model/OrganizationModelAsk.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
 
 namespace Ui
 {
@@ -21,7 +21,7 @@ class AddModelConstraint : public QDialog
     Q_OBJECT
 
 public:
-    AddModelConstraint(const organization_model::OrganizationModelAsk& ask,
+    AddModelConstraint(const moreorg::OrganizationModelAsk& ask,
             QWidget* parent = NULL
     );
     ~AddModelConstraint();
@@ -32,7 +32,7 @@ private:
     Ui::EmptyDialog* mpUi;
     widgets::ModelConstraint* mpModelConstraint;
 
-    organization_model::OrganizationModelAsk mAsk;
+    moreorg::OrganizationModelAsk mAsk;
 };
 
 } // end namespace dialogs

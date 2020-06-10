@@ -2,7 +2,7 @@
 #include "ui_OntologyView.h"
 
 #include <QFileDialog>
-#include <organization_model/vocabularies/OM.hpp>
+#include <moreorg/vocabularies/OM.hpp>
 
 namespace templ {
 namespace gui {
@@ -43,10 +43,10 @@ void OntologyView::on_loadOntologyButton_clicked()
         OntologyTreeModel* oldFunctionalitiesTreeModel = mpFunctionalitiesTreeModel;
         OntologyTreeModel* oldAgentsTreeModel = mpAgentsTreeModel;
         {
-            mpFunctionalitiesTreeModel = new OntologyTreeModel(mpOntology, organization_model::vocabulary::OM::Functionality(), this);
+            mpFunctionalitiesTreeModel = new OntologyTreeModel(mpOntology, moreorg::vocabulary::OM::Functionality(), this);
             mpUi->functionalitiesTreeView->setModel(mpFunctionalitiesTreeModel);
 
-            mpAgentsTreeModel = new OntologyTreeModel(mpOntology, organization_model::vocabulary::OM::Actor());
+            mpAgentsTreeModel = new OntologyTreeModel(mpOntology, moreorg::vocabulary::OM::Actor());
             mpUi->agentsTreeView->setModel(mpAgentsTreeModel);
         }
         updateVisualization();

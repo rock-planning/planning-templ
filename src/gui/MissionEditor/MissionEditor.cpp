@@ -192,8 +192,8 @@ bool MissionEditor::loadOrganizationModel(const QString& settingsLabel, const QS
         settings.setValue("recentImportOrganizationModelDir", fileinfo.absolutePath());
 
         try {
-            organization_model::OrganizationModel::Ptr om =
-                make_shared<organization_model::OrganizationModel>(filename.toStdString());
+            moreorg::OrganizationModel::Ptr om =
+                make_shared<moreorg::OrganizationModel>(filename.toStdString());
             if(mpMission)
             {
                 mpMission->setOrganizationModel(om);
@@ -226,8 +226,8 @@ void MissionEditor::updateVisualization()
 
     // Resources
     {
-        organization_model::ModelPool availableResources = mpMission->getAvailableResources();
-        for(const organization_model::ModelPool::value_type pair : availableResources)
+        moreorg::ModelPool availableResources = mpMission->getAvailableResources();
+        for(const moreorg::ModelPool::value_type pair : availableResources)
         {
             io::ResourceRequirement r;
             r.model = pair.first;
@@ -378,7 +378,7 @@ Mission::Ptr MissionEditor::currentMission() const
     }
 
     QList<widgets::ModelCardinality*> resourceWidgets = Utils::getWidgets<widgets::ModelCardinality>(mpUi->verticalLayoutResources);
-    organization_model::ModelPool availableResources;
+    moreorg::ModelPool availableResources;
     for(widgets::ModelCardinality* w : resourceWidgets)
     {
         io::ResourceRequirement r = w->getRequirement();

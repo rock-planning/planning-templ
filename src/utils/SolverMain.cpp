@@ -52,11 +52,11 @@ int main(int argc, char** argv)
         configurationFilename = vm["configuration"].as<std::string>();
     }
 
-    organization_model::OrganizationModel::Ptr organizationModel;
+    moreorg::OrganizationModel::Ptr organizationModel;
     if(vm.count("om"))
     {
         owlapi::model::IRI organizationModelFilename(vm["om"].as<std::string>());
-        organizationModel = organization_model::OrganizationModel::getInstance(organizationModelFilename);
+        organizationModel = moreorg::OrganizationModel::getInstance(organizationModelFilename);
     }
 
     solvers::Solver::SolverType solverType = solvers::Solver::UNKNOWN;

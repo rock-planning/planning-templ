@@ -7,8 +7,8 @@
 #include <gecode/int/rel.hh>
 #include <gecode/minimodel.hh>
 
-#include <organization_model/OrganizationModel.hpp>
-#include <organization_model/OrganizationModelAsk.hpp>
+#include <moreorg/OrganizationModel.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
 #include "../../../Role.hpp"
 
 namespace templ {
@@ -45,7 +45,7 @@ public:
     MultiCommodityFlow(Gecode::Space& home, const Role::List& roles,
             SetViewViewArray& timelines,
             uint32_t numberOfTimepoints, uint32_t numberOfFluent,
-            const organization_model::OrganizationModelAsk& ask);
+            const moreorg::OrganizationModelAsk& ask);
 
     MultiCommodityFlow(Gecode::Space& home,
             MultiCommodityFlow& flow);
@@ -53,7 +53,7 @@ public:
     static Gecode::ExecStatus post(Gecode::Space& home, const Role::List& roles,
             SetViewViewArray& timelines,
             uint32_t numberOfTimepoints, uint32_t numberOfFluent,
-            const organization_model::OrganizationModelAsk& ask);
+            const moreorg::OrganizationModelAsk& ask);
 
     virtual size_t dispose(Gecode::Space& home);
 
@@ -71,7 +71,7 @@ protected:
     uint32_t mLocationTimeSize;
     uint32_t mTimelineSize;
 
-    organization_model::OrganizationModelAsk mAsk;
+    moreorg::OrganizationModelAsk mAsk;
 
     // The elements in the wrapped array a are accessed in row-major order
     // as it is for all array in Gecode
@@ -87,7 +87,7 @@ void multiCommodityFlow(Gecode::Space& home,
         const Role::List& roles,
         const std::vector<Gecode::SetVarArray>& timelines,
         uint32_t numberOfTimepoints, uint32_t numberOfFluents,
-        const organization_model::OrganizationModelAsk& ask);
+        const moreorg::OrganizationModelAsk& ask);
 
 } // end propagators
 } // end csp

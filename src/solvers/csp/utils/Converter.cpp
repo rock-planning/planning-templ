@@ -5,10 +5,10 @@ namespace solvers {
 namespace csp {
 namespace utils {
 
-std::set< std::vector<uint32_t> > Converter::toCSP(const Mission::Ptr& mission, const organization_model::ModelPool::Set& combinations)
+std::set< std::vector<uint32_t> > Converter::toCSP(const Mission::Ptr& mission, const moreorg::ModelPool::Set& combinations)
 {
     std::set< std::vector<uint32_t> > csp_combinations;
-    organization_model::ModelPool::Set::const_iterator cit = combinations.begin();
+    moreorg::ModelPool::Set::const_iterator cit = combinations.begin();
     for(; cit != combinations.end(); ++cit)
     {
         csp_combinations.insert( toCSP(mission, *cit) );
@@ -16,12 +16,12 @@ std::set< std::vector<uint32_t> > Converter::toCSP(const Mission::Ptr& mission, 
     return csp_combinations;
 }
 
-std::vector<uint32_t> Converter::toCSP(const Mission::Ptr& mission, const organization_model::ModelPool& combination)
+std::vector<uint32_t> Converter::toCSP(const Mission::Ptr& mission, const moreorg::ModelPool& combination)
 {
     // return index of model and count per model
     std::vector<uint32_t> csp_combination(mission->getAvailableResources().size(),0);
 
-    organization_model::ModelPool::const_iterator cit = combination.begin();
+    moreorg::ModelPool::const_iterator cit = combination.begin();
     for(; cit != combination.end(); ++cit)
     {
         uint32_t index = systemModelToCSP(mission, cit->first);

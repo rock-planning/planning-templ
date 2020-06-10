@@ -2,7 +2,7 @@
 #define TEMPL_SOLVERS_CSP_ROLE_TIMELINE_HPP
 
 #include <map>
-#include <organization_model/vocabularies/Robot.hpp>
+#include <moreorg/vocabularies/Robot.hpp>
 #include "../FluentTimeResource.hpp"
 #include "../../SpaceTime.hpp"
 #include "../temporal/point_algebra/TimePointComparator.hpp"
@@ -22,13 +22,13 @@ public:
     RoleTimeline();
 
     RoleTimeline(const Role& role,
-            const organization_model::OrganizationModelAsk& ask);
+            const moreorg::OrganizationModelAsk& ask);
 
     void setRole(const Role& role) { mRole = role; }
 
     const Role& getRole() const { return mRole; }
 
-    const organization_model::facades::Robot& getRobot() const { return mRobot; }
+    const moreorg::facades::Robot& getRobot() const { return mRobot; }
 
     /**
      * Set the actual timeline
@@ -97,10 +97,10 @@ public:
     double duration() const;
 private:
     Role mRole;
-    organization_model::OrganizationModelAsk mAsk;
+    moreorg::OrganizationModelAsk mAsk;
     SpaceTime::Timeline mTimeline;
 
-    organization_model::facades::Robot mRobot;
+    moreorg::facades::Robot mRobot;
 };
 
 } // end namespace csp

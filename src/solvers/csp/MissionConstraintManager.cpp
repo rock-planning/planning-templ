@@ -107,13 +107,13 @@ void MissionConstraintManager::apply(const shared_ptr<constraints::ModelConstrai
             MissionConstraints::addResourceRequirement(
                     allRequirements,
                     affectedRequirements,
-                    organization_model::Resource(constraint->getModel()),
+                    moreorg::Resource(constraint->getModel()),
                     transportNetwork.mpMission->getOrganizationModelAsk());
 
             break;
         case ModelConstraint::MIN_PROPERTY:
         {
-            using namespace organization_model;
+            using namespace moreorg;
             Resource resource( constraint->getModel() );
             // Add the constraint to increase the transport capacity to
             // cover for the existing delta
@@ -132,7 +132,7 @@ void MissionConstraintManager::apply(const shared_ptr<constraints::ModelConstrai
         }
         case ModelConstraint::MAX_PROPERTY:
         {
-            using namespace organization_model;
+            using namespace moreorg;
             Resource resource( constraint->getModel() );
             // Add the constraint to increase the transport capacity to
             // cover for the existing delta

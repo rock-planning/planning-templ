@@ -1,5 +1,5 @@
 #include "RoleTimeline.hpp"
-#include <organization_model/facades/Robot.hpp>
+#include <moreorg/facades/Robot.hpp>
 #include <base-logging/Logging.hpp>
 #include "../Cost.hpp"
 
@@ -11,10 +11,10 @@ RoleTimeline::RoleTimeline()
 {}
 
 RoleTimeline::RoleTimeline(const Role& role,
-        const organization_model::OrganizationModelAsk& ask)
+        const moreorg::OrganizationModelAsk& ask)
     : mRole(role)
     , mAsk(ask)
-    , mRobot(organization_model::facades::Robot::getInstance(mRole.getModel(), mAsk))
+    , mRobot(moreorg::facades::Robot::getInstance(mRole.getModel(), mAsk))
 {}
 
 bool RoleTimeline::operator<(const RoleTimeline& other) const

@@ -36,7 +36,7 @@ public:
             const std::map<Role, csp::RoleTimeline>& minimalTimelines,
             const symbols::constants::Location::PtrList& locations,
             const temporal::point_algebra::TimePoint::PtrList& sortedTimepoints,
-            const organization_model::OrganizationModelAsk& ask,
+            const moreorg::OrganizationModelAsk& ask,
             const utils::Logger::Ptr& logger,
             graph_analysis::algorithms::LPSolver::Type solverType = graph_analysis::algorithms::LPSolver::GLPK_SOLVER,
             double feasibilityTimeoutInMs = 1000
@@ -142,7 +142,7 @@ private:
 
     temporal::point_algebra::TimePoint::PtrList mSortedTimepoints;
 
-    organization_model::OrganizationModelAsk mAsk;
+    moreorg::OrganizationModelAsk mAsk;
     utils::Logger::Ptr mpLogger;
     FlowNetwork mFlowNetwork;
 

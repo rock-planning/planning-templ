@@ -2,7 +2,7 @@
 #include <gecode/int/rel.hh>
 #include <gecode/minimodel.hh>
 #include <base-logging/Logging.hpp>
-#include <organization_model/facades/Robot.hpp>
+#include <moreorg/facades/Robot.hpp>
 
 #include "MultiCommodityFlow.hpp"
 
@@ -17,7 +17,7 @@ void multiCommodityFlow(Gecode::Space& home,
         const Role::List& roles,
         const std::vector<Gecode::SetVarArray>& timelines,
         uint32_t numberOfTimepoints, uint32_t numberOfFluents,
-        const organization_model::OrganizationModelAsk& ask)
+        const moreorg::OrganizationModelAsk& ask)
 {
     // If there is no path -- fail directly
     if(timelines.empty())
@@ -58,7 +58,7 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
         const Role::List& roles,
         SetViewViewArray& xv,
         uint32_t numberOfTimepoints, uint32_t numberOfFluents,
-        const organization_model::OrganizationModelAsk& ask)
+        const moreorg::OrganizationModelAsk& ask)
     : NaryPropagator<Set::SetView, Set::PC_SET_ANY>(home, xv)
     , mRoles(roles)
     , mNumberOfTimepoints(numberOfTimepoints)
@@ -77,7 +77,7 @@ MultiCommodityFlow::MultiCommodityFlow(Gecode::Space& home,
         for(uint32_t roleIdx = 0; roleIdx < mRoles.size(); ++roleIdx)
         {
             const Role& role = mRoles[roleIdx];
-            organization_model::facades::Robot robot(role.getModel(), mAsk);
+            moreorg::facades::Robot robot(role.getModel(), mAsk);
             int32_t supplyDemand = robot.getTransportSupplyDemand();
             if(supplyDemand == 0)
             {
@@ -164,7 +164,7 @@ Gecode::ExecStatus MultiCommodityFlow::post(Gecode::Space& home,
         const Role::List& roles,
         SetViewViewArray& xv,
         uint32_t numberOfTimepoints, uint32_t numberOfFluents,
-        const organization_model::OrganizationModelAsk& ask
+        const moreorg::OrganizationModelAsk& ask
         )
 {
     // documentation. 4.3.1 Post functions are clever
