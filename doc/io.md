@@ -183,19 +183,94 @@ The following model constraints are available:
 
 |Type          | Description   |
 |---|---|
-| min          |        |
-| max          |        |
-| max-access   |        |
-| min-access   |        |
-| min-distinct |        |
-| max-distinct |        |
-| all-distinct |        |
-| min-equal    |        |
-| max-equal    |        |
-| all-equal    |        |
-| min-function |        |
-| max-function |        |
-| min-property |        |
-| max-property |        |
+| min          |   minimum cardinality   |
+| max          |   maximum cardinality   |
+over an interval)  |
+| min-access   |   minimum access to a location (always or temporally bounded) |
+| max-access   |   maximum access to a location (always or temporally bounded) |
+| min-distinct |   minimum number of distinct model instances |
+| max-distinct |   maximum number of distinct model instances |
+| all-distinct |   all agent models have to be distinct  |
+| min-equal    |   minimum number of equal model instances     |
+| max-equal    |   maximum number of equal model instances     |
+| all-equal    |   all model instances have to be the same     |
+| min-function |   minimum function requirement    |
+| max-function |   maximum function requirement     |
+| min-property |   minimum value for a given property for an agent model     |
+| max-property |   maximum value for a given property for an agent model     |
 
+The constraint can apply to to existing requirements and their corresponding
+spatio-temporal qualification (location, [from, to]).
+Minimum and maximum access constraints can also refer only to the location,
+which implies a constraint with a spatio-temporal qualification (location,
+[timehorizon_start, timehorizon_end]), where timehorizon_start is the start of
+the mission and timehorizon_end.
+In this case the constraint applies to the timeinterval of the full mission.
+A corresponding min access constraint can be interpreted such that a minimum of one 
+model instance has to be present on this location of the full mission, e.g., to
+guarantee an uninterrupted service, and max at most one can be
+present at any time, e.g., which might be the result of size constraints.
+
+Examples:
+```
+        <!-- location access constraint -->
+        <min-access>
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>l0</requirements>
+        </min-access>
+        <max-access>
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>l0,1</requirements>
+        </all-distinct>
+        <!-- unification constraint -->
+        <all-distinct>
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </all-distinct>
+        <min-distinct value="10">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </min-distinct>
+        <max-distinct value="2"> <!-- that would equal all-distinct -->
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </max-distinct>
+        <all-equal>
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </all-equal>
+        <min-equal value="1">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </min-equal>
+        <max-equal value="1">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII</model>
+            <requirements>0,1</requirements>
+        </max-equal>
+
+        <!-- function: number of distinct systems to be available -->
+        <max-function value="10">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <requirements>0</requirements>
+        </max-function>
+        <min-function value="10">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <requirements>0</requirements>
+        </min-function>
+
+        <!-- when general properties makes sense -->
+        <max-property value="1000">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <requirements>0</requirements>
+            <property>http://www.rock-robotics.org/2014/01/om-schema#mass</property>
+        </max-property>
+        <min-property value="10">
+            <model>http://www.rock-robotics.org/2014/01/om-schema#TransportProvider</model>
+            <requirements>0</requirements>
+            <property>http://www.rock-robotics.org/2014/01/om-schema#transportCapacity</property>
+        </min-property>
+
+        <!-- min/max model cardinalities are part of the fluent time resource
+             representation -->
+```
 
