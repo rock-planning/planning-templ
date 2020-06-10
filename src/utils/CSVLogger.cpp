@@ -60,6 +60,7 @@ void CSVLogger::save(const std::string& filename, bool withColumnDescription) co
     std::ofstream outfile(filename);
     if(withColumnDescription)
     {
+        outfile << "# ";
         for(const std::string& description : mColumnDescription)
         {
             outfile << description << " ";
