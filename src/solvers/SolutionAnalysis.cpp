@@ -602,7 +602,7 @@ SpaceTime::Network::tuple_t::PtrList SolutionAnalysis::getTuples(const
         FluentTimeResource& ftr) const
 {
     return mSolutionNetwork.getTuples(ftr.getInterval().getFrom(),
-            ftr.getInterval().getFrom(), ftr.getLocation());
+            ftr.getInterval().getTo(), ftr.getLocation());
 }
 
 moreorg::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequirements(const solvers::FluentTimeResource& ftr) const
