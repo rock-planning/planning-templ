@@ -58,7 +58,7 @@ public:
      * An interval constraint provides a lower and upper bound for the duration
      * of this particular interval
      */
-    void addIntervalConstraint(const IntervalConstraint::Ptr& i) { mpDistanceGraph->addEdge(i); }
+    void addIntervalConstraint(const IntervalConstraint::Ptr& i);
 
     /**
      * Check if the temporal constraint network is consistent

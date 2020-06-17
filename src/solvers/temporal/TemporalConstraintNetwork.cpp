@@ -110,7 +110,7 @@ void TemporalConstraintNetwork::stp()
 
         // create a new interval constraint using only the interval [min,max]
         IntervalConstraint::Ptr i(new IntervalConstraint(edge->getSourceTimePoint(),edge->getTargetTimePoint()));
-        i->addInterval(Bounds(min,max));
+        i->addInterval(Bounds(min, std::max(max, min + 1E-06)) );
         tcn.addIntervalConstraint(i);
     }
     // update mpDistanceGraph with the one that we just created (tcn)
@@ -545,6 +545,33 @@ double TemporalConstraintNetwork::getTimeHorizon(const Assignment& assignments)
         }
     }
     return horizon;
+}
+
+void TemporalConstraintNetwork::addIntervalConstraint(const IntervalConstraint::Ptr& i)
+{
+    if( !i->getSourceVertex()->associated( mpDistanceGraph->getId()) ||
+            !i->getTargetVertex()->associated( mpDistanceGraph->getId()) )
+    {
+        mpDistanceGraph->addEdge(i);
+        return;
+    }
+
+    Edge::PtrList edges = mpDistanceGraph->getEdges(i->getSourceVertex(), i->getTargetVertex());
+    if(edges.empty())
+    {
+        mpDistanceGraph->addEdge(i);
+    } else {
+        IntervalConstraint::Ptr ic = dynamic_pointer_cast<IntervalConstraint>(*edges.begin());
+        if(!ic)
+        {
+            throw std::runtime_error("TemporalConstraintNetwork: conversion to interval constraint failed");
+        }
+
+        for(const Bounds& bounds : i->getIntervals())
+        {
+            ic->addInterval(bounds);
+        }
+    }
 }
 
 } // end namespace temporal
