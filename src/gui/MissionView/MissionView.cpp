@@ -84,7 +84,6 @@ bool MissionView::loadMission(const QString& settingsLabel, const QString& _file
         try {
             Mission mission = templ::io::MissionReader::fromFile(filename.toStdString());
             mpMission = make_shared<Mission>(mission);
-            mpMission->prepareTimeIntervals();
 
             loadXML(filename);
             expandAll();

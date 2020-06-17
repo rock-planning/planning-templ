@@ -62,7 +62,6 @@ int main(int argc, char** argv)
     using namespace templ;
     using namespace templ;
     Mission baseMission = io::MissionReader::fromFile(missionFilename, organizationModel);
-    baseMission.prepareTimeIntervals();
     baseMission.applyOrganizationModelOverrides();
 
     Mission::Ptr mission(new Mission(baseMission));

@@ -1013,7 +1013,7 @@ Gecode::Space* TransportNetwork::copy()
 std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const qxcfg::Configuration& configuration)
 {
     SolutionList solutions;
-    mission->validateForPlanning();
+    mission->prepareForPlanning();
 
     assert(mission->getOrganizationModel());
     assert(!mission->getTimeIntervals().empty());

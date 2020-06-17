@@ -49,7 +49,6 @@ int main(int argc, char** argv)
                 organizationModelFilename));
     }
 
-    mission->prepareTimeIntervals();
     if(vm.count("latex"))
     {
         std::cout << io::LatexWriter::toLatex(mission);

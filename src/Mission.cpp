@@ -24,6 +24,7 @@ Mission::Mission()
     , mpRelations(graph_analysis::BaseGraph::getInstance())
     , mpTransferLocation(new symbols::constants::Location("transfer-location"))
     , mpLogger(new utils::Logger())
+    , mPreparedForPlanning(false)
 {}
 
 Mission::Mission(const moreorg::OrganizationModel::Ptr& om, const std::string& name)
@@ -34,6 +35,7 @@ Mission::Mission(const moreorg::OrganizationModel::Ptr& om, const std::string& n
     , mName(name)
     , mpTransferLocation(new symbols::constants::Location("transfer-location"))
     , mpLogger(new utils::Logger())
+    , mPreparedForPlanning(false)
 {
     // add all functionalities (which could be requested)
     //
@@ -64,6 +66,7 @@ Mission::Mission(const Mission& other)
     , mScenarioFile(other.mScenarioFile)
     , mpLogger(other.mpLogger)
     , mDataPropertyAssignments(other.mDataPropertyAssignments)
+    , mPreparedForPlanning(other.mPreparedForPlanning)
 {
 
     if(other.mpRelations)
@@ -98,11 +101,18 @@ void Mission::applyOrganizationModelOverrides()
 void Mission::setAvailableResources(const moreorg::ModelPool& modelPool)
 {
     mModelPool = modelPool;
-    refresh();
+    mPreparedForPlanning = false;
 }
 
 void Mission::refresh()
 {
+    if(mPreparedForPlanning)
+    {
+        return;
+    } else {
+        mPreparedForPlanning = true;
+    }
+
     mRoles.clear();
     mModels.clear();
 
@@ -195,8 +205,10 @@ void Mission::prepareTimeIntervals()
     mTimePoints.insert(mTimePoints.begin(), uniqueTimepoints.begin(), uniqueTimepoints.end());
 }
 
-void Mission::validateForPlanning() const
+void Mission::prepareForPlanning()
 {
+    refresh();
+
     if(!mpOrganizationModel)
     {
         throw std::runtime_error("templ::Mission::validate no organization model hase been set.");

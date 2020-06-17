@@ -462,7 +462,7 @@ public:
 
     /**
      * Refresh internal datastructures, e.g. after updating the list of
-     * available resources
+     * available resources to prepare for using a mission for planning
      */
     void refresh();
 
@@ -479,12 +479,12 @@ public:
     void save(const std::string& filename) const;
 
     /**
-     * Check if mission is ready to be forwarded to planner, i.e.,
+     * Prepare and check if mission is ready to be forwarded to planner, i.e.,
      * checks that time intervals are available, the temporal constraint
      * network is consistent, and checks that there are available resources
      * \throws std::runtime_error if mission is not ready to be used for planning
      */
-    void validateForPlanning() const;
+    void prepareForPlanning();
 
     /**
      * Update the max cardinalites according the the available resources of a
@@ -610,6 +610,8 @@ private:
     /// Particular overrides to set/override the properties of the agents
     /// This allows to facilitate the managment of VRP benchmark files
     DataPropertyAssignment::List mDataPropertyAssignments;
+
+    bool mPreparedForPlanning;
 };
 
 } // end namespace templ

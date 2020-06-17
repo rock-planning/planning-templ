@@ -336,7 +336,6 @@ Mission MissionReader::fromFile(const std::string& url, const moreorg::Organizat
         xmlCleanupParser();
         throw std::runtime_error("templ::io::MissionReader: failed to parse file " + url +
                 " -- " + e.what());
-
     }
 
     /*
@@ -345,6 +344,9 @@ Mission MissionReader::fromFile(const std::string& url, const moreorg::Organizat
     xmlCleanupParser();
 
     mission.validateAvailableResources();
+    mission.prepareTimeIntervals();
+    mission.prepareForPlanning();
+
     return mission;
 }
 
