@@ -440,8 +440,12 @@ public:
     Constraint::PtrList getAssignmentsAsConstraints() const;
 
     /**
-     * Create a mission that is augmented with the current assignment encoded
+     * Create a mission that is augmented with the current assignments encoded
      * into constraints
+     *
+     * This allows to create a new mission specification out of an existing
+     * assignment of agent roles
+     * \return Mission
      */
     Mission::Ptr getAugmentedMission() const;
 
