@@ -1,4 +1,4 @@
-#include "RoleInfoTuple.hpp"
+#include "RoleInfo.hpp"
 #include <algorithm>
 
 #include <boost/serialization/map.hpp>

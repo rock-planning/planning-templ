@@ -193,20 +193,22 @@ double SolutionAnalysis::getSafety(const FluentTimeResource& ftr, const SpaceTim
     ModelPool minRequired = getMinResourceRequirements(ftr);
     ModelPool minAvailable = getMinAvailableResources(tuple);
 
+    double safety = 0.0;
     try {
-        double safety = getSafety(minRequired, minAvailable);
-        return safety;
+        safety = getSafety(minRequired, minAvailable);
     } catch(const std::exception& e)
     {
+        safety = getSafety(ModelPool(), minAvailable);
         LOG_WARN_S << "Failed to compute safety at: "
-            << ftr.toString(4)
             << tuple->toString(4)
             << "Required: "
             << minRequired.toString(4)
             << "Available"
-            << minAvailable.toString(4);
-        return -1.0;
+            << minAvailable.toString(4)
+            << "Handling as no unfulfilled requirement with safety: "
+            << safety;
     }
+    return safety;
 }
 
 double SolutionAnalysis::getSafety(const FluentTimeResource& ftr) const
@@ -780,8 +782,9 @@ void SolutionAnalysis::quantifyTime()
             intervalConstraint->addInterval(bounds);
             tcn.addIntervalConstraint(intervalConstraint);
 
-            LOG_DEBUG_S << "Interval constraint between: " << sourceTimepoint->toString() << " and " << targetTimepoint->toString() << " min travel time: "
-                << minTravelTime;
+            LOG_INFO_S << "Interval constraint between: " << sourceTimepoint->toString() << " and " << targetTimepoint->toString() << " min travel time: "
+                << minTravelTime << ", requiredTime (inkl. reconfiguration) " <<
+                requiredTime;
         }
     }
 

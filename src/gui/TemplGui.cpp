@@ -42,6 +42,7 @@
 #include "MissionEditor/MissionEditor.hpp"
 #include "MissionView/MissionView.hpp"
 #include "OntologyView/OntologyView.hpp"
+#include "solution_analysis/SolutionProperties.hpp"
 
 #include "../SpaceTime.hpp"
 #include "../RoleInfoWeightedEdge.hpp"
@@ -370,6 +371,8 @@ void TemplGui::importSolution(const QString& settingsLabel, const QString& filen
             mission->setOrganizationModelAsk(ask);
             solvers::SolutionAnalysis sa(mission, network);
             sa.analyse();
+            addSolutionAnalysis(sa);
+
             graph = sa.getSolutionNetwork().getGraph();
         } catch(const std::exception& e)
         {
@@ -385,7 +388,6 @@ void TemplGui::importSolution(const QString& settingsLabel, const QString& filen
         QMessageBox::warning(this, "Templ", QString("No active organization model -- please select one"));
         importOrganizationModel();
     }
-
     activateGraph(graph);
 }
 
@@ -476,7 +478,7 @@ void TemplGui::activateGraph(graph_analysis::BaseGraph::Ptr& graph, const QStrin
     {
         view->refresh();
         view->updateVisualization();
-        view->applyLayout("dot");
+        view->applyLayout("grid-layout-default");
         view->updateVisualization();
 
         connect(view, SIGNAL(currentStatus(QString, int)),
@@ -487,8 +489,15 @@ void TemplGui::activateGraph(graph_analysis::BaseGraph::Ptr& graph, const QStrin
     } else {
         qDebug() << "Failed to activate graph";
     }
+}
 
+void TemplGui::addSolutionAnalysis(const solvers::SolutionAnalysis& sa, const
+        QString& tabLabel)
+{
 
+    qDebug() << "Adding solution analysis";
+    gui::SolutionProperties* view = new gui::SolutionProperties(sa, this);
+    mpUi->tabWidget->addTab(view, tabLabel);
 }
 
 void TemplGui::exportGraph()

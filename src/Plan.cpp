@@ -1,6 +1,7 @@
 #include "Plan.hpp"
 #include <sstream>
 #include <fstream>
+#include <graph_analysis/GraphIO.hpp>
 #include <moreorg/facades/Robot.hpp>
 #include <base-logging/Logging.hpp>
 #include "SpaceTime.hpp"

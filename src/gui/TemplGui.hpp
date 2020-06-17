@@ -9,6 +9,8 @@
 #include <QProcess>
 #include <moreorg/OrganizationModel.hpp>
 
+#include "../solvers/SolutionAnalysis.hpp"
+
 namespace Ui {
     class TemplGui;
 }
@@ -73,6 +75,8 @@ private:
     QString strippedName(const QString& fullFileName);
 
     void activateGraph(graph_analysis::BaseGraph::Ptr& graph, const QString& tabLabel = "Graph");
+    void addSolutionAnalysis(const solvers::SolutionAnalysis& sa, const
+        QString& tabLabel = "SolutionAnalysis");
 
     static std::string getColumnLabel(const graph_analysis::Vertex::Ptr& vertex);
     static std::string getRowLabel(const graph_analysis::Vertex::Ptr& vertex);

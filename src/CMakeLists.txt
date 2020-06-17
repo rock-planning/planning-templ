@@ -335,6 +335,7 @@ rock_library(templ_gui
         gui/edge_items/CapacityLinkItem.hpp
         gui/vertex_items/RoleInfoItem.hpp
         gui/models/AgentStyleModel.hpp
+        gui/solution_analysis/SolutionProperties.hpp
         gui/widgets/Location.hpp
         gui/widgets/ModelCardinality.hpp
         gui/widgets/ModelConstraint.hpp
@@ -358,6 +359,7 @@ rock_library(templ_gui
         gui/dialogs/AddTemporalConstraintQuantitative.cpp
         gui/edge_items/RoleInfoItem.cpp
         gui/edge_items/CapacityLinkItem.cpp
+        gui/solution_analysis/SolutionProperties.cpp
         gui/vertex_items/RoleInfoItem.cpp
         gui/models/AgentStyleModel.cpp
         gui/widgets/Location.cpp
@@ -384,6 +386,7 @@ rock_library(templ_gui
         gui/edge_items/CapacityLinkItem.hpp
         gui/vertex_items/RoleInfoItem.hpp
         gui/models/AgentStyleModel.hpp
+        gui/solution_analysis/SolutionProperties.hpp
         gui/widgets/Location.hpp
         gui/widgets/ModelCardinality.hpp
         gui/widgets/ModelConstraint.hpp
@@ -403,6 +406,7 @@ rock_library(templ_gui
         gui/dialogs/EmptyDialog.ui
         gui/MissionEditor/MissionEditor.ui
         gui/OntologyView/OntologyView.ui
+        gui/solution_analysis/SolutionProperties.ui
         gui/widgets/Location.ui
         gui/widgets/ModelCardinality.ui
         gui/widgets/ModelConstraint.ui
