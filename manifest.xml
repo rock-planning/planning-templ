@@ -11,7 +11,7 @@
   <depend package="base/types" />
   <depend package="tools/graph_analysis" />
   <depend package="knowledge_reasoning/moreorg" />
-  <depend package="knowledge_reasoning/gqr" />
+  <depend package="knowledge_reasoning/gqr" optional="1"/>
   <depend package="libxml2" />
   <depend package="tools/qxcfg" />
   <!-- cartographic library -->
