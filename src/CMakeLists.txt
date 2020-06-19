@@ -1,41 +1,4 @@
 find_package(Boost REQUIRED system filesystem serialization program_options)
-
-pkg_check_modules(GECODE gecode)
-if(NOT GECODE_FOUND)
-    set(GECODE_COMPONENTS
-            flatzinc
-            driver
-            gist
-            search
-            minimodel
-            set
-            float
-            int
-            kernel
-            support
-    )
-
-    foreach(GECODE_COMPONENT ${GECODE_COMPONENTS})
-        find_library(GECODE_${GECODE_COMPONENT}_LIBRARY_PATH
-            NAMES gecode${GECODE_COMPONENT}
-            HINTS ${CMAKE_INSTALL_TARGET}/lib
-                /opt/rock/$ENV{ROCK_DEB_RELEASE_NAME}/lib
-            REQUIRED
-        )
-        get_filename_component(GECODE_${GECODE_COMPONENT}_LINK_DIRECTORY
-            ${GECODE_${GECODE_COMPONENT}_LIBRARY_PATH} DIRECTORY)
-        get_filename_component(GECODE_${GECODE_COMPONENT}_LIBRARY
-            ${GECODE_${GECODE_COMPONENT}_LIBRARY_PATH} NAME)
-        list(APPEND GECODE_LIBRARIES ${GECODE_${GECODE_COMPONENT}_LIBRARY})
-        link_directories(${GECODE_${GECODE_COMPONENT}_LINK_DIRECTORY})
-        message(STATUS "Found gecode library: ${GECODE_${GECODE_COMPONENT}_LIBRARY} \
-             in ${GECODE_${GECODE_COMPONENT}_LINK_DIRECTORY}")
-    endforeach()
-else()
-    message(STATUS "Found gecode libraries in ${GECODE_LIBRARY_DIRS}")
-    link_directories(${GECODE_LIBRARIES_DIRS})
-endif()
-
 # For adding the qt4 resources
 set(CMAKE_AUTORCC ON)
 rock_library(templ_core
