@@ -1,4 +1,4 @@
-rock_testsuite(test_suite suite.cpp
+rock_testsuite(test-templ suite.cpp
     #test_Scheduling.cpp
     solvers/test_AgentRoutingProblem.cpp
     solvers/test_CSP.cpp
