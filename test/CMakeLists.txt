@@ -21,6 +21,7 @@ rock_testsuite(test-templ suite.cpp
     test_RoleInfo.cpp
     test_QualitativeTemporalConstraintNetwork.cpp
     test_SimpleTemporalNetwork.cpp
+    test_Solution.cpp
     test_Symbols.cpp
     test_TemporalAssertion.cpp
     test_TemporalConstraintNetwork.cpp

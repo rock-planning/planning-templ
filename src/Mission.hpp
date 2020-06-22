@@ -36,6 +36,7 @@ namespace benchmark {
 
 namespace solvers {
     struct FluentTimeResource;
+    class Solution;
 } // end namespace solvers
 
 namespace gui {
@@ -54,6 +55,7 @@ class Mission
     friend class PlanningState;
     friend class benchmark::MissionGenerator;
     friend class gui::MissionEditor;
+    friend class solvers::Solution;
 
     solvers::temporal::TemporalConstraintNetwork::Ptr mpTemporalConstraintNetwork;
     graph_analysis::BaseGraph::Ptr mpRelations;

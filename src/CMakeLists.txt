@@ -171,10 +171,11 @@ rock_library(templ
         solvers/csp/utils/Converter.cpp
         solvers/csp/utils/FluentTimeIndex.cpp
         solvers/csp/utils/Formatter.cpp
+        solvers/Solution.cpp
+        solvers/SolutionAnalysis.cpp
         solvers/transshipment/Flaw.cpp
         solvers/transshipment/MinCostFlow.cpp
         solvers/transshipment/FlowNetwork.cpp
-        solvers/SolutionAnalysis.cpp
         utils/PathConstructor.cpp
     HEADERS
         CapacityLink.hpp
@@ -223,6 +224,7 @@ rock_library(templ
         solvers/transshipment/Flaw.hpp
         solvers/transshipment/MinCostFlow.hpp
         solvers/transshipment/FlowNetwork.hpp
+        solvers/Solution.hpp
         solvers/SolutionAnalysis.hpp
         utils/PathConstructor.hpp
     DEPS
