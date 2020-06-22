@@ -47,6 +47,10 @@ public:
 
     void addRole(const Role& role, const std::string& tag = "");
 
+    void removeRole(const Role& role, const Tag& tag);
+
+    void removeRole(const Role& role, const std::string& tag = "");
+
     bool hasRole(const Role& role, const std::string& tag = "") const;
 
     bool hasRole(const Role& role, const Tag& tag) const;

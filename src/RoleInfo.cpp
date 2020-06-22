@@ -49,6 +49,27 @@ void RoleInfo::addRole(const Role& role, const std::string& tag)
     mAllRoles.insert(role);
 }
 
+void RoleInfo::removeRole(const Role& role, const Tag& tag)
+{
+    removeRole(role, TagTxt[ tag ]);
+}
+
+void RoleInfo::removeRole(const Role& role, const std::string& tag)
+{
+    assert(!role.getName().empty());
+    if(tag.empty())
+    {
+        if(mRoles.erase(role) != 0)
+        {
+            throw std::runtime_error("templ::RoleInfo::removeRole failed to remove (any) role");
+        }
+    } else {
+        mTaggedRoles[tag].erase(role);
+    }
+
+    // mAllRoles.insert(role);
+}
+
 
 const std::set<Role>& RoleInfo::getRoles(const std::string& tag) const
 {
