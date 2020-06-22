@@ -122,19 +122,18 @@ BOOST_AUTO_TEST_CASE(persistence_condition)
     }
 
     {
-        ObjectVariable::Ptr objectVariable0(new ObjectVariable("l0"));
-        ObjectVariable::Ptr objectVariable0Dup(new ObjectVariable("l0"));
-        ObjectVariable::Ptr objectVariable1(new ObjectVariable("l1"));
-        point_algebra::TimePoint::Ptr fromT(new point_algebra::QualitativeTimePoint("t2"));
-        point_algebra::TimePoint::Ptr toT(new point_algebra::QualitativeTimePoint("t3"));
+        ObjectVariable::Ptr objectVariable = make_shared<ObjectVariable>("l0");
+        point_algebra::TimePoint::Ptr t0 = point_algebra::TimePoint::create("t0");
+        point_algebra::TimePoint::Ptr t1 = point_algebra::TimePoint::create("t1");
+        point_algebra::TimePoint::Ptr t2 = point_algebra::TimePoint::create("t2");
 
-        PersistenceCondition::Ptr pc0(new PersistenceCondition(stateVariable, objectVariable0, fromT, toT));
-        PersistenceCondition::Ptr pc0Dup(new PersistenceCondition(stateVariable, objectVariable0Dup, fromT, toT));
-        PersistenceCondition::Ptr pc1(new PersistenceCondition(stateVariable, objectVariable1, fromT, toT));
-        //BOOST_REQUIRE_MESSAGE(pc0->equals(pc0Dup), pc0->toString() << " equals " << pc0Dup->String());
-        //BOOST_REQUIRE_MESSAGE(!pc0->equals(pc1), pc0->toString() << " equals " << pc1->String());
+        PersistenceCondition pc0(stateVariable, objectVariable, t0, t1);
+        PersistenceCondition pc1(stateVariable, objectVariable, t1, t2);
+        PersistenceCondition pc2(stateVariable, objectVariable, t1, t2);
+
+        BOOST_REQUIRE_MESSAGE(pc0 != pc1, "PersistenceConditions are not equal");
+        BOOST_REQUIRE_MESSAGE(pc1 == pc2, "PersistenceConditions are equal");
     }
-
 }
 
 BOOST_AUTO_TEST_SUITE_END()
