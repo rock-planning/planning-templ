@@ -57,6 +57,7 @@ public:
     virtual std::string toString(size_t indent) const;
 
     virtual bool operator==(const PersistenceCondition& other) const;
+    virtual bool operator!=(const PersistenceCondition& other) const { return !(*this == other); }
 
     /**
      * Get the class name of this constraint
