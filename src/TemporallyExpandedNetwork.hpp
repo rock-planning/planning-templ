@@ -97,7 +97,7 @@ public:
         }
         if(!mpLocalTransitionEdge)
         {
-            graph_analysis::WeightedEdge::Ptr weightedEdge(new edge_t());
+            graph_analysis::WeightedEdge::Ptr weightedEdge = make_shared<edge_t>();
             weightedEdge->setWeight(std::numeric_limits<graph_analysis::WeightedEdge::value_t>::max());
             mpLocalTransitionEdge = weightedEdge;
         }
@@ -198,10 +198,26 @@ public:
         throw std::invalid_argument("TemporallyExpandedNetwork::tupleByKeys: key does not exist");
     }
 
-    void save(const std::string& filename, const std::string& type = "dot") const
+    void save(const std::string& filename, const std::string& type = "") const
     {
+
+        graph_analysis::representation::Type rep;
+        if(type.empty())
+        {
+            try {
+                rep = graph_analysis::io::GraphIO::getTypeFromFilename(filename);
+            } catch(...)
+            {
+                LOG_WARN_S << "Could not extract file type: using DOT format";
+                rep = graph_analysis::representation::GRAPHVIZ;
+            }
+        } else {
+            rep = graph_analysis::io::GraphIO::getTypeFromSuffix(type);
+        }
+
         using namespace graph_analysis::io;
-        if(type == "dot")
+        assert(mpGraph);
+        if(rep == graph_analysis::representation::GRAPHVIZ)
         {
             GraphvizWriter gvWriter("dot","canon");
             GraphvizGridStyle::Ptr style(new GraphvizGridStyle(
@@ -214,12 +230,9 @@ public:
             style->setRowScalingFactor(5.0);
 
             gvWriter.setStyle(style);
-            assert(mpGraph);
             gvWriter.write(filename, mpGraph);
-        } else if(type == "gexf")
-        {
-            assert(mpGraph);
-            graph_analysis::io::GraphIO::write(filename,mpGraph, graph_analysis::representation::GEXF);
+        } else {
+            graph_analysis::io::GraphIO::write(filename,mpGraph,rep);
         }
     }
 
