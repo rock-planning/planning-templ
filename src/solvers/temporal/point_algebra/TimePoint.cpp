@@ -158,7 +158,7 @@ std::string TimePoint::toString(uint32_t indent) const
     std::stringstream ss;
     std::string hspace(indent,' ');
     std::string label = getLabel();
-    ss << hspace << "Timepoint: [" << mLowerBound << "," << mUpperBound << "]";
+    ss << hspace << "Timepoint(" << label << "): [" << mLowerBound << "," << mUpperBound << "]";
     return ss.str();
 }
 
