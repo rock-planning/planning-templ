@@ -331,7 +331,7 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addTemporalAssertion(const sy
         mPersistenceConditions.push_back(persistenceCondition);
     } else {
         LOG_DEBUG_S << "Already existing: " << (*pit)->toString();
-        throw std::invalid_argument("templ::Mission::addTemporalAssertion: trying to re-add temporal assertion or"
+        throw std::invalid_argument("templ::Mission::addTemporalAssertion: trying to re-add temporal assertion or "
                 "trying to add redundant temporal assertion: '" + persistenceCondition->toString() + "'");
     }
 
