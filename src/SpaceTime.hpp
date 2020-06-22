@@ -37,6 +37,9 @@ public:
             RoleInfoWeightedEdge
             > Network;
 
+    /// A route through the space time network
+    typedef std::vector< shared_ptr<RoleInfoSpaceTimeTuple> > Route;
+
     typedef std::pair<symbols::constants::Location::Ptr, solvers::temporal::point_algebra::TimePoint::Ptr> Point;
 
     typedef std::vector<Point> Points;
