@@ -114,6 +114,12 @@ public:
      */
     shared_ptr<Mission> toMission(const shared_ptr<Mission>& existingMission) const;
 
+    /**
+     * Get path for a given role
+     * \return Path as vector of vertices of the temporally expanded network
+     */
+    SpaceTime::RoleInfoSpaceTimeTuple::PtrList getPath(const Role& role);
+
 protected:
     /// The space time network contains the / the (min cost flow) solution.
     /// For the representation of

@@ -1,11 +1,13 @@
 #include "Solution.hpp"
 #include <limits>
+#include <functional>
 #include <graph_analysis/algorithms/DFS.hpp>
 #include <moreorg/Agent.hpp>
 #include <moreorg/facades/Robot.hpp>
 
 #include "../utils/PathConstructor.hpp"
 #include "../Mission.hpp"
+#include "../utils/PathConstructor.hpp"
 
 namespace templ {
 namespace solvers {
@@ -281,6 +283,63 @@ Mission::Ptr Solution::toMission(const Mission::Ptr& existingMission) const
     throw std::runtime_error("templ::Solution::toMission not implemented");
 }
 
+SpaceTime::RoleInfoSpaceTimeTuple::PtrList Solution::getPath(const Role& role)
+{
+    using namespace solvers::temporal;
+    using namespace symbols::constants;
+    point_algebra::TimePoint::PtrList timepoints = getTimepoints();
+    const point_algebra::TimePoint::Ptr& startingTimepoint = timepoints.front();
+
+    SpaceTime::Network::tuple_t::Ptr startTuple;
+
+    // Find the start point of a role
+    for(const symbols::constants::Location::Ptr& location : getLocations())
+    {
+        try {
+            SpaceTime::Network::tuple_t::Ptr tuple = mSpaceTimeNetwork.tupleByKeys(location, startingTimepoint);
+
+            Role::Set assignedRoles = tuple->getRoles(RoleInfo::ASSIGNED);
+            if( assignedRoles.find(role) != assignedRoles.end())
+            {
+                startTuple = tuple;
+                break;
+            }
+        } catch(const std::exception& e)
+        {
+            LOG_WARN_S << e.what() << " " << location->toString() << " " << startingTimepoint->toString();
+        }
+    }
+
+    if(!startTuple)
+    {
+        throw std::runtime_error("templ::solvers::Solution::getPath: Could not find start tuple for role " + role.toString() + ", solution seems to be incomplete");
+    }
+
+    // Finding the starting tuple
+    using namespace graph_analysis::algorithms;
+    // use SpaceTime::Network, which contains information on role for each edge
+    // after update from the flow graph
+    // foreach role -- find starting point and follow path
+    PathConstructor::Ptr pathConstructor =
+        make_shared<PathConstructor>(role,
+                RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]);
+    Skipper skipper = std::bind(&PathConstructor::isInvalidTransition, pathConstructor,std::placeholders::_1);
+    DFS dfs(mSpaceTimeNetwork.getGraph(), pathConstructor, skipper);
+    dfs.run(startTuple);
+
+    std::vector<graph_analysis::Vertex::Ptr> path = pathConstructor->getPath();
+    SpaceTime::RoleInfoSpaceTimeTuple::PtrList typedPath;
+    for(const graph_analysis::Vertex::Ptr& v : path)
+    {
+        SpaceTime::RoleInfoSpaceTimeTuple::Ptr tuple = dynamic_pointer_cast<SpaceTime::RoleInfoSpaceTimeTuple>(v);
+        if(!tuple)
+        {
+            throw std::invalid_argument("templ::solvers::Solution::getPath: could not cast vertex to RoleInfoSpaceTimeTuple");
+        }
+        typedPath.push_back(tuple);
+    }
+    return typedPath;
+}
 
 } // end namespace solvers
 } // end namespace templ

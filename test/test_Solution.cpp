@@ -78,6 +78,17 @@ BOOST_FIXTURE_TEST_CASE(should_add_role, SolutionFixture)
 
         Mission::Ptr mission = solution.toMission(om, "test-mission");
         io::MissionWriter::write("/tmp/test-templ-solution-should_add_role-mission.xml", *mission.get());
+
+
+        SpaceTime::RoleInfoSpaceTimeTuple::PtrList path = solution.getPath(commodity0);
+        BOOST_REQUIRE_MESSAGE(path.size() == 5, "Path expected to have length 5");
+        for(const SpaceTime::RoleInfoSpaceTimeTuple::Ptr& tuple : path)
+        {
+            symbols::constants::Location::Ptr location = tuple->first();
+            BOOST_REQUIRE_MESSAGE(location == locations[0], "Location in path:"
+                    "expected " << locations[0]->toString() << ", but was " <<
+                    location->toString());
+        }
     }
 
     {

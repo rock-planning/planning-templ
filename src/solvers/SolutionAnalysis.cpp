@@ -925,7 +925,7 @@ Plan SolutionAnalysis::computePlan() const
 
         if(!startTuple)
         {
-            LOG_WARN_S << "Could not find start tuple for role " + role.toString() << " solution seems to be incomplete";
+            LOG_WARN_S << "Could not find start tuple for role " << role.toString() << " solution seems to be incomplete";
             continue;
         }
 
