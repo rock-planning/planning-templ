@@ -103,6 +103,9 @@ public:
      */
     void save(const std::string& filename) const;
 
+    static Solution fromFile(const std::string& filename, const
+            moreorg::OrganizationModel::Ptr& om);
+
     /**
      * Convert solution to mission without considering new mission
      */

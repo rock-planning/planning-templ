@@ -101,4 +101,25 @@ BOOST_FIXTURE_TEST_CASE(should_add_role, SolutionFixture)
 
 }
 
+BOOST_FIXTURE_TEST_CASE(load_solution, SolutionFixture)
+{
+    owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2017/11/vrp";
+    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(organizationModelIRI);
+
+    prepareSolution(om);
+
+    std::string filename = "/tmp/test-templ-solution-test-io.gexf";
+    solution.save(filename);
+
+    solvers::Solution loadedSolution = solvers::Solution::fromFile(filename,
+            om);
+
+    for(auto timepoint: loadedSolution.getTimepoints())
+    {
+        BOOST_TEST_MESSAGE("Timepoint: " << timepoint->toString());
+    }
+
+    BOOST_REQUIRE_MESSAGE(true, "Solution loaded");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

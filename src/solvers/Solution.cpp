@@ -211,6 +211,13 @@ void Solution::save(const std::string& filename) const
     mSpaceTimeNetwork.save(filename);
 }
 
+Solution Solution::fromFile(const std::string& filename,
+        const moreorg::OrganizationModel::Ptr& om)
+{
+    SpaceTime::Network network = SpaceTime::Network::fromFile(filename);
+    return Solution(network, om);
+}
+
 Mission::Ptr Solution::toMission(const moreorg::OrganizationModel::Ptr& om,
         const std::string& name
         ) const

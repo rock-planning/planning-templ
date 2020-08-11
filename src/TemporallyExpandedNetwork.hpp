@@ -11,7 +11,10 @@
 #include <graph_analysis/io/GraphvizGridStyle.hpp>
 #include <graph_analysis/WeightedEdge.hpp>
 #include <base-logging/Logging.hpp>
+
 #include "solvers/temporal/point_algebra/TimePoint.hpp"
+#include "solvers/temporal/QualitativeTemporalConstraintNetwork.hpp"
+#include "solvers/csp/TemporalConstraintNetwork.hpp"
 #include "Tuple.hpp"
 
 namespace templ {
@@ -246,6 +249,41 @@ public:
         network.reconstructTupleMap();
 
         return network;
+    }
+
+    static TemporallyExpandedNetwork<D0, D1, TUPLE, EDGE_TYPE> fromFile(const std::string& filename)
+    {
+        using namespace graph_analysis;
+        BaseGraph::Ptr graph = BaseGraph::getInstance();
+        graph_analysis::io::GraphIO::read(filename, graph);
+
+        EdgeIterator::Ptr edgeIt = graph->getEdgeIterator();
+        std::set<D0> values;
+
+        using namespace solvers::temporal;
+
+        QualitativeTemporalConstraintNetwork qtcn;
+
+        while(edgeIt->next())
+        {
+            const Edge::Ptr& edge = edgeIt->current();
+
+            shared_ptr< Tuple<D0,D1> > fromTuple = dynamic_pointer_cast<
+                Tuple<D0,D1> >(edge->getSourceVertex());
+            shared_ptr< Tuple<D0,D1> > toTuple = dynamic_pointer_cast<
+                Tuple<D0,D1> >(edge->getTargetVertex());
+
+            values.insert(fromTuple->first());
+
+            qtcn.addQualitativeConstraint( fromTuple->second(),
+                    toTuple->second(),
+                    point_algebra::QualitativeTimePointConstraint::Less);
+        }
+
+        std::vector<D1> timepoints = solvers::csp::TemporalConstraintNetworkBase::getSortedList(qtcn);
+        std::vector<D0> uniqueValues(values.begin(), values.end());
+
+        return fromGraph(graph, uniqueValues, timepoints);
     }
 
     static TemporallyExpandedNetwork<D0,D1,TUPLE, EDGE_TYPE> fromGraph(const graph_analysis::BaseGraph::Ptr& graph, const std::vector<D0>& values, const std::vector<D1>& timepoints)
