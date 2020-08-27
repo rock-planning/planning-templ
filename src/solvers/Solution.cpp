@@ -9,6 +9,8 @@
 #include "../Mission.hpp"
 #include "../utils/PathConstructor.hpp"
 
+using namespace graph_analysis;
+
 namespace templ {
 namespace solvers {
 
@@ -98,6 +100,51 @@ SpaceTime::RoleInfoSpaceTimeTuple::Ptr Solution::removeRole(const Role& role,
     {
         SpaceTime::RoleInfoSpaceTimeTuple::Ptr roleInfoTuple = mSpaceTimeNetwork.tupleByKeys(location, timepoint);
         roleInfoTuple->removeRole(role, tag);
+
+        // 1. check that the role is also remove from the incoming and outgoing
+        // edges
+        Edge::PtrList inEdges = mSpaceTimeNetwork.getGraph()->getInEdges(roleInfoTuple);
+        for(const Edge::Ptr& inEdge : inEdges)
+        {
+            RoleInfoWeightedEdge::Ptr e =
+                dynamic_pointer_cast<RoleInfoWeightedEdge>(inEdge);
+
+            if(e->hasRole(role, tag))
+            {
+                e->removeRole(role, tag);
+
+                if(e->getRoles(RoleInfo::AVAILABLE).empty())
+                {
+                    if( e->getWeight() != std::numeric_limits<double>::max() )
+                    {
+                        mSpaceTimeNetwork.getGraph()->removeEdge(e);
+                    }
+                }
+                break;
+            }
+        }
+
+        Edge::PtrList outEdges = mSpaceTimeNetwork.getGraph()->getOutEdges(roleInfoTuple);
+        for(const Edge::Ptr& outEdge : outEdges)
+        {
+            RoleInfoWeightedEdge::Ptr e =
+                dynamic_pointer_cast<RoleInfoWeightedEdge>(outEdge);
+
+            if(e->hasRole(role, tag))
+            {
+                e->removeRole(role, tag);
+
+                if(e->getAllRoles().empty())
+                {
+                    if( e->getWeight() != std::numeric_limits<double>::max() )
+                    {
+                        mSpaceTimeNetwork.getGraph()->removeEdge(e);
+                    }
+                }
+                break;
+            }
+        }
+
         return roleInfoTuple;
     } else {
         for(const symbols::constants::Location::Ptr& l : getLocations())
@@ -144,6 +191,11 @@ SpaceTime::RoleInfoSpaceTimeTuple::Ptr Solution::addRole(const Role& role,
     SpaceTime::RoleInfoSpaceTimeTuple::Ptr prevTuple;
     size_t startIndex = 0;
 
+    // check if there is already a previous spacetimepoint, where this role
+    // is associated with
+
+    symbols::constants::Location::PtrList locations = mSpaceTimeNetwork.getValues();
+
     temporal::point_algebra::TimePoint::PtrList timepoints = getTimepoints();
     for(size_t t = 0; t < timepoints.size(); ++t)
     {
@@ -151,6 +203,23 @@ SpaceTime::RoleInfoSpaceTimeTuple::Ptr Solution::addRole(const Role& role,
         {
             startIndex = t;
             inRoute = true;
+
+            // where is the origin of the role (if this is not the starting
+            // location)
+            if(t > 0)
+            {
+                for(const symbols::constants::Location::Ptr& l : locations)
+                {
+                    const SpaceTime::RoleInfoSpaceTimeTuple::Ptr& roleInfoTuple
+                        = mSpaceTimeNetwork.tupleByKeys(l, timepoints[t-1]);
+                    if(roleInfoTuple->hasRole(role, tag))
+                    {
+                        // found the location
+                        prevTuple = roleInfoTuple;
+                        break;
+                    }
+                }
+            }
         } else if(!inRoute)
         {
             continue;
@@ -166,6 +235,13 @@ SpaceTime::RoleInfoSpaceTimeTuple::Ptr Solution::addRole(const Role& role,
             if(edges.empty())
             {
                 edge = make_shared<RoleInfoWeightedEdge>(prevTuple, roleInfoTuple, 0);
+                mSpaceTimeNetwork.getGraph()->addEdge(edge);
+            } else if(edges.size() == 1)
+            {
+                edge = edges[0];
+            } else {
+                throw std::runtime_error("templ::solvers::Solution: multiple"
+                        "edges encountered");
             }
 
             edge->addRole(role, tag);
@@ -186,10 +262,42 @@ SpaceTime::RoleInfoSpaceTimeTuple::Ptr Solution::addRole(const Role& role,
                 edge->setWeight(totalTransportCapacity);
             }
         }
+        prevTuple = roleInfoTuple;
 
         if(timepoints[t] == to)
         {
             inRoute = false;
+
+            // where is the target of the role (if this is not the final location)
+            if(t < timepoints.size() - 1)
+            {
+                for(const symbols::constants::Location::Ptr& l : locations)
+                {
+                    const SpaceTime::RoleInfoSpaceTimeTuple::Ptr& targetTuple
+                        = mSpaceTimeNetwork.tupleByKeys(l, timepoints[t+1]);
+                    if(roleInfoTuple->hasRole(role, tag))
+                    {
+                        std::vector<RoleInfoWeightedEdge::Ptr> outEdges = mSpaceTimeNetwork.getGraph()->getEdges<RoleInfoWeightedEdge>(prevTuple, targetTuple);
+
+                        if(outEdges.size() == 1)
+                        {
+                            outEdges[0]->addRole(role, tag);
+                        } else if(outEdges.empty())
+                        {
+                            // create edge
+                            RoleInfoWeightedEdge::Ptr edge = make_shared<RoleInfoWeightedEdge>(prevTuple, roleInfoTuple, 0);
+                            mSpaceTimeNetwork.getGraph()->addEdge(edge);
+                            edge->addRole(role, tag);
+                        } else {
+                            throw
+                                std::runtime_error("templ::solvers::Solution::addRole:"
+                                        "multiple edges encountered between two"
+                                        "SpaceTimePoints");
+                        }
+                        break;
+                    }
+                }
+            }
             break;
         }
     }
