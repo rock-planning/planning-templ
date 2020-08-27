@@ -1703,7 +1703,13 @@ void TransportNetwork::postRoleAssignments()
     } // for loop active roles
 
     mActiveRoleList = activeRoles;
-    assert(!mActiveRoleList.empty());
+    if(mActiveRoleList.empty())
+    {
+        throw
+            std::runtime_error("templ::solvers::csp::TransportNetwork::getTimelines: "
+                    "active roles could not be computed. Please ensure that all"
+                    "resources are assigned to a starting location");
+    }
     // Construct the basic timeline
     //
     // Map role requirements back to activation in general network
