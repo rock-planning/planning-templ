@@ -541,7 +541,12 @@ void MissionEditor::on_saveButton_clicked()
 
     if(!filename.isEmpty())
     {
-        save(filename);
+        try {
+            save(filename);
+        } catch(const std::exception& e)
+        {
+            QMessageBox::warning(this, "Templ", QString("MissionView: failed to save file --") + QString(e.what()));
+        }
     }
 }
 
