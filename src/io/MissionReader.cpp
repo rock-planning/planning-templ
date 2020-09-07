@@ -146,6 +146,7 @@ Mission MissionReader::fromFile(const std::string& url, const moreorg::Organizat
         }
         LOG_INFO_S << "Found root node: " << rootNode->name;
 
+        /// Record mapping fro requirement id to space interval tuple
         std::map<size_t, SpaceTime::SpaceIntervalTuple> requirementIntervalMap;
         std::map<std::string, SpaceTime::SpaceIntervalTuple> locationIntervalMap;
 
@@ -201,12 +202,11 @@ Mission MissionReader::fromFile(const std::string& url, const moreorg::Organizat
                                 " and quantitative values: from '" + requirement.temporal.from + "' "
                                 " and to '" + requirement.temporal.to + "'");
                     }
-
+                    requirementIntervalMap[requirement.id] = SpaceTime::SpaceIntervalTuple(location, solvers::temporal::Interval(from, to, tcn));
                     LOG_DEBUG_S << "Handle: requirement: " << requirement.toString();
                     std::vector<ResourceRequirement>::const_iterator cit = requirement.resources.begin();
                     for(; cit != requirement.resources.end(); ++cit)
                     {
-                        requirementIntervalMap[requirement.id] = SpaceTime::SpaceIntervalTuple(location, solvers::temporal::Interval(from, to, tcn));
                         const ResourceRequirement& resource = *cit;
                         {
                             // setting the min cardinality by default
@@ -217,7 +217,6 @@ Mission MissionReader::fromFile(const std::string& url, const moreorg::Organizat
                             // Keep track for explanation
                             // TODO: we should add that to an ontology
                             mission.addRelation(temporalAssertion, "inducedBy", requirementPtr);
-
                         }
 
                         {
