@@ -22,8 +22,23 @@ public:
     typedef shared_ptr<Constraint> Ptr;
     typedef std::vector<Ptr> PtrList;
 
+    enum Tag
+    {
+        UNKNOWN_TAG,
+        /// e.g. when constraint originates from a mission definition
+        PRIORITY_HIGH,
+        /// e.g, when constraint originates from narrowing for a solution
+        PRIORITY_LOW,
+        END_TAG
+    };
+
+    static std::map<Tag, std::string> TagTxt;
+
     // A general category of the constraint
-    enum Category { UNKNOWN,
+    enum Category
+    {
+        UNKNOWN,
+        TEMPORAL_ASSERTION,
         TEMPORAL_QUALITATIVE,
         TEMPORAL_QUANTITATIVE,
         MODEL,
@@ -31,6 +46,7 @@ public:
     };
 
     static std::map<Category, std::string> CategoryTxt;
+
 
     /**
      * Default constructor for constraint
@@ -50,6 +66,18 @@ public:
     virtual bool operator==(const Constraint& other) const;
 
     bool operator!=(const Constraint& other) const { return !(*this == other); }
+
+    std::set<Tag> getTags() const { return mTags; }
+
+    /**
+     * Add a tag to this constraint
+     */
+    void addTag(const Tag& tag);
+
+    /**
+     * Test if constraint has a particular tag
+     */
+    bool hasTag(const Tag& tag) const;
 
     /**
      * Get the category of this constraint
@@ -81,8 +109,14 @@ public:
      */
     static std::string toString(const PtrList& constraints, size_t indent);
 
+    /**
+     * Get string from tags
+     */
+    std::string getTagsAsString() const;
+
 private:
     Category mCategory;
+    std::set<Tag> mTags;
 };
 
 typedef std::vector<Constraint::Ptr> ConstraintList;
