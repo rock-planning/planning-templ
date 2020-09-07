@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <map>
-#include <graph_analysis/Vertex.hpp>
+#include "../../constraints/HyperConstraint.hpp"
 #include "../../symbols/StateVariable.hpp"
 #include "point_algebra/TimePointComparator.hpp"
 
@@ -19,7 +19,7 @@ class PersistenceCondition;
  * \brief A temporal assertion is part of a Chronicle or a Timeline
  * It can be either an Event or a PersistenceCondition
  */
-class TemporalAssertion : public graph_analysis::Vertex
+class TemporalAssertion : public constraints::HyperConstraint
 {
 public:
     enum Type { UNKNOWN = 0,
@@ -77,9 +77,9 @@ public:
      */
     bool isReferringToSameValue(const TemporalAssertion::Ptr& other, const point_algebra::TimePointComparator& comparator) const;
 
-    virtual std::string toString() const;
+    virtual std::string toString() const { return toString(0); }
 
-    virtual std::string toString(size_t indent) const;
+    virtual std::string toString(uint32_t indent) const;
 
     /**
      * Get the class name of this constraint

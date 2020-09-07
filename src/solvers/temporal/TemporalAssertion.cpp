@@ -8,7 +8,7 @@ namespace solvers {
 namespace temporal {
 
 TemporalAssertion::TemporalAssertion(const symbols::StateVariable& stateVariable, TemporalAssertion::Type type)
-    : graph_analysis::Vertex()
+    : constraints::HyperConstraint(Constraint::TEMPORAL_ASSERTION)
     , mType(type)
     , mStateVariable(stateVariable)
 {}
@@ -57,12 +57,7 @@ bool TemporalAssertion::isReferringToSameValue(const TemporalAssertion::Ptr& oth
     }
 }
 
-std::string TemporalAssertion::toString() const
-{
-    return toString(0);
-}
-
-std::string TemporalAssertion::toString(size_t indent) const
+std::string TemporalAssertion::toString(uint32_t indent) const
 {
     std::string hspace(indent,' ');
     std::string s = hspace + TypeTxt[mType] + '\n';

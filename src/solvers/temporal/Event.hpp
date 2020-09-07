@@ -51,7 +51,7 @@ public:
 
     point_algebra::TimePoint::Ptr getTimePoint() const { return mpTimepoint; }
 
-    virtual std::string toString() const;
+    virtual std::string toString(uint32_t hspace = 0) const;
 
     /**
      * Get the class name of this constraint

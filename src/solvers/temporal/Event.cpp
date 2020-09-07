@@ -45,9 +45,10 @@ bool Event::disjointFrom(const shared_ptr<PersistenceCondition>& other, const po
     return other->disjointFrom( Event::Ptr( new Event(*this)), comparator);
 }
 
-std::string Event::toString() const
+std::string Event::toString(uint32_t indent) const
 {
-    std::string ss = TemporalAssertion::toString() + "::";
+    std::string hspace(indent,' ');
+    std::string ss = TemporalAssertion::toString(indent) + "::";
     ss += "@";
     ss += mpTimepoint->toString() + ":";
     ss += "(";

@@ -53,8 +53,8 @@ public:
     point_algebra::TimePoint::Ptr getToTimePoint() const { return mpToTimepoint; }
 
 
-    virtual std::string toString() const;
-    virtual std::string toString(size_t indent) const;
+    virtual std::string toString() { return toString(0); }
+    virtual std::string toString(uint32_t indent) const;
 
     virtual bool operator==(const PersistenceCondition& other) const;
     virtual bool operator!=(const PersistenceCondition& other) const { return !(*this == other); }

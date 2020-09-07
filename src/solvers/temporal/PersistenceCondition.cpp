@@ -59,12 +59,7 @@ bool PersistenceCondition::disjointFrom(const shared_ptr<PersistenceCondition>& 
 }
 
 
-std::string PersistenceCondition::toString() const
-{
-    return toString(0);
-}
-
-std::string PersistenceCondition::toString(size_t indent) const
+std::string PersistenceCondition::toString(uint32_t indent) const
 {
     std::string hspace(indent,' ');
     std::string ss = TemporalAssertion::toString(indent) + "\n";
