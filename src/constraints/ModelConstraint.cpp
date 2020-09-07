@@ -77,6 +77,7 @@ std::string ModelConstraint::toString(uint32_t indent) const
     std::string hspace(indent,' ');
     std::stringstream ss;
     ss << hspace << TypeTxt[mType] << ":" << std::endl;
+    ss << hspace << "    tags: " << getTagsAsString() << std::endl;
     ss << hspace << "    model: " << mModel.toString() << std::endl;
     if(! (mType == ALL_DISTINCT || mType == ALL_EQUAL) )
     {
