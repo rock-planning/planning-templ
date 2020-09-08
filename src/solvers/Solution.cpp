@@ -41,7 +41,7 @@ Role::Set Solution::getAgentRoles() const
     return allRoles;
 }
 
-const SpaceTime::RoleInfoSpaceTimeTuple::Ptr& Solution::getStart(const Role& role) const
+SpaceTime::RoleInfoSpaceTimeTuple::Ptr Solution::getStart(const Role& role) const
 {
     temporal::point_algebra::TimePoint::Ptr startTp = *getTimepoints().begin();
     for(const symbols::constants::Location::Ptr& location : getLocations())

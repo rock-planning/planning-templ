@@ -60,7 +60,7 @@ public:
     /**
      * Get the start for a particular role
      */
-    const SpaceTime::RoleInfoSpaceTimeTuple::Ptr& getStart(const Role& role) const;
+    SpaceTime::RoleInfoSpaceTimeTuple::Ptr getStart(const Role& role) const;
 
     /**
      * Get the route for this particular role
