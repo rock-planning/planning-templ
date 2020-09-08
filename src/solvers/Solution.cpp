@@ -7,6 +7,7 @@
 
 #include "../utils/PathConstructor.hpp"
 #include "../Mission.hpp"
+#include "../constraints/ModelConstraint.hpp"
 #include "../utils/PathConstructor.hpp"
 
 using namespace graph_analysis;
@@ -66,25 +67,28 @@ SpaceTime::Route Solution::getRoute(const Role& role) const
 {
     SpaceTime::RoleInfoSpaceTimeTuple::Ptr startTuple = getStart(role);
 
-   using namespace graph_analysis::algorithms;
-   // use SpaceTime::Network, which contains information on role for each edge
-   // after update from the flow graph
-   // foreach role -- find starting point and follow path
-   PathConstructor::Ptr pathConstructor =
-       make_shared<PathConstructor>(role,
-               RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]);
-   Skipper skipper = std::bind(&PathConstructor::isInvalidTransition,
-           pathConstructor,std::placeholder::_1);
-   DFS dfs(mSpaceTimeNetwork.getGraph(), pathConstructor, skipper);
-   dfs.run(startTuple);
+    LOG_WARN_S << "Route: " << role.toString() << ": start at " << startTuple->toString();
 
-   std::vector<graph_analysis::Vertex::Ptr> path = pathConstructor->getPath();
-   SpaceTime::Route route;
-   for(const graph_analysis::Vertex::Ptr& v : path)
-   {
-       route.push_back( dynamic_pointer_cast<SpaceTime::RoleInfoSpaceTimeTuple>(v) );
-   }
-   return route;
+    using namespace graph_analysis::algorithms;
+    // use SpaceTime::Network, which contains information on role for each edge
+    // after update from the flow graph
+    // foreach role -- find starting point and follow path
+    PathConstructor::Ptr pathConstructor =
+        make_shared<PathConstructor>(role,
+                RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]);
+    Skipper skipper = std::bind(&PathConstructor::isInvalidTransition,
+            pathConstructor,std::placeholder::_1);
+    DFS dfs(mSpaceTimeNetwork.getGraph(), pathConstructor, skipper);
+    dfs.run(startTuple);
+
+    std::vector<graph_analysis::Vertex::Ptr> path = pathConstructor->getPath();
+    LOG_WARN_S << "Route: " << role.toString() << ": " << path.size();
+    SpaceTime::Route route;
+    for(const graph_analysis::Vertex::Ptr& v : path)
+    {
+        route.push_back( dynamic_pointer_cast<SpaceTime::RoleInfoSpaceTimeTuple>(v) );
+    }
+    return route;
 }
 
 /**
@@ -113,7 +117,7 @@ SpaceTime::RoleInfoSpaceTimeTuple::Ptr Solution::removeRole(const Role& role,
             {
                 e->removeRole(role, tag);
 
-                if(e->getRoles(RoleInfo::AVAILABLE).empty())
+                if(e->getRoles(RoleInfo::ASSIGNED).empty())
                 {
                     if( e->getWeight() != std::numeric_limits<double>::max() )
                     {
@@ -251,7 +255,7 @@ SpaceTime::RoleInfoSpaceTimeTuple::Ptr Solution::addRole(const Role& role,
                 edge->setWeight(std::numeric_limits<double>::max());
             } else
             {
-                Role::Set allRoles = edge->getRoles({ RoleInfo::AVAILABLE });
+                Role::Set allRoles = edge->getRoles({ RoleInfo::ASSIGNED });
                 uint32_t totalTransportCapacity = 0;
                 for(const Role& r : allRoles)
                 {
@@ -326,15 +330,133 @@ Solution Solution::fromFile(const std::string& filename,
     return Solution(network, om);
 }
 
+
+void Solution::narrowMission(Mission& m) const
+{
+    namespace pa = temporal::point_algebra;
+    namespace sym = templ::symbols::constants;
+
+    // Add requirements
+    pa::TimePoint::PtrList timepoints = getTimepoints();
+    for(size_t t = 0; t < timepoints.size(); ++t)
+    {
+        if(t != 0)
+        {
+            pa::QualitativeTimePointConstraint::Ptr qtpc =
+                make_shared<pa::QualitativeTimePointConstraint>(timepoints[t-1],
+                        timepoints[t], pa::QualitativeTimePointConstraint::Less);
+            m.addConstraint(qtpc, false);
+        }
+    }
+
+    m.prepareTimeIntervals();
+    pa::TimePointComparator timepointComparator(m.getTemporalConstraintNetwork());
+
+    for(const Role& role : getAgentRoles())
+    {
+        SpaceTime::Route route = getRoute(role);
+        std::vector<SpaceTime::SpaceIntervalTuple> affectedSpaceIntervals;
+
+        for(size_t i = 1; i < route.size(); ++i)
+        {
+            sym::Location::Ptr location = route[i]->first();
+            pa::TimePoint::Ptr timepoint = route[i]->second();
+
+            SpaceTime::RoleInfoSpaceTimeTuple::Ptr roleInfoTuple =
+                mSpaceTimeNetwork.tupleByKeys(location, timepoint);
+
+            size_t cardinality =
+                roleInfoTuple->getModelPool({RoleInfo::ASSIGNED})[role.getModel()];
+
+            // Check for same location
+            if(location == route[i-1]->first())
+            {
+                pa::TimePoint::Ptr fromTimepoint = route[i-1]->second();
+                pa::TimePoint::Ptr toTimepoint = timepoint;
+
+                SpaceTime::RoleInfoSpaceTimeTuple::Ptr fromRoleInfoTuple =
+                    mSpaceTimeNetwork.tupleByKeys(location, fromTimepoint);
+
+                size_t fromCardinality =
+                    fromRoleInfoTuple->getModelPool({RoleInfo::ASSIGNED})[role.getModel()];
+                size_t stableCardinality = std::min(fromCardinality, cardinality);
+
+                SpaceTime::SpaceIntervalTuple sit(location,
+                        solvers::temporal::Interval(
+                            fromTimepoint,
+                            toTimepoint,
+                            timepointComparator)
+                );
+
+                // Make sure space timepoint can be referenced
+                try {
+                    Constraint::Ptr c = m.addResourceLocationCardinalityConstraint(location,
+                            fromTimepoint,
+                            toTimepoint,
+                            role.getModel(),
+                            stableCardinality,
+                            owlapi::model::OWLCardinalityRestriction::MIN
+                            );
+                    c->addTag(Constraint::PRIORITY_LOW);
+                } catch(const std::invalid_argument& e)
+                {
+                    // ignore rundant addition
+                }
+
+                affectedSpaceIntervals.push_back(sit);
+            }
+
+            if(i >= route.size() - 1 || location != route[i+1]->first())
+            {
+                SpaceTime::SpaceIntervalTuple sit(location,
+                        solvers::temporal::Interval(
+                            timepoint,
+                            timepoint,
+                            timepointComparator)
+                );
+
+                // Make sure space timepoint can be referenced
+                try {
+                    Constraint::Ptr c = m.addResourceLocationCardinalityConstraint(location,
+                            timepoint,
+                            timepoint,
+                            role.getModel(),
+                            cardinality, // placeholder requirement for reference only
+                            owlapi::model::OWLCardinalityRestriction::MIN
+                            );
+                    c->addTag(Constraint::PRIORITY_LOW);
+                } catch(const std::invalid_argument& e)
+                {
+                    // ignore rundant addition
+                }
+
+                affectedSpaceIntervals.push_back(sit);
+            }
+        }
+
+        if(affectedSpaceIntervals.empty())
+        {
+            continue;
+        }
+
+        constraints::ModelConstraint::Ptr modelConstraint =
+            make_shared<constraints::ModelConstraint>(constraints::ModelConstraint::MIN_EQUAL,
+                role.getModel(),
+                affectedSpaceIntervals,
+                1);
+        modelConstraint->addTag(Constraint::PRIORITY_LOW);
+        m.addConstraint(modelConstraint);
+    }
+}
+
 Mission::Ptr Solution::toMission(const moreorg::OrganizationModel::Ptr& om,
         const std::string& name
         ) const
 {
+    Mission::Ptr m = make_shared<Mission>(om, name);
 
     namespace pa = temporal::point_algebra;
     namespace sym = templ::symbols::constants;
-
-    Mission::Ptr m = make_shared<Mission>(om, name);
 
     for(const auto& location : getLocations())
     {
@@ -344,58 +466,15 @@ Mission::Ptr Solution::toMission(const moreorg::OrganizationModel::Ptr& om,
     moreorg::Agent agent( getAgentRoles() );
     m->setAvailableResources(agent.getType());
 
-    // Starting requirements
-    pa::TimePoint::PtrList timepoints = getTimepoints();
-    for(size_t t = 0; t < timepoints.size(); ++t)
-    {
-        if(t != 0)
-        {
-            pa::QualitativeTimePointConstraint::Ptr qtpc =
-                make_shared<pa::QualitativeTimePointConstraint>(timepoints[t-1],
-                        timepoints[t], pa::QualitativeTimePointConstraint::Less);
-            m->addConstraint(qtpc);
-        }
-
-        for(const auto& location : getLocations())
-        {
-            LOG_WARN_S << "Process location: " << location->toString();
-
-            SpaceTime::RoleInfoSpaceTimeTuple::Ptr roleInfoTuple =
-                mSpaceTimeNetwork.tupleByKeys(location, timepoints[t]);
-
-            moreorg::ModelPool assigedAgentType = roleInfoTuple->getModelPool({ RoleInfo::ASSIGNED });
-            for(const auto& pair : assigedAgentType)
-            {
-                LOG_WARN_S << "Processing Model " << pair.first.toString() << " "
-                    << timepoints[t]->getLabel() << "--" << timepoints[t+1]->getLabel();
-
-                if(t == 0)
-                {
-                    // start assignment requires 'max' constraints
-                    m->addResourceLocationCardinalityConstraint(location, timepoints[t],
-                            timepoints[t+1],
-                            pair.first,  //  model
-                            pair.second, // cardinality
-                            owlapi::model::OWLCardinalityRestriction::MAX
-                            );
-                }
-
-                // start assignment requires 'max' constraints
-                m->addResourceLocationCardinalityConstraint(location, timepoints[t],
-                        timepoints[t+1],
-                        pair.first,  //  model
-                        pair.second, // cardinality
-                        owlapi::model::OWLCardinalityRestriction::MIN
-                        );
-            }
-        }
-    }
+    narrowMission(*m.get());
     return m;
 }
 
-Mission::Ptr Solution::toMission(const Mission::Ptr& existingMission) const
+Mission::Ptr Solution::getNarrowedMission(const Mission& existingMission) const
 {
-    throw std::runtime_error("templ::Solution::toMission not implemented");
+    Mission::Ptr m = make_shared<Mission>(existingMission);
+    narrowMission(*m.get());
+    return m;
 }
 
 SpaceTime::RoleInfoSpaceTimeTuple::PtrList Solution::getPath(const Role& role)

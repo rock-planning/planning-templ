@@ -113,9 +113,15 @@ public:
             const std::string& name = "") const;
 
     /**
-     * Convert solution to mission while augementing existing mission
+     * Convert solution to mission while augmenting/narrowing existing mission
      */
-    shared_ptr<Mission> toMission(const shared_ptr<Mission>& existingMission) const;
+    shared_ptr<Mission> getNarrowedMission(const Mission& existingMission) const;
+
+    /**
+     * Narrow mission with the constraints from this solution
+     * model constraints will be added with Constraint::PRIORITY_LOW
+     */
+    void narrowMission(Mission& mission) const;
 
     /**
      * Get path for a given role
