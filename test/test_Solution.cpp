@@ -1,9 +1,11 @@
 #include <templ/solvers/Solution.hpp>
 #include <templ/Mission.hpp>
 #include <templ/io/MissionWriter.hpp>
+#include <templ/io/MissionReader.hpp>
 #include <moreorg/OrganizationModel.hpp>
 #include <boost/test/unit_test.hpp>
 #include <moreorg/vocabularies/VRP.hpp>
+#include "test_utils.hpp"
 
 using namespace templ;
 using namespace moreorg;
@@ -120,6 +122,22 @@ BOOST_FIXTURE_TEST_CASE(load_solution, SolutionFixture)
     }
 
     BOOST_REQUIRE_MESSAGE(true, "Solution loaded");
+}
+
+BOOST_AUTO_TEST_CASE(narrow_mission)
+{
+
+    std::string missionFilename = getRootDir() + "test/data/scenarios/test-solution/narrow_mission.xml";
+    std::string solutionFilename = getRootDir() + "test/data/scenarios/test-solution/narrow_mission-solution.gexf";
+
+    owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2017/11/vrp";
+    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(organizationModelIRI);
+    solvers::Solution loadedSolution = solvers::Solution::fromFile(solutionFilename, om);
+
+    Mission mission = io::MissionReader::fromFile(missionFilename,"");
+    Mission::Ptr narrowedMission = loadedSolution.getNarrowedMission(mission);
+
+    io::MissionWriter::write("/tmp/test-templ-solution-narrowed-mission.xml", *narrowedMission.get());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
