@@ -616,7 +616,7 @@ SpaceTime::Network MissionGenerator::generateNetwork()
                     timepoints,
                     ask,
                     logger,
-                    graph_analysis::algorithms::LPSolver::SCIP_SOLVER);
+                    graph_analysis::algorithms::LPSolver::CBC_SOLVER);
 
         try {
             std::vector<solvers::transshipment::Flaw> flaws = minCostFlow.run(true);
