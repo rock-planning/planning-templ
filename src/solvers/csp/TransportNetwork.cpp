@@ -1639,19 +1639,55 @@ void TransportNetwork::postRoleAssignments()
                 uint32_t fromIndex = getTimepointIndex( from );
                 uint32_t toIndex = getTimepointIndex( to );
 
-                // The timeline is now updated for the full interval the
+                // index of the location is fts.fluent
+                size_t fluentIdx = fts.getFluentIdx();
+
+                // self edge
+                if(fromIndex == toIndex)
+                {
+                    size_t col = FluentTimeIndex::toRowOrColumnIndex(fluentIdx, fromIndex, numberOfFluents, numberOfFluents);
+                    // since (due to the existing path constraint) the incoming
+                    // edge has to have this space-timepoint as target
+                    if(fromIndex < numberOfTimepoints)
+                    {
+                        size_t offset = fromIndex*numberOfFluents;
+                        for(size_t f = 0; f < numberOfFluents; ++f)
+                        {
+                            size_t idx = offset + f;
+                            if(idx != col)
+                            {
+                                Gecode::SetVar& excludeVar = timeline[idx];
+                                Gecode::Set::SetView excludeView(excludeVar);
+                                excludeView.cardMax(*this, 0);
+                            }
+                        }
+                        // adapt all edges starting at previous timepoint to
+                        // point to location at current timepoint
+                        if(fromIndex > 0)
+                        {
+                            for(size_t f = 0; f < numberOfFluents; ++f)
+                            {
+                                size_t row = FluentTimeIndex::toRowOrColumnIndex(f, fromIndex-1, numberOfFluents, numberOfFluents);
+                                Gecode::SetVar& edgeActivation = timeline[row];
+                                Gecode::Set::SetView v(edgeActivation);
+
+                                v.intersect(*this, col,col);
+                                v.cardMax(*this, 1);
+                            }
+                        }
+                    }
+                }
+
                 // requirement is covering
                 uint32_t timeIndex = fromIndex;
                 for(; timeIndex < toIndex; ++timeIndex)
                 {
-                    // index of the location is fts.fluent
                     // edge index:
                     // row = timepointIdx*#ofLocations + from-location-offset
                     // col = (timepointIdx + 1) *#ofLocations + to-location-offset
                     //
                     // location (offset) = row % #ofLocations
                     // timepointIndex = (row - location(offset)) / #ofLocations
-                    size_t fluentIdx = fts.getFluentIdx();
                     size_t row = FluentTimeIndex::toRowOrColumnIndex(fluentIdx, timeIndex, numberOfFluents, numberOfTimepoints);
                     // Always connect to the next timestep
                     size_t col = FluentTimeIndex::toRowOrColumnIndex(fluentIdx, timeIndex + 1, numberOfFluents, numberOfFluents);
