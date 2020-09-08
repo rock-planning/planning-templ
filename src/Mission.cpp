@@ -335,10 +335,14 @@ solvers::temporal::TemporalAssertion::Ptr Mission::addTemporalAssertion(const sy
                 "trying to add redundant temporal assertion: '" + persistenceCondition->toString() + "'");
     }
 
-    LOG_DEBUG_S << "Adding implicitly defined temporal constraint for time interval";
-    bool implicit = true;
-    pa::QualitativeTimePointConstraint::Ptr constraint = make_shared<pa::QualitativeTimePointConstraint>(fromTp, toTp, pa::QualitativeTimePointConstraint::Less);
-    addConstraint(constraint, implicit);
+    if(fromTp != toTp)
+    {
+        LOG_DEBUG_S << "Adding implicitly defined temporal constraint for time interval "
+            << "between two distinct timepoints";
+        bool implicit = true;
+        pa::QualitativeTimePointConstraint::Ptr constraint = make_shared<pa::QualitativeTimePointConstraint>(fromTp, toTp, pa::QualitativeTimePointConstraint::Less);
+        addConstraint(constraint, implicit);
+    }
 
     return persistenceCondition;
 }
