@@ -39,6 +39,9 @@ void MissionGenerator::loadConfiguration(const std::string& configurationFile)
     mAreaY = configuration.getValueAs<double>("MissionGenerator/area/y");
     mAreaZ = configuration.getValueAs<double>("MissionGenerator/area/z");
 
+    mTemporalConstraintsNoGaps =
+        configuration.getValueAs<bool>("MissionGenerator/temporalConstraints/nogaps", false);
+
     mNumberOfLocations = configuration.getValueAs<size_t>("MissionGenerator/locations",0);
     mNumberOfTimepoints = configuration.getValueAs<size_t>("MissionGenerator/timepoints",0);
     owlapi::model::IRI organizationModelIRI = configuration.getValueAs<std::string>("MissionGenerator/organization_model");
@@ -322,6 +325,7 @@ Mission::Ptr MissionGenerator::sampleFromNetwork(const SpaceTime::Network& netwo
     mission->setAvailableResources(mAgentPool);
     mission->setDataPropertyAssignments(mDataPropertyAssignments);
 
+    namespace pa = solvers::temporal::point_algebra;
     using namespace graph_analysis;
     using namespace symbols::constants;
     symbols::constants::Location::PtrList locations = network.getValues();
@@ -330,6 +334,25 @@ Mission::Ptr MissionGenerator::sampleFromNetwork(const SpaceTime::Network& netwo
     for(Location::Ptr location : locations)
     {
         mission->addConstant(location);
+    }
+
+    for(size_t t = 1; t < timepoints.size(); ++t)
+    {
+        if(mTemporalConstraintsNoGaps)
+        {
+            pa::QualitativeTimePointConstraint::Ptr constraint =
+                make_shared<pa::QualitativeTimePointConstraint>(timepoints[t-1], timepoints[t], QualitativeTimePointConstraint::Less);
+            mission->addConstraint(constraint);
+
+        } else {
+            if(t > 1)
+            {
+                // implicit constraint exists for t_0 < t_1
+                pa::QualitativeTimePointConstraint::Ptr constraint =
+                    make_shared<pa::QualitativeTimePointConstraint>(timepoints[1], timepoints[t], QualitativeTimePointConstraint::Less);
+                mission->addConstraint(constraint);
+            }
+        }
     }
 
     // Prepare starting locations

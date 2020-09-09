@@ -58,6 +58,8 @@ protected:
     double mRatioImmobileMobile;
     double mSamplingDensity;
 
+    bool mTemporalConstraintsNoGaps;
+
     bool mUseFunctionalities;
     // or maybe mix the mission
     double mRatioFunctionaltiesAgents;

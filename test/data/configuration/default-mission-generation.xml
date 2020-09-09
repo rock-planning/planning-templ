@@ -23,5 +23,8 @@
             </Commodity>
         </agentPool>
         <samplingDensity>0.8</samplingDensity>
+        <temporalConstraints>
+            <nogaps>true</nogaps>
+        </temporalConstraints>
     </MissionGenerator>
 </templ-configuration>
