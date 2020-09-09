@@ -61,6 +61,7 @@ protected:
     bool mUseFunctionalities;
     // or maybe mix the mission
     double mRatioFunctionaltiesAgents;
+    DataPropertyAssignment::List mDataPropertyAssignments;
 
     moreorg::OrganizationModel::Ptr mpOrganizationModel;
 };
