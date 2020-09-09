@@ -33,7 +33,7 @@ public:
     /**
      * Set the actual timeline
      */
-    void setTimeline(SpaceTime::Timeline& timeline) { mTimeline = timeline; }
+    void setTimeline(const SpaceTime::Timeline& timeline) { mTimeline = timeline; }
 
     /**
      * Get the timeline
