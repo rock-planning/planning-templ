@@ -394,6 +394,11 @@ Mission::Ptr MissionGenerator::sampleFromNetwork(const SpaceTime::Network& netwo
             continue;
         }
 
+        if(fromTuple->first() != toTuple->first())
+        {
+            continue;
+        }
+
         Role::Set fromRoles = fromTuple->getRoles({ RoleInfo::REQUIRED });
         Role::Set toRoles = toTuple->getRoles({ RoleInfo::REQUIRED });
 
