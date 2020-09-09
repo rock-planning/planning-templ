@@ -112,7 +112,8 @@ void FlowNetwork::initialize(const std::map<Role, csp::RoleTimeline>& timelines,
                 std::vector< RoleInfoWeightedEdge::Ptr > edges = mSpaceTimeNetwork.getGraph()->getEdges<RoleInfoWeightedEdge>(edgeSourceTuple, edgeTargetTuple);
                 if(edges.empty())
                 {
-                    RoleInfoWeightedEdge::Ptr weightedEdge(new RoleInfoWeightedEdge(edgeSourceTuple, edgeTargetTuple, capacity));
+                    RoleInfoWeightedEdge::Ptr weightedEdge =
+                        make_shared<RoleInfoWeightedEdge>(edgeSourceTuple, edgeTargetTuple, capacity);
                     weightedEdge->addRole(role, RoleInfo::ASSIGNED);
                     mSpaceTimeNetwork.getGraph()->addEdge(weightedEdge);
                 } else if(edges.size() > 1)
