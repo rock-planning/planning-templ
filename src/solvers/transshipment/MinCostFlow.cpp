@@ -45,17 +45,29 @@ MinCostFlow::MinCostFlow(
     // current start and end vertices
     SpaceTime::injectVirtualStartAndEnd(mSpaceTimeNetwork);
 
-    std::map<Role, csp::RoleTimeline>::const_iterator rit = mExpandedTimelines.begin();
-    for(; rit != mExpandedTimelines.end(); ++rit)
+    for(const std::pair<Role, csp::RoleTimeline>& p : mExpandedTimelines)
     {
-        const Role& role = rit->first;
-        const csp::RoleTimeline& timeline = rit->second;
+        const Role& role = p.first;
+        const csp::RoleTimeline& timeline = p.second;
         if(!timeline.getRobot().isMobile()) // only immobile systems are relevant
         {
             // Allow to later map roles back from index
             mCommoditiesRoles.push_back(role);
         }
     }
+
+    for(const std::pair<Role, csp::RoleTimeline>& p : mMinRequiredTimelines)
+    {
+        const Role& role = p.first;
+        if(p.second.getTimeline().empty())
+        {
+            throw std::invalid_argument("templ::solvers::transshipment::"
+                    "MinCostFlow "
+                    "timeline without minimum requirements available for role '" +
+                    role.toString() + "' at least start must be provided");
+        }
+    }
+
     if(mCommoditiesRoles.empty())
     {
         LOG_WARN_S << "No immobile systems, thus no commodities to be routed";
