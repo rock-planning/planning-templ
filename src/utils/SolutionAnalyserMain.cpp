@@ -143,7 +143,6 @@ int main(int argc, char** argv)
 
     using namespace templ;
     Mission baseMission = io::MissionReader::fromFile(missionFilename, organizationModel);
-    baseMission.applyOrganizationModelOverrides();
 
     Mission::Ptr mission = make_shared<Mission>(baseMission);
 

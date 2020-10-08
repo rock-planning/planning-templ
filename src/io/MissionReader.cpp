@@ -345,6 +345,7 @@ Mission MissionReader::fromFile(const std::string& url, const moreorg::Organizat
     mission.validateAvailableResources();
     mission.prepareTimeIntervals();
     mission.prepareForPlanning();
+    mission.applyOrganizationModelOverrides();
 
     return mission;
 }
