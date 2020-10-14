@@ -79,6 +79,7 @@ rock_library(templ_moft
     SOURCES
         RoleInfoTuple.cpp
         SpaceTime.cpp
+        SpaceTimeNetwork.cpp
         io/TemporalConstraint.cpp
         solvers/csp/TemporalConstraintNetwork.cpp
         solvers/temporal/Bounds.cpp
@@ -101,6 +102,7 @@ rock_library(templ_moft
         ${MOFT_EXTRA_CPP}
     HEADERS
         SpaceTime.hpp
+        SpaceTimeNetwork.hpp
         TemporallyExpandedNetwork.hpp
         io/TemporalConstraint.hpp
         solvers/csp/TemporalConstraintNetwork.hpp

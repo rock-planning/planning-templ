@@ -1,7 +1,7 @@
-#ifndef TEMPL_SPACE_TIME_NETWORK_HPP
-#define TEMPL_SPACE_TIME_NETWORK_HPP
+#ifndef TEMPL_SPACE_TIME_HPP
+#define TEMPL_SPACE_TIME_HPP
 
-#include "TemporallyExpandedNetwork.hpp"
+#include "SpaceTimeNetwork.hpp"
 #include "symbols/constants/Location.hpp"
 #include "RoleInfoTuple.hpp"
 #include "RoleInfoWeightedEdge.hpp"
@@ -31,11 +31,12 @@ public:
     /// The standard representation of a space time network -- which is a
     /// temporally expanded network with locations-timepoints tuples
     /// RoleInfoTuple is associated in order to associate content with each edge
-    typedef TemporallyExpandedNetwork< templ::symbols::constants::Location::Ptr,
-            templ::solvers::temporal::point_algebra::TimePoint::Ptr,
-            RoleInfoSpaceTimeTuple,
-            RoleInfoWeightedEdge
-            > Network;
+    //typedef TemporallyExpandedNetwork< templ::symbols::constants::Location::Ptr,
+    //        templ::solvers::temporal::point_algebra::TimePoint::Ptr,
+    //        RoleInfoSpaceTimeTuple,
+    //        RoleInfoWeightedEdge
+    //        > Network;
+    typedef templ::SpaceTimeNetwork Network;
 
     /// A route through the space time network
     typedef std::vector< shared_ptr<RoleInfoSpaceTimeTuple> > Route;
@@ -135,4 +136,4 @@ private:
 };
 
 } // end namespace templ
-#endif // TEMPL_SPACE_TIME_NETWORK_HPP
+#endif // TEMPL_SPACE_TIME_HPP
