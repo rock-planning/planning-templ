@@ -71,6 +71,9 @@ public slots:
     bool loadOrganizationModel(const QString& settingsLabel = "IOMission",
             const QString& filenameOrIri = "");
 
+    void on_updateMissionName(const QString& name);
+    void on_updateMissionDescription(const QString& description);
+
     // Loading/Storing Missions
     void on_loadMissionButton_clicked();
     void on_loadOntologyButton_clicked();

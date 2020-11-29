@@ -43,6 +43,11 @@ MissionEditor::MissionEditor(QWidget* parent)
 
     mpUi->setupUi(this);
 
+    connect(mpUi->lineEditName, SIGNAL(textChanged(QString)),
+        this, SLOT(on_updateMissionName(QString)));
+    connect(mpUi->textEditDescription, SIGNAL(textChanged(QString)),
+        this, SLOT(on_updateMissionDescription(QString)));
+
     connect(mpUi->pushButtonSelectOrganizationModel, SIGNAL(clicked()),
             this, SLOT(loadOrganizationModel()));
     connect(mpUi->pushButtonLoad, SIGNAL(clicked()),
@@ -503,6 +508,16 @@ void MissionEditor::clear()
    Utils::removeRows( mpUi->verticalLayoutConstraintsTemporalQualitative );
 
    deactivateOrganizationModelDependants();
+}
+
+void MissionEditor::on_updateMissionName(const QString& name)
+{
+    mpMission->setName(name.toStdString());
+}
+
+void MissionEditor::on_updateMissionDescription(const QString& description)
+{
+    mpMission->setDescription(description.toStdString());
 }
 
 void MissionEditor::on_loadMissionButton_clicked()
