@@ -371,6 +371,15 @@ void Mission::addConstraint(const Constraint::Ptr& constraint, bool implicit)
         {
             mImplicitConstraints.push_back(constraint);
         }
+    } else if(isImplicitConstraint(constraint) && !implicit)
+    {
+        mImplicitConstraints.erase( std::find_if(mImplicitConstraints.begin(),
+                    mImplicitConstraints.end(), [&constraint](const
+                        Constraint::Ptr& other)
+                    {
+                        return *constraint == *other;
+                    })
+            );
     }
 }
 
