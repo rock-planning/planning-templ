@@ -72,7 +72,7 @@ public slots:
             const QString& filenameOrIri = "");
 
     void on_updateMissionName(const QString& name);
-    void on_updateMissionDescription(const QString& description);
+    void on_updateMissionDescription();
 
     // Loading/Storing Missions
     void on_loadMissionButton_clicked();

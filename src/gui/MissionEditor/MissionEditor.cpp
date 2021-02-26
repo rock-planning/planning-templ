@@ -45,8 +45,8 @@ MissionEditor::MissionEditor(QWidget* parent)
 
     connect(mpUi->lineEditName, SIGNAL(textChanged(QString)),
         this, SLOT(on_updateMissionName(QString)));
-    connect(mpUi->textEditDescription, SIGNAL(textChanged(QString)),
-        this, SLOT(on_updateMissionDescription(QString)));
+    connect(mpUi->textEditDescription, SIGNAL(textChanged()),
+        this, SLOT(on_updateMissionDescription()));
 
     connect(mpUi->pushButtonSelectOrganizationModel, SIGNAL(clicked()),
             this, SLOT(loadOrganizationModel()));
@@ -369,6 +369,9 @@ Mission::Ptr MissionEditor::currentMission() const
 
     m->setName(mpUi->lineEditName->text().toStdString());
     m->setDescription(mpUi->textEditDescription->toPlainText().toStdString());
+    qDebug() << "Set name"  << QString(m->getName().c_str())
+        << " Description " << QString(m->getDescription().c_str());
+
     QString organizationModel = mpUi->lineEditOrganizationModel->text();
     m->setOrganizationModel(organizationModel.toStdString());
 
@@ -487,8 +490,8 @@ Mission::Ptr MissionEditor::currentMission() const
 
 void MissionEditor::save(const QString& filename)
 {
-    qDebug() << "Save mission to:" << filename;
     Mission::Ptr m = currentMission();
+    qDebug() << "Save mission " << QString(m->getName().c_str()) << " to:" << filename;
 
     io::MissionWriter::write(filename.toStdString(), *m.get());
 }
@@ -515,8 +518,9 @@ void MissionEditor::on_updateMissionName(const QString& name)
     mpMission->setName(name.toStdString());
 }
 
-void MissionEditor::on_updateMissionDescription(const QString& description)
+void MissionEditor::on_updateMissionDescription()
 {
+    QString description = mpUi->textEditDescription->toPlainText();
     mpMission->setDescription(description.toStdString());
 }
 

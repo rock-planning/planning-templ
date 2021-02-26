@@ -786,12 +786,6 @@ void TemplGui::openMissionView(const QString& settingsLabel, const QString& file
     mpUi->tabWidget->addTab(missionView,
                             "Mission View");
     mpUi->tabWidget->setCurrentWidget(missionView);
-    // and show both' widgets status-messages on the statusbar. this simply
-    // assumes that only the one in the front is sending updates. otherwise
-    // they would interleave...
-    connect(missionView, SIGNAL(currentStatus(QString, int)),
-            mpUi->statusbar, SLOT(showMessage(QString, int)));
-
     importMission(settingsLabel, filename);
 }
 
@@ -803,9 +797,6 @@ void TemplGui::openMissionEditor(const QString& settingsLabel, const QString&
     mpUi->tabWidget->addTab(missionEditor,
                             "Mission Editor");
     mpUi->tabWidget->setCurrentWidget(missionEditor);
-    // and show both' widgets status-messages on the statusbar. this simply
-    // assumes that only the one in the front is sending updates. otherwise
-    // they would interleave...
     connect(missionEditor, SIGNAL(currentStatus(QString, int)),
             mpUi->statusbar, SLOT(showMessage(QString, int)));
 
