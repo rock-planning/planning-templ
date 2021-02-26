@@ -272,6 +272,11 @@ rock_executable(templ-solution_analysis
     DEPS templ
 )
 
+rock_executable(templ-narrow_mission
+    utils/NarrowMission.cpp
+    DEPS templ
+)
+
 rock_executable(templ-solver
     utils/SolverMain.cpp
     DEPS templ
