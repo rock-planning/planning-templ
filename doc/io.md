@@ -185,7 +185,6 @@ The following model constraints are available:
 |---|---|
 | min          |   minimum cardinality   |
 | max          |   maximum cardinality   |
-over an interval)  |
 | min-access   |   minimum access to a location (always or temporally bounded) |
 | max-access   |   maximum access to a location (always or temporally bounded) |
 | min-distinct |   minimum number of distinct model instances |

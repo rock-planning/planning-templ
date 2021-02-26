@@ -24,13 +24,26 @@ Browse to the results / log folder of the plan execution and selected a session 
 Note, that the log files will record the outputs of all solutions, so that you can also visualize invalid solutions.
 
 ``
-$> cd /tmp20200504_214321+0200-templ/ 
+$> cd /tmp20200504_214321+0200-templ/
+
 $> ls
 0  1  search-statistics.log  solution_analysis.log  specs
+
 $> cd 0
+
 $> ls
-20200504-21:43:21+0200-transport-network.status  multicommodity-min-cost-flow-final-flow.gexf  multicommodity-min-cost-flow.problem   transhipment-flow-network.gexf
-final_plan.gexf                                  multicommodity-min-cost-flow.gexf             multicommodity-min-cost-flow.solution  transport-network-solution-0.dot
-final_solution_network.gexf                      multicommodity-min-cost-flow-init.gexf        templ-mission-relations.dot            transport-network-solution-0.gexf
+20200504-21:43:21+0200-transport-network.status
+multicommodity-min-cost-flow-final-flow.gexf
+multicommodity-min-cost-flow.problem
+transhipment-flow-network.gexf
+final_plan.gexf
+multicommodity-min-cost-flow.gexf
+multicommodity-min-cost-flow.solution
+transport-network-solution-0.dot
+final_solution_network.gexf
+multicommodity-min-cost-flow-init.gexf
+templ-mission-relations.dot
+transport-network-solution-0.gexf
 ```
+
 The actual solution is contained in 'final_solution_network.gexf'

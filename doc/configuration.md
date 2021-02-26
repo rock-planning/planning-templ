@@ -9,7 +9,7 @@ e.g.,
     configuration.getValueAs<double>("TransportNetwork/search/options/connectivity/timeout_in_s",20),
 ```
 
-An example and the default configuration can be found in the
+An example / the default configuration can be found in the
 [test/data/configuration](../test/data/configuration) directory.
 
 A configuration example is listed in the following:
@@ -90,7 +90,7 @@ A configuration example is listed in the following:
 If this option is set to true, then an additional / extra so-called transfer location is added. It can be interpreted as an arbitrarily location exchange hub.
 
 ### intervals-noooverlap
-If interval-nooverlap is defined, then all defined interval must not overlap.
+If interval-nooverlap is defined, then all defined intervals must not overlap.
 
 ### logging
  * basedir: The target directory for log files. TemPl creates a timestamp
@@ -114,24 +114,24 @@ This is mainly intended for debugging an gaining a general understanding of the 
 | nogoods_limit | 128 | Gecode CSP parameter: limit the number of recorded nogoods |
 | computation_distance | 120 | Gecode CSP parameter: variable distance after which a space will be recomputed|
 | adaptive_computation_distance |40 | Gecode CSP parameter: |
-| epoch_timeout_in_s| 60 | |
-| total_timeout_in_s| 900 | |
-| allow-flaws| false | |
-| model-usage/afc-decay|0.95| |
-| role-usage/afc-decay|0.95| |
-| role-usage/force-min|false | |
-| role-usage/mobile/bounded|true||
-| role-usage/mobile/bound-offset|2|
-| role-usage/immobile/bounded|true|
-| role-usage/immobile/bound-offset|0|
+| epoch_timeout_in_s| 60 | maximum time for internal epoch |
+| total_timeout_in_s| 900 | maximum planning runtime in seconds |
+| allow-flaws| false | allow incomplete solutions |
+| model-usage/afc-decay|0.95| Accumulated Failure Count Decay, to influence variable selection|
+| role-usage/afc-decay|0.95| Accumulated Failure Count Decay, to influence variable selection |
+| role-usage/force-min|false | enforce minimal setup |
+| role-usage/mobile/bounded|true| use bound offset for mobile systems |
+| role-usage/mobile/bound-offset|2| maximum offset from minimal required (mobile) systems |
+| role-usage/immobile/bounded|true| use bound offset for immobile systems |
+| role-usage/immobile/bound-offset|0| maximum offset from minimal required (immobile) systems) |
 | master-slave | false |allow to improve solution using a master-slave approach applying flaw resolvers|
 | hill-climbing| false | allow only increasingly better solutions, by constrain in master constrain function|
-| timeline-brancher/afc-decay| 0.95| |
-| timeline-brancher/supply-demand|false| |
+| timeline-brancher/afc-decay| 0.95| Accumulated Failure Count Decay, to influence variable selection|
+| timeline-brancher/supply-demand|false| Enable usage of explicit supply-demand computation (heavily affects performance, experimental)|
 | lp/solver|CLP_SOLVER | CBC_SOLVER, CLP_SOLVER, SCIP_SOLVER or GLPK_SOLVER |
-| lp/cache-solution|false ||
-| cost-function/efficacy/weight|1.0||
-| cost-function/effiency/weight|1.0||
-| cost-function/safety/weight|1.0||
+| lp/cache-solution|false | If true, LP Solution are cached to avoid recomputation|
+| cost-function/efficacy/weight|1.0| Balancing factor for the cost function|
+| cost-function/effiency/weight|1.0| Balancing factor for the cost function|
+| cost-function/safety/weight|1.0| Balancing factor for the cost function|
 
 
