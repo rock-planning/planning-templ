@@ -211,10 +211,10 @@ void TransportNetwork::constrainSlave(const Gecode::Space& lastSpace)
     //rel(*this, cost(), Gecode::IRT_LE, lastTransportNetwork.cost().val());
 
     // Approach 1: BFS Style
-    // Slaves have to provide optimal (zero flaw solutions)
-    // This has the effect that iteration of the slave either returns a
-    // perfect solution or none -- yet it would be beneficial to improve any
-    // 'best slave'
+    // Slaves have to provide optimal (zero flaw) solutions
+    // This has the effect that an iteration of the slave either returns a
+    // perfect solution or none;
+    // yet it would be beneficial to improve any 'best slave'
     rel(*this, mNumberOfFlaws, Gecode::IRT_EQ, 0);
 
     // Approach 2: DFS Style

@@ -252,11 +252,6 @@ std::vector<FluentTimeResource::Set> FluentTimeResource::getOverlapping(const Li
             const temporal::Interval& interval = c.first;
             if(ftrs.size() > 1)
             {
-                std::cout << "Found overlap for: "
-                    << interval.toString(4,true) << std::endl
-                    << FluentTimeResource::toQualificationString(ftrs.begin(),
-                            ftrs.end(), 4)
-                    << std::endl;
                 overlapping.push_back(ftrs);
             }
         }
