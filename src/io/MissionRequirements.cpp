@@ -78,6 +78,7 @@ std::string ResourceReificationRequirement::toString(uint32_t indent) const
 
 SpatioTemporalRequirement::SpatioTemporalRequirement()
     : graph_analysis::Vertex()
+    , active(true)
 {}
 
 SpatioTemporalRequirement::~SpatioTemporalRequirement()

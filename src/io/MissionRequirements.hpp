@@ -103,6 +103,7 @@ public:
     virtual std::string toString(uint32_t indent) const;
 
     uint32_t id;
+    bool active;
     SpatialRequirement spatial;
     TemporalRequirement temporal;
     std::vector<ResourceRequirement> resources;

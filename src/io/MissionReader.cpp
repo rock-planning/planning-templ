@@ -608,6 +608,26 @@ SpatioTemporalRequirement MissionReader::parseRequirement(xmlDocPtr doc, xmlNode
         LOG_INFO_S << "Parsing: " << current->name << " id:" << id;
         requirement.id = boost::lexical_cast<size_t>(id);
 
+        std::string active = "true";
+        try {
+            active = XMLUtils::getProperty(current, "active");
+        } catch(const std::invalid_argument& e)
+        {
+            // property is optional, and here not available
+        }
+
+        if(active == "false")
+        {
+            requirement.active = false;
+        } else if(active == "true")
+        {
+            requirement.active = true;
+        } else {
+            throw
+                std::invalid_argument("templ::io::MissionReader::parseRequirement:"
+                        "Unexpected value for property 'active'"
+                        + std::string((const char*) current->name));
+        }
 
         xmlNodePtr requirementNode = current->xmlChildrenNode;
         while(requirementNode != NULL)
@@ -649,19 +669,22 @@ std::vector<SpatioTemporalRequirement> MissionReader::parseRequirements(xmlDocPt
         {
 
             SpatioTemporalRequirement requirement = parseRequirement(doc, current);
-            LOG_INFO_S << "Parsed requirement: " << requirement.toString();
-            std::set<size_t>::const_iterator cit = ids.find(requirement.id);
-            if(cit != ids.end())
+            if(requirement.active)
             {
-                std::stringstream ss;
-                ss << "templ::io::MissionReader::parseRequirements: a requirement with"
-                        " id '" << requirement.id << "' already exists ";
-                ss << " -- check line: " << xmlGetLineNo(current) << std::endl;
-                throw std::invalid_argument(ss.str());
-            } else {
-                ids.insert(requirement.id);
+                LOG_INFO_S << "Parsed requirement: " << requirement.toString();
+                std::set<size_t>::const_iterator cit = ids.find(requirement.id);
+                if(cit != ids.end())
+                {
+                    std::stringstream ss;
+                    ss << "templ::io::MissionReader::parseRequirements: a requirement with"
+                            " id '" << requirement.id << "' already exists ";
+                    ss << " -- check line: " << xmlGetLineNo(current) << std::endl;
+                    throw std::invalid_argument(ss.str());
+                } else {
+                    ids.insert(requirement.id);
+                }
+                requirements.push_back(requirement);
             }
-            requirements.push_back(requirement);
         }
         current = current->next;
     }
