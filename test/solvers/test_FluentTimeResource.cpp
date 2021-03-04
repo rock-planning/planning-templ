@@ -3,12 +3,17 @@
 #include <templ/io/MissionReader.hpp>
 #include <templ/solvers/FluentTimeResource.hpp>
 
+#include <moreorg/vocabularies/OM.hpp>
+#include <moreorg/OrganizationModelAsk.hpp>
+
 #include "../test_utils.hpp"
 
 using namespace templ;
 using namespace templ::solvers;
 using namespace solvers::temporal;
 using namespace solvers::temporal::point_algebra;
+using namespace moreorg;
+using namespace owlapi::model;
 
 BOOST_AUTO_TEST_SUITE(fluent_time_resource)
 
@@ -41,9 +46,10 @@ BOOST_AUTO_TEST_CASE(sorting)
     Interval i1(t1,t7, tpc);
     Interval i2(t2,t4, tpc);
     Interval i3(t5,t6, tpc);
+    Interval i4(t6,t7, tpc);
 
     {
-        Interval::List expected = { i0,i2,i3,i1 };
+        Interval::List expected = { i0,i2,i3,i1,i4 };
         FluentTimeResource::sortForEarlierEnd(requirements, tpc);
 
         Interval::List actual;
@@ -53,11 +59,15 @@ BOOST_AUTO_TEST_CASE(sorting)
         }
 
         BOOST_REQUIRE_MESSAGE(expected == actual, "Sorted list of intervals for"
-                " earlier end should be as expected");
+                " earlier end should be as expected: expected: "
+                << Interval::toString(expected, 4, true)
+                << "\nactual"
+                << Interval::toString(actual, 4, true)
+        );
     }
 
     {
-        Interval::List expected = { i0,i1,i2,i3 };
+        Interval::List expected = { i0,i1,i2,i3,i4 };
         FluentTimeResource::sortForEarlierStart(requirements, tpc);
 
         Interval::List actual;
@@ -206,6 +216,42 @@ BOOST_AUTO_TEST_CASE(mutually_exclusive)
     BOOST_REQUIRE_MESSAGE(expected == actual, "Concurrent intervals matches expected set of sets:"
             << "expected: " << ssExcepted.str() << "\n"
             << "actual: " << ssActual.str());
+}
+
+BOOST_AUTO_TEST_CASE(domain)
+{
+    ModelPool modelPool;
+    modelPool[ moreorg::vocabulary::OM::resolve("SherpaTT") ] = 1;
+    modelPool[ moreorg::vocabulary::OM::resolve("CREX") ] = 1;
+
+    TimePoint::Ptr t1 = TimePoint::create("t1");
+    TimePoint::Ptr t2 = TimePoint::create("t2");
+    Interval i0;
+    i0.setFrom(t1);
+    i0.setTo(t2);
+
+    symbols::constants::Location::Ptr l0 = symbols::constants::Location::create("l0");
+
+    OrganizationModel::Ptr om =
+        make_shared<OrganizationModel>(IRI("http://www.rock-robotics.org/2015/12/projects/TransTerrA"));
+    OrganizationModelAsk ask(om, modelPool, true);
+
+    {
+        IRI service = moreorg::vocabulary::OM::resolve("ImageProvider");
+        FluentTimeResource ftr(ask, service, l0, i0,
+                modelPool);
+        ModelPool::Set domainModels = ftr.getDomain();
+        BOOST_REQUIRE_MESSAGE(domainModels.size() == 2, "Has two models: " <<
+                ModelPool::toString(domainModels, 4));
+    }
+    {
+        IRI service = moreorg::vocabulary::OM::resolve("TransportProvider");
+        FluentTimeResource ftr(ask, service, l0, i0,
+                modelPool);
+        ModelPool::Set domainModels = ftr.getDomain();
+        BOOST_REQUIRE_MESSAGE(domainModels.size() == 2, "Has two models: " <<
+                ModelPool::toString(domainModels, 4));
+    }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

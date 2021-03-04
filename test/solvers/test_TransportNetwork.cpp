@@ -61,7 +61,8 @@ BOOST_AUTO_TEST_CASE(mission_0)
         mission->setAvailableResources(modelPool);
         BOOST_REQUIRE_MESSAGE(mission->getOrganizationModel(), "Mission has organization model set");
 
-        solvers::csp::TransportNetwork::solve(mission);
+        csp::TransportNetwork::SolutionList solutions = solvers::csp::TransportNetwork::solve(mission, 1);
+        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solution found with " << modelPool.toString());
     }
 
     {
@@ -70,7 +71,8 @@ BOOST_AUTO_TEST_CASE(mission_0)
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
         mission->setAvailableResources(modelPool);
 
-        solvers::csp::TransportNetwork::solve(mission);
+        csp::TransportNetwork::SolutionList solutions = solvers::csp::TransportNetwork::solve(mission, 1);
+        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solution found with " << modelPool.toString());
     }
 
     {
@@ -79,7 +81,9 @@ BOOST_AUTO_TEST_CASE(mission_0)
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
         modelPool[ vocabulary::OM::resolve("CREX") ] = 2;
         mission->setAvailableResources(modelPool);
-        solvers::csp::TransportNetwork::solve(mission);
+
+        csp::TransportNetwork::SolutionList solutions = solvers::csp::TransportNetwork::solve(mission, 1);
+        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solution found with " << modelPool.toString());
     }
 
     {
@@ -90,7 +94,8 @@ BOOST_AUTO_TEST_CASE(mission_0)
         modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
         mission->setAvailableResources(modelPool);
 
-        solvers::csp::TransportNetwork::solve(mission);
+        csp::TransportNetwork::SolutionList solutions = solvers::csp::TransportNetwork::solve(mission, 1);
+        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solution found with " << modelPool.toString());
     }
 }
 
