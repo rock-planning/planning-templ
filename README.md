@@ -43,7 +43,7 @@ the 'templ-' prefix.
 
 All executables support the '--help' argument to describe their current usage.
 
-### Planner ###
+### Planner
 The actual planner: templ-transport_network_planner
 
 ```
@@ -57,11 +57,12 @@ allowed options:
 
 The default configuration can be found under:
 test/data/configuration/default-configuration.xml, further
-details can be found [here](doc/configuration.md).
+details on configuration options can be found [here](doc/configuration.md).
 
-All solutions will result in the creation of log folders under /tmp. For the
+Every run of the planner will result in the creation of a log folder under /tmp: for the
 overall mission a 'spec' subfolder will be created and successful epochs (also
-referred to as sessions) will be logged - identified by a counter.
+referred to as sessions) will be logged - identified by a counter. 
+Each epoch folder contains solutions and results to intermediate planning steps.
 So check /tmp/<current-time-date>_temp/ for the corresponding folder of the
 session that you would like to inspect.
 
@@ -87,7 +88,7 @@ TemPl:
 ```
 
 ### Templ GUI
-The graphical interface templ-gui allows you to load solutions, so that you can
+The graphical user interface templ-gui allows you to load solutions, so that you can
 inspect them and achieve a better understanding of the solutions.
 The graphical interface will also permit the creation of missions via the
 MissionEditor.
