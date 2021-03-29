@@ -19,6 +19,7 @@
 #include "Types.hpp"
 #include "utils/FluentTimeIndex.hpp"
 #include "../SolutionAnalysis.hpp"
+#include "Context.hpp"
 
 namespace templ {
 namespace solvers {
@@ -79,30 +80,16 @@ public:
     typedef shared_ptr<TransportNetwork> Ptr;
     typedef shared_ptr< Gecode::BAB<TransportNetwork> > BABSearchEnginePtr;
 
-    const std::vector<solvers::temporal::Interval>& getIntervals() const { return mIntervals; }
+    const std::vector<solvers::temporal::Interval>& getIntervals() const { return mpContext->intervals(); }
 
 protected:
     /// The mission to plan for
     Mission::Ptr mpMission;
+    Context::Ptr mpContext;
 
-    /// The model pool -- in terms of available resources that can be used for
-    /// planning
-    moreorg::ModelPool mModelPool;
-    /// The organization model
-    moreorg::OrganizationModelAsk mAsk;
-
-    /// All available services
-    owlapi::model::IRIList mServices;
-    /// All available resources
-    owlapi::model::IRIList mResources;
-
-    /// (Time)Intervals (as defined in the mission)
-    std::vector<solvers::temporal::Interval> mIntervals;
     /// Timepoints (will be sorted after postTemporalConstraints has been
     /// called)
     std::vector<solvers::temporal::point_algebra::TimePoint::Ptr> mTimepoints;
-    /// Constants: Locations (as defined in the mission)
-    std::vector<symbols::constants::Location::Ptr> mLocations;
 
     /// List of FluentTimeResource which represents the functional
     /// requirements that arise from the mission scenario
@@ -134,7 +121,6 @@ protected:
     ///  requirement | robot-type-0 | robot-type-1 | robot-type-2 | ...
     ///  r-0         |      1       |      0       |      1       | ...
     ///  r-1         |      0       |      2       |      2       | ...
-    owlapi::model::IRIList mAvailableModels;
     Gecode::IntVarArray mModelUsage;
 
     /// #######################
@@ -194,9 +180,6 @@ protected:
     std::vector<transshipment::Flaw> mMinCostFlowFlaws;
     FlawResolution mFlawResolution;
     FlawResolution::ResolutionOptions mRequiredResolutionOptions;
-
-    /// Configuration object
-    qxcfg::Configuration mConfiguration;
 
     /// Flag to control the interactive mode
     static bool msInteractive;
@@ -475,8 +458,8 @@ public:
      */
     void save(const std::string& filename = "") const;
 
-    size_t getNumberOfTimepoints() const { return mTimepoints.size(); }
-    size_t getNumberOfFluents() const { return mLocations.size(); }
+    size_t getNumberOfTimepoints() const { return mpContext->getNumberOfTimepoints(); }
+    size_t getNumberOfFluents() const { return mpContext->getNumberOfFluents(); }
     /**
      * Get the active roles (as index list)
      */

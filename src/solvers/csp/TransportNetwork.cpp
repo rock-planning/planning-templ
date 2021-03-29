@@ -38,6 +38,7 @@
 #include "../../constraints/ModelConstraint.hpp"
 
 using namespace templ::solvers::csp::utils;
+using namespace owlapi::model;
 
 namespace templ {
 namespace solvers {
@@ -187,7 +188,7 @@ void TransportNetwork::constrain(const Gecode::Space& lastSpace)
     breakpointEnd();
 
 
-    bool hillClimbing = mConfiguration.getValueAs<bool>("TransportNetwork/search/options/hill-climbing",false);
+    bool hillClimbing = mpContext->configuration().getValueAs<bool>("TransportNetwork/search/options/hill-climbing",false);
     if(hillClimbing)
     {
         rel(*this, cost(), Gecode::IRT_LE, lastTransportNetwork.cost().val());
@@ -290,7 +291,7 @@ TransportNetwork::Solution TransportNetwork::getSolution() const
         solution.mModelDistribution = getModelDistribution();
         solution.mRoleDistribution = getRoleDistribution();
         solution.mTimelines = getTimelines();
-        solution.mLocations = mLocations;
+        solution.mLocations = mpContext->locations();
         solution.mTimepoints = mTimepoints;
         solution.mMinCostFlowSolution = mMinCostFlowSolution;
         solution.mSolutionAnalysis = mSolutionAnalysis;
@@ -336,7 +337,9 @@ void TransportNetwork::saveSolution(const Solution& solution, const Mission::Ptr
 TransportNetwork::ModelDistribution TransportNetwork::getModelDistribution() const
 {
     ModelDistribution solution;
-    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mModelPool.size(), mResourceRequirements.size());
+
+    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage,
+            mpMission->getAvailableResources().size(), mResourceRequirements.size());
 
     // Check if resource requirements holds
     for(size_t i = 0; i < mResourceRequirements.size(); ++i)
@@ -352,7 +355,7 @@ TransportNetwork::ModelDistribution TransportNetwork::getModelDistribution() con
 
             Gecode::IntVarValues v( var );
 
-            modelPool[ mAvailableModels[mi] ] = v.val();
+            modelPool[ mpMission->getModels()[mi] ] = v.val();
         }
 
         solution[ mResourceRequirements[i] ] = modelPool;
@@ -400,17 +403,17 @@ std::map<Role, csp::RoleTimeline> TransportNetwork::getTimelines() const
         const Role& role = mActiveRoleList[i];
         LOG_INFO_S << "Active role: " << i << " of " << mActiveRoleList.size() << " " << mActiveRoleList[i].toString() << std::endl
             << Formatter::toString(mTimelines[i],
-                    mLocations,
+                    mpContext->locations(),
                     mTimepoints)
             << std::endl;
 
         bool doThrow = false;
         SpaceTime::Timeline timeline = TypeConversion::toTimeline(mTimelines[i],
-                mLocations,
+                mpContext->locations(),
                 mTimepoints,
                 doThrow);
 
-        csp::RoleTimeline roleTimeline(role, mAsk);
+        csp::RoleTimeline roleTimeline(role, mpContext->ask());
         roleTimeline.setTimeline(timeline);
 
         roleTimelines[role] = roleTimeline;
@@ -422,44 +425,32 @@ std::map<Role, csp::RoleTimeline> TransportNetwork::getTimelines() const
 TransportNetwork::TransportNetwork()
     : Gecode::Space()
     , Solver(Solver::CSP_TRANSPORT_NETWORK)
-    , mAsk()
 {}
 
 TransportNetwork::TransportNetwork(const templ::Mission::Ptr& mission, const qxcfg::Configuration& configuration)
     : Gecode::Space()
     , Solver(Solver::CSP_TRANSPORT_NETWORK)
     , mpMission(mission)
-    , mModelPool(mpMission->getAvailableResources())
-    , mAsk(mpMission->getOrganizationModel(),
-            mpMission->getAvailableResources(), true,
-            1000*configuration.getValueAs<double>("TransportNetwork/search/options/connectivity/timeout_in_s",20),
-            configuration.getValue("TransportNetwork/search/options/connectivity/interface-type",moreorg::vocabulary::OM::ElectroMechanicalInterface().toString())
-          )
-    , mResources(mpMission->getRequestedResources())
-    , mIntervals(mpMission->getTimeIntervals())
-    , mTimepoints(mpMission->getUnorderedTimepoints())
-    , mLocations(mpMission->getLocations())
+    , mpContext(make_shared<Context>(mission, configuration))
+    , mTimepoints(mission->getUnorderedTimepoints())
     , mResourceRequirements()
     , mQualitativeTimepoints(*this, mpMission->getQualitativeTemporalConstraintNetwork()->getTimepoints().size(), 0, mpMission->getQualitativeTemporalConstraintNetwork()->getTimepoints().size()-1)
-    , mAvailableModels(mpMission->getModels())
     , mModelUsage()
     , mRoleUsage()
     , mRoles(mission->getRoles())
     , mCost(*this,0, Gecode::Int::Limits::max)
     , mNumberOfFlaws(*this,0, Gecode::Int::Limits::max)
-    , mConfiguration(configuration)
     , mUseMasterSlave(false)
     , mpCurrentMaster(NULL)
-   // , mCapacities(*this, (mLocations.size()+1)*(mLocations.size()+1)*mTimepoints.size()*mTimepoints.size(), 0, Gecode::Int::Limits::max)
 {
     // FIXME: make sure we use the the same configuration of the ask object
-    mpMission->setOrganizationModelAsk(mAsk);
+    mpMission->setOrganizationModelAsk(mpContext->ask());
 
     assert( mpMission->getOrganizationModel() );
-    assert(!mIntervals.empty());
+    assert(!mpContext->intervals().empty());
     LOG_INFO_S << "TransportNetwork CSP Problem Construction" << std::endl
-    << "    requested resources: " << mResources << std::endl
-    << "    intervals: " << mIntervals.size() << std::endl
+    << "    requested resources: " << mpMission->getRequestedResources() << std::endl
+    << "    intervals: " << mpContext->intervals().size() << std::endl
     << "    # requirements: " << mResourceRequirements.size() << std::endl;
 
     initializeTemporalConstraintNetwork();
@@ -472,11 +463,11 @@ void TransportNetwork::initializeTemporalConstraintNetwork()
     // properly constructed -- otherwise we will trigger segfaults
     mTemporalConstraintNetwork = TemporalConstraintNetworkBase(*mpMission->getQualitativeTemporalConstraintNetwork(),*this, mQualitativeTimepoints);
 
-    bool nooverlap = mConfiguration.getValueAs<bool>("TransportNetwork/intervals-nooverlap",false);
+    bool nooverlap = mpContext->configuration().getValueAs<bool>("TransportNetwork/intervals-nooverlap",false);
     if(nooverlap)
     {
         LOG_WARN_S << "Configuration: no interval overlaps are allowed";
-        mTemporalConstraintNetwork.addNoOverlap(mIntervals, *this, mQualitativeTimepoints);
+        mTemporalConstraintNetwork.addNoOverlap(mpContext->intervals(), *this, mQualitativeTimepoints);
     }
     // making sure we get a fully assigned temporal constraint network, i.e.
     // one without gaps before we proceed
@@ -491,9 +482,13 @@ void TransportNetwork::initializeMinMaxConstraints()
 {
     Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mpMission->getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
 
+
+    const IRIList& availableModels = mpMission->getModels();
+    const moreorg::ModelPool& modelPool = mpMission->getAvailableResources();
+
     // TODO: change to using MissionConstraintManager
     // For debugging purposes
-    ConstraintMatrix constraintMatrix(mAvailableModels);
+    ConstraintMatrix constraintMatrix(availableModels);
     using namespace solvers::temporal;
     std::vector<FluentTimeResource>::const_iterator fit = mResourceRequirements.begin();
     for(; fit != mResourceRequirements.end(); ++fit)
@@ -502,11 +497,11 @@ void TransportNetwork::initializeMinMaxConstraints()
         // row: index of requirement
         // col: index of model type
         size_t requirementIndex = fit - mResourceRequirements.begin();
-        for(size_t mi = 0; mi < mAvailableModels.size(); ++mi)
+        for(size_t mi = 0; mi < availableModels.size(); ++mi)
         {
             Gecode::IntVar v = resourceDistribution(mi, requirementIndex);
             uint32_t minCardinality = 0;
-            const owlapi::model::IRI& model = mAvailableModels[mi];
+            const IRI& model = availableModels[mi];
             {
                 // default min requirement is 0 for a model
                 /// Consider resource cardinality constraint
@@ -521,7 +516,7 @@ void TransportNetwork::initializeMinMaxConstraints()
                 rel(*this, v, Gecode::IRT_GQ, minCardinality);
             }
 
-            uint32_t maxCardinality = mModelPool[ model ];
+            uint32_t maxCardinality = modelPool.at(model);
             // setting the upper bound for this model and this service
             // based on what the model pool can provide
             constraintMatrix.setMax(requirementIndex, mi, maxCardinality);
@@ -597,7 +592,7 @@ void TransportNetwork::setUpperBoundForConcurrentRequirements()
 
     // - identify overlapping fts, limit resources for these
     std::vector< std::vector<FluentTimeResource> > concurrentRequirements;
-    bool nooverlap = mConfiguration.getValueAs<bool>("TransportNetwork/intervals-nooverlap",false);
+    bool nooverlap = mpContext->configuration().getValueAs<bool>("TransportNetwork/intervals-nooverlap",false);
 
     if(nooverlap)
     {
@@ -612,12 +607,15 @@ void TransportNetwork::setUpperBoundForConcurrentRequirements()
         concurrentRequirements = FluentTimeResource::getMutualExclusive(mResourceRequirements, tpc);
     }
 
+    const moreorg::ModelPool& modelPool = mpMission->getAvailableResources();
+    const IRIList& availableModels = mpMission->getModels();
+
     for(const std::vector<FluentTimeResource>& concurrentFluents :
             concurrentRequirements)
     {
-        for(size_t mi = 0; mi < mAvailableModels.size(); ++mi)
+        for(size_t mi = 0; mi < availableModels.size(); ++mi)
         {
-            const owlapi::model::IRI& model = mAvailableModels[mi];
+            const IRI& model = availableModels[mi];
             Gecode::IntVarArgs args;
 
             std::vector<FluentTimeResource>::const_iterator fit = concurrentFluents.begin();
@@ -628,9 +626,9 @@ void TransportNetwork::setUpperBoundForConcurrentRequirements()
                 args << v;
             }
 
-            uint32_t maxCardinality = mModelPool[ model ];
+            uint32_t maxCardinality = modelPool.at(model);
             LOG_DEBUG_S << "Add general resource usage constraint: " << std::endl
-                << "     " << mAvailableModels[mi].toString() << "# <= " << maxCardinality;
+                << "     " << availableModels[mi].toString() << "# <= " << maxCardinality;
             rel(*this, sum(args) <= maxCardinality);
         }
     }
@@ -638,11 +636,11 @@ void TransportNetwork::setUpperBoundForConcurrentRequirements()
 
 void TransportNetwork::initializeRoleDistributionConstraints()
 {
-    bool forceMinimumRoleUsage = mConfiguration.getValueAs<bool>("TransportNetwork/search/options/role-usage/force-min",false);
-    int mobileRoleUsageBoundOffset = mConfiguration.getValueAs<int>("TransportNetwork/search/options/role-usage/mobile/bound-offset",0);
-    bool mobileBoundedRoleUsage = mConfiguration.getValueAs<bool>("TransportNetwork/search/options/role-usage/mobile/bounded",false);
-    int immobileRoleUsageBoundOffset = mConfiguration.getValueAs<int>("TransportNetwork/search/options/role-usage/immobile/bound-offset",0);
-    bool immobileBoundedRoleUsage = mConfiguration.getValueAs<bool>("TransportNetwork/search/options/role-usage/immobile/bounded",false);
+    bool forceMinimumRoleUsage = mpContext->configuration().getValueAs<bool>("TransportNetwork/search/options/role-usage/force-min",false);
+    int mobileRoleUsageBoundOffset = mpContext->configuration().getValueAs<int>("TransportNetwork/search/options/role-usage/mobile/bound-offset",0);
+    bool mobileBoundedRoleUsage = mpContext->configuration().getValueAs<bool>("TransportNetwork/search/options/role-usage/mobile/bounded",false);
+    int immobileRoleUsageBoundOffset = mpContext->configuration().getValueAs<int>("TransportNetwork/search/options/role-usage/immobile/bound-offset",0);
+    bool immobileBoundedRoleUsage = mpContext->configuration().getValueAs<bool>("TransportNetwork/search/options/role-usage/immobile/bounded",false);
 
     // Role distribution
     Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, /*width --> col*/ mpMission->getAvailableResources().size(), /*height --> row*/ mResourceRequirements.size());
@@ -654,10 +652,13 @@ void TransportNetwork::initializeRoleDistributionConstraints()
         Gecode::IntVarArgs mobileModelMaxOffsets;
         Gecode::IntVarArgs immobileModelMaxOffsets;
 
+        const IRIList& availableModels = mpMission->getModels();
+        const moreorg::ModelPool& modelPool = mpMission->getAvailableResources();
+
         // Sum of all models' instances (role) has to correspond to the model count
-        for(size_t modelIndex = 0; modelIndex < mAvailableModels.size(); ++modelIndex)
+        for(size_t modelIndex = 0; modelIndex < availableModels.size(); ++modelIndex)
         {
-            const owlapi::model::IRI& model = mAvailableModels[modelIndex];
+            const IRI& model = availableModels[modelIndex];
 
             Gecode::IntVar mobileModelBound(*this,0, mobileRoleUsageBoundOffset);
             mobileModelBounds << mobileModelBound;
@@ -665,9 +666,9 @@ void TransportNetwork::initializeRoleDistributionConstraints()
             immobileModelBounds << immobileModelBound;
 
             using namespace moreorg::facades;
-            Robot robot = Robot::getInstance(model, mAsk);
+            Robot robot = Robot::getInstance(model, mpContext->ask());
             bool isMobile = robot.isMobile();
-            uint32_t maxCardinality = mModelPool[ model ];
+            uint32_t maxCardinality = modelPool.at(model);
 
             // Enforce bound per requirement
             for(uint32_t requirementIndex = 0; requirementIndex < mResourceRequirements.size(); ++requirementIndex)
@@ -830,7 +831,7 @@ void TransportNetwork::applyAccessConstraints(ListOfAdjacencyLists& timelines,
             }
 
             using namespace templ::constraints;
-            const owlapi::model::IRI& model = modelConstraint->getModel();
+            const IRI& model = modelConstraint->getModel();
 
             // min and max entries are maintained in parallel
             if(minMax.first.count(model) == 0)
@@ -868,23 +869,23 @@ void TransportNetwork::applyAccessConstraints(ListOfAdjacencyLists& timelines,
         for(const ModelPool::value_type& v : minPool)
         {
             // Get all models that are a subclass of the given
-            const owlapi::model::IRI& model = v.first;
+            const IRI& model = v.first;
             for(size_t i = 0; i < roles.size(); ++i)
             {
-                if(mAsk.ontology().isSubClassOf( roles[i].getModel(), model ))
+                if(mpContext->ask().ontology().isSubClassOf( roles[i].getModel(), model ))
                 {
                     selectedTimelines.push_back(timelines[i]);
                 }
             }
 
             symbols::constants::Location::PtrList::const_iterator cit =
-                std::find(mLocations.begin(), mLocations.end(), location);
-            if(cit == mLocations.end())
+                std::find(mpContext->locations().begin(), mpContext->locations().end(), location);
+            if(cit == mpContext->locations().end())
             {
                 throw std::runtime_error("templ::solvers::csp::TransportNetwork::applyAccessConstraints:"
                             " failed to find location " + location->toString());
             }
-            size_t locationIdx = cit - mLocations.begin();
+            size_t locationIdx = cit - mpContext->locations().begin();
             size_t min = minPool.at(model);
             size_t max = maxPool.at(model);
 
@@ -934,7 +935,7 @@ Gecode::Symmetries TransportNetwork::identifySymmetries()
 
     Gecode::Symmetries symmetries;
     // define interchangeable columns for roles of the same model type
-    for(const owlapi::model::IRI& currentModel : mAvailableModels)
+    for(const IRI& currentModel : mpMission->getModels())
     {
         LOG_INFO_S << "Starting symmetry column for model: " << currentModel.toString();
         Gecode::IntVarArgs sameModelColumns;
@@ -954,17 +955,11 @@ Gecode::Symmetries TransportNetwork::identifySymmetries()
 TransportNetwork::TransportNetwork(TransportNetwork& other)
     : Gecode::Space(other)
     , mpMission(other.mpMission)
-    , mModelPool(other.mModelPool)
-    , mAsk(other.mAsk)
-    , mServices(other.mServices)
-    , mResources(other.mResources)
-    , mIntervals(other.mIntervals)
-    , mTimepoints(other.mTimepoints)
-    , mLocations(other.mLocations)
+    , mpContext(other.mpContext)
     , mResourceRequirements(other.mResourceRequirements)
     , mTemporalConstraintNetwork(other.mTemporalConstraintNetwork)
+    , mTimepoints(other.mTimepoints)
     , mpQualitativeTemporalConstraintNetwork(other.mpQualitativeTemporalConstraintNetwork)
-    , mAvailableModels(other.mAvailableModels)
     , mRoles(other.mRoles)
     , mActiveRoles(other.mActiveRoles)
     , mActiveRoleList(other.mActiveRoleList)
@@ -973,7 +968,6 @@ TransportNetwork::TransportNetwork(TransportNetwork& other)
     , mMinCostFlowSolution(other.mMinCostFlowSolution)
     , mMinCostFlowFlaws(other.mMinCostFlowFlaws)
     , mFlawResolution(other.mFlawResolution)
-    , mConfiguration(other.mConfiguration)
     , mUseMasterSlave(other.mUseMasterSlave)
     , mpCurrentMaster(other.mpCurrentMaster)
     , mSolutionAnalysis(other.mSolutionAnalysis)
@@ -988,7 +982,7 @@ TransportNetwork::TransportNetwork(TransportNetwork& other)
     breakpointEnd();
 
     assert( mpMission->getOrganizationModel() );
-    assert(!mIntervals.empty());
+    assert(!mpContext->intervals().empty());
     mModelUsage.update(*this, other.mModelUsage);
     mRoleUsage.update(*this, other.mRoleUsage);
     mCost.update(*this, other.mCost);
@@ -1070,12 +1064,12 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
     // share_pbs     (bool) whether AFC is shared between assets
     // stop                 Stop object   (NULL if none)
     // cutoff               cutoff object (NULL if none)
-    int threads = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/threads",1);
+    int threads = distribution->mpContext->configuration().getValueAs<int>("TransportNetwork/search/options/threads",1);
 
-    int cutoff = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/cutoff",10);
-    int nogoods_limit = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/nogoods_limit",128);
-    int epochTimeoutInS = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/epoch_timeout_in_s",180000);
-    int abortTimeoutInS = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/total_timeout_in_s",600000);
+    int cutoff = distribution->mpContext->configuration().getValueAs<int>("TransportNetwork/search/options/cutoff",10);
+    int nogoods_limit = distribution->mpContext->configuration().getValueAs<int>("TransportNetwork/search/options/nogoods_limit",128);
+    int epochTimeoutInS = distribution->mpContext->configuration().getValueAs<int>("TransportNetwork/search/options/epoch_timeout_in_s",180000);
+    int abortTimeoutInS = distribution->mpContext->configuration().getValueAs<int>("TransportNetwork/search/options/total_timeout_in_s",600000);
 
     Gecode::Search::Options options;
     options.threads = threads;
@@ -1084,9 +1078,9 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
     // maintained by the search engine
     options.nogoods_limit = nogoods_limit;
     // recomputation distance
-    options.c_d = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/computation_distance", options.c_d);
+    options.c_d = distribution->mpContext->configuration().getValueAs<int>("TransportNetwork/search/options/computation_distance", options.c_d);
     // adaptive recomputation distance
-    options.a_d = distribution->mConfiguration.getValueAs<int>("TransportNetwork/search/options/adaptive_computation_distance", options.a_d);
+    options.a_d = distribution->mpContext->configuration().getValueAs<int>("TransportNetwork/search/options/adaptive_computation_distance", options.a_d);
     // default failure cutoff
     // options.fail
 
@@ -1302,12 +1296,14 @@ void TransportNetwork::appendToTupleSet(Gecode::TupleSet& tupleSet, const moreor
     }
 }
 
-size_t TransportNetwork::getResourceModelIndex(const owlapi::model::IRI& model) const
+size_t TransportNetwork::getResourceModelIndex(const IRI& model) const
 {
-    owlapi::model::IRIList::const_iterator cit = std::find(mAvailableModels.begin(), mAvailableModels.end(), model);
-    if(cit != mAvailableModels.end())
+    const IRIList& availableModels = mpMission->getModels();
+    IRIList::const_iterator cit =
+        std::find(availableModels.begin(), availableModels.end(), model);
+    if(cit != availableModels.end())
     {
-        int index = cit - mAvailableModels.begin();
+        int index = cit - availableModels.begin();
         assert(index >= 0);
         return (size_t) index;
     }
@@ -1315,19 +1311,21 @@ size_t TransportNetwork::getResourceModelIndex(const owlapi::model::IRI& model) 
     throw std::runtime_error("templ::solvers::csp::TransportNetwork::getResourceModelIndex: could not find model index for '" + model.toString() + "'");
 }
 
-const owlapi::model::IRI& TransportNetwork::getResourceModelFromIndex(size_t index) const
+const IRI& TransportNetwork::getResourceModelFromIndex(size_t index) const
 {
-    if(index < mAvailableModels.size())
+    const IRIList& availableModels = mpMission->getModels();
+    if(index < availableModels.size())
     {
-        return mAvailableModels.at(index);
+        return availableModels.at(index);
     }
     throw std::invalid_argument("templ::solvers::csp::TransportNetwork::getResourceModelIndex: index is out of bounds");
 }
 
 size_t TransportNetwork::getResourceModelMaxCardinality(size_t index) const
 {
-    moreorg::ModelPool::const_iterator cit = mModelPool.find(getResourceModelFromIndex(index));
-    if(cit != mModelPool.end())
+    const moreorg::ModelPool& modelPool = mpMission->getAvailableResources();
+    moreorg::ModelPool::const_iterator cit = modelPool.find(getResourceModelFromIndex(index));
+    if(cit != modelPool.end())
     {
         return cit->second;
     }
@@ -1336,7 +1334,7 @@ size_t TransportNetwork::getResourceModelMaxCardinality(size_t index) const
 
 bool TransportNetwork::isRoleForModel(uint32_t roleIndex, uint32_t modelIndex) const
 {
-    return mRoles.at(roleIndex).getModel() == mAvailableModels.at(modelIndex);
+    return mRoles.at(roleIndex).getModel() == mpMission->getModels().at(modelIndex);
 }
 
 std::vector<uint32_t> TransportNetwork::computeActiveRoles() const
@@ -1419,11 +1417,12 @@ void TransportNetwork::postTemporalConstraints()
 
     // update timepoint comparator for intervals
     FluentTimeResource::updateIndices(mResourceRequirements,
-            mLocations);
+            mpContext->locations());
 
     mModelUsage = Gecode::IntVarArray(*this,
             /*# of models*/ mpMission->getAvailableResources().size()*
-            /*# of fluent time services*/mResourceRequirements.size(), 0, mModelPool.getMaxResourceCount());
+            /*# of fluent time services*/mResourceRequirements.size(), 0,
+            mpMission->getAvailableResources().getMaxResourceCount());
 
     mRoleUsage = Gecode::IntVarArray(*this,
             /*width --> col */ mpMission->getRoles().size()* /*height --> row*/ mResourceRequirements.size(),
@@ -1453,7 +1452,7 @@ void TransportNetwork::postTemporalConstraints()
     Gecode::branch(*this, &TransportNetwork::doPostExtensionalConstraints);
 
     Gecode::IntAFC modelUsageAfc(*this, mModelUsage, 0.99);
-    double modelAfcDecay = mConfiguration.getValueAs<double>("TransportNetwork/search/options/model-usage/afc-decay",0.95);
+    double modelAfcDecay = mpContext->configuration().getValueAs<double>("TransportNetwork/search/options/model-usage/afc-decay",0.95);
     modelUsageAfc.decay(*this, modelAfcDecay);
     branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
     //Gecode::Gist::stopBranch(*this);
@@ -1479,7 +1478,7 @@ void TransportNetwork::postTemporalConstraints()
     //branch(*this, mRoleUsage, Gecode::INT_VAR_MIN_MIN(), Gecode::INT_VAL_MIN(), symmetries);
 
     Gecode::IntAFC roleUsageAfc(*this, mRoleUsage, 0.99);
-    double roleAfcDecay = mConfiguration.getValueAs<double>("TransportNetwork/search/options/role-usage/afc-decay",0.95);
+    double roleAfcDecay = mpContext->configuration().getValueAs<double>("TransportNetwork/search/options/role-usage/afc-decay",0.95);
     roleUsageAfc.decay(*this, roleAfcDecay);
     //branch(*this, mRoleUsage, Gecode::INT_VAR_AFC_MIN(roleUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
 
@@ -1549,7 +1548,7 @@ void TransportNetwork::postRoleAssignments()
     // 3: l1-t1: {}
     // 4: l0-t2: {..}
     // ...
-    size_t numberOfFluents = mLocations.size();
+    size_t numberOfFluents = mpContext->locations().size();
     size_t numberOfTimepoints = mTimepoints.size();
     size_t locationTimeSize = numberOfFluents*numberOfTimepoints;
 
@@ -1557,7 +1556,7 @@ void TransportNetwork::postRoleAssignments()
 
     LOG_INFO_S << std::endl
         << mTimepoints << std::endl
-        << symbols::constants::Location::toString(mLocations);
+        << symbols::constants::Location::toString(mpContext->locations());
 
     assert(!mActiveRoles.empty());
     assert(mTimelines.empty());
@@ -1695,7 +1694,7 @@ void TransportNetwork::postRoleAssignments()
 
                     LOG_INFO_S << "EdgeActivation for col: " << col << ", row: " << row << " requirement for: " << role.toString() << " roleRequirement: " << roleRequirement;
                     LOG_INFO_S << "Translates to: " << from->toString() << " to " << to->toString();
-                    LOG_INFO_S << "Fluent: " << mLocations[fluentIdx]->toString();
+                    LOG_INFO_S << "Fluent: " << mpContext->locations()[fluentIdx]->toString();
 
 
                     // constraint between timeline and roleRequirement
@@ -1761,13 +1760,13 @@ void TransportNetwork::postRoleAssignments()
     // Compute a network with proper activation
     //branch(*this, &TransportNetwork::postRoleTimelines);
     std::vector<int32_t> supplyDemand;
-    if( mConfiguration.getValueAs<bool>("TransportNetwork/search/options/timeline-brancher/supply-demand",false) )
+    if( mpContext->configuration().getValueAs<bool>("TransportNetwork/search/options/timeline-brancher/supply-demand",false) )
     {
         for(uint32_t roleIdx = 0; roleIdx < mActiveRoles.size(); ++roleIdx)
         {
             const Role& role = mRoles[ mActiveRoles[roleIdx] ];
             using namespace moreorg::facades;
-            Robot robot = Robot::getInstance(role.getModel(), mAsk);
+            Robot robot = Robot::getInstance(role.getModel(), mpContext->ask());
             if(robot.isMobile())
             {
                 uint32_t transportCapacity = robot.getTransportCapacity();
@@ -1788,8 +1787,8 @@ void TransportNetwork::postRoleAssignments()
 
     Gecode::Rnd rnd;
     rnd.hw();
-    double timelineAfcDecay = mConfiguration.getValueAs<double>("TransportNetwork/search/options/timeline-brancher/afc-decay");
-    size_t numberOfLocations = mLocations.size();
+    double timelineAfcDecay = mpContext->configuration().getValueAs<double>("TransportNetwork/search/options/timeline-brancher/afc-decay");
+    size_t numberOfLocations = mpContext->locations().size();
     for(size_t i = 0; i < mActiveRoles.size(); ++i)
     {
         const Role& role = mActiveRoleList[i];
@@ -1799,7 +1798,7 @@ void TransportNetwork::postRoleAssignments()
 
         // Only branch on the mobile systems
         using namespace moreorg::facades;
-        Robot robot = Robot::getInstance(role.getModel(), mAsk);
+        Robot robot = Robot::getInstance(role.getModel(), mpContext->ask());
         if(robot.isMobile())
         {
             Gecode::SetAFC timelineUsageAfc(*this, mTimelines[i], timelineAfcDecay);
@@ -1847,7 +1846,7 @@ void TransportNetwork::postMinCostFlow()
         breakpointEnd();
 
         std::string solver =
-            mConfiguration.getValueAs<std::string>("TransportNetwork/search/options/lp/solver","CBC_SOLVER");
+            mpContext->configuration().getValueAs<std::string>("TransportNetwork/search/options/lp/solver","CBC_SOLVER");
 
         namespace ga = graph_analysis::algorithms;
         ga::LPSolver::Type solverType = ga::LPSolver::UNKNOWN_LP_SOLVER;
@@ -1861,7 +1860,7 @@ void TransportNetwork::postMinCostFlow()
             }
         }
 
-        double feasibilityTimeoutInMs = 1000*mConfiguration.getValueAs<double>("TransportNetwork/search/options/coalition-feasibility/timeout_in_s",1);
+        double feasibilityTimeoutInMs = 1000*mpContext->configuration().getValueAs<double>("TransportNetwork/search/options/coalition-feasibility/timeout_in_s",1);
 
         std::map<Role, RoleTimeline> expandedTimelines = getTimelines();
 
@@ -1876,9 +1875,9 @@ void TransportNetwork::postMinCostFlow()
 
         transshipment::MinCostFlow minCostFlow(expandedTimelines,
                 mMinRequiredTimelines,
-                mLocations,
+                mpContext->locations(),
                 mTimepoints,
-                mAsk,
+                mpContext->ask(),
                 mpMission->getLogger(),
                 solverType,
                 feasibilityTimeoutInMs);
@@ -1915,7 +1914,7 @@ void TransportNetwork::postMinCostFlow()
             // store all flaws
             mMinCostFlowFlaws = flaws;
 
-            if(mConfiguration.getValueAs<bool>("TransportNetwork/search/options/lp/cache-solution",
+            if(mpContext->configuration().getValueAs<bool>("TransportNetwork/search/options/lp/cache-solution",
                         false))
             {
                 msMinCostFlowSolutions[key] = FlowSolutionValue(flaws, mMinCostFlowSolution);
@@ -1941,11 +1940,11 @@ void TransportNetwork::postMinCostFlow()
         rel(*this, mCost, Gecode::IRT_EQ, mMinCostFlowFlaws.size());
         rel(*this, mNumberOfFlaws, Gecode::IRT_EQ, mMinCostFlowFlaws.size());
 
-        mSolutionAnalysis = solvers::SolutionAnalysis(mpMission, mMinCostFlowSolution, mConfiguration);
+        mSolutionAnalysis = solvers::SolutionAnalysis(mpMission, mMinCostFlowSolution, mpContext->configuration());
         mSolutionAnalysis.analyse();
 
         // Set flaws as well
-        bool allowFlaws = mConfiguration.getValueAs<bool>("TransportNetwork/search/options/allow-flaws", true);
+        bool allowFlaws = mpContext->configuration().getValueAs<bool>("TransportNetwork/search/options/allow-flaws", true);
         if(!mMinCostFlowFlaws.empty() && !allowFlaws)
         {
             this->fail();
@@ -1978,13 +1977,17 @@ void TransportNetwork::postTimelines()
 
 std::string TransportNetwork::toString() const
 {
+
+    size_t modelPoolSize = mpMission->getAvailableResources().size();
+
     std::stringstream ss;
     ss << "TransportNetwork: #" << std::endl;
     ss << "    Timepoints: " << mQualitativeTimepoints << std::endl;
-    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage, mModelPool.size(), mResourceRequirements.size());
-    for(size_t m = 0; m < mModelPool.size(); ++m)
+    Gecode::Matrix<Gecode::IntVarArray> resourceDistribution(mModelUsage,
+            modelPoolSize, mResourceRequirements.size());
+    for(size_t m = 0; m < modelPoolSize; ++m)
     {
-        const owlapi::model::IRI& model = getResourceModelFromIndex(m);
+        const IRI& model = getResourceModelFromIndex(m);
         ss << std::setw(30) << std::left << model.getFragment() << ": ";
         for(size_t i = 0; i < mResourceRequirements.size(); ++i)
         {
@@ -2013,7 +2016,7 @@ std::string TransportNetwork::toString() const
         for(size_t i = 0; i < mTimelines.size(); ++i)
         {
             ss << mActiveRoleList[i].toString() << std::endl;
-            ss << Formatter::toString(mTimelines[i], mLocations, mTimepoints) << std::endl;
+            ss << Formatter::toString(mTimelines[i], mpContext->locations(), mTimepoints) << std::endl;
         }
 
     } catch(const std::exception& e)
@@ -2023,7 +2026,7 @@ std::string TransportNetwork::toString() const
     }
 
     //ss << "Capacities: " << std::endl << Formatter::toString(mCapacities,
-    //        toPtrList<Symbol,symbols::constants::Location>(mLocations),
+    //        toPtrList<Symbol,symbols::constants::Location>(mpContext->locations()),
     //        toPtrList<Variable, temporal::point_algebra::TimePoint>(mTimepoints)
     //        ) << std::endl;
 
@@ -2048,15 +2051,17 @@ std::string TransportNetwork::modelUsageToString() const
     }
     ss << std::endl;
 
+    const moreorg::ModelPool& modelPool = mpMission->getAvailableResources();
+
     int modelIndex = 0;
-    moreorg::ModelPool::const_iterator cit = mModelPool.begin();
-    for(; cit != mModelPool.end(); ++cit, ++modelIndex)
+    moreorg::ModelPool::const_iterator cit = modelPool.begin();
+    for(; cit != modelPool.end(); ++cit, ++modelIndex)
     {
-        const owlapi::model::IRI& model = cit->first;
+        const IRI& model = cit->first;
         ss << std::setw(firstcolumnwidth) << std::left << model.getFragment() << ": ";
         for(size_t r = 0; r < mResourceRequirements.size(); ++r)
         {
-            ss << std::setw(columnwidth) << mModelUsage[r*mModelPool.size() + modelIndex] << " ";
+            ss << std::setw(columnwidth) << mModelUsage[r*modelPool.size() + modelIndex] << " ";
         }
         ss << std::endl;
     }
@@ -2077,7 +2082,7 @@ std::string TransportNetwork::toString(const std::vector<Gecode::IntVarArray>& t
         labels.push_back( mRoles[ activeRoles[i] ] .toString());
     }
     return Formatter::toString(timelines,
-            toPtrList<Symbol,symbols::constants::Location>(mLocations),
+            toPtrList<Symbol,symbols::constants::Location>(mpContext->locations()),
             toPtrList<Variable, temporal::point_algebra::TimePoint>(mTimepoints),
             labels);
 }
@@ -2086,12 +2091,13 @@ uint32_t TransportNetwork::getTimepointIndex(const temporal::point_algebra::Time
 {
     using namespace templ::solvers::temporal;
 
-    std::vector<point_algebra::TimePoint::Ptr>::const_iterator timepointIt = std::find(mTimepoints.begin(), mTimepoints.end(), timePoint);
+    std::vector<point_algebra::TimePoint::Ptr>::const_iterator timepointIt =
+        std::find(mTimepoints.begin(), mTimepoints.end(), timePoint);
     if(timepointIt != mTimepoints.end())
     {
         return timepointIt - mTimepoints.begin();
     }
-    throw std::invalid_argument("templ::solvers::csp::TransportNetwork::getTimepointIdx: unknown timepoint '" + timePoint->toString() + "' given");
+    throw std::invalid_argument("templ::solvers::csp::TransportNetwork::getTimepointIndex: unknown timepoint '" + timePoint->toString() + "' given");
 }
 
 std::ostream& operator<<(std::ostream& os, const TransportNetwork::Solution& solution)
@@ -2131,10 +2137,10 @@ void TransportNetwork::save(const std::string& _filename) const
 Gecode::ExecStatus TransportNetwork::propagateImmobileAgentConstraints(const SpaceTime::Network& network)
 {
     std::map<symbols::constants::Location::Ptr, size_t> mLocationIdxMap;
-    size_t numberOfLocations = mLocations.size();
+    size_t numberOfLocations = mpContext->locations().size();
     for(size_t idx = 0; idx < numberOfLocations; ++idx)
     {
-        mLocationIdxMap[ mLocations[idx] ] = idx;
+        mLocationIdxMap[ mpContext->locations()[idx] ] = idx;
     }
     std::map<temporal::point_algebra::TimePoint::Ptr, size_t> mTimepointIdxMap;
     size_t numberOfTimepoints = mTimepoints.size();
@@ -2149,7 +2155,7 @@ Gecode::ExecStatus TransportNetwork::propagateImmobileAgentConstraints(const Spa
     {
         const Role& role = mActiveRoleList[idx];
         using namespace moreorg::facades;
-        Robot robot = Robot::getInstance(role.getModel(), mAsk);
+        Robot robot = Robot::getInstance(role.getModel(), mpContext->ask());
         if(!robot.isMobile())
         {
             activeImmobileRoles.push_back(role);

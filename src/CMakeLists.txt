@@ -156,6 +156,7 @@ rock_library(templ
         solvers/agent_routing/io/XMLReader.cpp
         solvers/agent_routing/io/XMLWriter.cpp
         solvers/csp/ConstraintMatrix.cpp
+        solvers/csp/Context.cpp
         solvers/csp/FlawResolution.cpp
         solvers/csp/MissionConstraints.cpp
         solvers/csp/MissionConstraintManager.cpp
@@ -204,6 +205,7 @@ rock_library(templ
         solvers/agent_routing/io/XMLReader.hpp
         solvers/agent_routing/io/XMLWriter.hpp
         solvers/csp/ConstraintMatrix.hpp
+        solvers/csp/Context.hpp
         solvers/csp/FlawResolution.hpp
         solvers/csp/MissionConstraints.hpp
         solvers/csp/MissionConstraintManager.hpp
