@@ -8,6 +8,7 @@
 #include "FluentTimeResource.hpp"
 #include "../Plan.hpp"
 #include "temporal/TemporalConstraintNetwork.hpp"
+#include "temporal/Interval.hpp"
 #include <moreorg/Analyser.hpp>
 
 namespace templ {
@@ -77,15 +78,14 @@ public:
      */
     double getSafety(const FluentTimeResource& ftr) const;
 
-    double getSafety(const FluentTimeResource& ftr,
-            const SpaceTime::Network::tuple_t::Ptr& tuple) const;
+    double getSafety(const FluentTimeResource& ftr, const SpaceTime::Network::tuple_t::Ptr& tuple) const;
 
     /**
      * Get the metric value for minimum requirement and minimum available
      * resources
      */
     double getSafety(const moreorg::ModelPool& minRequired,
-            const moreorg::ModelPool& minAvailable) const;
+            const moreorg::ModelPool& minAvailable, double start_time = 0, double end_time = 0) const;
 
     /**
      * Retrieve the list of required roles / all roles that are involved in this
