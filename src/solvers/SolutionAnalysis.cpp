@@ -198,7 +198,7 @@ double SolutionAnalysis::getSafety(const FluentTimeResource& ftr, const SpaceTim
         safety = getSafety(minRequired, minAvailable);
     } catch(const std::exception& e)
     {
-        safety = getSafety(ModelPool(), minAvailable);
+        safety = getSafety(ModelPool(), minAvailable); // is timeInterval here even available?
         LOG_WARN_S << "Failed to compute safety at: "
             << tuple->toString(4)
             << "Required: "
@@ -216,9 +216,11 @@ double SolutionAnalysis::getSafety(const FluentTimeResource& ftr) const
     using namespace moreorg;
     ModelPool minRequired = getMinResourceRequirements(ftr);
     ModelPool minAvailable = getMinAvailableResources(ftr);
+    double start_time = (double) ftr.getInterval().getFrom()->getLowerBound();
+    double end_time = (double) ftr.getInterval().getTo()->getLowerBound();
 
     try {
-        double safety = getSafety(minRequired, minAvailable);
+        double safety = getSafety(minRequired, minAvailable, start_time, end_time);
         return safety;
     } catch(const std::exception& e)
     {
@@ -233,9 +235,9 @@ double SolutionAnalysis::getSafety(const FluentTimeResource& ftr) const
     }
 }
 
-double SolutionAnalysis::getSafety(const ModelPool& minRequired, const ModelPool& minAvailable) const
+double SolutionAnalysis::getSafety(const ModelPool& minRequired, const ModelPool& minAvailable, double start_time, double end_time) const
 {
-    return mAnalyser.getMetric()->computeSharedUse(minRequired, minAvailable);
+    return mAnalyser.getMetric()->computeSharedUse(minRequired, minAvailable, start_time, end_time);
 }
 
 moreorg::ModelPool SolutionAnalysis::getMinAvailableResources(const FluentTimeResource& ftr) const
@@ -724,6 +726,15 @@ void SolutionAnalysis::quantifyTime()
 
     double travelDistanceInM = 0.0;
 
+    // set min duration for requirements
+    for(const FluentTimeResource& ftr : mResourceRequirements)
+    {
+        IntervalConstraint::Ptr intervalConstraint = make_shared<IntervalConstraint>(ftr.getInterval().getFrom(), ftr.getInterval().getTo());
+        // TODO add reading these bounds from ontology (maybe)
+        Bounds bounds(1800, std::numeric_limits<double>::max());
+        intervalConstraint->addInterval(bounds);
+        tcn.addIntervalConstraint(intervalConstraint);
+    }
     // Apply constraints from the current solution
     // TODO: space time network: iterator over all 'solution' edges
     using namespace graph_analysis;
@@ -816,7 +827,7 @@ void SolutionAnalysis::quantifyTime()
 void SolutionAnalysis::computeSafety(bool ignoreStartDepot)
 {
     mSafety = 1.0;
-    temporal::point_algebra::TimePoint::PtrList timepoints = mSolutionNetwork.getTimepoints();
+    std::map<SpaceTime::Network::tuple_t::Ptr, FluentTimeResource> tupleFtrMap;
     for(const FluentTimeResource& ftr : mResourceRequirements)
     {
         SpaceTime::Network::tuple_t::PtrList tuples = mSolutionNetwork.getTuples(ftr.getInterval().getFrom(),
@@ -825,66 +836,116 @@ void SolutionAnalysis::computeSafety(bool ignoreStartDepot)
 
         for(const SpaceTime::Network::tuple_t::Ptr& tuple : tuples)
         {
-            double value = 1.0;
-            // Ignore redundancy at starting depot
-            if(!isStartDepotRequirement(ftr) && ignoreStartDepot)
-            {
-                try {
-                    value = getSafety(ftr, tuple);
-                    mSafety = std::min(value, mSafety);
-                    LOG_INFO_S << "Metric: " << value << std::endl
-                        << "    at: " << tuple->first()->toString() << std::endl;
-
-                } catch(const std::exception& e)
-                {
-                    if(isStartDepotRequirement(ftr))
-                    {
-                        LOG_INFO_S << "Metric: not all resources from start depot used:" << std::endl
-                            << "    at: " << ftr.getLocation()->toString() << std::endl
-                            << "    over: " <<  std::endl
-                            << ftr.getInterval().toString(8) << std::endl
-                            << e.what();
-
-                        ModelPool minAvailable = getMinAvailableResources(ftr);
-                        ModelPool agentPool = mpMission->getOrganizationModelAsk().allowSubclasses(minAvailable, vocabulary::OM::Actor());
-                        if(!minAvailable.empty())
-                        {
-                            value = getSafety(agentPool, agentPool);
-                        } else {
-                            value = 0;
-                        }
-
-                    } else {
-                        LOG_WARN_S << "Metric: requirements not fulfilled" << std::endl
-                            << "    at: " << ftr.getLocation()->toString() << std::endl
-                            << "    over: " <<  std::endl
-                            << ftr.getInterval().toString(8) << std::endl
-                            << ftr.toString(8) << std::endl
-                            << tuple->toString() << std::endl
-                            << e.what();
-                        value = 0.0;
-                    }
-                }
-            }
-
-            tuple->setAttribute(RoleInfo::SAFETY, value);
+            tupleFtrMap.insert(std::make_pair(tuple, ftr));
         }
     }
 
-    VertexIterator::Ptr vertexIt = mSolutionNetwork.getGraph()->getVertexIterator();
-    while(vertexIt->next())
+    EdgeIterator::Ptr edgeIt = mSolutionNetwork.getGraph()->getEdgeIterator();
+    while(edgeIt->next())
     {
-        RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(vertexIt->current());
-        if(!roleInfo->hasAttribute(RoleInfo::SAFETY))
+        SpaceTime::Network::edge_t::Ptr edge = dynamic_pointer_cast<SpaceTime::Network::edge_t>(edgeIt->current());
+        if(!edge)
         {
-            ModelPool modelPool = Role::getModelPool( roleInfo->getAllRoles() );
-            if(!modelPool.empty())
-            {
-                double value = getSafety(modelPool, modelPool);
-                roleInfo->setAttribute(RoleInfo::SAFETY, value);
-            }
+            throw std::invalid_argument("SolutionAnalysis: encountered edge type: " + edgeIt->current()->getClassName()
+                    + " Are you loading final plan instead of the transport network solution?"); // right exception?
         }
+
+        Role::Set assignedRoles = edge->getRoles(RoleInfo::ASSIGNED);
+
+        moreorg::ModelPool availableResources = Role::getModelPool(assignedRoles);
+        if (availableResources.isNull())
+        {
+            edge->setAttribute(RoleInfo::SAFETY, 1.);
+            continue;
+        }
+
+        SpaceTime::Network::tuple_t::Ptr fromTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(edge->getSourceVertex());
+        SpaceTime::Network::tuple_t::Ptr toTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(edge->getTargetVertex());
+
+        // TODO: Placeholder, Start Depot must be handled
+
+        moreorg::ModelPool minRequired = getMinResourceRequirements(tupleFtrMap[toTuple]);
+
+        
+        double start_time = (double) fromTuple->second()->getLowerBound();
+        double end_time = (double) toTuple->second()->getLowerBound();
+
+        double value = getSafety(minRequired, availableResources, start_time, end_time);
+
+        edge->setAttribute(RoleInfo::SAFETY, value);
+
+        mSafety = std::min(value, mSafety);
+                
     }
+        
+        
+    //     for(const SpaceTime::Network::tuple_t::Ptr& tuple : tuples)
+    //     {
+    //         double value = 1.0;
+    //         // Ignore redundancy at starting depot
+    //         if(!isStartDepotRequirement(ftr) && ignoreStartDepot)
+    //         {
+    //             if (!prev_tuple)
+    //             {
+    //                 prev_tuple = tuple;
+    //                 continue;
+    //             }
+    //             try {
+    //                 value = getSafety(ftr, prev_tuple, tuple);
+    //                 mSafety = std::min(value, mSafety);
+    //                 LOG_INFO_S << "Metric: " << value << std::endl
+    //                     << "    at: " << tuple->first()->toString() << std::endl;
+
+    //             } catch(const std::exception& e)
+    //             {
+    //                 if(isStartDepotRequirement(ftr))
+    //                 {
+    //                     LOG_INFO_S << "Metric: not all resources from start depot used:" << std::endl
+    //                         << "    at: " << ftr.getLocation()->toString() << std::endl
+    //                         << "    over: " <<  std::endl
+    //                         << ftr.getInterval().toString(8) << std::endl
+    //                         << e.what();
+
+    //                     ModelPool minAvailable = getMinAvailableResources(ftr);
+    //                     ModelPool agentPool = mpMission->getOrganizationModelAsk().allowSubclasses(minAvailable, vocabulary::OM::Actor());
+    //                     if(!minAvailable.empty())
+    //                     {
+    //                         value = getSafety(agentPool, agentPool);
+    //                     } else {
+    //                         value = 0;
+    //                     }
+
+    //                 } else {
+    //                     LOG_WARN_S << "Metric: requirements not fulfilled" << std::endl
+    //                         << "    at: " << ftr.getLocation()->toString() << std::endl
+    //                         << "    over: " <<  std::endl
+    //                         << ftr.getInterval().toString(8) << std::endl
+    //                         << ftr.toString(8) << std::endl
+    //                         << tuple->toString() << std::endl
+    //                         << e.what();
+    //                     value = 0.0;
+    //                 }
+    //             }
+    //         }
+
+    //         tuple->setAttribute(RoleInfo::SAFETY, value);
+    //     }
+    // }
+
+    // VertexIterator::Ptr vertexIt = mSolutionNetwork.getGraph()->getVertexIterator();
+    // while(vertexIt->next())
+    // {
+    //     RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(vertexIt->current());
+    //     if(!roleInfo->hasAttribute(RoleInfo::SAFETY))
+    //     {
+    //         ModelPool modelPool = Role::getModelPool( roleInfo->getAllRoles() );
+    //         if(!modelPool.empty())
+    //         {
+    //             double value = getSafety(modelPool, modelPool);
+    //             roleInfo->setAttribute(RoleInfo::SAFETY, value);
+    //         }
+    //     }
+    // }
 }
 
 
