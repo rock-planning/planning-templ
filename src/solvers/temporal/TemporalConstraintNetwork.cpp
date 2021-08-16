@@ -97,19 +97,20 @@ void TemporalConstraintNetwork::stp()
         // for each edge of the temp.const.network, check each interval and find the
         // highest min bound and the lowest max bound
         edge = dynamic_pointer_cast<IntervalConstraint>( edgeIt->current() );
-        max = std::numeric_limits<double>::lowest();
-        min = std::numeric_limits<double>::max();
+
+        min = std::numeric_limits<double>::lowest();
+        max = std::numeric_limits<double>::max();
 
         std::vector<Bounds> intervals = edge->getIntervals();
         std::vector<Bounds>::const_iterator cit = intervals.begin();
         for( ; cit != intervals.end(); ++cit)
         {
-            min = std::min(cit->getLowerBound(), min);
-            max = std::max(cit->getLowerBound(), max);
+            min = std::max(cit->getLowerBound(), min);
+            max = std::min(cit->getUpperBound(), max);
         }
 
         // create a new interval constraint using only the interval [min,max]
-        IntervalConstraint::Ptr i(new IntervalConstraint(edge->getSourceTimePoint(),edge->getTargetTimePoint()));
+        IntervalConstraint::Ptr i = make_shared<IntervalConstraint>(edge->getSourceTimePoint(),edge->getTargetTimePoint());
         i->addInterval(Bounds(min, std::max(max, min + 1E-06)) );
         tcn.addIntervalConstraint(i);
     }
