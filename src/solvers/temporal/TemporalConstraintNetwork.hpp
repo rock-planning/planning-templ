@@ -169,8 +169,7 @@ public:
     /**
      * Get the list of lower bounds as assignment
      */
-    static Assignment getAssignment(const graph_analysis::BaseGraph::Ptr& distanceGraph,
-            const point_algebra::TimePoint::PtrList& timepoints);
+    Assignment getAssignment() const;
 
     /**
      * Get the maximum assignment as time horizon

@@ -808,7 +808,7 @@ void SolutionAnalysis::quantifyTime()
     tcn.stp();
     tcn.minNetwork();
 
-    mTimeAssignment = TemporalConstraintNetwork::getAssignment(tcn.getDistanceGraph(), mSolutionNetwork.getTimepoints());
+    mTimeAssignment = tcn.getAssignment();
     mTimeHorizonInS = TemporalConstraintNetwork::getTimeHorizon(mTimeAssignment);
     mTraveledDistance = travelDistanceInM;
 }
