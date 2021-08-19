@@ -391,8 +391,17 @@ int TemporalConstraintNetwork::getEdgeNumber()
 
 void TemporalConstraintNetwork::save(const std::string& filename) const
 {
-    graph_analysis::io::GraphIO::write(filename, getGraph(), graph_analysis::representation::GRAPHVIZ);
-    graph_analysis::io::GraphIO::write(filename, getGraph(), graph_analysis::representation::GEXF);
+    if(!getGraph()->empty())
+    {
+        graph_analysis::io::GraphIO::write(filename, getGraph(), graph_analysis::representation::GRAPHVIZ);
+        graph_analysis::io::GraphIO::write(filename, getGraph(), graph_analysis::representation::GEXF);
+    }
+
+    if(!getDistanceGraph()->empty())
+    {
+        graph_analysis::io::GraphIO::write(filename + "-distance_graph", getDistanceGraph(), graph_analysis::representation::GRAPHVIZ);
+        graph_analysis::io::GraphIO::write(filename + "-distance_graph", getDistanceGraph(), graph_analysis::representation::GEXF);
+    }
 }
 
 
