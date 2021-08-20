@@ -55,7 +55,9 @@ public:
      * Serialize this object
      * \return serialized data blob
      */
-    std::string serializeBounds() const;
+    std::string serializeBounds();
+
+    std::string stringifyBounds() const;
 
     /**
      * Deserialize a blob into this object

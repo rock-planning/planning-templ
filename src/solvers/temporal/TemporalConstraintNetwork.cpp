@@ -391,8 +391,17 @@ int TemporalConstraintNetwork::getEdgeNumber()
 
 void TemporalConstraintNetwork::save(const std::string& filename) const
 {
-    graph_analysis::io::GraphIO::write(filename, getGraph(), graph_analysis::representation::GRAPHVIZ);
-    graph_analysis::io::GraphIO::write(filename, getGraph(), graph_analysis::representation::GEXF);
+    if(!getGraph()->empty())
+    {
+        graph_analysis::io::GraphIO::write(filename, getGraph(), graph_analysis::representation::GRAPHVIZ);
+        graph_analysis::io::GraphIO::write(filename, getGraph(), graph_analysis::representation::GEXF);
+    }
+
+    if(!getDistanceGraph()->empty())
+    {
+        graph_analysis::io::GraphIO::write(filename + "-distance_graph", getDistanceGraph(), graph_analysis::representation::GRAPHVIZ);
+        graph_analysis::io::GraphIO::write(filename + "-distance_graph", getDistanceGraph(), graph_analysis::representation::GEXF);
+    }
 }
 
 
@@ -493,45 +502,76 @@ point_algebra::TimePoint::PtrList TemporalConstraintNetwork::getTimepoints() con
     return timepoints;
 }
 
-TemporalConstraintNetwork::Assignment TemporalConstraintNetwork::getAssignment(const graph_analysis::BaseGraph::Ptr& distanceGraph,
-        const point_algebra::TimePoint::PtrList& timepoints)
+TemporalConstraintNetwork::Assignment TemporalConstraintNetwork::getAssignment() const
 {
+    TimePoint::PtrList timepoints;
     std::map<point_algebra::TimePoint::Ptr, double> lowerBounds;
+    TimePoint::Ptr startPoint;
+    VertexIterator::Ptr vertexIt = mpDistanceGraph->getVertexIterator();
+    while(vertexIt->next())
+    {
+        TimePoint::Ptr tp = dynamic_pointer_cast<TimePoint>(vertexIt->current());
+        timepoints.push_back(tp);
+
+        if(mpDistanceGraph->getInEdges(tp).empty())
+        {
+            if(!startPoint)
+            {
+                startPoint = tp;
+            } else
+            {
+                throw
+                    std::runtime_error("TemporalConstraintNetwork::getAssignment:" \
+                            "start point already set" + startPoint->toString() +
+                            " vs. " + tp->toString() );
+            }
+        }
+    }
+
     if(timepoints.empty())
     {
-        throw std::invalid_argument("TemporalConstraintNetwork::getAssignment: empty list of timepoints given");
+        throw std::invalid_argument("TemporalConstraintNetwork::getAssignment: empty list of timepoints");
+    }
+
+    if(!startPoint)
+    {
+        throw std::invalid_argument("TemporalConstraintNetwork::getAssignment:" \
+                "no start timepoint identified");
     }
 
     // Compute the time horizon
     double timeHorizonInS = 0.0;
-    for(size_t f = 0; f < timepoints.size()-1;)
+    TimePoint::Ptr evalTimepoint = startPoint;
+    while(true)
     {
-        lowerBounds[ timepoints[f] ] = timeHorizonInS;
-        double interval = 0;
-        // cache index in newF since we require f in the inner for loop
-        size_t newF = f;
-        size_t t = f+1;
-        for(; t < timepoints.size(); ++t)
+        lowerBounds[ evalTimepoint ] = timeHorizonInS;
         {
-            try {
-                Edge::PtrList edges = distanceGraph->getEdges(timepoints[f], timepoints[t]);
-                if(!edges.empty())
-                {
-                    IntervalConstraint::Ptr intervalConstraint = dynamic_pointer_cast<IntervalConstraint>(edges[0]);
-                    interval = intervalConstraint->getLowerBound();
-                    ++newF;
-                } else {
-                    break;
-                }
-            } catch(const std::exception& e)
+            Edge::PtrList edges =
+                mpDistanceGraph->getOutEdges(evalTimepoint);
+
+            if(edges.empty())
             {
-                continue;
+                // final timepoint found
+                break;
             }
+
+            TimePoint::Ptr nextTp;
+            double nextTpDistance = std::numeric_limits<double>::max();
+            for(const Edge::Ptr& e : edges)
+            {
+                IntervalConstraint::Ptr intervalConstraint = dynamic_pointer_cast<IntervalConstraint>(e);
+                double interval = intervalConstraint->getLowerBound();
+
+                if(interval < nextTpDistance)
+                {
+                    nextTpDistance = interval;
+                    nextTp = intervalConstraint->getTargetTimePoint();
+                }
+            }
+            evalTimepoint = nextTp;
+            timeHorizonInS += nextTpDistance;
         }
-        f = std::max(f+1,newF);
-        timeHorizonInS += interval;
     }
-    lowerBounds[timepoints.back()] = timeHorizonInS;
     return lowerBounds;
 }
 

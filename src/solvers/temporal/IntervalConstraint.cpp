@@ -32,7 +32,7 @@ std::string IntervalConstraint::toString(uint32_t indent) const
     std::string hspace(indent,' ');
     std::stringstream ss;
     ss << hspace << "Interval Constraint: from '" << getSourceVertex()->toString() << "' to '" << getTargetVertex()->toString() << "'" <<  std::endl;
-    ss << hspace << "    " << serializeBounds();
+    ss << hspace << "    " << stringifyBounds();
         return ss.str();
 }
 
@@ -63,12 +63,17 @@ void IntervalConstraint::registerAttributes(graph_analysis::EdgeTypeManager* eMa
 {
     eManager->registerAttribute(getClassName(), "bounds",
                 (graph_analysis::io::AttributeSerializationCallbacks::serialize_func_t)&IntervalConstraint::serializeBounds,
-                   (graph_analysis::io::AttributeSerializationCallbacks::deserialize_func_t)&IntervalConstraint::deserializeBounds,
-                   (graph_analysis::io::AttributeSerializationCallbacks::print_func_t)&IntervalConstraint::serializeBounds);
+                (graph_analysis::io::AttributeSerializationCallbacks::deserialize_func_t)&IntervalConstraint::deserializeBounds,
+                (graph_analysis::io::AttributeSerializationCallbacks::print_func_t)&IntervalConstraint::serializeBounds);
 
 }
 
-std::string IntervalConstraint::serializeBounds() const
+std::string IntervalConstraint::serializeBounds()
+{
+    return stringifyBounds();
+}
+
+std::string IntervalConstraint::stringifyBounds() const
 {
     std::stringstream ss;
     ss << mIntervals.size();
