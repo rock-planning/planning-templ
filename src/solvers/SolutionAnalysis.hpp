@@ -78,7 +78,7 @@ public:
      */
     double getSafety(const FluentTimeResource& ftr) const;
 
-    double getSafety(const FluentTimeResource& ftr, const SpaceTime::Network::tuple_t::Ptr& tuple) const;
+    double getSafety(const FluentTimeResource& ftr, const SpaceTime::Network::tuple_t::Ptr& tuple, double start_time = 0, double end_time = 0) const;
 
     /**
      * Get the metric value for minimum requirement and minimum available

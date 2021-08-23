@@ -151,7 +151,7 @@ namespace templ
             return requiredRoles;
         }
 
-        double SolutionAnalysis::getSafety(const FluentTimeResource &ftr, const SpaceTime::Network::tuple_t::Ptr &tuple) const
+        double SolutionAnalysis::getSafety(const FluentTimeResource &ftr, const SpaceTime::Network::tuple_t::Ptr &tuple, double start_time, double end_time) const
         {
             using namespace moreorg;
             ModelPool minRequired = getMinResourceRequirements(ftr);
@@ -160,11 +160,11 @@ namespace templ
             double safety = 0.0;
             try
             {
-                safety = getSafety(minRequired, minAvailable);
+                safety = getSafety(minRequired, minAvailable, start_time, end_time);
             }
             catch (const std::exception &e)
             {
-                safety = getSafety(ModelPool(), minAvailable); // is timeInterval here even available?
+                safety = getSafety(ModelPool(), minAvailable, start_time, end_time); // is timeInterval here even available?
                 LOG_WARN_S << "Failed to compute safety at: "
                            << tuple->toString(4)
                            << "Required: "
@@ -182,8 +182,8 @@ namespace templ
             using namespace moreorg;
             ModelPool minRequired = getMinResourceRequirements(ftr);
             ModelPool minAvailable = getMinAvailableResources(ftr);
-            double start_time = (double)ftr.getInterval().getFrom()->getLowerBound();
-            double end_time = (double)ftr.getInterval().getTo()->getLowerBound();
+            double start_time = mTimeAssignment.find(ftr.getInterval().getFrom())->second;
+            double end_time = mTimeAssignment.find(ftr.getInterval().getTo())->second;
 
             try
             {
@@ -205,7 +205,17 @@ namespace templ
 
         double SolutionAnalysis::getSafety(const ModelPool &minRequired, const ModelPool &minAvailable, double start_time, double end_time) const
         {
-            return mAnalyser.getMetric()->computeSharedUse(minRequired, minAvailable, start_time, end_time);
+            try
+            {
+                double value = mAnalyser.getMetric()->computeSharedUse(minRequired, minAvailable, start_time, end_time);
+                return value;
+            }
+            catch(const std::exception& e)
+            {                
+                LOG_WARN_S << "templ::solvers::SolutionAnalysis: could not compute metric. Maybe no requirements were found?";
+                return 1.;
+            }
+            
         }
 
         moreorg::ModelPool SolutionAnalysis::getMinAvailableResources(const FluentTimeResource &ftr) const
@@ -799,7 +809,7 @@ namespace templ
             tcn.stp();
             tcn.minNetwork();
 
-            mTimeAssignment = TemporalConstraintNetwork::getAssignment(tcn.getDistanceGraph(), mSolutionNetwork.getTimepoints());
+            mTimeAssignment = tcn.getAssignment();
             mTimeHorizonInS = TemporalConstraintNetwork::getTimeHorizon(mTimeAssignment);
             mTraveledDistance = travelDistanceInM;
         }
@@ -808,12 +818,9 @@ namespace templ
         {
             mSafety = 1.0;
             std::map<SpaceTime::Network::tuple_t::Ptr, FluentTimeResource::List> tupleFtrMap;
-            // std::vector<FluentTimeResource>::const_iterator cit = mResourceRequirements.begin();
-            // for (; cit != mResourceRequirements.end(); ++cit)
-            // {
-            //     const FluentTimeResource &ftr = *cit;
             for (const FluentTimeResource &ftr : mResourceRequirements)
             {
+                std::cout << ftr.toString() << std::endl;
                 SpaceTime::Network::tuple_t::PtrList tuples = mSolutionNetwork.getTuples(ftr.getInterval().getFrom(),
                                                                                          ftr.getInterval().getTo(),
                                                                                          ftr.getLocation());
@@ -822,128 +829,45 @@ namespace templ
                 {
                     tupleFtrMap[tuple].push_back(ftr);
                 }
+                
             }
 
-            EdgeIterator::Ptr edgeIt = mSolutionNetwork.getGraph()->getEdgeIterator();
-            while (edgeIt->next())
+            VertexIterator::Ptr vertexIt = mSolutionNetwork.getGraph()->getVertexIterator();
+            while (vertexIt->next())
             {
-                SpaceTime::Network::edge_t::Ptr edge = dynamic_pointer_cast<SpaceTime::Network::edge_t>(edgeIt->current());
-                if (!edge)
+                SpaceTime::Network::tuple_t::Ptr vertexTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(vertexIt->current());
+                std::vector<Edge::Ptr> inEdges= mSolutionNetwork.getGraph()->getInEdges(vertexIt->current());
+                if (inEdges.empty())
                 {
-                    throw std::invalid_argument("SolutionAnalysis: encountered edge type: " + edgeIt->current()->getClassName() + " Are you loading final plan instead of the transport network solution?"); // right exception?
-                }
-
-                Role::Set assignedRoles = edge->getRoles(RoleInfo::ASSIGNED);
-
-                moreorg::ModelPool availableResources = Role::getModelPool(assignedRoles);
-                if (availableResources.isNull())
-                {
-                    edge->setAttribute(RoleInfo::SAFETY, 1.);
-                    std::cout << "No Available resources" << std::endl;
+                    vertexTuple->setAttribute(RoleInfo::SAFETY, 1.);
+                    std::cout << "no inEdges on timepoint: " << vertexTuple->second()->getLabel() << std::endl;
                     continue;
                 }
-
-                SpaceTime::Network::tuple_t::Ptr fromTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(edge->getSourceVertex());
-                SpaceTime::Network::tuple_t::Ptr toTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(edge->getTargetVertex());
-
-                // TODO: Placeholder, Start Depot must be handled
-                //std::cout << tupleFtrMap[toTuple].toString(4) << std::endl;
-
+                SpaceTime::Network::tuple_t::Ptr fromTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(inEdges.front()->getSourceVertex()); // can I assume that all edges come from same timepoint?
                 double start_time = mTimeAssignment.find(fromTuple->second())->second;
-                double end_time = mTimeAssignment.find(toTuple->second())->second;
-                std::cout << " tp: " << fromTuple->second()->getLabel() << " Start time: " << start_time << " tp: " << toTuple->second()->getLabel() << " , end time: " << end_time << std::endl;
-                try
-                {
-                    for (const auto &ftr : tupleFtrMap[toTuple])
-                    {
-                        moreorg::ModelPool minRequired = getMinResourceRequirements(ftr);
-                    }
-
-                    
-
-                    double value = getSafety(minRequired, availableResources, start_time, end_time);
-
-                    edge->setAttribute(RoleInfo::SAFETY, value);
-
-                    std::cout << "Safety Value: " << value << std::endl;
-
-                    mSafety = std::min(value, mSafety);
+                double end_time = mTimeAssignment.find(vertexTuple->second())->second;
+                double value = 1.;
+                // auto tupleFtrMapIterator = std::find_if(tupleFtrMap.begin(), tupleFtrMap.end(), [&vertexTuple](const std::pair<SpaceTime::Network::tuple_t::Ptr, FluentTimeResource::List> &pair)
+                // {
+                //     return *vertexTuple == *pair.first;
+                // });
+                // if (tupleFtrMapIterator == tupleFtrMap.end())
+                // {
+                //     std::cout << "could not find vertex tuple as key in tupleFtrMap" << std::endl;
+                // } else
+                // {
+                //     std::cout << "found vertex tuple as key in tupleFtrMap" << std::endl;
+                // }
+                
+                for (const FluentTimeResource &ftr : tupleFtrMap[vertexTuple])
+                {                    
+                    double currSafety = getSafety(ftr, vertexTuple, start_time, end_time);
+                    std::cout << "Safety Value of: " << currSafety << std::endl;
+                    value = std::min(currSafety, value);
                 }
-                catch (const std::exception &e)
-                {
-                    edge->setAttribute(RoleInfo::SAFETY, 1.);
-                    std::cout << "no required resources" << std::endl;
-                    continue;
-                }
+                vertexTuple->setAttribute(RoleInfo::SAFETY, value);
+                mSafety = std::min(value, mSafety); //placeholder
             }
-
-            //     for(const SpaceTime::Network::tuple_t::Ptr& tuple : tuples)
-            //     {
-            //         double value = 1.0;
-            //         // Ignore redundancy at starting depot
-            //         if(!isStartDepotRequirement(ftr) && ignoreStartDepot)
-            //         {
-            //             if (!prev_tuple)
-            //             {
-            //                 prev_tuple = tuple;
-            //                 continue;
-            //             }
-            //             try {
-            //                 value = getSafety(ftr, prev_tuple, tuple);
-            //                 mSafety = std::min(value, mSafety);
-            //                 LOG_INFO_S << "Metric: " << value << std::endl
-            //                     << "    at: " << tuple->first()->toString() << std::endl;
-
-            //             } catch(const std::exception& e)
-            //             {
-            //                 if(isStartDepotRequirement(ftr))
-            //                 {
-            //                     LOG_INFO_S << "Metric: not all resources from start depot used:" << std::endl
-            //                         << "    at: " << ftr.getLocation()->toString() << std::endl
-            //                         << "    over: " <<  std::endl
-            //                         << ftr.getInterval().toString(8) << std::endl
-            //                         << e.what();
-
-            //                     ModelPool minAvailable = getMinAvailableResources(ftr);
-            //                     ModelPool agentPool = mpMission->getOrganizationModelAsk().allowSubclasses(minAvailable, vocabulary::OM::Actor());
-            //                     if(!minAvailable.empty())
-            //                     {
-            //                         value = getSafety(agentPool, agentPool);
-            //                     } else {
-            //                         value = 0;
-            //                     }
-
-            //                 } else {
-            //                     LOG_WARN_S << "Metric: requirements not fulfilled" << std::endl
-            //                         << "    at: " << ftr.getLocation()->toString() << std::endl
-            //                         << "    over: " <<  std::endl
-            //                         << ftr.getInterval().toString(8) << std::endl
-            //                         << ftr.toString(8) << std::endl
-            //                         << tuple->toString() << std::endl
-            //                         << e.what();
-            //                     value = 0.0;
-            //                 }
-            //             }
-            //         }
-
-            //         tuple->setAttribute(RoleInfo::SAFETY, value);
-            //     }
-            // }
-
-            // VertexIterator::Ptr vertexIt = mSolutionNetwork.getGraph()->getVertexIterator();
-            // while(vertexIt->next())
-            // {
-            //     RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(vertexIt->current());
-            //     if(!roleInfo->hasAttribute(RoleInfo::SAFETY))
-            //     {
-            //         ModelPool modelPool = Role::getModelPool( roleInfo->getAllRoles() );
-            //         if(!modelPool.empty())
-            //         {
-            //             double value = getSafety(modelPool, modelPool);
-            //             roleInfo->setAttribute(RoleInfo::SAFETY, value);
-            //         }
-            //     }
-            // }
         }
 
         Plan SolutionAnalysis::computePlan() const
