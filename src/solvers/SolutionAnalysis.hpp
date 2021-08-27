@@ -265,6 +265,8 @@ public:
     double computeReconfigurationCost(const graph_analysis::Vertex::Ptr& vertex,
             const graph_analysis::BaseGraph::Ptr& graph);
 
+    void computeSafetyNew();
+
     /**
      * Compute the safety of the plan
      * \param ignoreStartDepot if set to true, safety at the starting location

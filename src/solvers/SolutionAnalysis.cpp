@@ -747,10 +747,10 @@ namespace templ
 
                 double distanceInM = cost.getTravelDistance({sourceLocation, targetLocation});
                 double minTravelTime = cost.estimateTravelTime(sourceLocation, targetLocation, roles);
-                LOG_INFO_S << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
+                std::cout << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
                            << "    from: " << sourceLocation->toString() << "/" << sourceTuple->second()->toString() << std::endl
                            << "    to: " << targetLocation->toString() << "/" << targetTuple->second()->toString() << std::endl
-                           << "    estimated travelDistance in m: " << distanceInM;
+                           << "    estimated travelDistance in m: " << distanceInM << std::endl;
 
                 travelDistanceInM += distanceInM;
 
@@ -812,6 +812,26 @@ namespace templ
             mTimeAssignment = tcn.getAssignment();
             mTimeHorizonInS = TemporalConstraintNetwork::getTimeHorizon(mTimeAssignment);
             mTraveledDistance = travelDistanceInM;
+        }
+
+        void SolutionAnalysis::computeSafetyNew()
+        {
+            std::map<SpaceTime::Network::tuple_t::Ptr, FluentTimeResource::List> tupleFtrMap;
+            for (const FluentTimeResource &ftr : mResourceRequirements)
+            {
+                SpaceTime::Network::tuple_t::PtrList tuples = mSolutionNetwork.getTuples(ftr.getInterval().getFrom(),
+                                                                                         ftr.getInterval().getTo(),
+                                                                                         ftr.getLocation());
+
+                for (const SpaceTime::Network::tuple_t::Ptr &tuple : tuples)
+                {
+                    tupleFtrMap[tuple].push_back(ftr);
+                }
+                
+            }
+
+            // iterate 
+
         }
 
         void SolutionAnalysis::computeSafety(bool ignoreStartDepot)
