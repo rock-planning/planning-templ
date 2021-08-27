@@ -693,7 +693,9 @@ std::vector<SpatioTemporalRequirement> MissionReader::parseRequirements(xmlDocPt
 
 std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr doc, xmlNodePtr current)
 {
-    std::set<templ::symbols::Constant::Ptr> constants;
+    using namespace ::templ::symbols;
+
+    std::set<Constant::Ptr> constants;
     std::set<std::string> locations;
 
     current = current->xmlChildrenNode;
@@ -708,45 +710,46 @@ std::set<templ::symbols::Constant::Ptr> MissionReader::parseConstants(xmlDocPtr 
                 throw std::invalid_argument("templ::io::MissionReader::parseConstants: location '" + name + "' defined"
                         " multiple times");
             }
-            base::Point position;
-            bool metricDefinition = false;
+
+            constants::Location::Ptr location;
             try {
+                base::Point position;
                 position.x() = ::boost::lexical_cast<double>( XMLUtils::getSubNodeContent(doc, current, "x") );
                 position.y() = ::boost::lexical_cast<double>( XMLUtils::getSubNodeContent(doc, current, "y") );
                 position.z() = ::boost::lexical_cast<double>( XMLUtils::getSubNodeContent(doc, current, "z") );
-                metricDefinition = true;
+
+                LOG_INFO_S << "Metric location information: "
+                    << "x: " << position.x()
+                    << " , y: " << position.y()
+                    << " , z" << position.z();
+
+                location = constants::Location::create(name, position);
+
             } catch(const std::exception& e)
             {
                 LOG_DEBUG_S << "Failed to extract metric location information: " << e.what();
             }
 
-            if(!metricDefinition)
+            if(!location)
             {
                 try {
 
                     double latitude = ::boost::lexical_cast<double>( XMLUtils::getSubNodeContent(doc, current, "latitude") );
                     double longitude = ::boost::lexical_cast<double>( XMLUtils::getSubNodeContent(doc, current, "longitude") );
                     std::string radius = XMLUtils::getSubNodeContent(doc, current, "radius");
-                    utils::CartographicMapping mapping(radius);
-                    base::Point point(latitude, longitude, 0.0);
-                    position = mapping.latitudeLongitudeToMetric(point);
+
                     LOG_INFO_S << "LatitudeLongitude information: "
-                        << "x: " << point.x()
-                        << " , y: " << point.y()
-                        << " , z: " << point.z();
+                        << "lat: " << latitude
+                        << " , lon: " << longitude
+                        << " , radius:: " << radius;
+
+                    location = constants::Location::create(name, latitude, longitude, radius);
                 } catch(const std::exception& e)
                 {
                     throw std::runtime_error("templ::io::MissionReader::parseConstants: failed to extract location: " + std::string(e.what()));
                 }
             }
 
-            LOG_INFO_S << "Metric location information: "
-                << "x: " << position.x()
-                << " , y: " << position.y()
-                << " , z" << position.z();
-
-            using namespace ::templ::symbols;
-            constants::Location::Ptr location = constants::Location::create(name, position);
             constants.insert(location);
             locations.insert(name);
         }
