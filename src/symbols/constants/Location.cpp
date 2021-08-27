@@ -172,6 +172,13 @@ double Location::getSphericalDistance(const Location& a, const Location& b)
                 "mismatch of radius between LATLONG coordinates");
     }
 
+    if(a.getPosition() == b.getPosition())
+    {
+        return 0.0;
+    }
+
+
+    // According to the spherical cosine law
     double lat1 = a.getPosition().x();
     double lon1 = a.getPosition().y();
 

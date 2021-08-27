@@ -401,22 +401,42 @@ bool Mission::isImplicitConstraint(const Constraint::Ptr& constraint) const
             });
 }
 
-std::string Mission::toString() const
+std::string Mission::toString(size_t indent) const
 {
-    std::stringstream ss;
-    ss << "Mission: " << mName << std::endl;
-    ss << mModelPool.toString();
+    std::string hspace(indent,' ');
 
-    ss << "    PersistenceConditions " << std::endl;
+    std::stringstream ss;
+    ss << hspace << "Mission: " << mName << std::endl;
+    ss << mModelPool.toString(indent + 4);
+
+    ss << hspace << "    PersistenceConditions " << std::endl;
     std::vector<solvers::temporal::PersistenceCondition::Ptr>::const_iterator pit = mPersistenceConditions.begin();
     for(; pit != mPersistenceConditions.end(); ++pit)
     {
-        ss << (*pit)->toString(8) << std::endl;
+        ss << (*pit)->toString(8 + indent) << std::endl;
     }
-    ss << "    Constraints " << std::endl;
+    ss << hspace << "    Constraints " << std::endl;
     for(const Constraint::Ptr& c : mConstraints)
     {
-        ss << c->toString(8) << std::endl;
+        ss << c->toString(8 + indent) << std::endl;
+    }
+
+    ss << hspace << "    Locations and Distances" << std::endl;
+
+    using namespace templ::symbols::constants;
+    Location::PtrList locations = getLocations();
+    for(size_t i = 0; i < locations.size() -1 ; ++i)
+    {
+        const Location::Ptr& a = locations[i];
+
+        for(size_t j = i+1; j < locations.size();  ++j)
+        {
+            const Location::Ptr& b = locations[j];
+
+            ss << hspace << "        " << a->toString() << " -- " << b->toString()
+                << " " << Location::getDistance(*a,*b)
+                << "m" << std::endl;
+        }
     }
 
     return ss.str();
