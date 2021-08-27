@@ -723,6 +723,19 @@ void SolutionAnalysis::quantifyTime()
     Cost cost(mpMission->getOrganizationModelAsk());
 
     double travelDistanceInM = 0.0;
+    double minTaskTime = mConfiguration.getValueAs<double>("TransportNetwork/task-time/min", 1800.0);
+
+    for(const FluentTimeResource& ftr : mResourceRequirements)
+    {
+        const Interval& i = ftr.getInterval();
+        IntervalConstraint::Ptr intervalConstraint =
+            make_shared<IntervalConstraint>(i.getFrom(), i.getTo());
+
+        Bounds bounds(minTaskTime, std::numeric_limits<double>::max());
+        intervalConstraint->addInterval(bounds);
+
+        tcn.addIntervalConstraint(intervalConstraint);
+    }
 
     // Apply constraints from the current solution
     // TODO: space time network: iterator over all 'solution' edges
@@ -738,26 +751,11 @@ void SolutionAnalysis::quantifyTime()
                     + " Are you loading final plan instead of the transport network solution?");
         }
 
-        Role::Set roles = edge->getRoles(RoleInfo::ASSIGNED);
-        if(roles.empty())
-        {
-            continue;
-        }
-
         SpaceTime::Network::tuple_t::Ptr sourceTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(edge->getSourceVertex());
         SpaceTime::Network::tuple_t::Ptr targetTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(edge->getTargetVertex());
 
         symbols::constants::Location::Ptr sourceLocation = sourceTuple->first();
         symbols::constants::Location::Ptr targetLocation = targetTuple->first();
-
-        double distanceInM = cost.getTravelDistance({sourceLocation, targetLocation});
-        double minTravelTime = cost.estimateTravelTime(sourceLocation, targetLocation, roles);
-        LOG_INFO_S << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
-            << "    from: " << sourceLocation->toString() << "/" << sourceTuple->second()->toString() << std::endl
-            << "    to: " << targetLocation->toString() << "/" << targetTuple->second()->toString() << std::endl
-            << "    estimated travelDistance in m: " << distanceInM;
-
-        travelDistanceInM += distanceInM;
 
         point_algebra::TimePoint::Ptr sourceTimepoint = sourceTuple->second();
         point_algebra::TimePoint::Ptr targetTimepoint = targetTuple->second();
@@ -765,26 +763,44 @@ void SolutionAnalysis::quantifyTime()
         IntervalConstraint::Ptr intervalConstraint =
             make_shared<IntervalConstraint>(sourceTimepoint, targetTimepoint);
 
-        // Compute the required transition time
-        RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(sourceTuple);
-        double reconfigurationCost = 0;
-        try {
-            reconfigurationCost = roleInfo->getAttribute(RoleInfo::RECONFIGURATION_COST);
-        } catch(const std::exception& e)
+        Role::Set roles = edge->getRoles(RoleInfo::ASSIGNED);
+        if(roles.empty())
         {
-            LOG_WARN_S << "No reconfiguration cost for " << roleInfo->toString(4);
-        }
-
-        double requiredTime = minTravelTime + reconfigurationCost;
-        if(requiredTime > 0)
-        {
-            Bounds bounds(requiredTime, std::numeric_limits<double>::max());
+            Bounds bounds(0, std::numeric_limits<double>::max());
             intervalConstraint->addInterval(bounds);
             tcn.addIntervalConstraint(intervalConstraint);
+            continue;
+        } else {
+            double distanceInM = cost.getTravelDistance({sourceLocation, targetLocation});
+            double minTravelTime = cost.estimateTravelTime(sourceLocation, targetLocation, roles);
+            LOG_INFO_S << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
+                << "    from: " << sourceLocation->toString() << "/" << sourceTuple->second()->toString() << std::endl
+                << "    to: " << targetLocation->toString() << "/" << targetTuple->second()->toString() << std::endl
+                << "    estimated travelDistance in m: " << distanceInM;
 
-            LOG_INFO_S << "Interval constraint between: " << sourceTimepoint->toString() << " and " << targetTimepoint->toString() << " min travel time: "
-                << minTravelTime << ", requiredTime (inkl. reconfiguration) " <<
-                requiredTime;
+            travelDistanceInM += distanceInM;
+
+            // Compute the required transition time
+            RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(sourceTuple);
+            double reconfigurationCost = 0;
+            try {
+                reconfigurationCost = roleInfo->getAttribute(RoleInfo::RECONFIGURATION_COST);
+            } catch(const std::exception& e)
+            {
+                LOG_WARN_S << "No reconfiguration cost for " << roleInfo->toString(4);
+            }
+
+            double requiredTime = minTravelTime + reconfigurationCost;
+            if(requiredTime > 0)
+            {
+                Bounds bounds(requiredTime, std::numeric_limits<double>::max());
+                intervalConstraint->addInterval(bounds);
+                tcn.addIntervalConstraint(intervalConstraint);
+
+                LOG_INFO_S << "Interval constraint between: " << sourceTimepoint->toString() << " and " << targetTimepoint->toString() << " min travel time: "
+                    << minTravelTime << ", requiredTime (inkl. reconfiguration) " <<
+                    requiredTime;
+            }
         }
     }
 
