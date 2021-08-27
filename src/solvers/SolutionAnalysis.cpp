@@ -820,7 +820,6 @@ namespace templ
             std::map<SpaceTime::Network::tuple_t::Ptr, FluentTimeResource::List> tupleFtrMap;
             for (const FluentTimeResource &ftr : mResourceRequirements)
             {
-                std::cout << ftr.toString() << std::endl;
                 SpaceTime::Network::tuple_t::PtrList tuples = mSolutionNetwork.getTuples(ftr.getInterval().getFrom(),
                                                                                          ftr.getInterval().getTo(),
                                                                                          ftr.getLocation());
