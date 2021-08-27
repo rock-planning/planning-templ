@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
+#include <cmath>
 #include "../../utils/CartographicMapping.hpp"
 
 namespace templ {
@@ -13,13 +14,30 @@ Location::PtrList Location::msLocations;
 Location::Location()
     : Constant("unknown", Constant::LOCATION)
     , mPosition( base::Point(base::Point::Zero()) )
+    , mCoordinateType(CARTESIAN)
+    , mRadius(0.0)
 {
 }
 
 Location::Location(const std::string& name, const base::Point& position)
     : Constant(name, Constant::LOCATION)
     , mPosition(position)
+    , mCoordinateType(CARTESIAN)
+    , mRadius(0.0)
 {
+}
+
+Location::Location(const std::string& name, const base::Point& position, double radius)
+    : Constant(name, Constant::LOCATION)
+    , mPosition(position)
+    , mCoordinateType(LATLONG)
+    , mRadius(radius)
+{
+    if(mRadius == 0.0)
+    {
+        mRadius = utils::CartographicMapping::RADIUS_EARTH_IN_M;
+    }
+
 }
 
 std::string Location::toString() const
@@ -88,11 +106,21 @@ Location::Ptr Location::create(const std::string& name, const base::Point& posit
 Location::Ptr Location::create(const std::string& name,
         double latitude, double longitude, const std::string& radius)
 {
-    utils::CartographicMapping mapping(radius);
-    base::Point point(latitude, longitude, 0.0);
-    base::Point position = mapping.latitudeLongitudeToMetric(point);
+    double radius_in_m;
+    if(radius == "earth")
+    {
+        radius_in_m = utils::CartographicMapping::RADIUS_EARTH_IN_M;
+    } else if(radius == "moon")
+    {
+        radius_in_m = utils::CartographicMapping::RADIUS_MOON_IN_M;
+    } else {
+        throw std::invalid_argument("templ::symbols::constants::Location::create" \
+                "radius '" + radius + "' is not known");
+    }
 
-    Location l(name, position);
+    base::Point position(latitude, longitude, 0.0);
+
+    Location l(name, position, radius_in_m);
     return create(l);
 }
 
@@ -115,6 +143,52 @@ Location::Ptr Location::get(const std::string& name)
     } else {
         return Location::Ptr();
     }
+}
+
+double Location::getDistance(const Location& a, const Location& b)
+{
+    if(a.getCoordinateType() != b.getCoordinateType())
+    {
+        throw std::runtime_error("templ::symbols::constants::Location::getDistance" \
+                " cannot compute distance for different coordinate types");
+    }
+
+    switch(a.getCoordinateType())
+    {
+        case LATLONG:
+            return Location::getSphericalDistance(a,b);
+        case CARTESIAN:
+        default:
+            return (a.getPosition() - b.getPosition()).norm();
+    }
+
+}
+
+double Location::getSphericalDistance(const Location& a, const Location& b)
+{
+    if(a.getRadius() != b.getRadius())
+    {
+        throw std::runtime_error("templ::symbols::constants::Location::getSphericalDistance:" \
+                "mismatch of radius between LATLONG coordinates");
+    }
+
+    double lat1 = a.getPosition().x();
+    double lon1 = a.getPosition().y();
+
+    double lat2 = b.getPosition().x();
+    double lon2 = b.getPosition().y();
+
+    double s_1 = (lat1+90.0) * M_PI/180.0;
+    double s_2 = (lat2+90.0) * M_PI/180.0;
+
+    double C = std::fabs(lon1-lon2)*M_PI/180.0;
+
+    double cos12 = cos(s_1)*cos(s_2);
+    double sin12 = sin(s_1)*sin(s_2)*cos(C);
+
+    double dist = std::acos(cos12 + sin12);
+
+    return dist*a.getRadius();
 }
 
 } // end namespace constants

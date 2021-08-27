@@ -2,11 +2,13 @@
 #include <proj_api.h>
 #include <boost/assign/list_of.hpp>
 #include <boost/algorithm/string.hpp>
+#include <base-logging/Logging.hpp>
 
 namespace templ {
 namespace utils {
 
-const int CartographicMapping::RADIUS_MOON_IN_M = 1737.1E03;
+const double CartographicMapping::RADIUS_MOON_IN_M = 1737.1E03;
+const double CartographicMapping::RADIUS_EARTH_IN_M = 6371E03;
 
 std::map<CartographicMapping::Type, std::string> CartographicMapping::TypeTxt = boost::assign::map_list_of
     (UNKNOWN, "UNKNOWN")
@@ -38,7 +40,7 @@ base::Point CartographicMapping::latitudeLongitudeToMetric(const base::Point& po
                 ss << " +a=" << RADIUS_MOON_IN_M;
                 ss << " +b=" << RADIUS_MOON_IN_M;
                 ss << " +units=m";
-
+                ss << " +lat_ts=" << point.x();
                 if (!(pj_merc = pj_init_plus(ss.str().c_str())) )
                 {
                     throw std::runtime_error("templ::utils::CartographMapping::latitudeLongitudeToMetric: "
@@ -58,7 +60,7 @@ base::Point CartographicMapping::latitudeLongitudeToMetric(const base::Point& po
                 }
             }
             break;
-        } 
+        }
         case EARTH:
         case UNKNOWN:
         {
@@ -75,7 +77,7 @@ base::Point CartographicMapping::latitudeLongitudeToMetric(const base::Point& po
         }
         break;
     }
-    
+
     double x = point.x();
     double y = point.y();
 

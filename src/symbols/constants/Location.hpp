@@ -18,20 +18,25 @@ namespace constants {
  */
 class Location : public Constant
 {
-    base::Point mPosition;
-
 public:
     typedef shared_ptr<Location> Ptr;
     typedef std::vector<Location> List;
     typedef std::vector<Ptr> PtrList;
 
+    enum CoordinateType { LATLONG, CARTESIAN };
+
     friend class boost::serialization::access;
 
     Location();
 
-    Location(const std::string& name, const base::Point& position = base::Point::Zero());
+    Location(const std::string& name, const base::Point& position =
+            base::Point::Zero());
 
-    virtual ~Location() {}
+    Location(const std::string& name,
+            const base::Point& position,
+            double radius);
+
+    virtual ~Location() = default;
 
     void setPosition(const base::Point& position) { mPosition = position; }
 
@@ -39,6 +44,8 @@ public:
      * Get the current associated position with this constant
      */
     const base::Point& getPosition() const { return mPosition; }
+
+    CoordinateType getCoordinateType() const { return mCoordinateType; }
 
     virtual std::string toString() const;
     virtual std::string toString(size_t indent) const;
@@ -53,14 +60,30 @@ public:
     static Location::Ptr get(const std::string& name);
 
     static Location::Ptr create(const Location& location);
+
     static Location::Ptr create(const std::string& name,
             const base::Point& position = base::Point::Zero());
+
     static Location::Ptr create(const std::string& name,
             double latitude, double longitude, const std::string& radius = "earth");
+
+    static double getDistance(const Location& a, const Location& b);
+
+    /**
+     * Get the radius for locations, that are defined in LATLONG
+     */
+    double getRadius() const { return mRadius; }
+
+    static double getSphericalDistance(const Location& a, const Location& b);
 
     template<class Archive>
     void save(Archive& ar, const unsigned int version) const
     {
+        if(version >= 1)
+        {
+            ar & mCoordinateType;
+            ar & mRadius;
+        }
         ar & mPosition.x();
         ar & mPosition.y();
         ar & mPosition.z();
@@ -71,6 +94,12 @@ public:
     template<class Archive>
     void load(Archive& ar, const unsigned int version)
     {
+        if(version >= 1)
+        {
+            ar & mCoordinateType;
+            ar & mRadius;
+        }
+
         ar & mPosition.x();
         ar & mPosition.y();
         ar & mPosition.z();
@@ -82,9 +111,17 @@ public:
 
 protected:
     static PtrList msLocations;
+
+private:
+    base::Point mPosition;
+    CoordinateType mCoordinateType;
+    double mRadius;
+
 };
 
 //BOOST_SERIALIZATION_SHARED_PTR(Location);
+//BOOST_CLASS_VERSION(Location,1);
+
 
 } // end namespace constants
 } // end namespace symbols

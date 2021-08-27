@@ -36,7 +36,8 @@ double Cost::getTravelDistance(const symbols::constants::Location::PtrList& path
         fromLocation = path[i];
         toLocation = path[i+1];
 
-        totalDistance += (toLocation->getPosition() - fromLocation->getPosition()).norm();
+        totalDistance +=
+            constants::Location::getDistance(*toLocation,*fromLocation);
     }
 
     return totalDistance;
@@ -49,7 +50,7 @@ double Cost::estimateTravelTime(const symbols::constants::Location::Ptr& from,
 {
     assert(!coalition.empty());
 
-    double distance = (from->getPosition() - to->getPosition()).norm();
+    double distance = symbols::constants::Location::getDistance(*from,*to);
     if(distance < 1E-06)
     {
         return 0;
