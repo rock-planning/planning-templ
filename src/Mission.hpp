@@ -473,7 +473,7 @@ public:
      * Convert to string representation
      * \return string
      */
-    std::string toString() const;
+    std::string toString(size_t indent = 0) const;
 
     /**
      * Save mission representation to file
