@@ -747,10 +747,10 @@ namespace templ
 
                 double distanceInM = cost.getTravelDistance({sourceLocation, targetLocation});
                 double minTravelTime = cost.estimateTravelTime(sourceLocation, targetLocation, roles);
-                std::cout << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
+                LOG_WARN_S << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
                            << "    from: " << sourceLocation->toString() << "/" << sourceTuple->second()->toString() << std::endl
                            << "    to: " << targetLocation->toString() << "/" << targetTuple->second()->toString() << std::endl
-                           << "    estimated travelDistance in m: " << distanceInM << std::endl;
+                           << "    estimated travelDistance in m: " << distanceInM;
 
                 travelDistanceInM += distanceInM;
 
@@ -855,6 +855,7 @@ namespace templ
             while (vertexIt->next())
             {
                 SpaceTime::Network::tuple_t::Ptr vertexTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(vertexIt->current());
+                std::cout << "Processing Vertex with timepoint: " << vertexTuple->second()->getLabel() << std::endl;
                 std::vector<Edge::Ptr> inEdges= mSolutionNetwork.getGraph()->getInEdges(vertexIt->current());
                 if (inEdges.empty())
                 {
