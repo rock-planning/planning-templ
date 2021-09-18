@@ -25,7 +25,7 @@ SolutionProperties::SolutionProperties(const solvers::SolutionAnalysis& sa, QWid
     setRow("efficacy", sa.getEfficacy(), ++row);
     setRow("efficiceny", sa.getEfficiency(), ++row);
     setRow("reconfiguration cost", sa.getReconfigurationCost(), ++row);
-    setRow("travellded distance in m", sa.getTravelledDistance(), ++row);
+    setRow("travelled distance in m", sa.getTravelledDistance(), ++row);
     setRow("time horizon in s", sa.getTimeHorizon(), ++row);
 }
 
