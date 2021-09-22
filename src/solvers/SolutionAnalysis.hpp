@@ -85,7 +85,7 @@ public:
      * resources
      */
     double getSafety(const moreorg::ModelPool& minRequired,
-            const moreorg::ModelPool& minAvailable, double start_time = 0, double end_time = 0) const;
+            const moreorg::ResourceInstance::List& minAvailable, double start_time = 0, double end_time = 0) const;
 
     /**
      * Retrieve the list of required roles / all roles that are involved in this
@@ -143,23 +143,23 @@ public:
      */
     moreorg::ModelPoolDelta getMaxMissingResourceRequirements(const FluentTimeResource& ftr) const;
 
-    /**
-     * Get the maximum number of missing resources, i.e.
-     * required (by transformed mission definition) resources - minimum available resources
-     *
-     * This takes into account resolution of functionality to actual agents to
-     * come to a particular solution
-     */
-    moreorg::ModelPoolDelta getMaxMissingResources(const FluentTimeResource& ftr) const;
+    // /**
+    //  * Get the maximum number of missing resources, i.e.
+    //  * required (by transformed mission definition) resources - minimum available resources
+    //  *
+    //  * This takes into account resolution of functionality to actual agents to
+    //  * come to a particular solution
+    //  */
+    // moreorg::ModelPoolDelta getMaxMissingResources(const FluentTimeResource& ftr) const;
 
-    /**
-     * Get the minimum number of missing resources, i.e.
-     * required resources - maximum available resources
-     *
-     * This takes into account resolution of functionality to actual agents to
-     * come to a particular solution
-     */
-    moreorg::ModelPoolDelta getMinMissingResources(const FluentTimeResource& ftr) const;
+    // /**
+    //  * Get the minimum number of missing resources, i.e.
+    //  * required resources - maximum available resources
+    //  *
+    //  * This takes into account resolution of functionality to actual agents to
+    //  * come to a particular solution
+    //  */
+    // moreorg::ModelPoolDelta getMinMissingResources(const FluentTimeResource& ftr) const;
 
     /**
      * Get the minimum number of available resources for the given fluent time
@@ -167,19 +167,19 @@ public:
      * \return ModelPool containing the available resources (including inferred
      * functionalities)
      */
-    moreorg::ModelPool getMinAvailableResources(const FluentTimeResource& ftr) const;
+    moreorg::ResourceInstance::List getMinAvailableResources(const FluentTimeResource& ftr) const;
 
-    moreorg::ModelPool getMinAvailableResources(const SpaceTime::Network::tuple_t::Ptr& tuple) const;
+    moreorg::ResourceInstance::List getMinAvailableResources(const SpaceTime::Network::tuple_t::Ptr& tuple) const;
 
-    /**
-     * Get the maximum number of available resources for the given fluent time
-     * resource definition
-     *
-     * This function includes all infered functionality
-     * \return ModelPool containing the available resources (including inferred
-     * functionalities)
-     */
-    moreorg::ModelPool getMaxAvailableResources(const FluentTimeResource& ftr) const;
+    // /**
+    //  * Get the maximum number of available resources for the given fluent time
+    //  * resource definition
+    //  *
+    //  * This function includes all infered functionality
+    //  * \return ModelPool containing the available resources (including inferred
+    //  * functionalities)
+    //  */
+    // moreorg::ModelPool getMaxAvailableResources(const FluentTimeResource& ftr) const;
 
     /**
      * Get the required resources as a pair of two model pool list for min
@@ -198,9 +198,9 @@ public:
      * Get the availability as list of model pools over the course of one interval
      * This accounts for all included (known) qualitative timepoints
      */
-    std::vector<moreorg::ModelPool> getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::Interval& interval) const;
+    moreorg::ResourceInstance::List getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::Interval& interval) const;
 
-    moreorg::ModelPool getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::point_algebra::TimePoint::Ptr& timepoint) const;
+    moreorg::ResourceInstance::List getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::point_algebra::TimePoint::Ptr& timepoint) const;
     /**
      * Compute a hypergraph
      * The hypergaph contains a number of RoleInfoVertex (as HyperEdge)

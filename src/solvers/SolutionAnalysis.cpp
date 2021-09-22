@@ -155,7 +155,7 @@ namespace templ
         {
             using namespace moreorg;
             ModelPool minRequired = getMinResourceRequirements(ftr);
-            ModelPool minAvailable = getMinAvailableResources(tuple);
+            ResourceInstance::List minAvailable = getMinAvailableResources(tuple);
 
             double safety = 0.0;
             try
@@ -164,13 +164,14 @@ namespace templ
             }
             catch (const std::exception &e)
             {
+                
                 safety = getSafety(ModelPool(), minAvailable, start_time, end_time); // is timeInterval here even available?
                 LOG_WARN_S << "Failed to compute safety at: "
                            << tuple->toString(4)
                            << "Required: "
                            << minRequired.toString(4)
                            << "Available"
-                           << minAvailable.toString(4)
+                           //<< minAvailable.toString(4) TODO: change so it works to print
                            << "Handling as no unfulfilled requirement with safety: "
                            << safety;
             }
@@ -181,7 +182,7 @@ namespace templ
         {
             using namespace moreorg;
             ModelPool minRequired = getMinResourceRequirements(ftr);
-            ModelPool minAvailable = getMinAvailableResources(ftr);
+            ResourceInstance::List minAvailable = getMinAvailableResources(ftr);
             double start_time = mTimeAssignment.find(ftr.getInterval().getFrom())->second;
             double end_time = mTimeAssignment.find(ftr.getInterval().getTo())->second;
 
@@ -196,14 +197,14 @@ namespace templ
                            << ftr.toString(4)
                            << "Required: "
                            << minRequired.toString(4)
-                           << "Available"
-                           << minAvailable.toString(4);
+                           << "Available";
+                           //<< minAvailable.toString(4);
 
                 return -1.0;
             }
         }
 
-        double SolutionAnalysis::getSafety(const ModelPool &minRequired, const ModelPool &minAvailable, double start_time, double end_time) const
+        double SolutionAnalysis::getSafety(const ModelPool &minRequired, const ResourceInstance::List &minAvailable, double start_time, double end_time) const
         {
             try
             {
@@ -218,28 +219,30 @@ namespace templ
             
         }
 
-        moreorg::ModelPool SolutionAnalysis::getMinAvailableResources(const FluentTimeResource &ftr) const
+        moreorg::ResourceInstance::List SolutionAnalysis::getMinAvailableResources(const FluentTimeResource &ftr) const
         {
             symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(ftr.getFluent());
             assert(location);
 
-            std::vector<moreorg::ModelPool> availableResources = getAvailableResources(location, ftr.getInterval());
-
             using namespace moreorg;
-            // return the minimum available resources
-            // ( min(M_0), min(M_1), ...)
-            ModelPool minAvailableResources = moreorg::Algebra::min(availableResources);
 
-            // Infer functionality from this set of resources
-            ModelPool functionalities = mAsk.getSupportedFunctionalities(minAvailableResources);
-            ModelPool pool = moreorg::Algebra::max(minAvailableResources, functionalities);
-            return pool;
+            ResourceInstance::List availableResources = getAvailableResources(location, ftr.getInterval());
+
+            
+            // // return the minimum available resources
+            // // ( min(M_0), min(M_1), ...)
+            // ModelPool minAvailableResources = moreorg::Algebra::min(availableResources);
+
+            // // Infer functionality from this set of resources
+            // ModelPool functionalities = mAsk.getSupportedFunctionalities(minAvailableResources);
+            // ModelPool pool = moreorg::Algebra::max(minAvailableResources, functionalities);
+            return availableResources;
         }
 
-        moreorg::ModelPool SolutionAnalysis::getMinAvailableResources(const SpaceTime::Network::tuple_t::Ptr &tuple) const
+        moreorg::ResourceInstance::List SolutionAnalysis::getMinAvailableResources(const SpaceTime::Network::tuple_t::Ptr &tuple) const
         {
             using namespace moreorg;
-            ModelPool minAvailableResources = getAvailableResources(tuple->first(), tuple->second());
+            ResourceInstance::List minAvailableResources = getAvailableResources(tuple->first(), tuple->second());
 
             //    // Infer functionality from this set of resources
             //    OrganizationModelAsk ask(mpMission->getOrganizationModel(),
@@ -251,31 +254,30 @@ namespace templ
             return minAvailableResources;
         }
 
-        moreorg::ModelPool SolutionAnalysis::getMaxAvailableResources(const FluentTimeResource &ftr) const
-        {
-            symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(ftr.getFluent());
-            assert(location);
+        // moreorg::ModelPool SolutionAnalysis::getMaxAvailableResources(const FluentTimeResource &ftr) const
+        // {
+        //     symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(ftr.getFluent());
+        //     assert(location);
 
-            std::vector<moreorg::ModelPool> availableResources = getAvailableResources(location, ftr.getInterval());
+        //     ResourceInstance::List availableResources = getAvailableResources(location, ftr.getInterval());
 
-            using namespace moreorg;
-            // return the minimum available resources of the
-            ModelPool maxAvailableResources = Algebra::max(availableResources);
+        //     using namespace moreorg;
+        //     // return the minimum available resources of the
+        //     ModelPool maxAvailableResources = Algebra::max(availableResources);
 
-            // Infer functionality from this set of resources
-            OrganizationModelAsk ask(mpMission->getOrganizationModel(),
-                                     maxAvailableResources,
-                                     true);
-            // Creating model pool from available functionalities
-            ModelPool functionalities = ask.getSupportedFunctionalities();
-            return moreorg::Algebra::max(maxAvailableResources, functionalities);
-        }
+        //     // Infer functionality from this set of resources
+        //     OrganizationModelAsk ask(mpMission->getOrganizationModel(),
+        //                              maxAvailableResources,
+        //                              true);
+        //     // Creating model pool from available functionalities
+        //     ModelPool functionalities = ask.getSupportedFunctionalities();
+        //     return moreorg::Algebra::max(maxAvailableResources, functionalities);
+        // }
 
-        std::vector<moreorg::ModelPool> SolutionAnalysis::getAvailableResources(const symbols::constants::Location::Ptr &location, const solvers::temporal::Interval &interval) const
+        moreorg::ResourceInstance::List SolutionAnalysis::getAvailableResources(const symbols::constants::Location::Ptr &location, const solvers::temporal::Interval &interval) const
         {
             using namespace temporal::point_algebra;
 
-            std::vector<moreorg::ModelPool> modelPools;
 
             // Iterate over all known timepoints and check if the timepoint belongs to
             // the interval (the list of timepoints is sorted)
@@ -284,6 +286,7 @@ namespace templ
             assert(!timepoints.empty());
 
             Role::Set identifiedRoles;
+            moreorg::ResourceInstance::List availableResources;
 
             for (TimePoint::Ptr timepoint : timepoints)
             {
@@ -297,9 +300,6 @@ namespace templ
                         Role::List roles(foundRoles.begin(), foundRoles.end());
 
                         identifiedRoles.insert(foundRoles.begin(), foundRoles.end());
-
-                        moreorg::ModelPool currentPool = Role::getModelPool(roles);
-                        modelPools.push_back(currentPool);
                     }
                     catch (const std::exception &e)
                     {
@@ -311,37 +311,40 @@ namespace templ
             // An completely empty model pool does not
             // correctly reflect the minimums, so
             // we have to expand the existing set
-            for (ModelPool &pool : modelPools)
-            {
-                for (const Role &role : identifiedRoles)
-                {
-                    if (pool.end() == pool.find(role.getModel()))
-                    {
-                        pool.insert(ModelPool::value_type(role.getModel(), 0));
-                    }
-                }
-            }
 
-            return modelPools;
+            
+            for (const Role &role : identifiedRoles)
+            {
+                moreorg::ResourceInstance::List available = mAsk.getRelated(role);
+                availableResources.insert(std::end(availableResources), std::begin(available), std::end(available));
+            }
+            
+
+            return availableResources;
         }
 
-        moreorg::ModelPool SolutionAnalysis::getAvailableResources(const symbols::constants::Location::Ptr &location,
+        moreorg::ResourceInstance::List SolutionAnalysis::getAvailableResources(const symbols::constants::Location::Ptr &location,
                                                                    const solvers::temporal::point_algebra::TimePoint::Ptr &timepoint) const
         {
-            ModelPool modelPool;
+            using namespace moreorg;
+            ResourceInstance::List availableResources;
             // identified relevant tuple
             try
             {
                 SpaceTime::Network::tuple_t::Ptr tuple = mSolutionNetwork.tupleByKeys(location, timepoint);
                 Role::Set foundRoles = tuple->getRoles(RoleInfo::ASSIGNED);
                 Role::List roles(foundRoles.begin(), foundRoles.end());
-                modelPool = Role::getModelPool(roles);
+                for (const Role &role : roles)
+                {
+                    ResourceInstance::List available = mAsk.getRelated(role);
+                    availableResources.insert(std::end(availableResources), std::begin(available), std::end(available));
+                }
             }
             catch (const std::exception &e)
             {
                 LOG_WARN_S << e.what();
             }
-            return modelPool;
+            return availableResources;
         }
 
         SolutionAnalysis::MinMaxModelPools SolutionAnalysis::getRequiredResources(const symbols::constants::Location::Ptr &location, const solvers::temporal::Interval &interval) const
@@ -595,34 +598,34 @@ namespace templ
                                               ftr.getInterval().getTo(), ftr.getLocation());
         }
 
-        moreorg::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequirements(const solvers::FluentTimeResource &ftr) const
-        {
-            ModelPool requiredResources = getMinResourceRequirements(ftr);
-            ModelPool maxAvailableResources = getMinAvailableResources(ftr);
+        // moreorg::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequirements(const solvers::FluentTimeResource &ftr) const
+        // {
+        //     ModelPool requiredResources = getMinResourceRequirements(ftr);
+        //     ModelPool maxAvailableResources = getMinAvailableResources(ftr);
 
-            // Creating model pool from available functionalities
-            ModelPool functionalities = mAsk.getSupportedFunctionalities(maxAvailableResources);
-            ModelPool availableResources = moreorg::Algebra::max(maxAvailableResources, functionalities);
+        //     // Creating model pool from available functionalities
+        //     ModelPool functionalities = mAsk.getSupportedFunctionalities(maxAvailableResources);
+        //     ModelPool availableResources = moreorg::Algebra::max(maxAvailableResources, functionalities);
 
-            return Algebra::delta(requiredResources, availableResources);
-        }
+        //     return Algebra::delta(requiredResources, availableResources);
+        // }
 
-        moreorg::ModelPoolDelta SolutionAnalysis::getMaxMissingResources(const solvers::FluentTimeResource &ftr) const
-        {
-            using namespace moreorg;
-            ModelPool requiredResources = getMinResourceRequirements(ftr);
-            ModelPool minAvailableResources = getMinAvailableResources(ftr);
+        // moreorg::ModelPoolDelta SolutionAnalysis::getMaxMissingResources(const solvers::FluentTimeResource &ftr) const
+        // {
+        //     using namespace moreorg;
+        //     ModelPool requiredResources = getMinResourceRequirements(ftr);
+        //     ModelPool minAvailableResources = getMinAvailableResources(ftr);
 
-            // Infer functionality from this set of resources
-            OrganizationModelAsk ask(mpMission->getOrganizationModel(),
-                                     minAvailableResources,
-                                     true);
-            // Creating model pool from available functionalities
-            ModelPool functionalities = ask.getSupportedFunctionalities();
-            ModelPool availableResources = moreorg::Algebra::min(minAvailableResources, functionalities);
+        //     // Infer functionality from this set of resources
+        //     OrganizationModelAsk ask(mpMission->getOrganizationModel(),
+        //                              minAvailableResources,
+        //                              true);
+        //     // Creating model pool from available functionalities
+        //     ModelPool functionalities = ask.getSupportedFunctionalities();
+        //     ModelPool availableResources = moreorg::Algebra::min(minAvailableResources, functionalities);
 
-            return Algebra::delta(requiredResources, availableResources);
-        }
+        //     return Algebra::delta(requiredResources, availableResources);
+        // }
 
         graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
         {
