@@ -94,8 +94,7 @@
     </requirement>
     <requirement id='3'>
         <spatial-requirement>
-            <from>base1</from>
-            <to>base2</to>
+            <at>base2</at>
         </spatial-requirement>
         <temporal-requirement>
             <from>t3</from>
