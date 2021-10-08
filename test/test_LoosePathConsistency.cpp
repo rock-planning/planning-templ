@@ -529,8 +529,9 @@ BOOST_AUTO_TEST_CASE(intersection_network)
     BaseGraph::Ptr graph = result.getDistanceGraph();
 
     graph_analysis::io::GraphIO::write("/tmp/templ-test-loose_path_consistency-intersection_network-result.gexf", graph);
+    graph_analysis::io::GraphIO::write("/tmp/templ-test-loose_path_consistency-intersection_network-result.dot", graph);
 
-    BOOST_REQUIRE_MESSAGE(expected.equals(graph), "Expected: 1, Actual: "<<expected.equals(graph));
+    BOOST_REQUIRE_MESSAGE(expected.equals(graph), "Expected: 1, Actual: " << expected.equals(graph));
 }
 
 BOOST_AUTO_TEST_CASE(loose_intersection)

@@ -1,6 +1,7 @@
 #include "Bounds.hpp"
 #include <sstream>
 #include <limits>
+#include <algorithm>
 
 namespace templ {
 namespace solvers {
@@ -57,6 +58,14 @@ bool Bounds::overlaps(const Bounds& other) const
         return true;
 
     return !(mUpperBound <= other.mLowerBound || other.mUpperBound <= mLowerBound);
+}
+
+bool Bounds::equals(const List& a, const List& b)
+{
+    return std::all_of(a.begin(), a.end(), [&b](List::value_type a)
+            {
+                return std::find(b.begin(), b.end(), a) != b.end();
+            });
 }
 
 bool Bounds::includesNegative(const List& list)
