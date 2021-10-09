@@ -75,8 +75,8 @@ BOOST_AUTO_TEST_CASE(mission_1)
     // --> translate into systems and update timings accordingly
     // --> mission should contain sychronization points
 
-    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(
-                getRootDir() + "test/data/om-schema-v0.8.owl");
+    owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
+    moreorg::OrganizationModel::Ptr om = moreorg::OrganizationModel::getInstance(organizationModelIRI);
     owlapi::model::IRI location_image_provider = vocabulary::OM::resolve("LocationImageProvider");
 
     using namespace solvers::temporal;
