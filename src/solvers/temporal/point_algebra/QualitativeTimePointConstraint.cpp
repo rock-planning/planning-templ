@@ -107,6 +107,9 @@ std::map< std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointCo
     { std::pair<QualitativeTimePointConstraint::Type, QualitativeTimePointConstraint::Type>(QualitativeTimePointConstraint::Empty, QualitativeTimePointConstraint::Universal), QualitativeTimePointConstraint::Universal }
 };
 
+
+const graph_analysis::EdgeRegistration<QualitativeTimePointConstraint> QualitativeTimePointConstraint::msRegistration;
+
 QualitativeTimePointConstraint::QualitativeTimePointConstraint()
     : SimpleConstraint(Constraint::TEMPORAL_QUALITATIVE)
     , mConstraintType(Empty)
