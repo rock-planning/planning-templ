@@ -21,7 +21,10 @@ public:
 
     bool isValid() const;
 
+    void setId(uint32_t id) { mId = id; }
     uint32_t getId() const { return mId; }
+
+    void setLabel(const AttributeName& label) { mLabel = label; }
     const AttributeName& getLabel() const { return mLabel; }
 
     void setValue(uint32_t value) { mValue = value; }

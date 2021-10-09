@@ -148,8 +148,16 @@ AgentIntegerAttribute XMLReader::parseIntegerAttribute(xmlDocPtr doc, xmlNodePtr
     {
         std::string idTxt = XMLUtils::getProperty(current, "id");
         uint32_t id = boost::lexical_cast<uint32_t>(idTxt);
-
         AgentIntegerAttribute attribute(id);
+
+        try {
+            std::string labelTxt = XMLUtils::getProperty(current, "label");
+            attribute.setLabel(labelTxt);
+        } catch(...)
+        {
+            // optional label
+        }
+
 
         std::string valueTxt = XMLUtils::getContent(doc, current);
         if(!valueTxt.empty())
