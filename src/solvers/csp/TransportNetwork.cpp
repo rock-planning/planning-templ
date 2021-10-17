@@ -914,6 +914,17 @@ void TransportNetwork::enforceUnaryResourceUsage()
 
     for(const FluentTimeResource::List& concurrentFluents : concurrentRequirements)
     {
+        if(mRoles.size() < concurrentFluents.size())
+        {
+            std::stringstream ss;
+            ss << "The number for agent instances (" << mRoles.size() << ") is too low,"
+               << " to resolve the concurrent requirements ("
+               << concurrentFluents.size() << ") " << std::endl;
+
+            throw std::runtime_error("templ::solvers::csp::TransportNetwork::enforceUnaryResourceUsage: "
+                        + ss.str());
+        }
+
         for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
         {
             Gecode::IntVarArgs args;
