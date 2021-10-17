@@ -90,7 +90,12 @@ BOOST_AUTO_TEST_CASE(timepoint_comparison)
         BOOST_REQUIRE_MESSAGE(comparator.hasIntervalOverlap(t0_start, t0_end, t1_start, t1_end), "Interval overlap");
 
         qtcn->addQualitativeConstraint(t0_end, t1_end, point_algebra::QualitativeTimePointConstraint::Less);
-        BOOST_REQUIRE_MESSAGE(comparator.hasIntervalOverlap(t0_start, t0_end, t0_end, t1_end), "Interval overlap with identical end and startpoint expected");
+        BOOST_REQUIRE_MESSAGE(qtcn->isConsistent(), "Network is consistent after adding overlap constraints");
+
+        BOOST_REQUIRE_MESSAGE(comparator.lessOrEqual(t0_end, t0_end), "t0_end <= t0_end");
+        BOOST_REQUIRE_MESSAGE(!comparator.lessOrEqual(t1_end, t0_end), "NOT(1) t1_end <= t0_end");
+
+        BOOST_REQUIRE_MESSAGE(!comparator.hasIntervalOverlap(t0_start, t0_end, t0_end, t1_end), "Interval do not overlap with identical end and startpoint");
     }
 
 }

@@ -84,10 +84,14 @@ BOOST_AUTO_TEST_CASE(ult)
 
     BOOST_REQUIRE_MESSAGE(tcn.getEdgeNumber() == 6,"Expected: 6, Actual: "<<tcn.getEdgeNumber());
 
+    std::string dotFilename = "/tmp/templ-test-pre-ult.dot";
+    graph_analysis::io::GraphIO::write(dotFilename, tcn.getDistanceGraph());
+    BOOST_TEST_MESSAGE("Dot file written to: " << dotFilename);
+
     tcn.upperLowerTightening();
     BaseGraph::Ptr graph = tcn.getDistanceGraph();
 
-    std::string dotFilename = "/tmp/templ-test-post-ult.dot";
+    dotFilename = "/tmp/templ-test-post-ult.dot";
     graph_analysis::io::GraphIO::write(dotFilename, tcn.getDistanceGraph());
     BOOST_TEST_MESSAGE("Dot file written to: " << dotFilename);
 

@@ -68,7 +68,7 @@ BOOST_FIXTURE_TEST_CASE(mission_0, TransportNetworkSetup)
     {
         Mission::Ptr mission = make_shared<Mission>(baseMission);
         moreorg::ModelPool modelPool;
-        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
         mission->setAvailableResources(modelPool);
         BOOST_REQUIRE_MESSAGE(mission->getOrganizationModel(), "Mission has organization model set");
 
@@ -134,6 +134,9 @@ BOOST_FIXTURE_TEST_CASE(mission_1, TransportNetworkSetup)
     baseMission.addResourceLocationCardinalityConstraint(l[1], t[2], t[3], location_image_provider);
 
     // Overlapping intervals at two locations
+    // te t0 t2 t1 t3
+    // t1 > t2, t0 < t3
+    //
     baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(te,ts, point_algebra::QualitativeTimePointConstraint::Greater));
     baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t[0],te, point_algebra::QualitativeTimePointConstraint::Greater));
     baseMission.addConstraint(make_shared<pa::QualitativeTimePointConstraint>(t[1],t[2], point_algebra::QualitativeTimePointConstraint::Greater));
@@ -149,15 +152,33 @@ BOOST_FIXTURE_TEST_CASE(mission_1, TransportNetworkSetup)
         BOOST_REQUIRE_MESSAGE(i0.overlaps(i1), "Interval overlaps (in time) the other");
     }
 
-    //using namespace solvers;
-    //{
-    //    Mission::Ptr mission(new Mission(baseMission));
+    using namespace solvers;
+    {
+        Mission::Ptr mission(new Mission(baseMission));
 
-    //    moreorg::ModelPool modelPool;
-    //    modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
-    //    mission->setAvailableResources(modelPool);
-    //    BOOST_REQUIRE_THROW(solvers::csp::TransportNetwork::solve(mission), std::runtime_error);
-    //}
+        moreorg::ModelPool modelPool;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
+        mission->setAvailableResources(modelPool);
+
+        // The number of available resources can never fulfill the overlapping
+        // requirement, hence the planner should throw here
+        BOOST_REQUIRE_THROW(solvers::csp::TransportNetwork::solve(mission,1), std::runtime_error);
+    }
+
+    using namespace solvers;
+    {
+        Mission::Ptr mission(new Mission(baseMission));
+
+        moreorg::ModelPool modelPool;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
+        mission->setAvailableResources(modelPool);
+        // Set starting position of resources
+        mission->addResourceLocationCardinalityConstraint(l[0], ts, te, vocabulary::OM::resolve("Sherpa"), 2);
+        mission->prepareTimeIntervals();
+
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission,1);
+        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+    }
 
     using namespace solvers;
     {
@@ -174,80 +195,38 @@ BOOST_FIXTURE_TEST_CASE(mission_1, TransportNetworkSetup)
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
     }
 
-    //using namespace solvers;
-    //{
-    //    Mission::Ptr mission(new Mission(baseMission));
+    using namespace solvers;
+    {
+        Mission::Ptr mission(new Mission(baseMission));
 
-    //    moreorg::ModelPool modelPool;
-    //    modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
-    //    modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
-    //    mission->setAvailableResources(modelPool);
-    //    // Set starting position of resources
-    //    mission->addResourceLocationCardinalityConstraint(loc0, t0, t1, vocabulary::OM::resolve("Sherpa"), 1);
-    //    mission->addResourceLocationCardinalityConstraint(loc0, t0, t1, vocabulary::OM::resolve("CREX"), 1);
+        moreorg::ModelPool modelPool;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
+        modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
+        mission->setAvailableResources(modelPool);
+        // Set starting position of resources
+        mission->addResourceLocationCardinalityConstraint(l[0], ts, te, vocabulary::OM::resolve("Sherpa"), 1);
+        mission->addResourceLocationCardinalityConstraint(l[0], ts, te, vocabulary::OM::resolve("CREX"), 1);
 
-    //    std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission,1);
-    //    BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
-    //}
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission,1);
+        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+    }
 
-    //using namespace solvers;
-    //{
-    //    Mission::Ptr mission(new Mission(baseMission));
+    using namespace solvers;
+    {
+        Mission::Ptr mission(new Mission(baseMission));
 
-    //    moreorg::ModelPool modelPool;
-    //    modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
-    //    modelPool[ vocabulary::OM::resolve("CREX") ] = 1;
-    //    modelPool[ vocabulary::OM::resolve("Payload") ] = 1;
-    //    mission->setAvailableResources(modelPool);
+        moreorg::ModelPool modelPool;
+        modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
+        modelPool[ vocabulary::OM::resolve("CREX") ] = 3;
+        modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
+        mission->setAvailableResources(modelPool);
 
-    //    std::vector<solvers::csp::TransportNetwork::Solution> solutions = //    solvers::csp::TransportNetwork::solve(mission,1);
-    //    BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+        owlapi::model::IRI emi_power_provider = vocabulary::OM::resolve("EmiPowerProvider");
+        mission->addResourceLocationCardinalityConstraint(l[1], t[2], t[3], emi_power_provider);
 
-    //    std::vector<solvers::csp::TransportNetwork::Solution> i_modelSolutions;
-    //    using namespace solvers::csp;
-    //    TransportNetwork::SearchState modelSearchState(mission);
-    //    std::vector<TransportNetwork::SearchState> modelSolutionStates;
-
-    //    BOOST_TEST_MESSAGE("Checking for iterative production of solutions for model and role distribution");
-    //    BOOST_REQUIRE_MESSAGE(modelSearchState.getType() == TransportNetwork::SearchState::OPEN, "search state is open");
-    //    bool stopSearch = false;
-    //    while(!stopSearch)
-    //    {
-    //        TransportNetwork::SearchState nextState = modelSearchState.next();
-    //        switch(nextState.getType())
-    //        {
-    //            case TransportNetwork::SearchState::SUCCESS:
-    //                i_modelSolutions.push_back(nextState.getSolution());
-    //                modelSolutionStates.push_back(nextState);
-    //                stopSearch = true;
-    //                break;
-    //            case TransportNetwork::SearchState::FAILED:
-    //                stopSearch = true;
-    //                break;
-    //            case TransportNetwork::SearchState::OPEN:
-    //                BOOST_REQUIRE_MESSAGE(false, "Open model search state found though should be either success of failed");
-    //        }
-    //    }
-    //    BOOST_REQUIRE_MESSAGE(solutions.size() == i_modelSolutions.size(), "Number of model solutions of the same size: " << solutions.size() << " vs. " << i_modelSolutions.size());
-    //    BOOST_TEST_MESSAGE("Iteratively found model distribution solutions: " << i_modelSolutions);
-    //}
-
-    //using namespace solvers;
-    //{
-    //    Mission::Ptr mission(new Mission(baseMission));
-
-    //    moreorg::ModelPool modelPool;
-    //    modelPool[ vocabulary::OM::resolve("Sherpa") ] = 2;
-    //    modelPool[ vocabulary::OM::resolve("CREX") ] = 3;
-    //    modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
-    //    mission->setAvailableResources(modelPool);
-
-    //    owlapi::model::IRI emi_power_provider = vocabulary::OM::resolve("EmiPowerProvider");
-    //    mission->addResourceLocationCardinalityConstraint(loc1, t2, t3, emi_power_provider);
-
-    //    std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission,1);
-    //    BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
-    //}
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission,1);
+        BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
+    }
 }
 
 BOOST_FIXTURE_TEST_CASE(mission_2, TransportNetworkSetup)
@@ -364,7 +343,7 @@ BOOST_AUTO_TEST_CASE(mission_tt)
         modelPool[ vocabulary::OM::resolve("Sherpa") ] = 1;
         mission->setAvailableResources(modelPool);
 
-        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission,1);
         BOOST_REQUIRE_MESSAGE(!solutions.empty(), "Solutions found " << solutions);
     }
 }
@@ -411,10 +390,10 @@ BOOST_AUTO_TEST_CASE(symmetry_breaking)
     {
         Mission::Ptr mission(new Mission(baseMission));
         moreorg::ModelPool modelPool;
-        modelPool[ vocabulary::OM::resolve("Payload") ] = 100;
+        modelPool[ vocabulary::OM::resolve("Payload") ] = 2;
         mission->setAvailableResources(modelPool);
 
-        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission);
+        std::vector<solvers::csp::TransportNetwork::Solution> solutions = solvers::csp::TransportNetwork::solve(mission,1);
         BOOST_REQUIRE_MESSAGE(solutions.size() < 10, "Number of solutions found (using symmetry breaking): # of found solutions less than 10 (since symmetry breaking "
                 " is not a 'complete' algorithm) : actual number of solutions: " << solutions);
     }
