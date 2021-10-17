@@ -18,8 +18,8 @@
 #include "TemporalConstraintNetwork.hpp"
 #include "Types.hpp"
 #include "utils/FluentTimeIndex.hpp"
-#include "../SolutionAnalysis.hpp"
 #include "Context.hpp"
+#include "../SolutionAnalysis.hpp"
 
 namespace templ {
 namespace solvers {
@@ -395,10 +395,12 @@ public:
     /**
      * Solve the mission
      * \param mission The mission specification to solve
-     * \param minNumberOfSolutions Minimum number of solutions
+     * \param minNumberOfSolutions Minimum number of solutions: -1 to run until
+     *  a timeout happens, 0, to stop after first iteration and, > 0 to stop
+     *  after given number of solutions has been found
      * \param configuration Configuration for this planning instance
      */
-    static SolutionList solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions = 0, const qxcfg::Configuration& configuration = qxcfg::Configuration());
+    static SolutionList solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions = 1, const qxcfg::Configuration& configuration = qxcfg::Configuration());
 
     /**
      * Get the solution of this Gecode::Space instance

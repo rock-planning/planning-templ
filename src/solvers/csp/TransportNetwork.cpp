@@ -1171,7 +1171,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             solutions.push_back(solution);
             ++solutionCount;
 
-            if(minNumberOfSolutions != 0)
+            if(minNumberOfSolutions >= 0)
             {
                 if(solutionCount >= minNumberOfSolutions)
                 {
