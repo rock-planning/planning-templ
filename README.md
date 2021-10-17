@@ -3,14 +3,14 @@
 TemPl is a planning system for reconfigurable multi-robot systems which is
 described in the PhD Thesis "Autonomous Operation of a Reconfigurable Multi-Robot System for Planetary Space
 Missions" ([Roehr 2019](http://nbn-resolving.de/urn:nbn:de:gbv:46-00107698-18))
-To solve the highly combinatorial optimization problem it combines the 
+To solve the highly combinatorial optimization problem it combines the
 use of knowledge-based engineering, constraint-based programming and linear
 programming.
 
 The focus of TemPl is to allow planning and optimization of (currently limited
 to medium-sized) missions of reconfigurable robotic agents.
 
-TemPl comes with multiple utility programs such as a graphical interfaces to
+TemPl comes with multiple utility programs such as a graphical interface to
 inspect solutions, a mission editor to design solutions (for those not wanting
 to deal with the XML format),
 and a mission generator to automatically generate simple as well as complex test missions.
@@ -31,15 +31,22 @@ library by opening an issue on the repository.
 For testing the library Boost testing is used, along with the
 definition of a number of so-called test-scenarios, i.e. sample missions.
 
+```
+$> autoproj test enable planning/templ
+$> amake planning/templ
+$> cd planning/templ
+$> ./build/test/templ-test --log_level=all
+```
+
 ### Test Scenarios
 
 The folder test/data/scenarios contains a set of missions that cover/validate
 different aspects of the mission planner.
 
 ## Usage Examples:
-After building the library (and if following the instructions given in this document), the executables are typically available in the
-corresponding build/ folder and in PATH, so that you can easily access them via
-the 'templ-' prefix.
+After building the library (and if following the instructions given in this document),
+the executables are typically available in the corresponding build/ folder and in PATH,
+so that you can easily access them via the 'templ-' prefix.
 
 All executables support the '--help' argument to describe their current usage.
 
@@ -55,19 +62,19 @@ allowed options:
   --min_solutions arg   Minimum number of solutions (optional)
 ```
 
-The default configuration can be found under:
+The default configuration for templ-transport_network_planner can be found under:
 test/data/configuration/default-configuration.xml, further
 details on configuration options can be found [here](doc/configuration.md).
 
 Every run of the planner will result in the creation of a log folder under /tmp: for the
 overall mission a 'spec' subfolder will be created and successful epochs (also
-referred to as sessions) will be logged - identified by a counter. 
+referred to as sessions) will be logged - identified by a counter.
 Each epoch folder contains solutions and results to intermediate planning steps.
 So check /tmp/<current-time-date>_temp/ for the corresponding folder of the
 session that you would like to inspect.
 
 ```
-$>./build/src/templ-transport_network_planner --mission test/data/scenarios/should_succeed/0.xml --min_solution 1 
+$>./build/src/templ-transport_network_planner --mission test/data/scenarios/should_succeed/0.xml --min_solution 1
 ...
 
 Session 0: remaining flaws: 0
@@ -107,7 +114,7 @@ Processing: /tmp/20201111_102602+0100-templ/0/final_solution_network.gexf
 Report:
 SolutionAnalysis:
     Resulting plan:
-        plan: 
+        plan:
         - role: AtomicAgent: Payload_0 (Payload)
             Tuple:
                 a:
@@ -297,6 +304,10 @@ SolutionAnalysis:
  * [Configuration](doc/configuration.md)
  * [GUI](doc/gui.md)
  * [IO](doc/io.md)
+
+# Merge Requests and Issue Tracking
+
+GitHub is used for pull requests and issue tracking: https://github.com/rock-knowledge-reasoning/knowledge-reasoning-moreorg
 
 # Copyright
 
