@@ -22,6 +22,11 @@ namespace propagators {
 
 void isPath(Gecode::Space& home, const Gecode::SetVarArgs& x, const std::string& tag, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength, int maxPathLength)
 {
+    if(maxPathLength < 0)
+    {
+        maxPathLength = numberOfTimepoints;
+    }
+
     // If there is no path -- fail directly
     if(x.size() == 0)
     {
@@ -56,6 +61,10 @@ IsPath::IsPath(Gecode::Space& home, ViewArray<Set::SetView>& xv,
     , mMaxPathLength(maxPathLength)
     , mAssignedTimepoints(numberOfTimepoints, std::pair<int, bool>(-1, false) )
 {
+    if(mMaxPathLength < 0)
+    {
+        mMaxPathLength = mNumberOfTimepoints;
+    }
     // If the home space is deleted this makes sure that the propagator will
     // also be deleted
     // see http://www.gecode.org/doc-latest/reference/group__TaskActor.html
