@@ -8,6 +8,7 @@
 
 using namespace templ;
 using namespace templ::solvers;
+using namespace moreorg;
 
 struct SAFixture
 {
@@ -17,9 +18,11 @@ struct SAFixture
     SAFixture()
     {
         std::string filename = getRootDir() + "test/data/scenarios/test-mission-5.xml";
-        std::string organizationModel = "http://www.rock-robotics.org/2015/12/projects#TransTerrA.owl";
+        owlapi::model::IRI organizationModelIRI = "http://www.rock-robotics.org/2015/12/projects/TransTerrA";
+        OrganizationModel::Ptr organizationModel =
+            OrganizationModel::getInstance(organizationModelIRI);
         Mission m = io::MissionReader::fromFile(filename, organizationModel);
-        mission = Mission::Ptr(new Mission(m));
+        mission = make_shared<Mission>(m);
     }
 };
 
