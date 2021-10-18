@@ -6,7 +6,7 @@ build_with_backbone_18.04_and_test:
     image: d-reg.hb.dfki.de:5000/gitlab-ci/docker-ric-backbone_ubuntu:18.04
     stage: test
     script:
-      - echo $PWD
+      - sed -i "s#layout:#layout:\n    - knowledge_reasoning/moreorg#g" $AUTOPROJ_CURRENT_ROOT/autoproj/manifest
       - autoproj test enable .
       - autoproj update .
       - autoproj osdeps
