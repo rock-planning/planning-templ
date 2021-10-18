@@ -934,7 +934,8 @@ void TransportNetwork::enforceUnaryResourceUsage()
                 Gecode::IntVar v = roleDistribution(roleIndex, row);
                 args << v;
             }
-            // there can only be one role active
+            // A role can only be available for one of the concurrent
+            // constraints
             rel(*this, sum(args) <= 1);
         }
     }

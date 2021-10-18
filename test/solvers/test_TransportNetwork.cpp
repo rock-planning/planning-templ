@@ -221,6 +221,9 @@ BOOST_FIXTURE_TEST_CASE(mission_1, TransportNetworkSetup)
         modelPool[ vocabulary::OM::resolve("Payload") ] = 10;
         mission->setAvailableResources(modelPool);
 
+        mission->addResourceLocationCardinalityConstraint(l[0], ts, te, vocabulary::OM::resolve("Sherpa"), 1);
+        mission->addResourceLocationCardinalityConstraint(l[0], ts, te, vocabulary::OM::resolve("CREX"), 1);
+
         owlapi::model::IRI emi_power_provider = vocabulary::OM::resolve("EmiPowerProvider");
         mission->addResourceLocationCardinalityConstraint(l[1], t[2], t[3], emi_power_provider);
 
