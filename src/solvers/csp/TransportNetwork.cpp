@@ -1569,7 +1569,12 @@ void TransportNetwork::postRoleAssignments()
         << mTimepoints << std::endl
         << symbols::constants::Location::toString(mpContext->locations());
 
-    assert(!mActiveRoles.empty());
+    if(mActiveRoles.empty())
+    {
+        this->fail();
+        return;
+    }
+
     assert(mTimelines.empty());
 
     Role::List activeRoles;
