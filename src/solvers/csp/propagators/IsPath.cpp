@@ -84,7 +84,7 @@ IsPath::IsPath(Gecode::Space& home, ViewArray<Set::SetView>& xv,
         locationIdxList[l] = SetVarArrayView(home, mNumberOfTimepoints);
     }
 
-    // Group all space-time-point that refer to the same timepoint
+    // Group all space-time-points that refer to the same timepoint
     // in one group for observation
     for(size_t t = mNumberOfTimepoints; t--; )
     {
@@ -261,6 +261,10 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x
         uint32_t numberOfTimepoints, uint32_t numberOfFluents,
         int minPathLength, int maxPathLength)
 {
+    if(maxPathLength < 0)
+    {
+        maxPathLength = numberOfTimepoints;
+    }
     // Setup the basic constraints for the timeline
     // i.e. only edges from one timestep to the next are allowed
     for(size_t t = 0; t < numberOfTimepoints; ++t)
@@ -279,8 +283,8 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x
             //v.cardMin(home, 0);
             //v.cardMax(home, 1);
             //// exclude space-time-points outside the next step
-            //v.exclude(home, 0, (t+1)*numberOfFluents - 1);
-            //v.exclude(home, (t+2)*numberOfFluents, numberOfTimepoints*numberOfFluents);
+            v.exclude(home, 0, (t+1)*numberOfFluents - 1);
+            v.exclude(home, (t+2)*numberOfFluents, numberOfTimepoints*numberOfFluents);
 
             // Edge activation and cardinality of the set correspond
             Gecode::cardinality(home, edgeActivation, cardinalities[l]);
@@ -293,7 +297,7 @@ Gecode::ExecStatus IsPath::post(Gecode::Space& home, const Gecode::SetVarArgs& x
             // sum of cardinality has to be 1 for the same timepoint
             Gecode::linear(home, cardinalities, Gecode::IRT_EQ, 1);
         } else if(maxPathLength < boost::numeric_cast<int>(numberOfTimepoints) && boost::numeric_cast<int>(t) > maxPathLength)
-        {// Constraint the path length only if it makes sense
+        {// Constrain the path length only if it makes sense
             Gecode::linear(home, cardinalities, Gecode::IRT_EQ, 0);
         } else {
             // Limit to one outgoing edge per timestep
@@ -443,110 +447,6 @@ Gecode::ExecStatus IsPath::propagate(Gecode::Space& home, const Gecode::ModEvent
         // the propagator will be scheduled if one of its views have been modified
         return ES_FIX;
     }
-
-    //for(size_t timepoint = 0; timepoint < mNumberOfTimepoints; ++timepoint)
-    //{
-    //    // reset full assignment
-    //    bool fullyAssigned = true;
-    //    int currentWaypoint = -1;
-
-    //    // While we could use advisors as well, this seems to be for a first
-    //    // approach simpler -- since we hit some seg fault when iterating the
-    //    // council
-    //    // Due to the implemented propagation -- when a single value is assigned
-    //    // then all values of the same timepoint will be properly assigned as
-    //    // well -- so we can safely skip any further propagation here
-    //    // Skip timepointrow that have already been handled
-    //    if( mAssignedTimepoints[timepoint].second)
-    //    {
-    //        LOG_DEBUG_S << "Skipping already assigned waypoint: " << timepoint << " " << mAssignedTimepoints[timepoint].first;
-    //        continue;
-    //    }
-    //    int offset = timepoint*mNumberOfFluents;
-    //    for(size_t fluent = 0; fluent < mNumberOfFluents; ++fluent)
-    //    {
-    //        int i = offset + fluent;
-
-    //        // This node has an outgoing edge
-    //        if(x[i].assigned())
-    //        {
-    //            LOG_WARN_S << x[i] << " is assigned for timepoint: " << timepoint << " fluent: " << fluent;
-    //            fullyAssigned = fullyAssigned && true;
-
-    //            if(x[i].lubSize() == 1)
-    //            {
-    //                int prev = i - mNumberOfFluents;
-    //                if(prev > 0)
-    //                {
-    //                    // Constrain all column of source nodes that lead to the current
-    //                    // node i, to the domain of the current node
-    //                    ModEvent ev = constrainSametimeView(home, prev, i, i);
-    //                    if(ev == Gecode::ME_GEN_FAILED)
-    //                    {
-    //                        return ES_FAILED;
-    //                    }
-    //                }
-    //                // There can be only one --
-    //                // which should not be needed since wit have established the
-    //                // linear constraint on cardinality already
-    //                ModEvent ev = disableSametimeView(home, i);
-    //                if(ev == Gecode::ME_GEN_FAILED)
-    //                {
-    //                    return ES_FAILED;
-    //                }
-
-    //                int targetIdx = x[i].lubMax();
-    //                // target may be empty
-    //                ev = disableSametimeView(home, targetIdx);
-    //                if(ev == Gecode::ME_GEN_FAILED)
-    //                {
-    //                    return ES_FAILED;
-    //                }
-
-    //                currentWaypoint = i;
-
-    //                mAssignedTimepoints[timepoint] = std::pair<int, bool>( i, true);
-    //                LOG_WARN_S << "Update t: " << timepoint << " " << x[i] << " (at idx: " << i << ")";
-    //                // We cannot yet assign the target since that might be empty
-    //                // as well
-    //                break;
-    //            }
-    //        } else {
-    //            fullyAssigned = false;
-    //            LOG_WARN_S << "NOT ASSIGNED: for timepoint " << timepoint << "  " << x[i];
-    //        }
-    //    }
-
-    //    // Timepoint is fully assigned and not assigned yet
-    //    if(fullyAssigned && !mAssignedTimepoints[timepoint].second)
-    //    {
-    //        LOG_WARN_S << "Update t: " << timepoint << " with no waypoint: " << currentWaypoint;
-    //        mAssignedTimepoints[timepoint] = std::pair<int, bool>(currentWaypoint, fullyAssigned );
-    //    }
-    //}
-
-    //size_t start;
-    //size_t end;
-    //if(!isValidWaypointSequence(mAssignedTimepoints, start, end))
-    //{
-    //    LOG_WARN_S << "Failed waypoints: " << waypointsToString()
-    //        << std::endl
-    //        << x;
-    //    return ES_FAILED;
-    //}
-    //if(x.assigned())
-    //{
-    //    LOG_WARN_S << "Waypoints: " << waypointsToString()
-    //        << std::endl
-    //        << x;
-    //    return home.ES_SUBSUMED(*this);
-    //} else {
-    //    LOG_WARN_S << "Not fully fixed waypoints: " << waypointsToString()
-    //        << std::endl
-    //        << x;
-    //    // the propagator will be scheduled if one of its views have been modified
-    //    return ES_FIX;
-    //}
 }
 
 std::string IsPath::waypointsToString() const
