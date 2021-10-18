@@ -11,4 +11,5 @@ build_with_backbone_18.04_and_test:
       - autoproj update .
       - autoproj osdeps
       - amake .
+      - source $AUTOPROJ_CURRENT_ROOT/env.sh
       - ./build/test/templ-test --log_level=all
