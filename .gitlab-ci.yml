@@ -13,3 +13,15 @@ build_with_backbone_18.04_and_test:
       - amake .
       - source $AUTOPROJ_CURRENT_ROOT/env.sh
       - ./build/test/templ-test --log_level=all
+
+build_with_backbone_20.04_and_test:
+    image: d-reg.hb.dfki.de:5000/gitlab-ci/docker-ric-backbone_ubuntu:20.04
+    stage: test
+    script:
+      - sed -i "s#layout:#layout:\n    - knowledge_reasoning/moreorg#g" $AUTOPROJ_CURRENT_ROOT/autoproj/manifest
+      - autoproj test enable .
+      - autoproj update .
+      - autoproj osdeps
+      - amake .
+      - source $AUTOPROJ_CURRENT_ROOT/env.sh
+      - ./build/test/templ-test --log_level=all
