@@ -50,7 +50,8 @@ COPY --chown=docker .ci/autoproj-config.yml seed-config.yml
 ENV AUTOPROJ_BOOTSTRAP_IGNORE_NONEMPTY_DIR 1
 ENV AUTOPROJ_NONINTERACTIVE 1
 RUN ruby /home/docker/autoproj_bootstrap git https://github.com/2maz/templ-buildconf.git branch=main --seed-config=seed-config.yml
-RUN sed -i "s#rock\.core#${PKG_NAME}#g" autoproj/manifest
+RUN sed -i "s#rock\.core#knowledge_reasoning/moreorg\n    - ${PKG_NAME}#g" autoproj/manifest
+COPY --chown=docker .ci/deb_blacklist.yml autoproj/deb_blacklist.yml
 
 # Activate testing
 RUN /bin/bash -c "source env.sh; autoproj test enable ${PKG_NAME}"
