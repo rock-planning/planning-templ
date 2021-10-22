@@ -4,9 +4,8 @@
   </description>
   <author>Thomas Roehr/thomas.roehr@dfki.de</author>
   <maintainer>Thomas Roehr/thomas.roehr@dfki.de</maintainer>
-  <license></license>
-  <url>https://git.hb.dfki.de:dfki-planning/templ</url>
-  <logo>http://</logo>
+  <license>BSD-3-Clause</license>
+  <url>https://github.com/rock-planning/planning-templ</url>
   <depend package="base/cmake" />
   <depend package="base/types" />
   <depend package="tools/graph_analysis" />
@@ -20,15 +19,11 @@
       <keyword>planning</keyword>
       <keyword>mission planning</keyword>
       <keyword>reconfigurable multi-robot system</keyword>
+      <keyword>c++</keyword>
+      <keyword>owl</keyword>
+      <keyword>csp</keyword>
   </keywords>
-  <stage>0</stage>
+  <stage>1</stage>
   <use>single project</use>
   <activity>active</activity>
-  <classifiers>
-      <classifier>c++</classifier>
-      <classifier>rock</classifier>
-      <classifier>owl</classifier>
-      <classifier>multiagent</classifier>
-      <classifier>csp</classifier>
-  </classifiers>
 </package>
