@@ -17,7 +17,7 @@ and a mission generator to automatically generate simple as well as complex test
 
 ## Installation
 Please use autoproj to bootstrap and include the package-set
-[ric.backbone](https://git.hb.dfki.de/sw-backbone/package_sets/ric-backbone) in your manifest.
+[rock](https://github.com/rock-planning/planning-templ) in your manifest.
 Afterwards you can install TemPl via:
 ```
     amake planning/templ
@@ -305,9 +305,40 @@ SolutionAnalysis:
  * [GUI](doc/gui.md)
  * [IO](doc/io.md)
 
-# Merge Requests and Issue Tracking
+# Contributing, Merge Requests and Issue Tracking
 
-GitHub is used for pull requests and issue tracking: https://github.com/rock-knowledge-reasoning/knowledge-reasoning-moreorg
+If you wish to report bugs, please use the [issue tracker](https://github.com/rock-planning/planning-templ/issues) at Github.
+If you would like to contribute to TemPl, open an issue or a pull request.
+Please assign the current maintainer to the reviewer list of the issue or pull
+request to ensure notification.
+The target branch for pull requests is the 'main' branch. 
+
+Releases will be made available as tags of the main branch.
+
+The recommended workflow to add a new feature, add documentation, or fix a bug is the following:
+
+  * push your changes to a branch (e.g. feature/x, doc/y, or fix/z) of your fork this repository
+  * open a pull request to main branch
+
+All new features need to be accompanied by a corresponding unit test.
+
+# Citation
+
+If you use TemPl for a scientific publication, please cite the following paper:
+
+```bibtex
+@article{Roehr:2018:IBERAMIA,
+author = {Roehr, Thomas M.},
+doi = {10.4114/intartif.vol21iss62pp25-39},
+journal = {Inteligencia Artificial, Revista Iberoamericana de Inteligencia Artificial},
+mendeley-groups = {all},
+number = {62},
+pages = {25--39},
+title = {{A Constraint-based Mission Planning Approach for Reconfigurable Multi-Robot Systems}},
+volume = {21},
+year = {2018}
+}
+```
 
 # Copyright
 
