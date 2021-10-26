@@ -29,7 +29,7 @@
     </location>
 </constants>
 <requirements>
-    <requirement>
+    <requirement id="0">
         <spatial-requirement>
             <!-- where it is required -->
             <location>
@@ -56,7 +56,7 @@
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement>
+    <requirement id="1">
         <spatial-requirement>
             <!-- where it is required -->
             <location>

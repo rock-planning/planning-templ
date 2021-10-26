@@ -111,7 +111,7 @@ void run_test(uint32_t numberOfTimepoints, uint32_t numberOfFluents, const std::
 
 }
 
-BOOST_AUTO_TEST_SUITE(propagators)
+BOOST_AUTO_TEST_SUITE(propagators_is_path)
 
 BOOST_AUTO_TEST_CASE(check_valid_path)
 {
@@ -154,14 +154,19 @@ BOOST_AUTO_TEST_CASE(is_path_5_x_4)
     run_test(5,4,"5x4");
 }
 
+BOOST_AUTO_TEST_CASE(is_path_10_x_10)
+{
+    run_test(10,10,"10x10");
+}
+
 BOOST_AUTO_TEST_CASE(is_path_20_x_20)
 {
     run_test(20,20,"20x20");
 }
 
-BOOST_AUTO_TEST_CASE(is_path_100_x_100)
-{
-    run_test(100,100,"100x100");
-}
+//BOOST_AUTO_TEST_CASE(is_path_100_x_100)
+//{
+//    run_test(100,100,"100x100");
+//}
 
 BOOST_AUTO_TEST_SUITE_END()

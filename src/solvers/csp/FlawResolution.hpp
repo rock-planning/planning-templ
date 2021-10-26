@@ -13,7 +13,11 @@ namespace solvers {
 namespace csp {
 
 /**
- * Class that computes the
+ * Class that computes the flaw resolution strategy, based
+ * on a set of predefined flaw resolution options
+ *
+ * Computes combinations of resolution options, so that they can
+ * be tested
  */
 class FlawResolution
 {

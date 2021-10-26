@@ -20,15 +20,11 @@
       <keyword>planning</keyword>
       <keyword>mission planning</keyword>
       <keyword>reconfigurable multi-robot system</keyword>
+      <keyword>c++</keyword>
+      <keyword>owl</keyword>
+      <keyword>csp</keyword>
   </keywords>
-  <stage>0</stage>
+  <stage>1</stage>
   <use>single project</use>
   <activity>active</activity>
-  <classifiers>
-      <classifier>c++</classifier>
-      <classifier>rock</classifier>
-      <classifier>owl</classifier>
-      <classifier>multiagent</classifier>
-      <classifier>csp</classifier>
-  </classifiers>
 </package>

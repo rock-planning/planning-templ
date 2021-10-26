@@ -12,7 +12,24 @@ e.g.,
 An example / the default configuration can be found in the
 [test/data/configuration](../test/data/configuration) directory.
 
-A configuration example is listed in the following:
+Note that the used IRIs are resolvable online, but are only defined in the
+ontologies of the dependency
+[knowledge_reasoning/moreorg](http://github.com/rock-knowledge-reasoning/knowledge-reasoning-moreorg).
+The ontologies will be resolved locally once moreorg has been installed and the
+path variable OWLAPI_ONTOLOGIES_PATH has been set to the ontologies folder (if
+you are bootstrapping with autoproj this is already done).
+
+A configuration example is listed in the following.
+Note that some of the options adjust
+the search behavior of [Gecode](http://www.gecode.org) which is used as constraint
+solver by TemPl.
+These internal options are best described in the
+official documentation [Modeling and Programming with Gecode](https://www.gecode.org/doc-latest/MPG.pdf) and we refer to the
+corresponding chapter via MPG Chapter XXX in the following if needed, e.g., MPG
+Chapter 9.3.1 'Search options'.
+
+In addition to the Gecode documentation it is recommended to check Chapter 4.3 in the [PhD Thesis](http://nbn-resolving.de/urn:nbn:de:gbv:46-00107698-18)
+to check for details:
 ```
 <templ-configuration>
     <TransportNetwork>
@@ -32,17 +49,17 @@ A configuration example is listed in the following:
                     <timeout_in_s>1</timeout_in_s>
                 </coalition-feasibility>
                 <threads>1</threads>
-                <cutoff>2</cutoff>
-                <nogoods_limit>128</nogoods_limit>
-                <computation_distance>120</computation_distance>
-                <adaptive_computation_distance>40</adaptive_computation_distance>
+                <cutoff>2</cutoff><!-- Gecode option: cutoff limit for the restart-based meta search engine MPG Chapter 9.4.2 Cutoff generator-->
+                <nogoods_limit>128</nogoods_limit> <!-- Gecode option: no-goods from restarts MPG Chapter 9.2 No-goods from restarts -->
+                <computation_distance>120</computation_distance> <!-- Gecode option for recomputation of solutions MPG Chapter 42 'Recomputation' -->
+                <adaptive_computation_distance>40</adaptive_computation_distance><!-- Gecode option for recomputation of solutions MPG Chapter 42 'Recomputation' -->
                 <epoch_timeout_in_s>60</epoch_timeout_in_s><!-- stop: when a single search ends and a restart should be triggered -->
                 <total_timeout_in_s>900</total_timeout_in_s><!-- stop: when the total search ends -->
                 <allow-flaws>false</allow-flaws>
-                <model-usage>
+                <model-usage><!-- solver for models: adapt internal gecode branching -->
                     <afc-decay>0.95</afc-decay>
                 </model-usage>
-                <role-usage>
+                <role-usage><!-- adapt branching for roles (as model instances) see [Chapter 4.3 in Thesis](https://media.suub.uni-bremen.de/handle/elib/1674): adapt internal gecode branching -->
                     <force-min>false</force-min><!-- enforce minimum role usage -->
                     <mobile>
                         <bounded>true</bounded><!-- if force min is deactivated then optionally use bounded with given bound -->

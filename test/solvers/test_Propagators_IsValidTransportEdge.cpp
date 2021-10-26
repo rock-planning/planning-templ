@@ -142,7 +142,7 @@ void run_test(uint32_t numberOfTimepoints, uint32_t numberOfFluents, std::vector
 
 }
 
-BOOST_AUTO_TEST_SUITE(propagators)
+BOOST_AUTO_TEST_SUITE(propagators_is_valid_transport_edge)
 
 BOOST_AUTO_TEST_CASE(is_valid_timeline)
 {

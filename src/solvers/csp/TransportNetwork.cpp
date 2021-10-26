@@ -914,6 +914,17 @@ void TransportNetwork::enforceUnaryResourceUsage()
 
     for(const FluentTimeResource::List& concurrentFluents : concurrentRequirements)
     {
+        if(mRoles.size() < concurrentFluents.size())
+        {
+            std::stringstream ss;
+            ss << "The number for agent instances (" << mRoles.size() << ") is too low,"
+               << " to resolve the concurrent requirements ("
+               << concurrentFluents.size() << ") " << std::endl;
+
+            throw std::runtime_error("templ::solvers::csp::TransportNetwork::enforceUnaryResourceUsage: "
+                        + ss.str());
+        }
+
         for(size_t roleIndex = 0; roleIndex < mRoles.size(); ++roleIndex)
         {
             Gecode::IntVarArgs args;
@@ -923,7 +934,8 @@ void TransportNetwork::enforceUnaryResourceUsage()
                 Gecode::IntVar v = roleDistribution(roleIndex, row);
                 args << v;
             }
-            // there can only be one role active
+            // A role can only be available for one of the concurrent
+            // constraints
             rel(*this, sum(args) <= 1);
         }
     }
@@ -1160,7 +1172,7 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             solutions.push_back(solution);
             ++solutionCount;
 
-            if(minNumberOfSolutions != 0)
+            if(minNumberOfSolutions >= 0)
             {
                 if(solutionCount >= minNumberOfSolutions)
                 {
@@ -1558,7 +1570,12 @@ void TransportNetwork::postRoleAssignments()
         << mTimepoints << std::endl
         << symbols::constants::Location::toString(mpContext->locations());
 
-    assert(!mActiveRoles.empty());
+    if(mActiveRoles.empty())
+    {
+        this->fail();
+        return;
+    }
+
     assert(mTimelines.empty());
 
     Role::List activeRoles;

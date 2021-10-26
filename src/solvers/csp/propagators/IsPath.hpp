@@ -46,14 +46,14 @@ public:
      * Spans a temporally extended network of size <numberOfTimepoints> X <numberOfFluents>
      * Checks if the given SetVarArray forms a path
      */
-    IsPath(Gecode::Space& home, SetVarArrayView& graph, const std::string& tag, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength = 1, int maxPathLength = Gecode::Int::Limits::max);
+    IsPath(Gecode::Space& home, SetVarArrayView& graph, const std::string& tag, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength = 1, int maxPathLength = -1);
 
     IsPath(Gecode::Space& home, IsPath& p);
 
     /**
      * IsPath propagators post function, i.e. when it is initially created
      */
-    static Gecode::ExecStatus post(Gecode::Space& home, const Gecode::SetVarArgs& x0, const std::string& tag, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength = 1, int maxPathLength = Gecode::Int::Limits::max);
+    static Gecode::ExecStatus post(Gecode::Space& home, const Gecode::SetVarArgs& x0, const std::string& tag, uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength = 1, int maxPathLength = -1);
 
     /**
      * Reduce domain of all possibly parallel edges
@@ -89,7 +89,7 @@ public:
 
 void isPath(Gecode::Space& home, const Gecode::SetVarArgs&,
         const std::string& tag,
-        uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength = 1, int maxPathLength = Gecode::Int::Limits::max);
+        uint32_t numberOfTimepoints, uint32_t numberOfFluents, int minPathLength = 1, int maxPathLength = -1);
 
 } // end namespace propagators
 } // end namespace csp

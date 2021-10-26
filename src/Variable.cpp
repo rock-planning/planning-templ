@@ -2,6 +2,8 @@
 
 namespace templ {
 
+const graph_analysis::VertexRegistration<Variable> Variable::msRegistration;
+
 Variable::Variable(const std::string& label)
     : graph_analysis::Vertex(label)
 {}

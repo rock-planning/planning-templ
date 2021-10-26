@@ -1,6 +1,7 @@
 #ifndef TEMPL_VARIABLE_HPP
 #define TEMPL_VARIABLE_HPP
 
+#include <graph_analysis/VertexRegistration.hpp>
 #include <graph_analysis/Vertex.hpp>
 #include "SharedPtr.hpp"
 
@@ -13,6 +14,8 @@ namespace templ {
  */
 class Variable : public graph_analysis::Vertex
 {
+    static const graph_analysis::VertexRegistration<Variable> __attribute__((used)) msRegistration;
+
 public:
     Variable(const std::string& label = std::string());
     virtual ~Variable() {}

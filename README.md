@@ -3,21 +3,21 @@
 TemPl is a planning system for reconfigurable multi-robot systems which is
 described in the PhD Thesis "Autonomous Operation of a Reconfigurable Multi-Robot System for Planetary Space
 Missions" ([Roehr 2019](http://nbn-resolving.de/urn:nbn:de:gbv:46-00107698-18))
-To solve the highly combinatorial optimization problem it combines the 
+To solve the highly combinatorial optimization problem it combines the
 use of knowledge-based engineering, constraint-based programming and linear
 programming.
 
 The focus of TemPl is to allow planning and optimization of (currently limited
 to medium-sized) missions of reconfigurable robotic agents.
 
-TemPl comes with multiple utility programs such as a graphical interfaces to
+TemPl comes with multiple utility programs such as a graphical interface to
 inspect solutions, a mission editor to design solutions (for those not wanting
 to deal with the XML format),
 and a mission generator to automatically generate simple as well as complex test missions.
 
 ## Installation
 Please use autoproj to bootstrap and include the package-set
-[ric.backbone](https://git.hb.dfki.de/sw-backbone/package_sets/ric-backbone) in your manifest.
+[rock](https://github.com/rock-planning/planning-templ) in your manifest.
 Afterwards you can install TemPl via:
 ```
     amake planning/templ
@@ -31,15 +31,22 @@ library by opening an issue on the repository.
 For testing the library Boost testing is used, along with the
 definition of a number of so-called test-scenarios, i.e. sample missions.
 
+```
+$> autoproj test enable planning/templ
+$> amake planning/templ
+$> cd planning/templ
+$> ./build/test/templ-test --log_level=all
+```
+
 ### Test Scenarios
 
 The folder test/data/scenarios contains a set of missions that cover/validate
 different aspects of the mission planner.
 
 ## Usage Examples:
-After building the library (and if following the instructions given in this document), the executables are typically available in the
-corresponding build/ folder and in PATH, so that you can easily access them via
-the 'templ-' prefix.
+After building the library (and if following the instructions given in this document),
+the executables are typically available in the corresponding build/ folder and in PATH,
+so that you can easily access them via the 'templ-' prefix.
 
 All executables support the '--help' argument to describe their current usage.
 
@@ -55,19 +62,19 @@ allowed options:
   --min_solutions arg   Minimum number of solutions (optional)
 ```
 
-The default configuration can be found under:
+The default configuration for templ-transport_network_planner can be found under:
 test/data/configuration/default-configuration.xml, further
 details on configuration options can be found [here](doc/configuration.md).
 
 Every run of the planner will result in the creation of a log folder under /tmp: for the
 overall mission a 'spec' subfolder will be created and successful epochs (also
-referred to as sessions) will be logged - identified by a counter. 
+referred to as sessions) will be logged - identified by a counter.
 Each epoch folder contains solutions and results to intermediate planning steps.
 So check /tmp/<current-time-date>_temp/ for the corresponding folder of the
 session that you would like to inspect.
 
 ```
-$>./build/src/templ-transport_network_planner --mission test/data/scenarios/should_succeed/0.xml --min_solution 1 
+$>./build/src/templ-transport_network_planner --mission test/data/scenarios/should_succeed/0.xml --min_solution 1
 ...
 
 Session 0: remaining flaws: 0
@@ -107,7 +114,7 @@ Processing: /tmp/20201111_102602+0100-templ/0/final_solution_network.gexf
 Report:
 SolutionAnalysis:
     Resulting plan:
-        plan: 
+        plan:
         - role: AtomicAgent: Payload_0 (Payload)
             Tuple:
                 a:
@@ -297,6 +304,41 @@ SolutionAnalysis:
  * [Configuration](doc/configuration.md)
  * [GUI](doc/gui.md)
  * [IO](doc/io.md)
+
+# Contributing, Merge Requests and Issue Tracking
+
+If you wish to report bugs, please use the [issue tracker](https://github.com/rock-planning/planning-templ/issues) at Github.
+If you would like to contribute to TemPl, open an issue or a pull request.
+Please assign the current maintainer to the reviewer list of the issue or pull
+request to ensure notification.
+The target branch for pull requests is the 'main' branch. 
+
+Releases will be made available as tags of the main branch.
+
+The recommended workflow to add a new feature, add documentation, or fix a bug is the following:
+
+  * push your changes to a branch (e.g. feature/x, doc/y, or fix/z) of your fork this repository
+  * open a pull request to main branch
+
+All new features need to be accompanied by a corresponding unit test.
+
+# Citation
+
+If you use TemPl for a scientific publication, please cite the following paper:
+
+```bibtex
+@article{Roehr:2018:IBERAMIA,
+author = {Roehr, Thomas M.},
+doi = {10.4114/intartif.vol21iss62pp25-39},
+journal = {Inteligencia Artificial, Revista Iberoamericana de Inteligencia Artificial},
+mendeley-groups = {all},
+number = {62},
+pages = {25--39},
+title = {{A Constraint-based Mission Planning Approach for Reconfigurable Multi-Robot Systems}},
+volume = {21},
+year = {2018}
+}
+```
 
 # Copyright
 

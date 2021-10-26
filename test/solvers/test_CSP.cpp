@@ -403,7 +403,7 @@ BOOST_AUTO_TEST_CASE(flaw_resolution)
     {
         FlawResolution flawResolution;
         flawResolution.prepare(flaws);
-        BOOST_REQUIRE_MESSAGE(flawResolution.remainingDraws().size() == 7, "Flaw resolution options should be 3 but was " <<
+        BOOST_REQUIRE_MESSAGE(flawResolution.remainingDraws().size() == 1, "Flaw resolution options should be 1 but was " <<
                 flawResolution.remainingDraws().size());
 
         while(flawResolution.next(false))
@@ -422,7 +422,7 @@ BOOST_AUTO_TEST_CASE(flaw_resolution)
 
         FlawResolution flawResolution;
         flawResolution.prepare(flaws);
-        BOOST_REQUIRE_MESSAGE(flawResolution.remainingDraws().size() == 7, "Flaw resolution options should be 3 but was " <<
+        BOOST_REQUIRE_MESSAGE(flawResolution.remainingDraws().size() == 1, "Flaw resolution options should be 1 but was " <<
                 flawResolution.remainingDraws().size());
 
         while(flawResolution.next())

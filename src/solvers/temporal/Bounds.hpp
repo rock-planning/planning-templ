@@ -39,7 +39,7 @@ public:
 
     bool isValid() const { return mLowerBound <= mUpperBound; }
 
-    static bool equals(const List& a, const List& b) { return a == b; }
+    static bool equals(const List& a, const List& b);
     static bool includesNegative(const List& a);
 
     /**
