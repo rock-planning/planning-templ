@@ -817,6 +817,48 @@ namespace templ
             mTraveledDistance = travelDistanceInM;
         }
 
+        ResourceInstance::List SolutionAnalysis::filterResourcesByBlacklist(ResourceInstance::List &resources, const ResourceInstance::List &blacklist)
+        {
+            ResourceInstance::List returnList;
+            for (auto &r : resources)
+            {
+                auto it = std::find_if(blacklist.begin(), blacklist.end(), [&r](ResourceInstance assignment)
+                                       { return ((assignment.getName() == r.getName()) && (assignment.getAtomicAgent() == r.getAtomicAgent())); });
+                if (it == blacklist.end())
+                {
+                    returnList.push_back(r);
+                }
+            }
+            return returnList;
+        }
+
+        SolutionAnalysis::TupleResourceInstancesMap SolutionAnalysis::prepareSolutionAnalysis(const ResourceInstance::List &blacklist)
+        {
+            using namespace solvers::temporal::point_algebra;
+            using namespace symbols::constants;
+            TupleResourceInstancesMap tupleResourceInstancesMap;
+            Location::PtrList locations = mpMission->getLocations();
+            int is_start = 0;
+
+            for (const TimePoint::Ptr tp : mTimepoints)
+            {
+                if (is_start < 2)
+                {
+                    // How to handle this properly?
+                    ++is_start;
+                    continue;
+                }
+                for (const Location::Ptr &location : locations)
+                {
+                    SpaceTime::Network::tuple_t::Ptr vertexTuple = mSolutionNetwork.tupleByKeys(location, tp);
+                    ResourceInstance::List availableUnfiltered = getMinAvailableResources(vertexTuple);
+                    ResourceInstance::List available = filterResourcesByBlacklist(availableUnfiltered, blacklist);
+                    tupleResourceInstancesMap.insert(std::make_pair(vertexTuple, available));
+                }
+            }
+            return tupleResourceInstancesMap;
+        }
+
         void SolutionAnalysis::computeSafetyNew()
         {
             std::map<SpaceTime::Network::tuple_t::Ptr, FluentTimeResource::List> tupleFtrMap;
@@ -883,7 +925,7 @@ namespace templ
                 // }
                 
                 for (const FluentTimeResource &ftr : tupleFtrMap[vertexTuple])
-                {                    
+                {
                     double currSafety = getSafety(ftr, vertexTuple, start_time, end_time);
                     std::cout << "Safety Value of: " << currSafety << std::endl;
                     value = std::min(currSafety, value);
@@ -1002,14 +1044,123 @@ namespace templ
             }
         }
 
-        void SolutionAnalysis::computeEfficacy()
+        ModelPool SolutionAnalysis::checkAndRemoveRequirements(ModelPool &available, ModelPool &required)
         {
-            double fulfillment = 0.0;
+            ModelPool returnModelPool;
+            for (auto &r : required)
+            {
+                ModelPool tempModelPool;
+                tempModelPool.setResourceCount(r.first, r.second);
+                std::vector<owlapi::model::OWLCardinalityRestriction::Ptr> r_required = mAsk.getRequiredCardinalities(tempModelPool, vocabulary::OM::has());
+                bool check = true;
+                for (auto &rr : r_required)
+                {
+                    bool found = false;
+                    owlapi::model::OWLObjectCardinalityRestriction::Ptr restriction = dynamic_pointer_cast<owlapi::model::OWLObjectCardinalityRestriction>(rr);
+                    for (auto &a : available)
+                    {
+                        if ((a.first == restriction->getQualification()) || (mAsk.ontology().isSubClassOf(a.first, restriction->getQualification())))
+                        {
+                            // TODO what about SuperClass Requirements and multiple Sublasses are available ? Make counter?
+                            if (a.second < restriction->getCardinality())
+                            {
+                                check = false;
+                                break;
+                            }
+                            else
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!found)
+                    {
+                        check = false;
+                        break;
+                    }
+                }
+                if (check)
+                {
+                    returnModelPool.setResourceCount(r.first, r.second);
+                }
+            }
+            return returnModelPool;
+        }
+
+        double SolutionAnalysis::getEfficacyWithFailedComponents(const ResourceInstance::List &blacklist)
+        {
+            TupleResourceInstancesMap tupleResourceInstancesMap = prepareSolutionAnalysis(blacklist);
+            double efficacy = computeEfficacyWithFailedComponents(tupleResourceInstancesMap);
+            return efficacy;
+        }
+
+        void SolutionAnalysis::computeEfficacy(const ResourceInstance::List &blacklist)
+        {
+            // double fulfillment = 0.0;
+            // for (const solvers::FluentTimeResource &ftr : mResourceRequirements)
+            // {
+            //     fulfillment += degreeOfFulfillment(ftr);
+            // }
+            // mEfficacy = fulfillment * 1.0 / mResourceRequirements.size();
+            TupleResourceInstancesMap tupleResourceInstancesMap = prepareSolutionAnalysis(blacklist);
+            mEfficacy = computeEfficacyWithFailedComponents(tupleResourceInstancesMap);
+        }
+
+        double SolutionAnalysis::computeEfficacyWithFailedComponents(TupleResourceInstancesMap &tupleResourceInstancesMap)
+        {
+            using namespace solvers::temporal::point_algebra;
+            using namespace symbols::constants;
+            int requirement_count = 0;
+            int requirements_success = 0;
+            std::map<SpaceTime::Network::tuple_t::Ptr, solvers::FluentTimeResource::List> tupleFtrMap;
             for (const solvers::FluentTimeResource &ftr : mResourceRequirements)
             {
-                fulfillment += degreeOfFulfillment(ftr);
+                SpaceTime::Network::tuple_t::PtrList tuples = mSolutionNetwork.getTuples(ftr.getInterval().getFrom(),
+                                                                                         ftr.getInterval().getTo(),
+                                                                                         ftr.getLocation());
+
+                for (const SpaceTime::Network::tuple_t::Ptr &tuple : tuples)
+                {
+                    tupleFtrMap[tuple].push_back(ftr);
+                }                
             }
-            mEfficacy = fulfillment * 1.0 / mResourceRequirements.size();
+
+            for (auto &a : tupleResourceInstancesMap)
+            {
+                ModelPool required;
+                // prepare required resources
+                for (const solvers::FluentTimeResource &ftr : tupleFtrMap[a.first])
+                {
+                    if (required.empty())
+                    {
+                        required = getMinResourceRequirements(ftr);
+                    }
+                    else
+                    {
+                        ModelPool minRequired = getMinResourceRequirements(ftr);
+                        Algebra::merge(minRequired, required);
+                    }
+                }
+                // no requirements? Skip this tuple ...
+                if (required.empty())
+                    continue;
+                requirement_count += (int)required.size();
+
+                ModelPool availableModelPool = ResourceInstance::toModelPool(a.second);
+                ModelPool finalRequired = checkAndRemoveRequirements(availableModelPool, required);
+                ModelPoolDelta delta = Algebra::delta(finalRequired, required);
+                for (auto &r : required)
+                {
+                    if ((delta[r.first]) <= 0)
+                    {
+                        ++requirements_success;
+                    }
+                }                                
+            }
+
+            double efficacy = (double) requirements_success / (double) requirement_count;
+            return efficacy;
         }
 
         void SolutionAnalysis::computeEfficiency()
