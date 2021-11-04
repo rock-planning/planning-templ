@@ -193,6 +193,7 @@ rock_library(templ
         io/MissionWriter.hpp
         io/MissionRequirements.hpp
         solvers/Solver.hpp
+        solvers/StoppingCriteria.hpp
         solvers/Session.hpp
         solvers/FluentTimeResource.hpp
         solvers/agent_routing/Agent.hpp

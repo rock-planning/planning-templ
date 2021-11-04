@@ -1132,7 +1132,11 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             {
                 double baseEfficacy = current->mSolutionAnalysis.getEfficacy();
                 double efficacy = current->mSolutionAnalysis.getEfficacyWithFailedComponents(componentBlacklist);
-                if (baseEfficacy > efficacy) continue;
+                if (baseEfficacy > efficacy)
+                {
+                    std::cout << "Found solution is not valid as it would miss requirements with blacklisted components." << std::endl;
+                    continue;
+                }
             }
 
             LOG_INFO_S << "#" << i << "/" << minNumberOfSolutions << " solution found:" << current->toString();
