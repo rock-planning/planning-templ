@@ -137,59 +137,8 @@ BOOST_FIXTURE_TEST_CASE(test_simulation1, SimulationFixture1)
         }
     }
     solvers::ResultAnalysis resultAnalysis = simulator.analyzeSimulationResults();
-    CSVLogger csvLoggerEfficacyTriple({"timepoint", "failedComponents", "avgEfficacy", "minEfficacy", "maxEfficacy"});
-    
-    for (size_t i = 0; i < resultAnalysis.failedToEfficacyTripleList.size(); i++)
-        {
-            csvLoggerEfficacyTriple.addToRow(i, "timepoint");
-            csvLoggerEfficacyTriple.addToRow(resultAnalysis.failedToEfficacyTripleList[i].first, "failedComponents");
-            csvLoggerEfficacyTriple.addToRow(resultAnalysis.failedToEfficacyTripleList[i].second.avg, "avgEfficacy");
-            csvLoggerEfficacyTriple.addToRow(resultAnalysis.failedToEfficacyTripleList[i].second.min, "minEfficacy");
-            csvLoggerEfficacyTriple.addToRow(resultAnalysis.failedToEfficacyTripleList[i].second.max, "maxEfficacy");
-            csvLoggerEfficacyTriple.commitRow();
-        }
-    csvLoggerEfficacyTriple.save("/tmp/sim_result_1_failedToEfficacyTripleResult.log");
-
-    CSVLogger csvEfficacies({"efficacy", "count"});
-    for (auto &e : resultAnalysis.efficacyCounts)
-    {
-        csvEfficacies.addToRow(e.first, "efficacy");
-        csvEfficacies.addToRow(e.second, "count");
-        csvEfficacies.commitRow();
-    }
-    csvEfficacies.save("/tmp/sim_result_1_efficacyCountsResult.log");
-    std::string filename("/tmp/sim_result_1_componentFailures.log");
-    std::ofstream outfile(filename, std::ofstream::out);
-    outfile << "# component count " << std::endl;
-    for (auto &a : resultAnalysis.individualComponentFailureCountList)
-    {
-        std::cout << "Component: " << a.first.getName().toString() << " failed " << a.second << " times out of " << n << " runs." << std::endl;
-        outfile << a.first.getAtomicAgent().getName() << ":" << a.first.getName().toString().erase(0, 37) << " " << a.second << std::endl;
-    }
-    outfile.close();
-
-    CSVLogger csvComponentFailuresToEfficacy({"count", "avgEfficacy", "minEfficacy", "maxEfficacy"});
-    for (auto &c : resultAnalysis.componentFailuresToEfficacy)
-    {
-        csvComponentFailuresToEfficacy.addToRow(c.first, "count");
-        csvComponentFailuresToEfficacy.addToRow(c.second[1], "avgEfficacy");
-        csvComponentFailuresToEfficacy.addToRow(c.second[2], "minEfficacy");
-        csvComponentFailuresToEfficacy.addToRow(c.second[3], "maxEfficacy");
-        csvComponentFailuresToEfficacy.commitRow();
-    }
-    csvComponentFailuresToEfficacy.save("/tmp/sim_result_1_componentFailuresToEfficacy.log");
-
-    std::ofstream importanceFactorOut("/tmp/sim_result_1_importanceFactors.log", std::ofstream::out);
-    importanceFactorOut << "# component importanceFactor " << std::endl;
-    for (auto &l : resultAnalysis.componentImportanceFactors)
-    {
-        importanceFactorOut << l.first << " " << l.second << std::endl;
-    }
-    importanceFactorOut.close();
+    simulator.saveSimulationResults("/tmp/sim_result_1_");
     double success_rate = count / n;
-    std::ofstream statsOut("/tmp/sim_result_1_stats.log", std::ofstream::out);
-    statsOut << "Efficacy: " << resultAnalysis.avgEfficacy;
-    statsOut.close();
     BOOST_TEST_MESSAGE("From " << n << " simulation runs, " << count << " succeeded. Success rate was: " << success_rate << ".");
 }
 
@@ -214,59 +163,8 @@ BOOST_FIXTURE_TEST_CASE(test_simulation2, SimulationFixture2)
         }
     }
     solvers::ResultAnalysis resultAnalysis = simulator.analyzeSimulationResults();
-    CSVLogger csvLoggerEfficacyTriple({"timepoint", "failedComponents", "avgEfficacy", "minEfficacy", "maxEfficacy"});
-    
-    for (size_t i = 0; i < resultAnalysis.failedToEfficacyTripleList.size(); i++)
-        {
-            csvLoggerEfficacyTriple.addToRow(i, "timepoint");
-            csvLoggerEfficacyTriple.addToRow(resultAnalysis.failedToEfficacyTripleList[i].first, "failedComponents");
-            csvLoggerEfficacyTriple.addToRow(resultAnalysis.failedToEfficacyTripleList[i].second.avg, "avgEfficacy");
-            csvLoggerEfficacyTriple.addToRow(resultAnalysis.failedToEfficacyTripleList[i].second.min, "minEfficacy");
-            csvLoggerEfficacyTriple.addToRow(resultAnalysis.failedToEfficacyTripleList[i].second.max, "maxEfficacy");
-            csvLoggerEfficacyTriple.commitRow();
-        }
-    csvLoggerEfficacyTriple.save("/tmp/sim_result_2_failedToEfficacyTripleResult.log");
-
-    CSVLogger csvEfficacies({"efficacy", "count"});
-    for (auto &e : resultAnalysis.efficacyCounts)
-    {
-        csvEfficacies.addToRow(e.first, "efficacy");
-        csvEfficacies.addToRow(e.second, "count");
-        csvEfficacies.commitRow();
-    }
-    csvEfficacies.save("/tmp/sim_result_2_efficacyCountsResult.log");
-    std::string filename("/tmp/sim_result_2_componentFailures.log");
-    std::ofstream outfile(filename, std::ofstream::out);
-    outfile << "# component count " << std::endl;
-    for (auto &a : resultAnalysis.individualComponentFailureCountList)
-    {
-        std::cout << "Component: " << a.first.getName().toString() << " failed " << a.second << " times out of " << n << " runs." << std::endl;
-        outfile << a.first.getAtomicAgent().getName() << ":" << a.first.getName().toString().erase(0, 37) << " " << a.second << std::endl;
-    }
-    outfile.close();
-
-    CSVLogger csvComponentFailuresToEfficacy({"count", "avgEfficacy", "minEfficacy", "maxEfficacy"});
-    for (auto &c : resultAnalysis.componentFailuresToEfficacy)
-    {
-        csvComponentFailuresToEfficacy.addToRow(c.first, "count");
-        csvComponentFailuresToEfficacy.addToRow(c.second[1], "avgEfficacy");
-        csvComponentFailuresToEfficacy.addToRow(c.second[2], "minEfficacy");
-        csvComponentFailuresToEfficacy.addToRow(c.second[3], "maxEfficacy");
-        csvComponentFailuresToEfficacy.commitRow();
-    }
-    csvComponentFailuresToEfficacy.save("/tmp/sim_result_2_componentFailuresToEfficacy.log");
-
-    std::ofstream importanceFactorOut("/tmp/sim_result_2_importanceFactors.log", std::ofstream::out);
-    importanceFactorOut << "# component importanceFactor " << std::endl;
-    for (auto &l : resultAnalysis.componentImportanceFactors)
-    {
-        importanceFactorOut << l.first << " " << l.second << std::endl;
-    }
-    importanceFactorOut.close();
+    simulator.saveSimulationResults("/tmp/sim_result_2_");
     double success_rate = count / n;
-    std::ofstream statsOut("/tmp/sim_result_2_stats.log", std::ofstream::out);
-    statsOut << "Efficacy: " << resultAnalysis.avgEfficacy;
-    statsOut.close();
     BOOST_TEST_MESSAGE("From " << n << " simulation runs, " << count << " succeeded. Success rate was: " << success_rate << ".");
 }
 
@@ -291,59 +189,7 @@ BOOST_FIXTURE_TEST_CASE(test_simulation3, SimulationFixture3)
         }
     }
     solvers::ResultAnalysis resultAnalysis = simulator.analyzeSimulationResults();
-    CSVLogger csvLoggerEfficacyTriple({"timepoint", "failedComponents", "avgEfficacy", "minEfficacy", "maxEfficacy"});
-    
-    for (size_t i = 0; i < resultAnalysis.failedToEfficacyTripleList.size(); i++)
-        {
-            csvLoggerEfficacyTriple.addToRow(i, "timepoint");
-            csvLoggerEfficacyTriple.addToRow(resultAnalysis.failedToEfficacyTripleList[i].first, "failedComponents");
-            csvLoggerEfficacyTriple.addToRow(resultAnalysis.failedToEfficacyTripleList[i].second.avg, "avgEfficacy");
-            csvLoggerEfficacyTriple.addToRow(resultAnalysis.failedToEfficacyTripleList[i].second.min, "minEfficacy");
-            csvLoggerEfficacyTriple.addToRow(resultAnalysis.failedToEfficacyTripleList[i].second.max, "maxEfficacy");
-            csvLoggerEfficacyTriple.commitRow();
-        }
-    csvLoggerEfficacyTriple.save("/tmp/sim_result_3_failedToEfficacyTripleResult.log");
-
-    CSVLogger csvEfficacies({"efficacy", "count"});
-    for (auto &e : resultAnalysis.efficacyCounts)
-    {
-        csvEfficacies.addToRow(e.first, "efficacy");
-        csvEfficacies.addToRow(e.second, "count");
-        csvEfficacies.commitRow();
-    }
-    csvEfficacies.save("/tmp/sim_result_3_efficacyCountsResult.log");
-    std::string filename("/tmp/sim_result_3_componentFailures.log");
-    std::ofstream outfile(filename, std::ofstream::out);
-    outfile << "# component count " << std::endl;
-    for (auto &a : resultAnalysis.individualComponentFailureCountList)
-    {
-        std::cout << "Component: " << a.first.getName().toString() << " failed " << a.second << " times out of " << n << " runs." << std::endl;
-        outfile << a.first.getAtomicAgent().getName() << ":" << a.first.getName().toString().erase(0, 37) << " " << a.second << std::endl;
-    }
-    outfile.close();
-
-    CSVLogger csvComponentFailuresToEfficacy({"count", "avgEfficacy", "minEfficacy", "maxEfficacy"});
-    for (auto &c : resultAnalysis.componentFailuresToEfficacy)
-    {
-        csvComponentFailuresToEfficacy.addToRow(c.first, "count");
-        csvComponentFailuresToEfficacy.addToRow(c.second[1], "avgEfficacy");
-        csvComponentFailuresToEfficacy.addToRow(c.second[2], "minEfficacy");
-        csvComponentFailuresToEfficacy.addToRow(c.second[3], "maxEfficacy");
-        csvComponentFailuresToEfficacy.commitRow();
-    }
-    csvComponentFailuresToEfficacy.save("/tmp/sim_result_3_componentFailuresToEfficacy.log");
-
-    std::ofstream importanceFactorOut("/tmp/sim_result_3_importanceFactors.log", std::ofstream::out);
-    importanceFactorOut << "# component importanceFactor " << std::endl;
-    for (auto &l : resultAnalysis.componentImportanceFactors)
-    {
-        importanceFactorOut << l.first << " " << l.second << std::endl;
-    }
-    importanceFactorOut.close();
-
-    std::ofstream statsOut("/tmp/sim_result_3_stats.log", std::ofstream::out);
-    statsOut << "Efficacy: " << resultAnalysis.avgEfficacy;
-    statsOut.close();
+    simulator.saveSimulationResults("/tmp/sim_result_3_");
     double success_rate = count / n;
     BOOST_TEST_MESSAGE("From " << n << " simulation runs, " << count << " succeeded. Success rate was: " << success_rate << ". " << "Efficacy was: " << resultAnalysis.avgEfficacy);
 }
