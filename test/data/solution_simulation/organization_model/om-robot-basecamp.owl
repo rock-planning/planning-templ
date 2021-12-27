@@ -1,0 +1,163 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.rock-robotics.org/2015/12/robots/BaseCamp#"
+     xml:base="http://www.rock-robotics.org/2015/12/robots/BaseCamp"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:om-base="http://www.rock-robotics.org/2014/01/om-base#"
+     xmlns:om-schema="http://www.rock-robotics.org/2014/01/om-schema#"
+     xmlns:om-schemae="http://www.rock-robotics.org/2014/01/om-schemae#">
+    <owl:Ontology rdf:about="http://www.rock-robotics.org/2015/12/robots/BaseCamp">
+        <owl:imports rdf:resource="http://www.rock-robotics.org/2014/01/om-schema"/>
+        <rdfs:comment>v0.1
+ * change base uri to om-schema</rdfs:comment>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#BaseCamp -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#BaseCamp">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Actor"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#LogisticHubProvider"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">6</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#hasTransportCapacity"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">0</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Actor"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#BaseCamp -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#BaseCamp">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#BaseCamp"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#LogisticHubProvider"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_0"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_1"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_2"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_3"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_4"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_5"/>
+        <om-schema:mass rdf:datatype="http://www.w3.org/2001/XMLSchema#double">3.0</om-schema:mass>
+        <om-schema:maxHeight rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.3</om-schema:maxHeight>
+        <om-schema:maxWidth rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</om-schema:maxWidth>
+        <om-schema:minHeight rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.3</om-schema:minHeight>
+        <om-schema:minWidth rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</om-schema:minWidth>
+        <om-schema:nominalHeight rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.3</om-schema:nominalHeight>
+        <om-schema:nominalPowerConsumption rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:nominalPowerConsumption>
+        <om-schema:nominalWidth rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</om-schema:nominalWidth>
+        <om-schema:powerSourceCapacity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:powerSourceCapacity>
+        <om-schema:supplyVoltage rdf:datatype="http://www.w3.org/2001/XMLSchema#double">48.0</om-schema:supplyVoltage>
+        <om-schema:transportCapacity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:transportCapacity>
+        <om-schema:transportDemand rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</om-schema:transportDemand>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_0 -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_0">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_1 -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_1">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_2 -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_2">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_3 -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_3">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_4 -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_4">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_5 -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_EmiPassive_5">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_PowerSource -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/BaseCamp#BaseCamp_PowerSource">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PowerSource"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Constant_Hardware_unfailable"/>
+    </owl:NamedIndividual>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi -->
+

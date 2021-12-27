@@ -1,0 +1,186 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.rock-robotics.org/2015/12/robots/CREX#"
+     xml:base="http://www.rock-robotics.org/2015/12/robots/CREX"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:om-base="http://www.rock-robotics.org/2014/01/om-base#"
+     xmlns:om-schema="http://www.rock-robotics.org/2014/01/om-schema#"
+     xmlns:om-schemae="http://www.rock-robotics.org/2014/01/om-schemae#">
+    <owl:Ontology rdf:about="http://www.rock-robotics.org/2015/12/robots/CREX">
+        <owl:imports rdf:resource="http://www.rock-robotics.org/2014/01/om-schema"/>
+        <rdfs:comment>* v0.1
+ * change base uri to om-schema</rdfs:comment>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#CREX -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#CREX">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Actor"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Camera"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#LaserScanner"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Locomotion"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Mapping"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#MotionPlanning"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PowerSource"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#SelfLocalization"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#hasTransportCapacity"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">2</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Actor"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#CREX -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#CREX">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#CREX"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Locomotion"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Mapping"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#MotionPlanning"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#SelfLocalization"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/CREX#CREX_Camera_Front"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/CREX#CREX_EmiPassive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/CREX#CREX_LaserScanner_Front"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/CREX#CREX_PowerSource"/>
+        <om-schema:mass rdf:datatype="http://www.w3.org/2001/XMLSchema#double">27.0</om-schema:mass>
+        <om-schema:maxAcceleration rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.1</om-schema:maxAcceleration>
+        <om-schema:maxHeight rdf:datatype="http://www.w3.org/2001/XMLSchema#double">4.0</om-schema:maxHeight>
+        <om-schema:maxVelocity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.3</om-schema:maxVelocity>
+        <om-schema:maxWidth rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.5</om-schema:maxWidth>
+        <om-schema:minAcceleration rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:minAcceleration>
+        <om-schema:minHeight rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.25</om-schema:minHeight>
+        <om-schema:minVelocity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:minVelocity>
+        <om-schema:minWidth rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</om-schema:minWidth>
+        <om-schema:nominalAcceleration rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:nominalAcceleration>
+        <om-schema:nominalHeight rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</om-schema:nominalHeight>
+        <om-schema:nominalPowerConsumption rdf:datatype="http://www.w3.org/2001/XMLSchema#double">100.0</om-schema:nominalPowerConsumption>
+        <om-schema:nominalVelocity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.1</om-schema:nominalVelocity>
+        <om-schema:nominalWidth rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</om-schema:nominalWidth>
+        <om-schema:powerSourceCapacity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">2.4</om-schema:powerSourceCapacity>
+        <om-schema:reliability rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</om-schema:reliability>
+        <om-schema:supplyVoltage rdf:datatype="http://www.w3.org/2001/XMLSchema#double">48.0</om-schema:supplyVoltage>
+        <om-schema:transportCapacity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">2.0</om-schema:transportCapacity>
+        <om-schema:transportDemand rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</om-schema:transportDemand>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/CREX#CREX_Camera_Front -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/CREX#CREX_Camera_Front">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Camera"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/CREX#CREX_EmiPassive -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/CREX#CREX_EmiPassive">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/CREX#CREX_LaserScanner_Front -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/CREX#CREX_LaserScanner_Front">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#LaserScanner"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/CREX#CREX_PowerSource -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/CREX#CREX_PowerSource">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PowerSource"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_longtime"/>
+    </owl:NamedIndividual>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi -->
+

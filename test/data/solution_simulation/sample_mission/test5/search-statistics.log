@@ -1,0 +1,6 @@
+# session alpha beta sigma efficacy efficiency safety timehorizon travel-distance reconfiguration-cost overall-runtime solution-runtime solution-runtime-mean solution-runtime-stdev solution-found solution-stopped propagate fail node depth restart nogood flaws cost 
+0 1 1 1 1 2.39826 0.704358 22425.3 7242.64 10080 94.3932 94.3932 94.3932 0 1 0 594 0 36 35 0 0 0 0 
+1 1 1 1 1 1.08356 0.609909 14720 5000 3120 167.045 72.6153 83.5042 10.889 1 0 1029 0 55 35 1 0 2 2 
+2 1 1 1 1 2.25281 0.675139 21065.3 9242.64 8520 227.469 60.3845 75.7976 14.0652 1 0 1589 0 90 35 2 0 2 2 
+3 1 1 1 1 1.55002 0.437717 21056.9 6828.43 9360 255.314 27.8034 63.7991 24.0887 1 0 2046 0 110 35 3 0 0 0 
+4 1 1 1 1 1.32035 0.491096 17936.9 5828.43 4680 290.292 34.9401 58.0273 24.4432 1 0 2481 0 129 35 4 0 3 3 

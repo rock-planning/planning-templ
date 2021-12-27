@@ -177,6 +177,7 @@ rock_library(templ
         solvers/csp/utils/Formatter.cpp
         solvers/Solution.cpp
         solvers/SolutionAnalysis.cpp
+        solvers/SolutionSimulation.cpp
         solvers/transshipment/Flaw.cpp
         solvers/transshipment/MinCostFlow.cpp
         solvers/transshipment/FlowNetwork.cpp
@@ -232,7 +233,9 @@ rock_library(templ
         solvers/transshipment/FlowNetwork.hpp
         solvers/Solution.hpp
         solvers/SolutionAnalysis.hpp
+        solvers/SolutionSimulation.hpp
         utils/PathConstructor.hpp
+        utils/SolutionSimulationHelpers.hpp
     DEPS
         templ_moft
     LIBS

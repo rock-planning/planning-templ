@@ -1,0 +1,779 @@
+digraph GraphvizGraph {
+	graph [bb="0,0,5680,429",
+		concentrate=false,
+		dpi="96,0",
+		overlap=false,
+		pad="0,2",
+		root="PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Sherpa
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    base
+            cardinality: 3
+            \
+restriction: MIN
+    @[t0,t1) (v:20)",
+		splines=true
+	];
+	node [fixedsize=false,
+		label="\N",
+		pin=false,
+		pos="0,0",
+		shape=box,
+		width=0
+	];
+	edge [label=o];
+	"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Sherpa
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    base
+            cardinality: 3
+            \
+restriction: MIN
+    @[t0,t1) (v:20)"	 [height=2.4028,
+		pos="182.5,342.5",
+		width=5.0694];
+	"
+SpatioTemporalRequirement (id:0)
+    SpatialRequirement:
+        Location: base
+TemporalRequirement:
+    from: t0
+    to:   t1
+\
+Resources: 
+    http://www.rock-robotics.org/2014/01/om-schema#Sherpa
+        minCardinality: 3
+        maxCardinality: 18446744073709551615
+
+ (\
+v:19)"	 [height=2.8472,
+		pos="374.5,102.5",
+		width=4.8611];
+	"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Sherpa
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    base
+            cardinality: 3
+            \
+restriction: MIN
+    @[t0,t1) (v:20)" -> "
+SpatioTemporalRequirement (id:0)
+    SpatialRequirement:
+        Location: base
+TemporalRequirement:
+    from: t0
+    to:   t1
+\
+Resources: 
+    http://www.rock-robotics.org/2014/01/om-schema#Sherpa
+        minCardinality: 3
+        maxCardinality: 18446744073709551615
+
+ (\
+v:19)" [key="inducedBy (e:13)",
+	label="inducedBy (e:13)",
+	lp="321,230.5",
+	pos="e,292.2,205.37 251.82,255.85 262.87,242.03 274.44,227.57 285.87,213.28"];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Sherpa
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    base
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t0,t1) (v:18)" [height=2.4028,
+	pos="565.5,342.5",
+	width=5.0694];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Sherpa
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    base
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t0,t1) (v:18)" -> "
+SpatioTemporalRequirement (id:0)
+    SpatialRequirement:
+        Location: base
+TemporalRequirement:
+    from: t0
+    to:   t1
+\
+Resources: 
+    http://www.rock-robotics.org/2014/01/om-schema#Sherpa
+        minCardinality: 3
+        maxCardinality: 18446744073709551615
+
+ (\
+v:19)" [key="inducedBy (e:12)",
+label="inducedBy (e:12)",
+lp="529,230.5",
+pos="e,456.37,205.37 496.54,255.85 485.55,242.03 474.04,227.57 462.67,213.28"];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Payload
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l1
+            cardinality: 1
+            restriction: \
+MIN
+    @[t0,t1) (v:17)" [height=2.4028,
+pos="951.5,342.5",
+width=5.1528];
+"
+SpatioTemporalRequirement (id:1)
+    SpatialRequirement:
+        Location: l1
+TemporalRequirement:
+    from: t0
+    to:   t1
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#Payload
+        minCardinality: 1
+        maxCardinality: 18446744073709551615
+
+ (\
+v:16)" [height=2.8472,
+pos="1145.5,102.5",
+width=4.9444];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Payload
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l1
+            cardinality: 1
+            restriction: \
+MIN
+    @[t0,t1) (v:17)" -> "
+SpatioTemporalRequirement (id:1)
+    SpatialRequirement:
+        Location: l1
+TemporalRequirement:
+    from: t0
+    to:   t1
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#Payload
+        minCardinality: 1
+        maxCardinality: 18446744073709551615
+
+ (\
+v:16)" [key="inducedBy (e:11)",
+label="inducedBy (e:11)",
+lp="1091,230.5",
+pos="e,1062.3,205.37 1021.5,255.85 1032.7,242.03 1044.4,227.57 1055.9,213.28"];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Payload
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l1
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t0,t1) (v:15)" [height=2.4028,
+pos="1340.5,342.5",
+width=5.1528];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Payload
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l1
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t0,t1) (v:15)" -> "
+SpatioTemporalRequirement (id:1)
+    SpatialRequirement:
+        Location: l1
+TemporalRequirement:
+    from: t0
+    to:   t1
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#Payload
+        minCardinality: 1
+        maxCardinality: 18446744073709551615
+
+ (\
+v:16)" [key="inducedBy (e:10)",
+label="inducedBy (e:10)",
+lp="1303,230.5",
+pos="e,1229.1,205.37 1270.1,255.85 1258.9,242.03 1247.1,227.57 1235.5,213.28"];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Payload
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l2
+            cardinality: 1
+            restriction: \
+MIN
+    @[t0,t1) (v:14)" [height=2.4028,
+pos="1729.5,342.5",
+width=5.1528];
+"
+SpatioTemporalRequirement (id:2)
+    SpatialRequirement:
+        Location: l2
+TemporalRequirement:
+    from: t0
+    to:   t1
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#Payload
+        minCardinality: 1
+        maxCardinality: 18446744073709551615
+
+ (\
+v:13)" [height=2.8472,
+pos="1924.5,102.5",
+width=4.9444];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Payload
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l2
+            cardinality: 1
+            restriction: \
+MIN
+    @[t0,t1) (v:14)" -> "
+SpatioTemporalRequirement (id:2)
+    SpatialRequirement:
+        Location: l2
+TemporalRequirement:
+    from: t0
+    to:   t1
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#Payload
+        minCardinality: 1
+        maxCardinality: 18446744073709551615
+
+ (\
+v:13)" [key="inducedBy (e:9)",
+label="inducedBy (e:9)",
+lp="1865.5,230.5",
+pos="e,1840.9,205.37 1799.9,255.85 1811.1,242.03 1822.9,227.57 1834.5,213.28"];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Payload
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l2
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t0,t1) (v:12)" [height=2.4028,
+pos="2118.5,342.5",
+width=5.1528];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Payload
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l2
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t0,t1) (v:12)" -> "
+SpatioTemporalRequirement (id:2)
+    SpatialRequirement:
+        Location: l2
+TemporalRequirement:
+    from: t0
+    to:   t1
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#Payload
+        minCardinality: 1
+        maxCardinality: 18446744073709551615
+
+ (\
+v:13)" [key="inducedBy (e:8)",
+label="inducedBy (e:8)",
+lp="2077.5,230.5",
+pos="e,2007.7,205.37 2048.5,255.85 2037.3,242.03 2025.6,227.57 2014.1,213.28"];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l0
+            cardinality: 1
+            restriction: \
+MIN
+    @[t2,t4) (v:11)" [height=2.4028,
+pos="2526.5,342.5",
+width=5.6806];
+"
+SpatioTemporalRequirement (id:3)
+    SpatialRequirement:
+        Location: l0
+TemporalRequirement:
+    from: t2
+    to:   t4
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        minCardinality: 1
+        maxCardinality: 18446744073709551615
+
+ (\
+v:10)" [height=2.8472,
+pos="2739.5,102.5",
+width=5.4722];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l0
+            cardinality: 1
+            restriction: \
+MIN
+    @[t2,t4) (v:11)" -> "
+SpatioTemporalRequirement (id:3)
+    SpatialRequirement:
+        Location: l0
+TemporalRequirement:
+    from: t2
+    to:   t4
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        minCardinality: 1
+        maxCardinality: 18446744073709551615
+
+ (\
+v:10)" [key="inducedBy (e:7)",
+label="inducedBy (e:7)",
+lp="2671.5,230.5",
+pos="e,2648.2,205.37 2603.4,255.85 2615.8,241.91 2628.7,227.3 2641.5,212.89"];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l0
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t2,t4) (v:9)" [height=2.4028,
+pos="2953.5,342.5",
+width=5.6806];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l0
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t2,t4) (v:9)" -> "
+SpatioTemporalRequirement (id:3)
+    SpatialRequirement:
+        Location: l0
+TemporalRequirement:
+    from: t2
+    to:   t4
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        minCardinality: 1
+        maxCardinality: 18446744073709551615
+
+ (\
+v:10)" [key="inducedBy (e:6)",
+label="inducedBy (e:6)",
+lp="2903.5,230.5",
+pos="e,2831.2,205.37 2876.2,255.85 2863.8,241.91 2850.8,227.3 2837.9,212.89"];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Payload
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l0
+            cardinality: 2
+            restriction: \
+MIN
+    @[t3,t5) (v:8)" [height=2.4028,
+pos="3361.5,342.5",
+width=5.1528];
+"
+SpatioTemporalRequirement (id:4)
+    SpatialRequirement:
+        Location: l0
+TemporalRequirement:
+    from: t3
+    to:   t5
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#Payload
+        minCardinality: 2
+        maxCardinality: 18446744073709551615
+
+ (\
+v:7)" [height=2.8472,
+pos="3556.5,102.5",
+width=4.9444];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Payload
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l0
+            cardinality: 2
+            restriction: \
+MIN
+    @[t3,t5) (v:8)" -> "
+SpatioTemporalRequirement (id:4)
+    SpatialRequirement:
+        Location: l0
+TemporalRequirement:
+    from: t3
+    to:   t5
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#Payload
+        minCardinality: 2
+        maxCardinality: 18446744073709551615
+
+ (\
+v:7)" [key="inducedBy (e:5)",
+label="inducedBy (e:5)",
+lp="3497.5,230.5",
+pos="e,3472.9,205.37 3431.9,255.85 3443.1,242.03 3454.9,227.57 3466.5,213.28"];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Payload
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l0
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t3,t5) (v:6)" [height=2.4028,
+pos="3750.5,342.5",
+width=5.1528];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#Payload
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l0
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t3,t5) (v:6)" -> "
+SpatioTemporalRequirement (id:4)
+    SpatialRequirement:
+        Location: l0
+TemporalRequirement:
+    from: t3
+    to:   t5
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#Payload
+        minCardinality: 2
+        maxCardinality: 18446744073709551615
+
+ (\
+v:7)" [key="inducedBy (e:4)",
+label="inducedBy (e:4)",
+lp="3709.5,230.5",
+pos="e,3639.7,205.37 3680.5,255.85 3669.3,242.03 3657.6,227.57 3646.1,213.28"];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#TransportProvider
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    base
+            cardinality: 1
+            \
+restriction: MIN
+    @[t4,t6) (v:5)" [height=2.4028,
+pos="4167.5,342.5",
+width=5.9306];
+"
+SpatioTemporalRequirement (id:5)
+    SpatialRequirement:
+        Location: base
+TemporalRequirement:
+    from: t4
+    to:   t6
+\
+Resources: 
+    http://www.rock-robotics.org/2014/01/om-schema#TransportProvider
+        minCardinality: 1
+        maxCardinality: \
+18446744073709551615
+
+ (v:4)" [height=2.8472,
+pos="4389.5,102.5",
+width=5.7222];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#TransportProvider
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    base
+            cardinality: 1
+            \
+restriction: MIN
+    @[t4,t6) (v:5)" -> "
+SpatioTemporalRequirement (id:5)
+    SpatialRequirement:
+        Location: base
+TemporalRequirement:
+    from: t4
+    to:   t6
+\
+Resources: 
+    http://www.rock-robotics.org/2014/01/om-schema#TransportProvider
+        minCardinality: 1
+        maxCardinality: \
+18446744073709551615
+
+ (v:4)" [key="inducedBy (e:3)",
+label="inducedBy (e:3)",
+lp="4316.5,230.5",
+pos="e,4294.3,205.37 4247.6,255.85 4260.6,241.91 4274.1,227.3 4287.4,212.89"];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#TransportProvider
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    base
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t4,t6) (v:3)" [height=2.4028,
+pos="4612.5,342.5",
+width=5.9306];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#TransportProvider
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    base
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t4,t6) (v:3)" -> "
+SpatioTemporalRequirement (id:5)
+    SpatialRequirement:
+        Location: base
+TemporalRequirement:
+    from: t4
+    to:   t6
+\
+Resources: 
+    http://www.rock-robotics.org/2014/01/om-schema#TransportProvider
+        minCardinality: 1
+        maxCardinality: \
+18446744073709551615
+
+ (v:4)" [key="inducedBy (e:2)",
+label="inducedBy (e:2)",
+lp="4558.5,230.5",
+pos="e,4485.1,205.37 4532,255.85 4519,241.91 4505.5,227.3 4492.1,212.89"];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l2
+            cardinality: 1
+            restriction: \
+MIN
+    @[t2,t3) (v:2)" [height=2.4028,
+pos="5048.5,342.5",
+width=5.6806];
+"
+SpatioTemporalRequirement (id:6)
+    SpatialRequirement:
+        Location: l2
+TemporalRequirement:
+    from: t2
+    to:   t3
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        minCardinality: 1
+        maxCardinality: 18446744073709551615
+
+ (\
+v:1)" [height=2.8472,
+pos="5262.5,102.5",
+width=5.4722];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l2
+            cardinality: 1
+            restriction: \
+MIN
+    @[t2,t3) (v:2)" -> "
+SpatioTemporalRequirement (id:6)
+    SpatialRequirement:
+        Location: l2
+TemporalRequirement:
+    from: t2
+    to:   t3
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        minCardinality: 1
+        maxCardinality: 18446744073709551615
+
+ (\
+v:1)" [key="inducedBy (e:1)",
+label="inducedBy (e:1)",
+lp="5193.5,230.5",
+pos="e,5170.8,205.37 5125.8,255.85 5138.2,241.91 5151.2,227.3 5164.1,212.89"];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l2
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t2,t3) (v:0)" [height=2.4028,
+pos="5475.5,342.5",
+width=5.6806];
+"PERSISTENCE_CONDITION
+    STATE_VARIABLE
+        http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        LocationCardinality
+    \
+OBJECT_VARIABLE
+        unknown
+        LocationCardinality
+            location:    l2
+            cardinality: 18446744073709551615
+            \
+restriction: MAX
+    @[t2,t3) (v:0)" -> "
+SpatioTemporalRequirement (id:6)
+    SpatialRequirement:
+        Location: l2
+TemporalRequirement:
+    from: t2
+    to:   t3
+Resources: 
+    \
+http://www.rock-robotics.org/2014/01/om-schema#ImageProvider
+        minCardinality: 1
+        maxCardinality: 18446744073709551615
+
+ (\
+v:1)" [key="inducedBy (e:0)",
+label="inducedBy (e:0)",
+lp="5426.5,230.5",
+pos="e,5353.8,205.37 5398.6,255.85 5386.2,241.91 5373.3,227.3 5360.5,212.89"];
+}

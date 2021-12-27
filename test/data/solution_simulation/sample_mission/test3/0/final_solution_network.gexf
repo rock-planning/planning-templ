@@ -1,0 +1,477 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gexf xmlns="http://www.gexf.net/1.1draft" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.gexf.net/1.1draft http://gexf.net/1.1draft/gexf.xsd" version="1.1">
+  <graph mode="static" defaultedgetype="directed">
+    <attributes class="node" mode="static">
+      <attribute id="0" title="class" type="string"/>
+      <attribute id="1" title="label" type="string"/>
+      <attribute id="MultiCommodityVertex-attribute-0" title="vertex_attributes" type="string"/>
+      <attribute id="RoleInfoTuple-attribute-0" title="role_info_attributes" type="string"/>
+      <attribute id="RoleInfoTuple-attribute-1" title="roles" type="string"/>
+      <attribute id="RoleInfoTuple-attribute-2" title="tagged_roles" type="string"/>
+      <attribute id="RoleInfoTuple-attribute-3" title="tuple" type="string"/>
+      <attribute id="graph_analysis::NWeightedVertex_i_2-attribute-0" title="weights" type="string"/>
+    </attributes>
+    <attributes class="edge" mode="static">
+      <attribute id="0" title="class" type="string"/>
+      <attribute id="1" title="label" type="string"/>
+      <attribute id="CapacityLink-attribute-0" title="consumers" type="string"/>
+      <attribute id="CapacityLink-attribute-1" title="max_capacity" type="string"/>
+      <attribute id="CapacityLink-attribute-2" title="providers" type="string"/>
+      <attribute id="IntervalConstraint-attribute-0" title="bounds" type="string"/>
+      <attribute id="MultiCommodityEdge-attribute-0" title="edge_attributes" type="string"/>
+      <attribute id="RoleInfoWeightedEdge-attribute-0" title="roles" type="string"/>
+      <attribute id="RoleInfoWeightedEdge-attribute-1" title="tagged_roles" type="string"/>
+      <attribute id="RoleInfoWeightedEdge-attribute-2" title="weights" type="string"/>
+      <attribute id="graph_analysis::NWeightedEdge_d_1-attribute-0" title="weights" type="string"/>
+      <attribute id="graph_analysis::NWeightedEdge_i_5-attribute-0" title="weights" type="string"/>
+    </attributes>
+    <nodes>
+      <node id="0" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l1 8 LOCATION 0 0 2 t0 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="1" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l1 8 LOCATION 0 0 2 t1 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="10" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t3 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="11" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t4 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="12" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t5 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="13" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t6 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="14" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 LOCATION 0 0 2 t0 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="15" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 LOCATION 0 0 2 t1 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="16" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 8.82017365080714710e-01"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 LOCATION 0 0 2 t2 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="17" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 3.84000000000000000e+03 6 safety 9.84500340476448299e-01"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 4 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 LOCATION 0 0 2 t3 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="18" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 3.84000000000000000e+03 6 safety 9.67567743484969767e-01"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 4 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 3 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 LOCATION 0 0 2 t4 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="19" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.74000000000000000e+03 6 safety 8.07152790990816271e-01"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 3 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 3 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 LOCATION 0 0 2 t5 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="2" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.92000000000000000e+03 6 safety 9.43392149276056635e-01"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 4 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l1 8 LOCATION 0 0 2 t2 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="20" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.74000000000000000e+03 6 safety 9.00285786368279717e-01"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 3 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1 8 required 2 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 LOCATION 0 0 2 t6 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="3" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 5.17106035453470669e-01"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l1 8 LOCATION 0 0 2 t3 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="4" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 8.07152790990816271e-01"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l1 8 LOCATION 0 0 2 t4 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="5" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 3.12000000000000000e+03 6 safety 9.70614387763567565e-01"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l1 8 LOCATION 0 0 2 t5 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="6" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.56000000000000000e+03 6 safety 1.00000000000000000e+00"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l1 8 LOCATION 0 0 2 t6 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="7" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 1.00000000000000000e+00"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 5 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 5 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t0 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="8" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 2.10000000000000000e+03 6 safety 1.00000000000000000e+00"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 5 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 5 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t1 0 0 2"/>
+        </attvalues>
+      </node>
+      <node id="9" label="">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoTuple"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoTuple-attribute-0" value="22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00"/>
+          <attvalue for="RoleInfoTuple-attribute-1" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-2" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoTuple-attribute-3" value="22 serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t2 0 0 2"/>
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge id="0" source="0" target="1">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="1" source="1" target="2">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="14" source="10" target="11">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="15" source="11" target="12">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="16" source="12" target="13">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="17" source="14" target="15">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="18" source="15" target="16">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="19" source="16" target="17">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="20" source="17" target="18">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="21" source="17" target="4">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 2.00000000000000000e+01"/>
+        </attvalues>
+      </edge>
+      <edge id="22" source="18" target="19">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="23" source="18" target="5">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.00000000000000000e+01"/>
+        </attvalues>
+      </edge>
+      <edge id="24" source="19" target="20">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="25" source="19" target="6">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.00000000000000000e+01"/>
+        </attvalues>
+      </edge>
+      <edge id="3" source="2" target="17">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 3 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 2.00000000000000000e+01"/>
+        </attvalues>
+      </edge>
+      <edge id="2" source="2" target="3">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="5" source="3" target="18">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.00000000000000000e+01"/>
+        </attvalues>
+      </edge>
+      <edge id="4" source="3" target="4">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="6" source="4" target="5">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="8" source="5" target="20">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 2.00000000000000000e+01"/>
+        </attvalues>
+      </edge>
+      <edge id="7" source="5" target="6">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="9" source="7" target="8">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="12" source="8" target="16">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.00000000000000000e+01"/>
+        </attvalues>
+      </edge>
+      <edge id="11" source="8" target="2">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 4 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 1 9 Payload_1 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 1 8 Sherpa_1"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 2.00000000000000000e+01"/>
+        </attvalues>
+      </edge>
+      <edge id="10" source="8" target="9">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+      <edge id="13" source="9" target="10">
+        <attvalues>
+          <attvalue for="0" value="RoleInfoWeightedEdge"/>
+          <attvalue for="1" value=""/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-0" value="22 serialization::archive 15 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-1" value="22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0"/>
+          <attvalue for="RoleInfoWeightedEdge-attribute-2" value="22 serialization::archive 15 1 0 1.79769313486231571e+308"/>
+        </attvalues>
+      </edge>
+    </edges>
+  </graph>
+</gexf>
