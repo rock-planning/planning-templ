@@ -4,9 +4,8 @@
   </description>
   <author>Thomas Roehr/thomas.roehr@dfki.de</author>
   <maintainer>Thomas Roehr/thomas.roehr@dfki.de</maintainer>
-  <license></license>
-  <url>https://git.hb.dfki.de:dfki-planning/templ</url>
-  <logo>http://</logo>
+  <license>BSD-3-Clause</license>
+  <url>https://github.com/rock-planning/planning-templ</url>
   <depend package="base/cmake" />
   <depend package="base/types" />
   <depend package="tools/graph_analysis" />
