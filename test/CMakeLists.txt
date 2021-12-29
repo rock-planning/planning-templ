@@ -9,6 +9,7 @@ rock_testsuite(templ-test suite.cpp
     solvers/test_TransportNetwork.cpp
     solvers/test_TemporallyExpandedGraph.cpp
     solvers/test_MissionConstraints.cpp
+    solvers/test_SolutionSimulation.cpp
     test_Constraints.cpp
     test_Benchmarks.cpp
     test_CartographicMapping.cpp

@@ -1,0 +1,1036 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.rock-robotics.org/2014/01/om-schema#"
+     xml:base="http://www.rock-robotics.org/2014/01/om-schema"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:om-base="http://www.rock-robotics.org/2014/01/om-base#"
+     xmlns:om-schemae="http://www.rock-robotics.org/2014/01/om-schemae#">
+    <owl:Ontology rdf:about="http://www.rock-robotics.org/2014/01/om-schema">
+        <owl:imports rdf:resource="http://www.rock-robotics.org/2014/01/om-base"/>
+        <rdfs:comment>Changelog:
+* 0.20
+  * add MotionPlanning
+  * add AutonomousNavigation equivalentTo MoveTo
+* 0.19
+  * change to using om-base
+* 0.18
+  * change TransportService -&gt; TransportProvider and LogisticHub -&gt; LogisticHubProvider for consistency reasons
+* 0.17
+ * add property payloadTransportSupplyDemand
+* 0.16
+ * add soil sampler 
+* 0.15
+ * introduce modularization, i.e. move robot specific entries to their own ontology and using import statements
+* 0.14
+ * add TransportService
+* 0.13
+ * add concept functionality
+* 0.12
+ * add payloadTransportCapacity
+* 0.11
+ * update CREX
+  * change explicit dependency on MoveTo to addition of sub requirement
+ * added CoyoteIII
+ * changed BaseCamps to BaseCamp
+ * added LogisticHub (Capability) and PayloadLogisticHub (Service)
+* 0.10
+ * added data properties such as mass etc. for Sherpa, CREX, Payload
+ * add PayloadBattery</rdfs:comment>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotation properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#inferFrom -->
+
+    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#inferFrom">
+        <inferFrom rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#InferenceRule_transportCapacity"/>
+    </rdf:Description>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#ActionPlanning -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#ActionPlanning">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Planning"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#AutonomousNavigation -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#AutonomousNavigation">
+        <owl:equivalentClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#MoveTo"/>
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Capability"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Camera -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Camera">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PhysicalEntity"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#EmiActive -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#EmiActive">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ElectroMechanicalInterface"/>
+        <owl:disjointWith rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#EmiPassive -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ElectroMechanicalInterface"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ElectroMechanicalInterface"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PowerSource"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ServiceProvider"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#ForceTorqueSensor -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#ForceTorqueSensor">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PhysicalEntity"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#ImageProvider -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#ImageProvider">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Camera"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PowerSource"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ServiceProvider"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#LaserScanner -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#LaserScanner">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PhysicalEntity"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#LoadArea -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#LoadArea">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#MechanicalInterface"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#LoadAreaProvider -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#LoadAreaProvider">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#LoadArea"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ServiceProvider"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Localization -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Localization">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Capability"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#ImageProvider"/>
+                    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#MoveTo"/>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ServiceProvider"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Locomotion -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Locomotion">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Capability"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#LogisticHubProvider -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#LogisticHubProvider">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ServiceProvider"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Manipulation -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Manipulation">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Capability"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#ManipulationProvider -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#ManipulationProvider">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Manipulation"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Manipulator"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PowerSource"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ServiceProvider"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Manipulator -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Manipulator">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PhysicalEntity"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Mapping -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Mapping">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Capability"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#MotionPlanning -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#MotionPlanning">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Planning"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#MoveTo -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#MoveTo">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Locomotion"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Mapping"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#MotionPlanning"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PowerSource"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#SelfLocalization"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Capability"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PayloadLogisticHub -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PayloadLogisticHub">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#LogisticHubProvider"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ServiceProvider"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Planning -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Planning">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Capability"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PowerSource -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PowerSource">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PhysicalEntity"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#SelfLocalization -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#SelfLocalization">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Localization"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#ServiceProvider -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#ServiceProvider">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Service"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#SoilSampler -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#SoilSampler">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PhysicalEntity"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#SoilSamplingProvider -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#SoilSamplingProvider">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#ManipulationProvider"/>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ForceTorqueSensor"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#SoilSampler"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ServiceProvider"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#StereoImageProvider -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#StereoImageProvider">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PowerSource"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">2</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Camera"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ServiceProvider"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#TaskPlanning -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#TaskPlanning">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Planning"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Trail -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Trail">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Capability"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#TransportProvider -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#TransportProvider">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider"/>
+                    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#MoveTo"/>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ServiceProvider"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ElectroMechanicalInterface"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#MoveTo"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#ActionPlanning -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#ActionPlanning">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ActionPlanning"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Software_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.1</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#AutonomousNavigation -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#AutonomousNavigation">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#AutonomousNavigation"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Software_0"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Camera -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Camera">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Camera"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.01</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.8</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#EmiActive -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#EmiActive">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiActive"/>
+        <compatibleWith rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.1</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#EmiPassive -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.2</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPowerProvider"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#ForceTorqueSensor -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#ForceTorqueSensor">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ForceTorqueSensor"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.01</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.8</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#FunctionalityBasedSelection_AutonomousNavigation -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#FunctionalityBasedSelection_AutonomousNavigation">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#FunctionalityBasedSelection"/>
+        <selectBy rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#AutonomousNavigation"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#FunctionalityBasedSelection_TransportProvider -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#FunctionalityBasedSelection_TransportProvider">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#FunctionalityBasedSelection"/>
+        <selectBy rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#TransportProvider"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#ImageProvider -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#ImageProvider">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ImageProvider"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#InferenceRule_default -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#InferenceRule_default">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#CompositeAgentRule"/>
+        <_a rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#AllSelection"/>
+        <inferFrom>OP_SUM(_a,_self)</inferFrom>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#InferenceRule_locomotionProperty -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#InferenceRule_locomotionProperty">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#CompositeAgentRule"/>
+        <_a rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#TransportProviderSelection"/>
+        <inferFrom>OP_SUM(_a, _self)</inferFrom>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#InferenceRule_transportCapacity -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#InferenceRule_transportCapacity">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#CompositeAgentRule"/>
+        <_a rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#TransportProviderSelection"/>
+        <_b rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#transportCapacity"/>
+        <_c rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#transportDemand"/>
+        <inferFrom>OP_SUM(_a,_b) - OP_SUM(NOT(_a),_c)</inferFrom>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#LaserScanner -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#LaserScanner">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#LaserScanner"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.01</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.8</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#LoadArea -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#LoadArea">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#LoadArea"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Constant_Hardware_unfailable"/>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.001</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#LoadAreaProvider -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#LoadAreaProvider">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#LoadAreaProvider"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Localization -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Localization">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Localization"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Software_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">5.0</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.4</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#LocationImageProvider"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Locomotion -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Locomotion">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Locomotion"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Software_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.1</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#LogisticHubProvider -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#LogisticHubProvider">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#LogisticHubProvider"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Manipulation -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Manipulation">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Manipulation"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Software_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.1</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#ManipulationProvider -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#ManipulationProvider">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#ManipulationProvider"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Manipulator -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Manipulator">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Manipulator"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.05</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.3</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Mapping -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Mapping">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Mapping"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Software_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.05</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#MobileAgentSelection -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#MobileAgentSelection">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#SelectionPolicy"/>
+        <_0 rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#FunctionalityBasedSelection_AutonomousNavigation"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#MotionPlanning -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#MotionPlanning">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#MotionPlanning"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Software_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.1</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.8</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PDF_Constant -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PDF_Constant">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-base#ConstantPDF"/>
+        <om-base:p rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.05</om-base:p>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PDF_Constant_Hardware_unfailable -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PDF_Constant_Hardware_unfailable">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-base#ConstantPDF"/>
+        <om-base:p rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0E-4</om-base:p>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PDF_Exponential -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PDF_Exponential">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-base#ExponentialPDF"/>
+        <om-base:lambda rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</om-base:lambda>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0 -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-base#WeibullPDF"/>
+        <om-base:beta rdf:datatype="http://www.w3.org/2001/XMLSchema#double">10.0</om-base:beta>
+        <om-base:eta rdf:datatype="http://www.w3.org/2001/XMLSchema#double">720000.0</om-base:eta>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_longtime -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_longtime">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-base#WeibullPDF"/>
+        <om-base:beta rdf:datatype="http://www.w3.org/2001/XMLSchema#double">5.0</om-base:beta>
+        <om-base:eta rdf:datatype="http://www.w3.org/2001/XMLSchema#double">7200000.0</om-base:eta>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Software_0 -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Software_0">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-base#WeibullPDF"/>
+        <om-base:beta rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.5</om-base:beta>
+        <om-base:eta rdf:datatype="http://www.w3.org/2001/XMLSchema#double">36000.0</om-base:eta>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_e144k_b5 -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_e144k_b5">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-base#WeibullPDF"/>
+        <om-base:beta rdf:datatype="http://www.w3.org/2001/XMLSchema#double">5.0</om-base:beta>
+        <om-base:eta rdf:datatype="http://www.w3.org/2001/XMLSchema#double">144000.0</om-base:eta>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_e288k_b5 -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_e288k_b5">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-base#WeibullPDF"/>
+        <om-base:beta rdf:datatype="http://www.w3.org/2001/XMLSchema#double">5.0</om-base:beta>
+        <om-base:eta rdf:datatype="http://www.w3.org/2001/XMLSchema#double">288000.0</om-base:eta>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_e360k_b5 -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_e360k_b5">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-base#WeibullPDF"/>
+        <om-base:beta rdf:datatype="http://www.w3.org/2001/XMLSchema#double">5.0</om-base:beta>
+        <om-base:eta rdf:datatype="http://www.w3.org/2001/XMLSchema#double">360000.0</om-base:eta>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PayloadLogisticsHub -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PayloadLogisticsHub">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PayloadLogisticHub"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Planning -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Planning">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Planning"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Software_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.9</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PowerSource -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PowerSource">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PowerSource"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Constant_Hardware_unfailable"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.001</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.01</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PropertyBasedSelection_max_transportCapacity -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PropertyBasedSelection_max_transportCapacity">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PropertyBasedSelection"/>
+        <hasOperator rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#OP_MAX"/>
+        <selectBy rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#transportCapacity"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#SelfLocalization -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#SelfLocalization">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#SelfLocalization"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Software_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#SoilSampler -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#SoilSampler">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#SoilSampler"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.1</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.5</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#SoilSamplingProvider -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#SoilSamplingProvider">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#SoilSamplingProvider"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#StereoImageProvider -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#StereoImageProvider">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#StereoImageProvider"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#TaskPlanning -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#TaskPlanning">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#TaskPlanning"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Software_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">false</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.1</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.9</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Trail -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Trail">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Trail"/>
+        <has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+        <om-base:alwaysRunning rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">true</om-base:alwaysRunning>
+        <om-base:failureRate rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.01</om-base:failureRate>
+        <om-base:resilience rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.1</om-base:resilience>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#TransportProvider -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#TransportProvider">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#TransportProvider"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#TransportProviderSelection -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#TransportProviderSelection">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#SelectionPolicy"/>
+        <_0 rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#FunctionalityBasedSelection_TransportProvider"/>
+        <_1 rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#AgentSizeBasedSelection_equals_1"/>
+        <_2 rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PropertyBasedSelection_max_transportCapacity"/>
+        <rdfs:comment>A TransportProvider in a composite system, is the atomic agent that offers locomotion capabilities and provides a maximum of transport capacities.
+
+This is a simplication, since multiple systems might also be able to form one TransportProvider.
+This will not be analysed via ontological reasoning, but requires a 3D physical vstructure anaylsis/verification, to identify how exactly two systems are connected.
+
+Hence, for now the model remains limited.
+
+Examples of possible reasoning mechanisms:
+- one atomic agent provides a locomotion platform, with transport capacity 1
+- another atomic agent (not mobile, thus has no TransportCapacity) provides the load area / additional interfaces extending the final load capacity to 8</rdfs:comment>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Annotations
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-base#Fault_Catastrophic">
+        <rdfs:comment>Base Catastrophic Faults. Very unlikely, but makes recovery virtually impossible</rdfs:comment>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-base#Fault_Major">
+        <rdfs:comment>Base Major Fault. Describes a major fault which is hard to recover from</rdfs:comment>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-base#Fault_Minor">
+        <rdfs:comment>Base Minor Fault. Describes a Minor Fault which is rather easy to recover from.</rdfs:comment>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Trail">
+        <rdfs:comment>The capability to trail permits for instance trailers to follow trucks after being towed</rdfs:comment>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#locomotionProperty">
+        <hasCompositeAgentRule rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#InferenceRule_locomotionProperty"/>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#physicalProperty">
+        <hasCompositeAgentRule rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#InferenceRule_default"/>
+    </rdf:Description>
+    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#transportCapacity">
+        <hasCompositeAgentRule rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#InferenceRule_transportCapacity"/>
+    </rdf:Description>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi -->
+

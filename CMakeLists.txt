@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 add_definitions(-Wall) # -Wpedantic)
 add_definitions(-DACCEPT_USE_OF_DEPRECATED_PROJ_API_H=1)
+set(CMAKE_BUILD_TYPE Release)
 
 if(COVERAGE)
     if(CMAKE_BUILD_TYPE MATCHES Debug)

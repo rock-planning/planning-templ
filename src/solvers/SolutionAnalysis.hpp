@@ -24,6 +24,8 @@ public:
     typedef std::pair< moreorg::ModelPool::List, moreorg::ModelPool::List >
         MinMaxModelPools;
 
+    typedef std::map <SpaceTime::Network::tuple_t::Ptr, moreorg::ResourceInstance::List> TupleResourceInstancesMap;
+
     SolutionAnalysis();
 
     /**
@@ -68,6 +70,7 @@ public:
     double getCost() const { return mCost; }
     double getSafety() const { return mSafety; }
     double getEfficacy() const { return mEfficacy; }
+    double getEfficacyWithFailedComponents(const moreorg::ResourceInstance::List &blacklist);
     double getEfficiency() const { return mEfficiency; }
     double getReconfigurationCost() const { return mReconfigurationCost; }
     double getTravelledDistance() const { return mTraveledDistance; }
@@ -220,6 +223,8 @@ public:
      */
     void quantifyTime();
 
+    TupleResourceInstancesMap prepareSolutionAnalysis(const moreorg::ResourceInstance::List &blacklist);
+
     // End annotation functions
 
     /**
@@ -238,6 +243,10 @@ public:
 
     graph_analysis::BaseGraph::Ptr getTimeDistanceGraph() const { return mpTimeDistanceGraph; }
 
+    moreorg::ResourceInstance::List filterResourcesByBlacklist(moreorg::ResourceInstance::List &resources, const moreorg::ResourceInstance::List &blacklist);
+
+    moreorg::ModelPool checkAndRemoveRequirements(moreorg::ModelPool &available, moreorg::ModelPool &required);
+
     /**
      * Compute efficacy as function of satisfiability
      \f[
@@ -245,7 +254,9 @@ public:
      \f]
      * The resulting value can be retrieve with getEfficiency
      */
-    void computeEfficacy();
+    void computeEfficacy(const moreorg::ResourceInstance::List& blacklist = moreorg::ResourceInstance::List());
+
+    double computeEfficacyWithFailedComponents(TupleResourceInstancesMap &tupleResourceInstancesmap);
 
     /**
      * Compute efficiency as overall energy cost in kWh

@@ -1016,7 +1016,7 @@ Gecode::Space* TransportNetwork::copy()
     return new TransportNetwork(*this);
 }
 
-std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const qxcfg::Configuration& configuration)
+std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions, const qxcfg::Configuration& configuration, const moreorg::ResourceInstance::List& componentBlacklist)
 {
     SolutionList solutions;
     mission->prepareForPlanning();
@@ -1127,6 +1127,17 @@ std::vector<TransportNetwork::Solution> TransportNetwork::solve(const templ::Mis
             best = current;
 
             using namespace moreorg;
+
+            if (!componentBlacklist.empty())
+            {
+                double baseEfficacy = current->mSolutionAnalysis.getEfficacy();
+                double efficacy = current->mSolutionAnalysis.getEfficacyWithFailedComponents(componentBlacklist);
+                if (baseEfficacy > efficacy)
+                {
+                    std::cout << "Found solution is not valid as it would miss requirements with blacklisted components." << std::endl;
+                    continue;
+                }
+            }
 
             LOG_INFO_S << "#" << i << "/" << minNumberOfSolutions << " solution found:" << current->toString();
             std::cout << "Solution found:" << std::endl;
