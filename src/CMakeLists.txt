@@ -235,8 +235,6 @@ rock_library(templ
         utils/PathConstructor.hpp
     DEPS
         templ_moft
-    LIBS
-        ${GECODE_LIBRARIES}
 )
 
 rock_library(templ_benchmark
