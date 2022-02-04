@@ -1,5 +1,6 @@
 find_package(Boost REQUIRED system filesystem serialization program_options)
-# For adding the qt4 resources
+
+# For adding the qt5 resources
 set(CMAKE_AUTORCC ON)
 rock_library(templ_core
     SOURCES
@@ -370,9 +371,11 @@ rock_library(templ_gui
         gui/widgets/TemporalConstraintQuantitative.hpp
     DEPS
         templ
-    DEPS_PKGCONFIG
-        QtGui
-        QtXml
+        Qt5::Gui
+        Qt5::Widgets
+        Qt5::Xml
+        Qt5::PrintSupport
+        Qt5::Svg
     UI
         gui/TemplGui.ui
         gui/dialogs/AddLocation.ui

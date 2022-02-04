@@ -34,5 +34,5 @@ if(COVERAGE)
 endif()
 
 rock_init()
-rock_find_qt4()
+rock_find_qt5(Core Gui Xml Widgets PrintSupport Svg)
 rock_standard_layout()
