@@ -16,9 +16,9 @@ PenStyle::PenStyle(QWidget* parent)
     QVariant variant = mSettings.value("editor/edge/pen");
 
     // style
-    mpUi->styleComboBox->addItem(/*icon, */"Solid Line", Qt::SolidLine);
-    mpUi->styleComboBox->addItem(/*icon, */"Dash Line", Qt::DashLine);
-    mpUi->styleComboBox->addItem(/*icon, */"Dot Line", Qt::DotLine);
+    mpUi->styleComboBox->addItem(/*icon, */"Solid Line", (int)Qt::SolidLine);
+    mpUi->styleComboBox->addItem(/*icon, */"Dash Line", (int)Qt::DashLine);
+    mpUi->styleComboBox->addItem(/*icon, */"Dot Line", (int)Qt::DotLine);
 
     // pen join style
     mpUi->joinStyleComboBox->addItem(/*icon, */"Bevel", Qt::BevelJoin);
@@ -37,7 +37,7 @@ PenStyle::PenStyle(QWidget* parent)
     } else {
         QPen pen = variant.value<QPen>();
         mpUi->colorPushButton->setStyleSheet("background-color: " + pen.brush().color().name());
-        mpUi->styleComboBox->setCurrentIndex( mpUi->styleComboBox->findData( pen.style() ) );
+        mpUi->styleComboBox->setCurrentIndex( mpUi->styleComboBox->findData( (int)pen.style() ) );
         mpUi->joinStyleComboBox->setCurrentIndex( mpUi->joinStyleComboBox->findData( pen.joinStyle() ) );
         mpUi->capStyleComboBox->setCurrentIndex( mpUi->capStyleComboBox->findData( pen.capStyle() ) );
         mpUi->widthSpinBox->setValue(pen.width());
