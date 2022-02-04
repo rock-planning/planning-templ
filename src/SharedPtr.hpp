@@ -15,6 +15,7 @@
 #include <memory>
 #include <functional>
 #endif
+#include <stdexcept>
 
 namespace templ
 {

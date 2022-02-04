@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <sstream>
+#include <limits>
 
 #include "AgentType.hpp"
 
