@@ -13,7 +13,7 @@ jobs:
         id: current_branch
 
       - name: Build 18.04
-        run: docker build -t 2maz/templ -f Dockerfile . --build-arg PKG_BRANCH=${{ steps.current_branch.outputs.branch }} --build-arg GITHUB_ACCESS_TOKEN=${{ secrets.DOCKER_BUILD_ACCESS_TOKEN }}
+        run: docker build -t 2maz/templ -f Dockerfile . --build-arg PKG_BRANCH=${{ steps.current_branch.outputs.branch }}
 
       - name: Test-on-ubuntu:18.04
         run: docker run 2maz/templ /bin/bash -c "source /home/docker/rock_test/env.sh; cd /home/docker/rock_test/planning/templ; ./build/test/templ-test --log_level=all"

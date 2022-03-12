@@ -8,9 +8,6 @@ MAINTAINER 2maz "https://github.com/2maz"
 
 ENV PKG_NAME="planning/templ"
 
-ARG GITHUB_ACCESS_TOKEN
-ENV GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN}
-
 # Optional arguments
 ARG PKG_BRANCH="main"
 ENV PKG_BRANCH=${PKG_BRANCH}
@@ -38,8 +35,6 @@ ENV SHELL /bin/bash
 
 RUN git config --global user.email "rock-users@dfki.de"
 RUN git config --global user.name "Rock CI"
-RUN echo "https://2maz:${GITHUB_ACCESS_TOKEN}@github.com" > ~/.git-credentials
-RUN git config --global credential.helper store
 
 RUN wget https://raw.githubusercontent.com/rock-core/autoproj/master/bin/autoproj_bootstrap
 
@@ -51,6 +46,7 @@ ENV AUTOPROJ_BOOTSTRAP_IGNORE_NONEMPTY_DIR 1
 ENV AUTOPROJ_NONINTERACTIVE 1
 RUN ruby /home/docker/autoproj_bootstrap git https://github.com/2maz/templ-buildconf.git branch=main --seed-config=seed-config.yml
 RUN sed -i "s#rock\.core#knowledge_reasoning/moreorg\n    - ${PKG_NAME}#g" autoproj/manifest
+RUN sed -i "s#testing#${PKG_BRANCH}#g" autoproj/overrides.yml
 COPY --chown=docker .ci/deb_blacklist.yml autoproj/deb_blacklist.yml
 
 # Activate testing
