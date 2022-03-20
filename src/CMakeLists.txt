@@ -182,6 +182,7 @@ rock_library(templ
         solvers/transshipment/MinCostFlow.cpp
         solvers/transshipment/FlowNetwork.cpp
         utils/PathConstructor.cpp
+        utils/SolutionSimulationHelpers.cpp
     HEADERS
         CapacityLink.hpp
         DataPropertyAssignment.hpp
