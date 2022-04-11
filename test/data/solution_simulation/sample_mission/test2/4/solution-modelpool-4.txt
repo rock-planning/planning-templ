@@ -1,0 +1,3 @@
+http://www.rock-robotics.org/2014/01/om-schema#BaseCamp 2
+http://www.rock-robotics.org/2014/01/om-schema#Payload 12
+http://www.rock-robotics.org/2014/01/om-schema#SherpaTT 2

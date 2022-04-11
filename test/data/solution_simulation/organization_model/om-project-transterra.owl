@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+
+
+<!DOCTYPE rdf:RDF [
+    <!ENTITY owl "http://www.w3.org/2002/07/owl#" >
+    <!ENTITY xsd "http://www.w3.org/2001/XMLSchema#" >
+    <!ENTITY rdfs "http://www.w3.org/2000/01/rdf-schema#" >
+    <!ENTITY om-schema "http://www.rock-robotics.org/2014/01/om-schema#" >
+    <!ENTITY rdf "http://www.w3.org/1999/02/22-rdf-syntax-ns#" >
+]>
+
+
+<rdf:RDF xmlns="http://www.rock-robotics.org/2015/12/projects/TransTerrA#"
+     xml:base="http://www.rock-robotics.org/2015/12/projects/TransTerrA"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:om-schema="http://www.rock-robotics.org/2014/01/om-schema#"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://www.rock-robotics.org/2015/12/projects/TransTerrA">
+        <owl:imports rdf:resource="http://www.rock-robotics.org/2015/12/robots/BaseCamp"/>
+        <owl:imports rdf:resource="http://www.rock-robotics.org/2015/12/robots/CREX"/>
+        <owl:imports rdf:resource="http://www.rock-robotics.org/2015/12/robots/CoyoteIII"/>
+        <owl:imports rdf:resource="http://www.rock-robotics.org/2015/12/robots/Payload"/>
+        <owl:imports rdf:resource="http://www.rock-robotics.org/2015/12/robots/Sherpa"/>
+        <owl:imports rdf:resource="http://www.rock-robotics.org/2015/12/robots/SherpaTT"/>
+    </owl:Ontology>
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#BaseCamp -->
+
+    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#BaseCamp">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2015/12/projects/TransTerrA#BulkyAgent"/>
+    </rdf:Description>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#CREX -->
+
+    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#CREX">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2015/12/projects/TransTerrA#BulkyAgent"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&om-schema;hasTransportCapacity"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2015/12/projects/TransTerrA#BulkyAgent"/>
+                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">0</owl:maxQualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII -->
+
+    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#CoyoteIII">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2015/12/projects/TransTerrA#BulkyAgent"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&om-schema;hasTransportCapacity"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2015/12/projects/TransTerrA#BulkyAgent"/>
+                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">0</owl:maxQualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Sherpa -->
+
+    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Sherpa">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&om-schema;hasTransportCapacity"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2015/12/projects/TransTerrA#BulkyAgent"/>
+                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">2</owl:maxQualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Sherpa -->
+
+    <rdf:Description rdf:about="http://www.rock-robotics.org/2014/01/om-schema#SherpaTT">
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="&om-schema;hasTransportCapacity"/>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2015/12/projects/TransTerrA#BulkyAgent"/>
+                <owl:maxQualifiedCardinality rdf:datatype="&xsd;nonNegativeInteger">2</owl:maxQualifiedCardinality>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </rdf:Description>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/projects/TransTerrA#BulkyAgent -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2015/12/projects/TransTerrA#BulkyAgent">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Actor"/>
+    </owl:Class>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 3.5.0) http://owlapi.sourceforge.net -->
+

@@ -20,6 +20,7 @@
 #include "utils/FluentTimeIndex.hpp"
 #include "Context.hpp"
 #include "../SolutionAnalysis.hpp"
+#include <moreorg/ResourceInstance.hpp>
 
 namespace templ {
 namespace solvers {
@@ -400,7 +401,7 @@ public:
      *  after given number of solutions has been found
      * \param configuration Configuration for this planning instance
      */
-    static SolutionList solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions = 1, const qxcfg::Configuration& configuration = qxcfg::Configuration());
+    static SolutionList solve(const templ::Mission::Ptr& mission, uint32_t minNumberOfSolutions = 1, const qxcfg::Configuration& configuration = qxcfg::Configuration(), const moreorg::ResourceInstance::List& componentBlacklist = moreorg::ResourceInstance::List());
 
     /**
      * Get the solution of this Gecode::Space instance

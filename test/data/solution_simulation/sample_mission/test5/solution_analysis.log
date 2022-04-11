@@ -1,0 +1,6 @@
+#  [session-id]  [alpha] [beta] [sigma]  [efficacy] [efficiency in kWh] [safety]  [timehorizon in s] [travel-distance in m] [reconfiguration-cost in s] [number of agents] [number of mobile agents]
+0 1 1 1 1 2.39826 0.704358 22425.3 7242.64 10080 4 3 
+1 1 1 1 1 1.08356 0.609909 14720 5000 3120 3 2 
+2 1 1 1 1 2.25281 0.675139 21065.3 9242.64 8520 4 3 
+3 1 1 1 1 1.55002 0.437717 21056.9 6828.43 9360 3 2 
+4 1 1 1 1 1.32035 0.491096 17936.9 5828.43 4680 3 2 

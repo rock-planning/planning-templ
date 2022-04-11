@@ -1,0 +1,1940 @@
+digraph GraphvizGraph {
+	graph [bb="0,0,6420.5,2522",
+		concentrate=false,
+		dpi="96,0",
+		overlap=false,
+		pad="0,2",
+		root="Tuple:
+    a:
+        l2
+    b:
+        t6
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+    \
+roles (required):
+        Payload:
+            0
+ (v:27)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration \
+cost 0.00000000000000000e+00 6 safety 9.99157862424486010e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::\
+archive 15 0 0 2 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: \
+48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#\
+Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l2 8 LOCATION 0 0 2 t6 0 0 2",
+		splines=true
+	];
+	node [fixedsize=false,
+		label="\N",
+		pin=false,
+		pos="0,0",
+		shape=box,
+		width=0
+	];
+	edge [label=o];
+	"Tuple:
+    a:
+        l2
+    b:
+        t6
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+    \
+roles (required):
+        Payload:
+            0
+ (v:27)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration \
+cost 0.00000000000000000e+00 6 safety 9.99157862424486010e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::\
+archive 15 0 0 2 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: \
+48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#\
+Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l2 8 LOCATION 0 0 2 t6 0 0 2"	 [height=3.8611,
+		pos="4120,139",
+		width=25.528];
+	"Tuple:
+    a:
+        l2
+    b:
+        t5
+    roles (assigned):
+        Payload:
+            0
+    roles (required):
+        Payload:
+            \
+0
+ (v:26)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 8.94839316814369901e-01
+roles 22 serialization::\
+archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/\
+2014/01/om-schema#Payload 0 9 Payload_0 8 required 1 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_\
+0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 LOCATION \
+0 0 2 t5 0 0 2"	 [height=3.4444,
+		pos="4120,513",
+		width=19.569];
+	"Tuple:
+    a:
+        l2
+    b:
+        t5
+    roles (assigned):
+        Payload:
+            0
+    roles (required):
+        Payload:
+            \
+0
+ (v:26)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 8.94839316814369901e-01
+roles 22 serialization::\
+archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/\
+2014/01/om-schema#Payload 0 9 Payload_0 8 required 1 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_\
+0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 LOCATION \
+0 0 2 t5 0 0 2" -> "Tuple:
+    a:
+        l2
+    b:
+        t6
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+    \
+roles (required):
+        Payload:
+            0
+ (v:27)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration \
+cost 0.00000000000000000e+00 6 safety 9.99157862424486010e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::\
+archive 15 0 0 2 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: \
+48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#\
+Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l2 8 LOCATION 0 0 2 t6 0 0 2" [key="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:28)",
+	label="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:28)",
+	lp="4172.5,333.5",
+	pos="e,4120,278.18 4120,388.98 4120,356.8 4120,321.8 4120,288.47"];
+"Tuple:
+    a:
+        l2
+    b:
+        t4
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+    \
+roles (required):
+        Payload:
+            0
+        Sherpa:
+            2
+ (v:25)
+role_info_attributes 22 serialization::archive \
+15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 9.48966859646861338e-01
+roles 22 serialization::archive \
+15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/\
+01/om-schema#Payload 0 9 Payload_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 2 0 5 http: \
+49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 \
+8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 \
+LOCATION 0 0 2 t4 0 0 2" [height=4.2778,
+	pos="4120,902",
+	width=31.5];
+"Tuple:
+    a:
+        l2
+    b:
+        t4
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+    \
+roles (required):
+        Payload:
+            0
+        Sherpa:
+            2
+ (v:25)
+role_info_attributes 22 serialization::archive \
+15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 9.48966859646861338e-01
+roles 22 serialization::archive \
+15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/\
+01/om-schema#Payload 0 9 Payload_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 2 0 5 http: \
+49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 \
+8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 \
+LOCATION 0 0 2 t4 0 0 2" -> "Tuple:
+    a:
+        l2
+    b:
+        t5
+    roles (assigned):
+        Payload:
+            0
+    roles (required):
+        Payload:
+            \
+0
+ (v:26)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 8.94839316814369901e-01
+roles 22 serialization::\
+archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/\
+2014/01/om-schema#Payload 0 9 Payload_0 8 required 1 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_\
+0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 LOCATION \
+0 0 2 t5 0 0 2" [key="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:26)",
+label="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:26)",
+lp="4172.5,692.5",
+pos="e,4120,637.03 4120,747.98 4120,714.61 4120,679.57 4120,647.04"];
+"Tuple:
+    a:
+        l1
+    b:
+        t5
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+ (\
+v:12)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.56000000000000000e+03 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 \
+http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa \
+2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l1 \
+8 LOCATION 0 0 2 t5 0 0 2" [height=3.2361,
+pos="5501,513",
+width=18.278];
+"Tuple:
+    a:
+        l2
+    b:
+        t4
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+    \
+roles (required):
+        Payload:
+            0
+        Sherpa:
+            2
+ (v:25)
+role_info_attributes 22 serialization::archive \
+15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 9.48966859646861338e-01
+roles 22 serialization::archive \
+15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/\
+01/om-schema#Payload 0 9 Payload_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 2 0 5 http: \
+49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 \
+8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 \
+LOCATION 0 0 2 t4 0 0 2" -> "Tuple:
+    a:
+        l1
+    b:
+        t5
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+ (\
+v:12)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.56000000000000000e+03 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 \
+http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa \
+2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l1 \
+8 LOCATION 0 0 2 t5 0 0 2" [key="capacity: 20
+    roles (assigned):
+        Sherpa:
+            2
+ (e:27)",
+label="capacity: 20
+    roles (assigned):
+        Sherpa:
+            2
+ (e:27)",
+lp="5026.5,692.5",
+pos="e,5087.3,629.54 4666.8,747.98 4803.4,709.49 4947.9,668.79 5077.6,632.27"];
+"Tuple:
+    a:
+        l2
+    b:
+        t3
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+    \
+roles (required):
+        Sherpa:
+            2
+ (v:24)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration \
+cost 0.00000000000000000e+00 6 safety 8.97812620630167646e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::\
+archive 15 0 0 2 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: \
+48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#\
+Sherpa 2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l2 8 LOCATION 0 0 2 t3 0 0 2" [height=3.8611,
+pos="4079,1306",
+width=25.361];
+"Tuple:
+    a:
+        l2
+    b:
+        t3
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+    \
+roles (required):
+        Sherpa:
+            2
+ (v:24)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration \
+cost 0.00000000000000000e+00 6 safety 8.97812620630167646e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::\
+archive 15 0 0 2 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: \
+48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#\
+Sherpa 2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l2 8 LOCATION 0 0 2 t3 0 0 2" -> "Tuple:
+    a:
+        l2
+    b:
+        t4
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+    \
+roles (required):
+        Payload:
+            0
+        Sherpa:
+            2
+ (v:25)
+role_info_attributes 22 serialization::archive \
+15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 9.48966859646861338e-01
+roles 22 serialization::archive \
+15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/\
+01/om-schema#Payload 0 9 Payload_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 2 0 5 http: \
+49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 \
+8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 8 \
+LOCATION 0 0 2 t4 0 0 2" [key="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:25)",
+label="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:25)",
+lp="4153.5,1111.5",
+pos="e,4104.4,1056.2 4093.1,1167 4096.4,1134.6 4099.9,1099.8 4103.3,1066.5"];
+"Tuple:
+    a:
+        l2
+    b:
+        t2
+    roles (assigned):
+        Payload:
+            0
+ (v:23)
+role_info_attributes 22 \
+serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 \
+serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 \
+9 Payload_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 \
+8 LOCATION 0 0 2 t2 0 0 2" [height=2.8194,
+pos="4079,1680",
+width=12.319];
+"Tuple:
+    a:
+        l2
+    b:
+        t2
+    roles (assigned):
+        Payload:
+            0
+ (v:23)
+role_info_attributes 22 \
+serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 \
+serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 \
+9 Payload_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 \
+8 LOCATION 0 0 2 t2 0 0 2" -> "Tuple:
+    a:
+        l2
+    b:
+        t3
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+    \
+roles (required):
+        Sherpa:
+            2
+ (v:24)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration \
+cost 0.00000000000000000e+00 6 safety 8.97812620630167646e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::\
+archive 15 0 0 2 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: \
+48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#\
+Sherpa 2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l2 8 LOCATION 0 0 2 t3 0 0 2" [key="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:24)",
+label="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:24)",
+lp="4131.5,1500.5",
+pos="e,4079,1445.2 4079,1578.3 4079,1540.4 4079,1496.6 4079,1455.4"];
+"Tuple:
+    a:
+        l2
+    b:
+        t1
+    roles (assigned):
+        Payload:
+            0
+ (v:22)
+role_info_attributes 22 \
+serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 \
+serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 \
+9 Payload_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 \
+8 LOCATION 0 0 2 t1 0 0 2" [height=2.8194,
+pos="4079,2039",
+width=12.319];
+"Tuple:
+    a:
+        l2
+    b:
+        t1
+    roles (assigned):
+        Payload:
+            0
+ (v:22)
+role_info_attributes 22 \
+serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 \
+serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 \
+9 Payload_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 \
+8 LOCATION 0 0 2 t1 0 0 2" -> "Tuple:
+    a:
+        l2
+    b:
+        t2
+    roles (assigned):
+        Payload:
+            0
+ (v:23)
+role_info_attributes 22 \
+serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 \
+serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 \
+9 Payload_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 \
+8 LOCATION 0 0 2 t2 0 0 2" [key="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:23)",
+label="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:23)",
+lp="4131.5,1859.5",
+pos="e,4079,1781.5 4079,1937.1 4079,1891.7 4079,1838.1 4079,1791.7"];
+"Tuple:
+    a:
+        l2
+    b:
+        t0
+    roles (assigned):
+        Payload:
+            0
+ (v:21)
+role_info_attributes 22 \
+serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 \
+serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 \
+9 Payload_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 \
+8 LOCATION 0 0 2 t0 0 0 2" [height=2.8194,
+pos="4079,2398",
+width=12.319];
+"Tuple:
+    a:
+        l2
+    b:
+        t0
+    roles (assigned):
+        Payload:
+            0
+ (v:21)
+role_info_attributes 22 \
+serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 \
+serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 \
+9 Payload_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 \
+8 LOCATION 0 0 2 t0 0 0 2" -> "Tuple:
+    a:
+        l2
+    b:
+        t1
+    roles (assigned):
+        Payload:
+            0
+ (v:22)
+role_info_attributes 22 \
+serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 \
+serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 \
+9 Payload_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+00 2 l2 \
+8 LOCATION 0 0 2 t1 0 0 2" [key="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:22)",
+label="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:22)",
+lp="4131.5,2218.5",
+pos="e,4079,2140.5 4079,2296.1 4079,2250.7 4079,2197.1 4079,2150.7"];
+"Tuple:
+    a:
+        l0
+    b:
+        t6
+ (v:20)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t6 0 \
+0 2" [height=2.1944,
+pos="1128,139",
+width=12.111];
+"Tuple:
+    a:
+        l0
+    b:
+        t5
+ (v:19)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t5 0 \
+0 2" [height=2.1944,
+pos="1128,513",
+width=12.111];
+"Tuple:
+    a:
+        l0
+    b:
+        t5
+ (v:19)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t5 0 \
+0 2" -> "Tuple:
+    a:
+        l0
+    b:
+        t6
+ (v:20)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t6 0 \
+0 2" [key="capacity: +inf
+ (e:21)",
+label="capacity: +inf
+ (e:21)",
+lp="1166,333.5",
+pos="e,1128,218.2 1128,433.68 1128,373.56 1128,290.91 1128,228.44"];
+"Tuple:
+    a:
+        l0
+    b:
+        t4
+    roles (assigned):
+        Sherpa:
+            0
+    roles (required):
+        Sherpa:
+            \
+0
+ (v:18)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+9.48966859646861338e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+\
+00 2 l0 8 LOCATION 0 0 2 t4 0 0 2" [height=3.4444,
+pos="2275,902",
+width=19.236];
+"Tuple:
+    a:
+        l0
+    b:
+        t4
+    roles (assigned):
+        Sherpa:
+            0
+    roles (required):
+        Sherpa:
+            \
+0
+ (v:18)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+9.48966859646861338e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+\
+00 2 l0 8 LOCATION 0 0 2 t4 0 0 2" -> "Tuple:
+    a:
+        l0
+    b:
+        t5
+ (v:19)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t5 0 \
+0 2" [key="capacity: +inf
+ (e:19)",
+label="capacity: +inf
+ (e:19)",
+lp="1919,692.5",
+pos="e,1394.2,592.03 2011.8,777.96 1909.7,733.84 1790.7,687.18 1679,655 1633.1,641.77 1619.6,647.43 1573,637 1518.1,624.72 1459.8,609.86 \
+1404.2,594.75"];
+"Tuple:
+    a:
+        base
+    b:
+        t5
+    roles (assigned):
+        Sherpa:
+            0
+    roles (required):
+        Sherpa:
+            \
+0
+ (v:5)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+7.57465109530946479e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+\
+00 4 base 8 LOCATION 0 0 2 t5 0 0 2" [height=3.4444,
+pos="2275,513",
+width=19.236];
+"Tuple:
+    a:
+        l0
+    b:
+        t4
+    roles (assigned):
+        Sherpa:
+            0
+    roles (required):
+        Sherpa:
+            \
+0
+ (v:18)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+9.48966859646861338e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+\
+00 2 l0 8 LOCATION 0 0 2 t4 0 0 2" -> "Tuple:
+    a:
+        base
+    b:
+        t5
+    roles (assigned):
+        Sherpa:
+            0
+    roles (required):
+        Sherpa:
+            \
+0
+ (v:5)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+7.57465109530946479e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+\
+00 4 base 8 LOCATION 0 0 2 t5 0 0 2" [key="capacity: 10
+    roles (assigned):
+        Sherpa:
+            0
+ (e:20)",
+label="capacity: 10
+    roles (assigned):
+        Sherpa:
+            0
+ (e:20)",
+lp="2327.5,692.5",
+pos="e,2275,637.31 2275,777.85 2275,736.27 2275,689.73 2275,647.4"];
+"Tuple:
+    a:
+        l0
+    b:
+        t3
+    roles (assigned):
+        Sherpa:
+            0
+    roles (required):
+        Sherpa:
+            \
+0
+ (v:17)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+8.97812620630167646e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+\
+00 2 l0 8 LOCATION 0 0 2 t3 0 0 2" [height=3.4444,
+pos="2400,1306",
+width=19.236];
+"Tuple:
+    a:
+        l0
+    b:
+        t3
+    roles (assigned):
+        Sherpa:
+            0
+    roles (required):
+        Sherpa:
+            \
+0
+ (v:17)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+8.97812620630167646e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+\
+00 2 l0 8 LOCATION 0 0 2 t3 0 0 2" -> "Tuple:
+    a:
+        l0
+    b:
+        t4
+    roles (assigned):
+        Sherpa:
+            0
+    roles (required):
+        Sherpa:
+            \
+0
+ (v:18)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+9.48966859646861338e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+\
+00 2 l0 8 LOCATION 0 0 2 t4 0 0 2" [key="capacity: +inf
+ (e:18)",
+label="capacity: +inf
+ (e:18)",
+lp="2387,1111.5",
+pos="e,2313.4,1026.3 2361.6,1181.8 2347.3,1135.6 2331,1082.9 2316.4,1035.9"];
+"Tuple:
+    a:
+        l0
+    b:
+        t2
+    roles (assigned):
+        Sherpa:
+            0, 2
+    roles (required):
+        \
+Sherpa:
+            0
+ (v:16)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.56000000000000000e+\
+03 6 safety 9.97071117292436360e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 \
+0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple \
+22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t2 \
+0 0 2" [height=3.4444,
+pos="2546,1680",
+width=25.194];
+"Tuple:
+    a:
+        l0
+    b:
+        t2
+    roles (assigned):
+        Sherpa:
+            0, 2
+    roles (required):
+        \
+Sherpa:
+            0
+ (v:16)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.56000000000000000e+\
+03 6 safety 9.97071117292436360e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 \
+0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple \
+22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t2 \
+0 0 2" -> "Tuple:
+    a:
+        l2
+    b:
+        t3
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+    \
+roles (required):
+        Sherpa:
+            2
+ (v:24)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration \
+cost 0.00000000000000000e+00 6 safety 8.97812620630167646e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::\
+archive 15 0 0 2 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: \
+48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#\
+Sherpa 2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l2 8 LOCATION 0 0 2 t3 0 0 2" [key="capacity: 20
+    roles (assigned):
+        Sherpa:
+            2
+ (e:17)",
+label="capacity: 20
+    roles (assigned):
+        Sherpa:
+            2
+ (e:17)",
+lp="3456.5,1500.5",
+pos="e,3509.2,1445 3054.3,1556 3196.8,1521.2 3352.8,1483.2 3499.1,1447.5"];
+"Tuple:
+    a:
+        l0
+    b:
+        t2
+    roles (assigned):
+        Sherpa:
+            0, 2
+    roles (required):
+        \
+Sherpa:
+            0
+ (v:16)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.56000000000000000e+\
+03 6 safety 9.97071117292436360e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 \
+0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple \
+22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t2 \
+0 0 2" -> "Tuple:
+    a:
+        l0
+    b:
+        t3
+    roles (assigned):
+        Sherpa:
+            0
+    roles (required):
+        Sherpa:
+            \
+0
+ (v:17)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+8.97812620630167646e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+\
+00 2 l0 8 LOCATION 0 0 2 t3 0 0 2" [key="capacity: +inf
+ (e:16)",
+label="capacity: +inf
+ (e:16)",
+lp="2529,1500.5",
+pos="e,2448.4,1430 2497.6,1556 2483,1518.6 2467,1477.5 2452.1,1439.6"];
+"Tuple:
+    a:
+        l0
+    b:
+        t1
+ (v:15)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 0 0
+tuple 22 serialization::archive \
+15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t1 0 0 2" [height=2.1944,
+pos="2698,2039",
+width=12.111];
+"Tuple:
+    a:
+        l0
+    b:
+        t1
+ (v:15)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 0 0
+tuple 22 serialization::archive \
+15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t1 0 0 2" -> "Tuple:
+    a:
+        l0
+    b:
+        t2
+    roles (assigned):
+        Sherpa:
+            0, 2
+    roles (required):
+        \
+Sherpa:
+            0
+ (v:16)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.56000000000000000e+\
+03 6 safety 9.97071117292436360e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 \
+0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple \
+22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t2 \
+0 0 2" [key="capacity: +inf
+ (e:15)",
+label="capacity: +inf
+ (e:15)",
+lp="2674,1859.5",
+pos="e,2598.6,1804.2 2664.5,1959.8 2646.3,1916.9 2623.4,1862.8 2602.6,1813.6"];
+"Tuple:
+    a:
+        l0
+    b:
+        t0
+ (v:14)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 0 0
+tuple 22 serialization::archive \
+15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t0 0 0 2" [height=2.1944,
+pos="2698,2398",
+width=12.111];
+"Tuple:
+    a:
+        l0
+    b:
+        t0
+ (v:14)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 0 0
+tuple 22 serialization::archive \
+15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t0 0 0 2" -> "Tuple:
+    a:
+        l0
+    b:
+        t1
+ (v:15)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 0 0
+tuple 22 serialization::archive \
+15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t1 0 0 2" [key="capacity: +inf
+ (e:14)",
+label="capacity: +inf
+ (e:14)",
+lp="2736,2218.5",
+pos="e,2698,2118 2698,2318.8 2698,2262.5 2698,2186.8 2698,2128.4"];
+"Tuple:
+    a:
+        l1
+    b:
+        t6
+    roles (assigned):
+        Payload:
+            0
+ (v:13)
+role_info_attributes 22 \
+serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 \
+serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 \
+9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l1 \
+8 LOCATION 0 0 2 t6 0 0 2" [height=2.8194,
+pos="5501,139",
+width=12.319];
+"Tuple:
+    a:
+        l1
+    b:
+        t5
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+ (\
+v:12)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.56000000000000000e+03 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 \
+http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa \
+2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l1 \
+8 LOCATION 0 0 2 t5 0 0 2" -> "Tuple:
+    a:
+        l2
+    b:
+        t6
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+    \
+roles (required):
+        Payload:
+            0
+ (v:27)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration \
+cost 0.00000000000000000e+00 6 safety 9.99157862424486010e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::\
+archive 15 0 0 2 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: \
+48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#\
+Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 1.00000000000000000e+03 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l2 8 LOCATION 0 0 2 t6 0 0 2" [key="capacity: 20
+    roles (assigned):
+        Sherpa:
+            2
+ (e:13)",
+label="capacity: 20
+    roles (assigned):
+        Sherpa:
+            2
+ (e:13)",
+lp="5026.5,333.5",
+pos="e,4633.4,278.03 5070.7,396.46 4935.3,359.78 4784.2,318.88 4643.1,280.66"];
+"Tuple:
+    a:
+        l1
+    b:
+        t5
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+ (\
+v:12)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.56000000000000000e+03 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 \
+http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa \
+2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l1 \
+8 LOCATION 0 0 2 t5 0 0 2" -> "Tuple:
+    a:
+        l1
+    b:
+        t6
+    roles (assigned):
+        Payload:
+            0
+ (v:13)
+role_info_attributes 22 \
+serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 \
+serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 \
+9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l1 \
+8 LOCATION 0 0 2 t6 0 0 2" [key="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:12)",
+label="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:12)",
+lp="5553.5,333.5",
+pos="e,5501,240.53 5501,396.46 5501,349.92 5501,296.57 5501,250.54"];
+"Tuple:
+    a:
+        l1
+    b:
+        t4
+    roles (assigned):
+        Payload:
+            0
+ (v:11)
+role_info_attributes 22 \
+serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 1.00000000000000000e+00
+roles 22 \
+serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //\
+www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+\
+03 0.00000000000000000e+00 2 l1 8 LOCATION 0 0 2 t4 0 0 2" [height=2.8194,
+pos="5716,902",
+width=12.319];
+"Tuple:
+    a:
+        l1
+    b:
+        t4
+    roles (assigned):
+        Payload:
+            0
+ (v:11)
+role_info_attributes 22 \
+serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 1.00000000000000000e+00
+roles 22 \
+serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //\
+www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+\
+03 0.00000000000000000e+00 2 l1 8 LOCATION 0 0 2 t4 0 0 2" -> "Tuple:
+    a:
+        l1
+    b:
+        t5
+    roles (assigned):
+        Payload:
+            0
+        Sherpa:
+            2
+ (\
+v:12)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.56000000000000000e+03 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 2 0 0 0 0 0 5 \
+http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa \
+2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+00 2 l1 \
+8 LOCATION 0 0 2 t5 0 0 2" [key="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:11)",
+label="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:11)",
+lp="5666.5,692.5",
+pos="e,5565.4,629.58 5659.8,800.3 5632.4,750.83 5599.3,690.89 5570.4,638.58"];
+"Tuple:
+    a:
+        l1
+    b:
+        t3
+    roles (assigned):
+        Payload:
+            0
+ (v:10)
+role_info_attributes 22 \
+serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 1.00000000000000000e+00
+roles 22 \
+serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //\
+www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+\
+03 0.00000000000000000e+00 2 l1 8 LOCATION 0 0 2 t3 0 0 2" [height=2.8194,
+pos="5716,1306",
+width=12.319];
+"Tuple:
+    a:
+        l1
+    b:
+        t3
+    roles (assigned):
+        Payload:
+            0
+ (v:10)
+role_info_attributes 22 \
+serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 1.00000000000000000e+00
+roles 22 \
+serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //\
+www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+\
+03 0.00000000000000000e+00 2 l1 8 LOCATION 0 0 2 t3 0 0 2" -> "Tuple:
+    a:
+        l1
+    b:
+        t4
+    roles (assigned):
+        Payload:
+            0
+ (v:11)
+role_info_attributes 22 \
+serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 1.00000000000000000e+00
+roles 22 \
+serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //\
+www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+\
+03 0.00000000000000000e+00 2 l1 8 LOCATION 0 0 2 t4 0 0 2" [key="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:10)",
+label="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:10)",
+lp="5768.5,1111.5",
+pos="e,5716,1003.7 5716,1204.3 5716,1146.3 5716,1073.5 5716,1013.9"];
+"Tuple:
+    a:
+        l1
+    b:
+        t2
+    roles (assigned):
+        Payload:
+            0
+ (v:9)
+role_info_attributes 22 serialization::\
+archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 1.00000000000000000e+00
+roles 22 serialization::\
+archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/\
+2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l1 8 LOCATION 0 0 2 t2 0 0 2" [height=2.8194,
+pos="5716,1680",
+width=12.319];
+"Tuple:
+    a:
+        l1
+    b:
+        t2
+    roles (assigned):
+        Payload:
+            0
+ (v:9)
+role_info_attributes 22 serialization::\
+archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 1.00000000000000000e+00
+roles 22 serialization::\
+archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/\
+2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l1 8 LOCATION 0 0 2 t2 0 0 2" -> "Tuple:
+    a:
+        l1
+    b:
+        t3
+    roles (assigned):
+        Payload:
+            0
+ (v:10)
+role_info_attributes 22 \
+serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 1.00000000000000000e+00
+roles 22 \
+serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //\
+www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+\
+03 0.00000000000000000e+00 2 l1 8 LOCATION 0 0 2 t3 0 0 2" [key="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:9)",
+label="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:9)",
+lp="5768.5,1500.5",
+pos="e,5716,1407.7 5716,1578.3 5716,1528.6 5716,1468.7 5716,1417.7"];
+"Tuple:
+    a:
+        l1
+    b:
+        t1
+    roles (assigned):
+        Payload:
+            0
+    roles (required):
+        Payload:
+            \
+0
+ (v:8)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+9.04837418035959629e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 8 required 1 0 5 http: 49 //www.rock-robotics.org/\
+2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l1 8 LOCATION 0 0 2 t1 0 0 2" [height=3.4444,
+pos="5716,2039",
+width=19.569];
+"Tuple:
+    a:
+        l1
+    b:
+        t1
+    roles (assigned):
+        Payload:
+            0
+    roles (required):
+        Payload:
+            \
+0
+ (v:8)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+9.04837418035959629e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 8 required 1 0 5 http: 49 //www.rock-robotics.org/\
+2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l1 8 LOCATION 0 0 2 t1 0 0 2" -> "Tuple:
+    a:
+        l1
+    b:
+        t2
+    roles (assigned):
+        Payload:
+            0
+ (v:9)
+role_info_attributes 22 serialization::\
+archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety 1.00000000000000000e+00
+roles 22 serialization::\
+archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/\
+2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l1 8 LOCATION 0 0 2 t2 0 0 2" [key="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:8)",
+label="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:8)",
+lp="5768.5,1859.5",
+pos="e,5716,1781.8 5716,1914.9 5716,1875 5716,1831.1 5716,1792.1"];
+"Tuple:
+    a:
+        l1
+    b:
+        t0
+    roles (assigned):
+        Payload:
+            0
+    roles (required):
+        Payload:
+            \
+0
+ (v:7)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 8 required 1 0 5 http: 49 //www.rock-robotics.org/\
+2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l1 8 LOCATION 0 0 2 t0 0 0 2" [height=3.4444,
+pos="5716,2398",
+width=19.569];
+"Tuple:
+    a:
+        l1
+    b:
+        t0
+    roles (assigned):
+        Payload:
+            0
+    roles (required):
+        Payload:
+            \
+0
+ (v:7)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 8 required 1 0 5 http: 49 //www.rock-robotics.org/\
+2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l1 8 LOCATION 0 0 2 t0 0 0 2" -> "Tuple:
+    a:
+        l1
+    b:
+        t1
+    roles (assigned):
+        Payload:
+            0
+    roles (required):
+        Payload:
+            \
+0
+ (v:8)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+9.04837418035959629e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 49 //www.rock-robotics.org/2014/01/om-schema#Payload 0 9 Payload_0 8 required 1 0 5 http: 49 //www.rock-robotics.org/\
+2014/01/om-schema#Payload 0 9 Payload_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 1.00000000000000000e+03 0.00000000000000000e+\
+00 2 l1 8 LOCATION 0 0 2 t1 0 0 2" [key="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:7)",
+label="capacity: +inf
+    roles (assigned):
+        Payload:
+            0
+ (e:7)",
+lp="5768.5,2218.5",
+pos="e,5716,2163.1 5716,2273.9 5716,2241.4 5716,2206.2 5716,2173.2"];
+"Tuple:
+    a:
+        base
+    b:
+        t6
+    roles (assigned):
+        Sherpa:
+            0
+    roles (required):
+        Sherpa:
+            \
+0
+ (v:6)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+6.09909226904476132e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+\
+00 4 base 8 LOCATION 0 0 2 t6 0 0 2" [height=3.4444,
+pos="2275,139",
+width=19.236];
+"Tuple:
+    a:
+        base
+    b:
+        t5
+    roles (assigned):
+        Sherpa:
+            0
+    roles (required):
+        Sherpa:
+            \
+0
+ (v:5)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+7.57465109530946479e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+\
+00 4 base 8 LOCATION 0 0 2 t5 0 0 2" -> "Tuple:
+    a:
+        base
+    b:
+        t6
+    roles (assigned):
+        Sherpa:
+            0
+    roles (required):
+        Sherpa:
+            \
+0
+ (v:6)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+6.09909226904476132e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+\
+00 4 base 8 LOCATION 0 0 2 t6 0 0 2" [key="capacity: +inf
+ (e:6)",
+label="capacity: +inf
+ (e:6)",
+lp="2313,333.5",
+pos="e,2275,263 2275,388.98 2275,351.8 2275,310.85 2275,273.05"];
+"Tuple:
+    a:
+        base
+    b:
+        t4
+ (v:4)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t4 \
+0 0 2" [height=2.1944,
+pos="1122,902",
+width=12.292];
+"Tuple:
+    a:
+        base
+    b:
+        t4
+ (v:4)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t4 \
+0 0 2" -> "Tuple:
+    a:
+        base
+    b:
+        t5
+    roles (assigned):
+        Sherpa:
+            0
+    roles (required):
+        Sherpa:
+            \
+0
+ (v:5)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+00 6 safety \
+7.57465109530946479e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 0 0 8 assigned \
+0 0 1 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 8 required 1 0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+\
+00 4 base 8 LOCATION 0 0 2 t5 0 0 2" [key="capacity: +inf
+ (e:5)",
+label="capacity: +inf
+ (e:5)",
+lp="1637,692.5",
+pos="e,1652.1,637.12 1251.1,822.96 1344.7,768.72 1475.9,698.88 1599,655 1613.2,649.92 1627.7,645 1642.4,640.23"];
+"Tuple:
+    a:
+        base
+    b:
+        t3
+ (v:3)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t3 \
+0 0 2" [height=2.1944,
+pos="1122,1306",
+width=12.292];
+"Tuple:
+    a:
+        base
+    b:
+        t3
+ (v:3)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t3 \
+0 0 2" -> "Tuple:
+    a:
+        base
+    b:
+        t4
+ (v:4)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t4 \
+0 0 2" [key="capacity: +inf
+ (e:4)",
+label="capacity: +inf
+ (e:4)",
+lp="1160,1111.5",
+pos="e,1122,981.15 1122,1226.7 1122,1159 1122,1061.7 1122,991.34"];
+"Tuple:
+    a:
+        base
+    b:
+        t2
+ (v:2)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t2 \
+0 0 2" [height=2.1944,
+pos="1122,1680",
+width=12.292];
+"Tuple:
+    a:
+        base
+    b:
+        t2
+ (v:2)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t2 \
+0 0 2" -> "Tuple:
+    a:
+        base
+    b:
+        t3
+ (v:3)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t3 \
+0 0 2" [key="capacity: +inf
+ (e:3)",
+label="capacity: +inf
+ (e:3)",
+lp="1160,1500.5",
+pos="e,1122,1385.2 1122,1600.7 1122,1540.6 1122,1457.9 1122,1395.4"];
+"Tuple:
+    a:
+        base
+    b:
+        t1
+    roles (assigned):
+        Sherpa:
+            0, 2
+    roles (required):
+        \
+Sherpa:
+            0, 2
+ (v:1)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+\
+00 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 \
+0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 2 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 \
+http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+\
+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t1 0 0 2" [height=3.4444,
+pos="1122,2039",
+width=31.167];
+"Tuple:
+    a:
+        base
+    b:
+        t1
+    roles (assigned):
+        Sherpa:
+            0, 2
+    roles (required):
+        \
+Sherpa:
+            0, 2
+ (v:1)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+\
+00 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 \
+0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 2 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 \
+http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+\
+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t1 0 0 2" -> "Tuple:
+    a:
+        l0
+    b:
+        t2
+    roles (assigned):
+        Sherpa:
+            0, 2
+    roles (required):
+        \
+Sherpa:
+            0
+ (v:16)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 1.56000000000000000e+\
+03 6 safety 9.97071117292436360e-01
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 \
+0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 1 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0
+tuple \
+22 serialization::archive 15 0 0 1.00000000000000000e+03 0.00000000000000000e+00 0.00000000000000000e+00 2 l0 8 LOCATION 0 0 2 t2 \
+0 0 2" [key="capacity: 20
+    roles (assigned):
+        Sherpa:
+            0, 2
+ (e:2)",
+label="capacity: 20
+    roles (assigned):
+        Sherpa:
+            0, 2
+ (e:2)",
+lp="2014.5,1859.5",
+pos="e,2053.9,1804.1 1614.1,1914.9 1753,1879.9 1904.4,1841.8 2043.9,1806.6"];
+"Tuple:
+    a:
+        base
+    b:
+        t1
+    roles (assigned):
+        Sherpa:
+            0, 2
+    roles (required):
+        \
+Sherpa:
+            0, 2
+ (v:1)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+\
+00 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 \
+0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 2 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 \
+http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+\
+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t1 0 0 2" -> "Tuple:
+    a:
+        base
+    b:
+        t2
+ (v:2)
+role_info_attributes 22 serialization::archive 15 0 0 1 0 0 0 6 safety 1.00000000000000000e+\
+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 1 0 0 0 8 assigned 0 0 0 0
+tuple 22 \
+serialization::archive 15 0 0 0.00000000000000000e+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t2 \
+0 0 2" [key="capacity: +inf
+ (e:1)",
+label="capacity: +inf
+ (e:1)",
+lp="1160,1859.5",
+pos="e,1122,1759.1 1122,1914.9 1122,1867 1122,1813.2 1122,1769.2"];
+"Tuple:
+    a:
+        base
+    b:
+        t0
+    roles (assigned):
+        Sherpa:
+            0, 2
+    roles (required):
+        \
+Sherpa:
+            0, 2
+ (v:0)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+\
+00 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 \
+0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 2 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 \
+http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+\
+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t0 0 0 2" [height=3.4444,
+pos="1122,2398",
+width=31.167];
+"Tuple:
+    a:
+        base
+    b:
+        t0
+    roles (assigned):
+        Sherpa:
+            0, 2
+    roles (required):
+        \
+Sherpa:
+            0, 2
+ (v:0)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+\
+00 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 \
+0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 2 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 \
+http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+\
+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t0 0 0 2" -> "Tuple:
+    a:
+        base
+    b:
+        t1
+    roles (assigned):
+        Sherpa:
+            0, 2
+    roles (required):
+        \
+Sherpa:
+            0, 2
+ (v:1)
+role_info_attributes 22 serialization::archive 15 0 0 2 0 0 0 20 reconfiguration cost 0.00000000000000000e+\
+00 6 safety 1.00000000000000000e+00
+roles 22 serialization::archive 15 0 0 0 0
+tagged_roles 22 serialization::archive 15 0 0 2 0 \
+0 0 8 assigned 0 0 2 0 0 0 0 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 http: 48 //www.rock-robotics.org/\
+2014/01/om-schema#Sherpa 2 8 Sherpa_2 8 required 2 0 5 http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 0 8 Sherpa_0 5 \
+http: 48 //www.rock-robotics.org/2014/01/om-schema#Sherpa 2 8 Sherpa_2
+tuple 22 serialization::archive 15 0 0 0.00000000000000000e+\
+00 0.00000000000000000e+00 0.00000000000000000e+00 4 base 8 LOCATION 0 0 2 t1 0 0 2" [key="capacity: +inf
+ (e:0)",
+label="capacity: +inf
+ (e:0)",
+lp="1160,2218.5",
+pos="e,1122,2163.1 1122,2273.9 1122,2241.4 1122,2206.2 1122,2173.2"];
+}

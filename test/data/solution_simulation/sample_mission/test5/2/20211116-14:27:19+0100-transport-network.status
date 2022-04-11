@@ -1,0 +1,44 @@
+TransportNetwork: #
+    Timepoints: {0, 1, 2, 4, 3, 6, 5}
+Payload                       : 0         1         0         0         1         0         
+Sherpa                        : 3         0         1         1         0         1         
+AtomicAgent: Payload_0 (Payload): 0         1         0         0         1         0         
+AtomicAgent: Sherpa_0 (Sherpa): 1         0         0         0         0         1         
+AtomicAgent: Sherpa_1 (Sherpa): 1         0         1         0         0         0         
+AtomicAgent: Sherpa_2 (Sherpa): 1         0         0         1         0         0         
+AtomicAgent: Payload_0 (Payload)
+                                base                       l1                       l0                       l2
+          t0                      {}                     {5}                      {}                      {}
+          t1                      {}         {}..{8..11}#(1)                      {}                      {}
+          t2      {}..{12..15}#(0,1)      {}..{12..15}#(0,1)      {}..{12..15}#(0,1)      {}..{12..15}#(0,1)
+          t3          {}..{19}#(0,1)          {}..{19}#(0,1)          {}..{19}#(0,1)          {}..{19}#(0,1)
+          t4                      {}                      {}                      {}                    {23}
+          t5                      {}                      {}                      {}                    {27}
+          t6                      {}                      {}                      {}                      {}
+AtomicAgent: Sherpa_0 (Sherpa)
+                                base                       l1                       l0                       l2
+          t0                     {4}                      {}                      {}                      {}
+          t1                    {11}                      {}                      {}                      {}
+          t2                      {}                      {}                      {}                    {14}
+          t3                      {}                      {}                    {17}                      {}
+          t4                      {}                    {20}                      {}                      {}
+          t5                    {24}                      {}                      {}                      {}
+          t6                      {}                      {}                      {}                      {}
+AtomicAgent: Sherpa_1 (Sherpa)
+                                base                       l1                       l0                       l2
+          t0                     {4}                      {}                      {}                      {}
+          t1                    {10}                      {}                      {}                      {}
+          t2                      {}                      {}                    {14}                      {}
+          t3                      {}                      {}                    {18}                      {}
+          t4                      {}                      {}                    {21}                      {}
+          t5                      {}                    {27}                      {}                      {}
+          t6                      {}                      {}                      {}                      {}
+AtomicAgent: Sherpa_2 (Sherpa)
+                                base                       l1                       l0                       l2
+          t0                     {4}                      {}                      {}                      {}
+          t1                    {10}                      {}                      {}                      {}
+          t2                      {}                      {}                    {15}                      {}
+          t3                      {}                      {}                      {}                    {19}
+          t4                      {}                      {}                      {}                    {23}
+          t5                      {}                      {}                      {}                    {27}
+          t6                      {}                      {}                      {}                      {}

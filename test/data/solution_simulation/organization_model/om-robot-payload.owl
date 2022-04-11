@@ -1,0 +1,242 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.rock-robotics.org/2015/12/robots/Payload#"
+     xml:base="http://www.rock-robotics.org/2015/12/robots/Payload"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:robots="http://www.rock-robotics.org/2015/12/robots#"
+     xmlns:om-base="http://www.rock-robotics.org/2014/01/om-base#"
+     xmlns:om-schema="http://www.rock-robotics.org/2014/01/om-schema#"
+     xmlns:om-schemae="http://www.rock-robotics.org/2014/01/om-schemae#">
+    <owl:Ontology rdf:about="http://www.rock-robotics.org/2015/12/robots/Payload">
+        <owl:imports rdf:resource="http://www.rock-robotics.org/2014/01/om-schema"/>
+        <rdfs:comment>* 0.2
+ * adapt base uri to om-schema
+* 0.1
+ * Add PayloadCamera, PayloadBattery and PayloadSoilSampler as individuals</rdfs:comment>
+    </owl:Ontology>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Payload -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Payload">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Actor"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiActive"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#hasTransportCapacity"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">0</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Actor"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PayloadBattery -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PayloadBattery">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Payload"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PowerSource"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PayloadCamera -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PayloadCamera">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Payload"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Camera"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PayloadSoilSampler -->
+
+    <owl:Class rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PayloadSoilSampler">
+        <rdfs:subClassOf rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Payload"/>
+        <rdfs:subClassOf>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#has"/>
+                <owl:maxQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:maxQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#SoilSampler"/>
+            </owl:Restriction>
+        </rdfs:subClassOf>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#Payload -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#Payload">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Payload"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiActive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+        <om-schema:mass rdf:datatype="http://www.w3.org/2001/XMLSchema#double">3.0</om-schema:mass>
+        <om-schema:maxAcceleration rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:maxAcceleration>
+        <om-schema:maxVelocity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:maxVelocity>
+        <om-schema:minAcceleration rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:minAcceleration>
+        <om-schema:minVelocity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:minVelocity>
+        <om-schema:nominalAcceleration rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:nominalAcceleration>
+        <om-schema:nominalHeight rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.15</om-schema:nominalHeight>
+        <om-schema:nominalLength rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.15</om-schema:nominalLength>
+        <om-schema:nominalPowerConsumption rdf:datatype="http://www.w3.org/2001/XMLSchema#double">25.0</om-schema:nominalPowerConsumption>
+        <om-schema:nominalVelocity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:nominalVelocity>
+        <om-schema:nominalWidth rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.15</om-schema:nominalWidth>
+        <om-schema:powerSourceCapacity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:powerSourceCapacity>
+        <om-schema:supplyVoltage rdf:datatype="http://www.w3.org/2001/XMLSchema#double">48.0</om-schema:supplyVoltage>
+        <om-schema:transportCapacity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:transportCapacity>
+        <om-schema:transportDemand rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</om-schema:transportDemand>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PayloadBattery -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PayloadBattery">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PayloadBattery"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/Payload#PayloadBattery_PowerSource"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/Payload#Payload_EmiActive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/Payload#Payload_EmiPassive"/>
+        <om-schema:mass rdf:datatype="http://www.w3.org/2001/XMLSchema#double">5.0</om-schema:mass>
+        <om-schema:nominalPowerConsumption rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.8</om-schema:nominalPowerConsumption>
+        <om-schema:powerSourceCapacity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">2.4</om-schema:powerSourceCapacity>
+        <om-schema:supplyVoltage rdf:datatype="http://www.w3.org/2001/XMLSchema#double">48.0</om-schema:supplyVoltage>
+        <om-schema:transportCapacity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:transportCapacity>
+        <om-schema:transportDemand rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</om-schema:transportDemand>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PayloadCamera -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PayloadCamera">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PayloadCamera"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/Payload#PayloadCamera_Camera"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/Payload#Payload_EmiActive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/Payload#Payload_EmiPassive"/>
+        <om-schema:mass rdf:datatype="http://www.w3.org/2001/XMLSchema#double">4.0</om-schema:mass>
+        <om-schema:nominalPowerConsumption rdf:datatype="http://www.w3.org/2001/XMLSchema#double">50.0</om-schema:nominalPowerConsumption>
+        <om-schema:powerSourceCapacity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:powerSourceCapacity>
+        <om-schema:supplyVoltage rdf:datatype="http://www.w3.org/2001/XMLSchema#double">48.0</om-schema:supplyVoltage>
+        <om-schema:transportCapacity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:transportCapacity>
+        <om-schema:transportDemand rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</om-schema:transportDemand>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2014/01/om-schema#PayloadSoilSampler -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2014/01/om-schema#PayloadSoilSampler">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PayloadSoilSampler"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/Payload#PayloadSoilSampler_SoilSampler"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/Payload#Payload_EmiActive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2015/12/robots/Payload#Payload_EmiPassive"/>
+        <om-schema:mass rdf:datatype="http://www.w3.org/2001/XMLSchema#double">3.5</om-schema:mass>
+        <om-schema:nominalPowerConsumption rdf:datatype="http://www.w3.org/2001/XMLSchema#double">30.0</om-schema:nominalPowerConsumption>
+        <om-schema:powerSourceCapacity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:powerSourceCapacity>
+        <om-schema:supplyVoltage rdf:datatype="http://www.w3.org/2001/XMLSchema#double">48.0</om-schema:supplyVoltage>
+        <om-schema:transportCapacity rdf:datatype="http://www.w3.org/2001/XMLSchema#double">0.0</om-schema:transportCapacity>
+        <om-schema:transportDemand rdf:datatype="http://www.w3.org/2001/XMLSchema#double">1.0</om-schema:transportDemand>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/Payload#PayloadBattery_PowerSource -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/Payload#PayloadBattery_PowerSource">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PowerSource"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Constant_Hardware_unfailable"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/Payload#PayloadCamera_Camera -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/Payload#PayloadCamera_Camera">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#Camera"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/Payload#PayloadSoilSampler_SoilSampler -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/Payload#PayloadSoilSampler_SoilSampler">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#SoilSampler"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/Payload#Payload_EmiActive -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/Payload#Payload_EmiActive">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiActive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.rock-robotics.org/2015/12/robots/Payload#Payload_EmiPassive -->
+
+    <owl:NamedIndividual rdf:about="http://www.rock-robotics.org/2015/12/robots/Payload#Payload_EmiPassive">
+        <rdf:type rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#EmiPassive"/>
+        <om-schema:has rdf:resource="http://www.rock-robotics.org/2014/01/om-schema#PDF_Weibull_Hardware_0"/>
+    </owl:NamedIndividual>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi -->
+

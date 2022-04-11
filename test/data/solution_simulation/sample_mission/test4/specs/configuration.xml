@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<qxcfg>
+  <templ-gui>
+    <min_solutions>2</min_solutions>
+  </templ-gui>
+</qxcfg>
