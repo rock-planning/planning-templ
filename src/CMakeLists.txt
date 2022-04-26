@@ -371,11 +371,11 @@ rock_library(templ_gui
         gui/widgets/TemporalConstraintQuantitative.hpp
     DEPS
         templ
-        Qt::Gui
-        Qt::Widgets
-        Qt::Xml
-        Qt::PrintSupport
-        Qt::Svg
+        Qt5::Gui
+        Qt5::Widgets
+        Qt5::Xml
+        Qt5::PrintSupport
+        Qt5::Svg
     UI
         gui/TemplGui.ui
         gui/dialogs/AddLocation.ui
