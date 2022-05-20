@@ -39,7 +39,7 @@ AgentStyleModel::AgentStyleModel(const moreorg::ModelPool& modelPool)
 
             {
                 QModelIndex idx = createIndex(row, 1);
-                QVariant value = Qt::black;
+                QVariant value = (QColor)Qt::black;
                 setData(idx, value, Qt::BackgroundColorRole);
             }
 
