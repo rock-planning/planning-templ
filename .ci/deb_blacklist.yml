@@ -1,3 +1,5 @@
 ---
 - knowledge_reasoning/owlapi
 - knowledge_reasoning/moreorg
+- tools/graph_analysis
+- tools/gecode
