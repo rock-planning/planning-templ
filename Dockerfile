@@ -8,8 +8,11 @@ MAINTAINER 2maz "https://github.com/2maz"
 
 ENV PKG_NAME="planning/templ"
 
-ARG GITHUB_ACCESS_TOKEN
-ENV GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN}
+# Github repos
+ENV PKG_PROJECT="rock-planning"
+ENV PKG_BUILDCONF="planning-templ-buildconf"
+# Default buildconf branch
+ENV PKG_BUILDCONF_BRANCH=main
 
 # Optional arguments
 ARG PKG_BRANCH="main"
@@ -19,14 +22,8 @@ ARG PKG_PULL_REQUEST="false"
 ENV PKG_PULL_REQUEST=${PKG_PULL_REQUEST}
 ## END ARGUMENTS
 
-RUN apt update
-RUN apt upgrade -y
-RUN export DEBIAN_FRONTEND=noninteractive; apt install -y ruby ruby-dev wget tzdata locales g++ autotools-dev make cmake sudo git python3 pkg-config
-RUN echo "Europe/Berlin" > /etc/timezone; dpkg-reconfigure -f noninteractive tzdata
-RUN export LANGUAGE=de_DE.UTF-8; export LANG=de_DE.UTF-8; export LC_ALL=de_DE.UTF-8; locale-gen de_DE.UTF-8; DEBIAN_FRONTEND=noninteractive dpkg-reconfigure locales
-
-RUN useradd -ms /bin/bash docker
-RUN echo "docker ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+COPY .ci/prepare-docker.sh prepare-docker.sh
+RUN ./prepare-docker.sh
 
 USER docker
 WORKDIR /home/docker
@@ -45,16 +42,18 @@ RUN wget https://raw.githubusercontent.com/rock-core/autoproj/master/bin/autopro
 
 RUN mkdir -p /home/docker/rock_test
 WORKDIR /home/docker/rock_test
+
 # Use the existing seed configuration
 COPY --chown=docker .ci/autoproj-config.yml seed-config.yml
+
 ENV AUTOPROJ_BOOTSTRAP_IGNORE_NONEMPTY_DIR 1
 ENV AUTOPROJ_NONINTERACTIVE 1
-RUN ruby /home/docker/autoproj_bootstrap git https://github.com/2maz/templ-buildconf.git branch=main --seed-config=seed-config.yml
+RUN if git ls-remote --heads https://github.com/${PKG_PROJECT}/${PKG_BUILDCONF}.git | grep "${PKG_BRANCH}" > /dev/null; then export PKG_BUILDCONF_BRANCH="${PKG_BRANCH}"; fi; ruby /home/docker/autoproj_bootstrap git https://github.com/$PKG_PROJECT/$PKG_BUILDCONF.git branch=${PKG_BUILDCONF_BRANCH} --seed-config=seed-config.yml
 RUN sed -i "s#rock\.core#knowledge_reasoning/moreorg\n    - ${PKG_NAME}#g" autoproj/manifest
 COPY --chown=docker .ci/deb_blacklist.yml autoproj/deb_blacklist.yml
 
-# Activate testing
+### Activate testing
 RUN /bin/bash -c "source env.sh; autoproj test enable ${PKG_NAME}"
-## Update
+#### Update
 RUN /bin/bash -c "source env.sh; autoproj update; autoproj osdeps"
 RUN /bin/bash -c "source env.sh; autoproj osdeps; amake"
