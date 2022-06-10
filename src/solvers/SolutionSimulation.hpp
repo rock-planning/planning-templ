@@ -103,14 +103,8 @@ public:
                        std::vector<utils::ProbabilityType> metricsChainToAnalyze,
                        double efficacySuccessThreshold);
 
-    // TODO what to return?
-    bool run(Mission::Ptr& mission,
+    bool run(const Mission::Ptr& mission,
              const SpaceTime::Network& solution,
-             const moreorg::OrganizationModelAsk& ask,
-             std::map<SpaceTime::Network::tuple_t::Ptr,
-             FluentTimeResource::List>& tupleFtrMap,
-             const temporal::TemporalConstraintNetwork::Assignment& timeAssignment,
-             const std::vector<FluentTimeResource>& resourceRequirements,
              bool findAlternativeSolution = false);
 
     std::vector<SimulationRunResult> getRunResults() const { return mRunResults; }
@@ -119,7 +113,7 @@ public:
 
     void saveSimulationResults(std::string filepath = "/tmp/sim_result/");
 
-    SpaceTime::Network planAlternativeSolution(Mission::Ptr& mission,
+    SpaceTime::Network planAlternativeSolution(const Mission::Ptr& mission,
                  temporal::point_algebra::TimePoint::PtrList& modifiedTimepoints,
                  const moreorg::ResourceInstance::List& componentBlacklist);
 };

@@ -21,29 +21,12 @@ struct SimulationFixture1
         Mission baseMission = io::MissionReader::fromFile(getRootDir() + "/test/data/solution_simulation/sample_mission/test1/specs/solution_analysis_test_mission.xml", organizationModel);
         solution = SpaceTime::Network::fromFile(getRootDir() + "/test/data/solution_simulation/sample_mission/test1/0/final_solution_network.gexf");
         mission = make_shared<Mission>(baseMission);
-        resourceRequirements = Mission::getResourceRequirements(mission);
-        for (const solvers::FluentTimeResource &ftr : resourceRequirements)
-            {
-                SpaceTime::Network::tuple_t::PtrList tuples = solution.getTuples(ftr.getInterval().getFrom(),
-                                                                                         ftr.getInterval().getTo(),
-                                                                                         ftr.getLocation());
-
-                for (const SpaceTime::Network::tuple_t::Ptr &tuple : tuples)
-                {
-                    tupleFtrMap[tuple].push_back(ftr);
-                }
-                
-            }
-        timeAssignment = utils::quantifyTime(mission, solution, resourceRequirements);
     }
 
     Mission::Ptr mission;
     OrganizationModel::Ptr organizationModel;
     OrganizationModelAsk omAsk;
     SpaceTime::Network solution;
-    std::map<SpaceTime::Network::tuple_t::Ptr, solvers::FluentTimeResource::List> tupleFtrMap;
-    solvers::temporal::TemporalConstraintNetwork::Assignment timeAssignment;
-    std::vector<solvers::FluentTimeResource> resourceRequirements;
 
 };
 struct SimulationFixture2
@@ -55,29 +38,11 @@ struct SimulationFixture2
         Mission baseMission = io::MissionReader::fromFile(getRootDir() + "/test/data/solution_simulation/sample_mission/test5/specs/mission.xml", organizationModel);
         solution = SpaceTime::Network::fromFile(getRootDir() + "/test/data/solution_simulation/sample_mission/test5/2/final_solution_network.gexf");
         mission = make_shared<Mission>(baseMission);
-        resourceRequirements = Mission::getResourceRequirements(mission);
-        for (const solvers::FluentTimeResource &ftr : resourceRequirements)
-            {
-                SpaceTime::Network::tuple_t::PtrList tuples = solution.getTuples(ftr.getInterval().getFrom(),
-                                                                                         ftr.getInterval().getTo(),
-                                                                                         ftr.getLocation());
-
-                for (const SpaceTime::Network::tuple_t::Ptr &tuple : tuples)
-                {
-                    tupleFtrMap[tuple].push_back(ftr);
-                }
-                
-            }
-        timeAssignment = utils::quantifyTime(mission, solution, resourceRequirements);
     }
 
     Mission::Ptr mission;
     OrganizationModel::Ptr organizationModel;
-    OrganizationModelAsk omAsk;
     SpaceTime::Network solution;
-    std::map<SpaceTime::Network::tuple_t::Ptr, solvers::FluentTimeResource::List> tupleFtrMap;
-    solvers::temporal::TemporalConstraintNetwork::Assignment timeAssignment;
-    std::vector<solvers::FluentTimeResource> resourceRequirements;
 
 };
 
@@ -90,30 +55,12 @@ struct SimulationFixture3
         Mission baseMission = io::MissionReader::fromFile(getRootDir() + "/test/data/solution_simulation/sample_mission/test2/specs/4_mission.xml", organizationModel);
         solution = SpaceTime::Network::fromFile(getRootDir() + "/test/data/solution_simulation/sample_mission/test2/4/final_solution_network.gexf");
         mission = make_shared<Mission>(baseMission);
-        resourceRequirements = Mission::getResourceRequirements(mission);
-        for (const solvers::FluentTimeResource &ftr : resourceRequirements)
-            {
-                SpaceTime::Network::tuple_t::PtrList tuples = solution.getTuples(ftr.getInterval().getFrom(),
-                                                                                         ftr.getInterval().getTo(),
-                                                                                         ftr.getLocation());
-
-                for (const SpaceTime::Network::tuple_t::Ptr &tuple : tuples)
-                {
-                    tupleFtrMap[tuple].push_back(ftr);
-                }
-                
-            }
-        timeAssignment = utils::quantifyTime(mission, solution, resourceRequirements);
     }
 
     Mission::Ptr mission;
     OrganizationModel::Ptr organizationModel;
     OrganizationModelAsk omAsk;
     SpaceTime::Network solution;
-    std::map<SpaceTime::Network::tuple_t::Ptr, solvers::FluentTimeResource::List> tupleFtrMap;
-    solvers::temporal::TemporalConstraintNetwork::Assignment timeAssignment;
-    std::vector<solvers::FluentTimeResource> resourceRequirements;
-
 };
 
 
@@ -129,7 +76,7 @@ BOOST_FIXTURE_TEST_CASE(test_simulation1, SimulationFixture1)
     {
         try
         {
-            if (simulator.run(mission, solution, mission->getOrganizationModelAsk(), tupleFtrMap, timeAssignment, resourceRequirements, false)) ++count;
+            if (simulator.run(mission, solution, false)) ++count;
         }
         catch(const std::exception& e)
         {
@@ -155,7 +102,7 @@ BOOST_FIXTURE_TEST_CASE(test_simulation2, SimulationFixture2)
         std::cout << "Starting Simulation run " << i+1 << std::endl;
         try
         {
-            if (simulator.run(mission, solution, mission->getOrganizationModelAsk(), tupleFtrMap, timeAssignment, resourceRequirements, false)) ++count;
+            if (simulator.run(mission, solution, false)) ++count;
         }
         catch(const std::exception& e)
         {
@@ -181,7 +128,7 @@ BOOST_FIXTURE_TEST_CASE(test_simulation3, SimulationFixture3)
         std::cout << "Starting Simulation run " << i+1 << std::endl;
         try
         {
-            if (simulator.run(mission, solution, mission->getOrganizationModelAsk(), tupleFtrMap, timeAssignment, resourceRequirements, false)) ++count;
+            if (simulator.run(mission, solution, false)) ++count;
         }
         catch(const std::exception& e)
         {

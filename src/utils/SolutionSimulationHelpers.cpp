@@ -251,8 +251,8 @@ metrics::Probability::List matchResourcesToProbability(
 }
 
 solvers::temporal::TemporalConstraintNetwork::Assignment quantifyTime(
-    templ::Mission::Ptr& mission,
-    SpaceTime::Network& solutionNetwork,
+    const templ::Mission::Ptr& mission,
+    const SpaceTime::Network& solutionNetwork,
     std::vector<solvers::FluentTimeResource>&resourceRequirements)
 {
     using namespace solvers::temporal;
@@ -440,7 +440,7 @@ ResourceInstance::List filterSingleResource(
 
 int checkFutureImpactOfAssignment(
     SpaceTime::Network& solution,
-    templ::Mission::Ptr& mission,
+    const templ::Mission::Ptr& mission,
     ResourceInstance& assignment,
     ResourceInstance::List& previouslyFailed,
     SpaceTime::Network::tuple_t::Ptr& vertexTuple,

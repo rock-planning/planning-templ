@@ -58,8 +58,8 @@ moreorg::metrics::Probability::List matchResourcesToProbability(
     double t1);
 
 solvers::temporal::TemporalConstraintNetwork::Assignment quantifyTime(
-    templ::Mission::Ptr& mission,
-    SpaceTime::Network& solutionNetwork,
+    const templ::Mission::Ptr& mission,
+    const SpaceTime::Network& solutionNetwork,
     std::vector<solvers::FluentTimeResource>&resourceRequirements);
 
 moreorg::ResourceInstance::List filterResourcesByBlacklist(
@@ -77,7 +77,7 @@ moreorg::ResourceInstance::List filterSingleResource(
 
 int checkFutureImpactOfAssignment(
     SpaceTime::Network& solution,
-    templ::Mission::Ptr& mission,
+    const templ::Mission::Ptr& mission,
     moreorg::ResourceInstance& assignment,
     moreorg::ResourceInstance::List& previouslyFailed,
     SpaceTime::Network::tuple_t::Ptr& vertexTuple,
@@ -85,7 +85,7 @@ int checkFutureImpactOfAssignment(
     moreorg::OrganizationModelAsk& omAsk,
     const std::vector<solvers::FluentTimeResource>& resourceRequirements);
 
-} // end namespace ultils
+} // end namespace utils
 } // end namespace templ
 
 #endif // TEMPL_UTILS_SOLUTION_SIMULATION_HELPERS_HPP

@@ -239,8 +239,6 @@ rock_library(templ
         utils/SolutionSimulationHelpers.hpp
     DEPS
         templ_moft
-    LIBS
-        ${GECODE_LIBRARIES}
 )
 
 rock_library(templ_benchmark

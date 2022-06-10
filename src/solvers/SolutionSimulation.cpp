@@ -39,15 +39,26 @@ SolutionSimulation::SolutionSimulation(double numRuns,
         , mEfficacySuccessThreshold(efficacySuccessThreshold)
 {}
 
-bool SolutionSimulation::run(Mission::Ptr &mission,
-     const SpaceTime::Network &solution,
-     const OrganizationModelAsk &ask,
-     std::map<SpaceTime::Network::tuple_t::Ptr,
-     FluentTimeResource::List> &tupleFtrMap,
-     const temporal::TemporalConstraintNetwork::Assignment& timeAssignment,
-     const std::vector<FluentTimeResource>& resourceRequirements,
+bool SolutionSimulation::run(const Mission::Ptr& mission,
+     const SpaceTime::Network& solution,
      bool findAlternativeSolution)
 {
+    std::map<SpaceTime::Network::tuple_t::Ptr, FluentTimeResource::List> tupleFtrMap;
+    FluentTimeResource::List resourceRequirements = Mission::getResourceRequirements(mission);
+    for (const solvers::FluentTimeResource &ftr : resourceRequirements)
+    {
+        SpaceTime::Network::tuple_t::PtrList tuples = solution.getTuples(ftr.getInterval().getFrom(),
+                                                                         ftr.getInterval().getTo(),
+                                                                         ftr.getLocation());
+
+        for (const SpaceTime::Network::tuple_t::Ptr &tuple : tuples)
+        {
+            tupleFtrMap[tuple].push_back(ftr);
+        }
+    }
+
+    solvers::temporal::TemporalConstraintNetwork::Assignment timeAssignment = utils::quantifyTime(mission, solution, resourceRequirements);
+
     // init mission and solution relevant stuff
     TimePoint::PtrList timepoints = mission->getTimepoints();
     Location::PtrList locations = mission->getLocations();
@@ -106,10 +117,10 @@ bool SolutionSimulation::run(Mission::Ptr &mission,
             {
                 if (required.empty())
                 {
-                    required = utils::getMinResourceRequirements(ftr, resourceRequirements, ask);
+                    required = utils::getMinResourceRequirements(ftr, resourceRequirements, omAsk);
                 } else
                 {
-                    ModelPool minRequired = utils::getMinResourceRequirements(ftr, resourceRequirements, ask);
+                    ModelPool minRequired = utils::getMinResourceRequirements(ftr, resourceRequirements, omAsk);
                     required = Algebra::merge(minRequired, required);
                 }
             }
@@ -123,7 +134,7 @@ bool SolutionSimulation::run(Mission::Ptr &mission,
             // count requirements for efficacy calculation
             requirement_count += (int) required.size();
 
-            ResourceInstance::List availableUnfiltered = utils::getMinAvailableResources(vertexTuple, currentSolution, ask);
+            ResourceInstance::List availableUnfiltered = utils::getMinAvailableResources(vertexTuple, currentSolution, omAsk);
             // Remove the already failed components from the list of available
             ResourceInstance::List available = utils::filterResourcesByBlacklist(availableUnfiltered, failedComponentsList);
 
@@ -131,7 +142,7 @@ bool SolutionSimulation::run(Mission::Ptr &mission,
             using namespace metrics;
             std::vector<Probability::List> metricList;
             ModelPool availableModelPool = ResourceInstance::toModelPool(available);
-            ModelPool finalRequired = utils::checkAndRemoveRequirements(availableModelPool, required, ask);
+            ModelPool finalRequired = utils::checkAndRemoveRequirements(availableModelPool, required, omAsk);
             ModelPoolDelta delta = Algebra::delta(finalRequired, required);
             for (auto &r : required)
             {
@@ -147,13 +158,13 @@ bool SolutionSimulation::run(Mission::Ptr &mission,
                 continue;
             }
 
-            std::vector<owlapi::model::OWLCardinalityRestriction::Ptr> r_required = ask.getRequiredCardinalities(finalRequired, vocabulary::OM::has());
+            std::vector<owlapi::model::OWLCardinalityRestriction::Ptr> r_required = omAsk.getRequiredCardinalities(finalRequired, vocabulary::OM::has());
             for (const auto &mt : mMetricsChainToAnalyze)
             {
                 try
                 {
                     // try to match available and required resources and init probabilities
-                    metricList.push_back(utils::matchResourcesToProbability(mt, ask, r_required, available, start_time, end_time));
+                    metricList.push_back(utils::matchResourcesToProbability(mt, omAsk, r_required, available, start_time, end_time));
                 }
                 catch (const std::exception &e)
                 {
@@ -371,7 +382,7 @@ ResultAnalysis SolutionSimulation::analyzeSimulationResults()
     return resultAnalysis;
 }
 
-SpaceTime::Network SolutionSimulation::planAlternativeSolution(Mission::Ptr& mission,
+SpaceTime::Network SolutionSimulation::planAlternativeSolution(const Mission::Ptr& mission,
         temporal::point_algebra::TimePoint::PtrList& modifiedTimepoints,
         const moreorg::ResourceInstance::List &componentBlacklist)
 {
