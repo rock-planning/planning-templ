@@ -35,8 +35,6 @@ ENV SHELL /bin/bash
 
 RUN git config --global user.email "rock-users@dfki.de"
 RUN git config --global user.name "Rock CI"
-RUN echo "https://2maz:${GITHUB_ACCESS_TOKEN}@github.com" > ~/.git-credentials
-RUN git config --global credential.helper store
 
 RUN wget https://raw.githubusercontent.com/rock-core/autoproj/master/bin/autoproj_bootstrap
 
