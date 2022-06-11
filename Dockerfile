@@ -48,6 +48,7 @@ ENV AUTOPROJ_BOOTSTRAP_IGNORE_NONEMPTY_DIR 1
 ENV AUTOPROJ_NONINTERACTIVE 1
 RUN if git ls-remote --heads https://github.com/${PKG_PROJECT}/${PKG_BUILDCONF}.git | grep "${PKG_BRANCH}" > /dev/null; then export PKG_BUILDCONF_BRANCH="${PKG_BRANCH}"; fi; ruby /home/docker/autoproj_bootstrap git https://github.com/$PKG_PROJECT/$PKG_BUILDCONF.git branch=${PKG_BUILDCONF_BRANCH} --seed-config=seed-config.yml
 RUN sed -i "s#rock\.core#knowledge_reasoning/moreorg\n    - ${PKG_NAME}#g" autoproj/manifest
+RUN sed -zi "s#planning/templ:\n\(\s\+\)branch:[^\n]\+#planning/templ:\n\1branch: ${PKG_BRANCH}#g" autoproj/overrides.yml
 COPY --chown=docker .ci/deb_blacklist.yml autoproj/deb_blacklist.yml
 
 ### Activate testing
