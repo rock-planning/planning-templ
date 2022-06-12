@@ -781,7 +781,8 @@ void SolutionAnalysis::quantifyTime()
             LOG_WARN_S << "No reconfiguration cost for " << roleInfo->toString(4);
         }
 
-        double requiredTime = minTravelTime + reconfigurationCost;
+        // Ensure that we have minimum timedelta set
+        double requiredTime = std::max(1.0E-03, minTravelTime + reconfigurationCost);
         if (requiredTime > 0)
         {
             Bounds bounds(requiredTime, std::numeric_limits<double>::max());
