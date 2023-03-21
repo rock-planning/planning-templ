@@ -1,4 +1,5 @@
 # TemPl: A temporal mission planner for reconfigurable multi-robot systems
+[![Build Status](https://github.com/rock-planning/planning-templ/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/rock-planning/planning-templ/actions/workflows/test.yml)
 
 TemPl is a planning system for reconfigurable multi-robot systems which is
 described in the PhD Thesis "Autonomous Operation of a Reconfigurable Multi-Robot System for Planetary Space
