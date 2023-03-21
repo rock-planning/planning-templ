@@ -847,7 +847,7 @@ SolutionAnalysis::TupleResourceInstancesMap SolutionAnalysis::prepareSolutionAna
     Location::PtrList locations = mpMission->getLocations();
     int is_start = 0;
 
-    for (const TimePoint::Ptr tp : mTimepoints)
+    for (const TimePoint::Ptr& tp : mTimepoints)
     {
         if (is_start < 2)
         {

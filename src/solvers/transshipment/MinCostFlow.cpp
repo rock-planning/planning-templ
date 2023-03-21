@@ -45,7 +45,7 @@ MinCostFlow::MinCostFlow(
     // current start and end vertices
     SpaceTime::injectVirtualStartAndEnd(mSpaceTimeNetwork);
 
-    for(const std::pair<Role, csp::RoleTimeline>& p : mExpandedTimelines)
+    for(const std::pair<const Role, csp::RoleTimeline>& p : mExpandedTimelines)
     {
         const Role& role = p.first;
         const csp::RoleTimeline& timeline = p.second;
@@ -143,7 +143,7 @@ BaseGraph::Ptr MinCostFlow::createFlowGraph(uint32_t commodities)
 
 void MinCostFlow::setCommoditySupplyAndDemand()
 {
-    for(const std::pair<Role, csp::RoleTimeline>& p : mMinRequiredTimelines)
+    for(const std::pair<const Role, csp::RoleTimeline>& p : mMinRequiredTimelines)
     {
         const Role& role = p.first;
         const csp::RoleTimeline& roleTimeline = p.second;

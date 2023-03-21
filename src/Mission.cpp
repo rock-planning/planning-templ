@@ -449,7 +449,7 @@ void Mission::save(const std::string& filename) const
 
 void Mission::validateAvailableResources() const
 {
-    for(const std::pair<owlapi::model::IRI, size_t>& pair : mModelPool)
+    for(const std::pair<const owlapi::model::IRI, size_t>& pair : mModelPool)
     {
         if(pair.second > 0)
             return;
@@ -519,7 +519,7 @@ std::vector<solvers::FluentTimeResource> Mission::getResourceRequirements(const 
     }
 
     FluentTimeResource::List newRequirements;
-    for(const std::pair<Location::Ptr, FluentTimeResource::List>& p : requirementsPerLocation)
+    for(const std::pair<const Location::Ptr, FluentTimeResource::List>& p : requirementsPerLocation)
     {
         FluentTimeResource::List requirementsNoOverlap =
         FluentTimeResource::createNonOverlappingRequirements(p.second,

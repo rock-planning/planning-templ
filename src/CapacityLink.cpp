@@ -47,7 +47,7 @@ std::string CapacityLink::toString(uint32_t indent) const
     ss << hspace << "    providers: " << std::endl;
     ss << Role::toString(mProviders, indent + 8);
     ss << hspace << "    consumers: " << mUsedCapacity.size() << std::endl;
-    for(const std::pair<Role, uint32_t>& consumer : mUsedCapacity)
+    for(const std::pair<const Role, uint32_t>& consumer : mUsedCapacity)
     {
         ss << hspace << "        - " << consumer.first.toString() << ": " << consumer.second << std::endl;
     }
@@ -121,7 +121,7 @@ const Role::Set& CapacityLink::getAllRoles() const
             }
         }
 
-        for(const std::pair<Role, uint32_t>& p : mUsedCapacity)
+        for(const std::pair<const Role, uint32_t>& p : mUsedCapacity)
         {
             mAllRoles.insert(p.first);
         }

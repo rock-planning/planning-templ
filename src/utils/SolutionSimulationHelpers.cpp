@@ -83,7 +83,7 @@ ResourceInstance::List getAvailableResources(
         SpaceTime::Network::tuple_t::Ptr tuple = solutionNetwork.tupleByKeys(location, timepoint);
         Role::Set foundRoles = tuple->getRoles(RoleInfo::ASSIGNED);
         Role::List roles(foundRoles.begin(), foundRoles.end());
-        for (const auto role : roles)
+        for (const auto& role : roles)
         {
             ResourceInstance::List available = om.getRelated(role, vocabulary::OM::Resource(), vocabulary::OM::has(), false);
             availableAgents.insert(std::end(availableAgents), std::begin(available), std::end(available));
@@ -111,7 +111,7 @@ metrics::Probability::List initializeProbabilityList(
         {
             ProbabilityOfFailure::List pofList;
             ProbabilityDensityFunction::Ptr defaultPDF = make_shared<pdfs::WeibullPDF>(144000., 1.);
-            for (const auto reqAssignmentPair : resourceAssignmentMap)
+            for (const auto& reqAssignmentPair : resourceAssignmentMap)
             {
                 ProbabilityDensityFunction::Ptr probabilityDensityFunction;
                 try

@@ -365,7 +365,7 @@ Mission::Ptr MissionGenerator::sampleFromNetwork(const SpaceTime::Network& netwo
             network.tupleByKeys(location, timepoints[0]);
 
         moreorg::ModelPool agentPool = tuple->getModelPool({ RoleInfo::ASSIGNED, RoleInfo::AVAILABLE, RoleInfo::REQUIRED });
-        for(const std::pair<owlapi::model::IRI, size_t>& v : agentPool)
+        for(const std::pair<const owlapi::model::IRI, size_t>& v : agentPool)
         {
             mission->addResourceLocationCardinalityConstraint(location,
                     timepoints[0],

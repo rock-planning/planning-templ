@@ -48,7 +48,7 @@ void ModelConstraint::prepare(const moreorg::OrganizationModelAsk& ask)
                 this, SLOT(typeChanged(QString)));
 
     owlapi::model::IRIList agentModels = ask.getAgentModels();
-    for(const owlapi::model::IRI iri : agentModels)
+    for(const owlapi::model::IRI& iri : agentModels)
     {
         mpUi->comboBoxModels->addItem(QString::fromStdString( iri.toString() ) );
     }
@@ -57,7 +57,7 @@ void ModelConstraint::prepare(const moreorg::OrganizationModelAsk& ask)
                 this, SLOT(modelChanged(QString)));
 
     owlapi::model::IRIList agentProperties = ask.getAgentProperties();
-    for(const owlapi::model::IRI iri : agentProperties)
+    for(const owlapi::model::IRI& iri : agentProperties)
     {
         mpUi->comboBoxProperties->addItem(QString::fromStdString( iri.toString() ) );
     }

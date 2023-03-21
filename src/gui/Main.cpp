@@ -18,10 +18,6 @@ int main(int argc, char **argv)
 
     Q_INIT_RESOURCE(resources);
 
-    // provide seed for force-based layouting in the LayerViewWidget and
-    // ComponentEditorWidget
-    qsrand(QTime(0,0,0).secsTo(QTime::currentTime()));
-
     TemplGui w;
     w.setWindowTitle("Templ: Temporal Planning for Reconfigurable Multi-Robot Systems");
     w.show();
