@@ -1,6 +1,6 @@
 # CMakeLists.txt has to be located in the project folder and cmake has to be
 # executed from 'project/build' with 'cmake ../'.
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.10)
 project(templ
     VERSION 0.1
     DESCRIPTION "TemPl - Planning for Reconfigurable Multi-Robot Systems"
@@ -12,7 +12,6 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 add_definitions(-Wall) # -Wpedantic)
-add_definitions(-DACCEPT_USE_OF_DEPRECATED_PROJ_API_H=1)
 set(CMAKE_BUILD_TYPE Release)
 
 if(COVERAGE)
