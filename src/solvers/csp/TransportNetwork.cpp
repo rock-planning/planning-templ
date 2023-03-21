@@ -1878,7 +1878,7 @@ void TransportNetwork::postMinCostFlow()
 
         namespace ga = graph_analysis::algorithms;
         ga::LPSolver::Type solverType = ga::LPSolver::UNKNOWN_LP_SOLVER;
-        for(const std::pair<ga::LPSolver::Type, std::string>& p :
+        for(const std::pair<const ga::LPSolver::Type, std::string>& p :
                 graph_analysis::algorithms::LPSolver::TypeTxt)
         {
             if(p.second == solver)

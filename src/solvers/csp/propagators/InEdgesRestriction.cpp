@@ -225,7 +225,7 @@ Gecode::ExecStatus InEdgesRestriction::propagate(Gecode::Space& home, const Geco
 
     // Allow to abort early when the maximum is exceeded
     size_t accumulatedInEdgesCount = 0;
-    for(const std::pair<int,size_t>& p : mAssignedTimepoints)
+    for(const std::pair<const int,size_t>& p : mAssignedTimepoints)
     {
         accumulatedInEdgesCount += p.second;
     }
