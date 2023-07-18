@@ -292,8 +292,7 @@ rock_executable(templ-mission_generator
 rock_executable(templ-bm-tcn utils/TCNBenchmark.cpp
     DEPS templ)
 
-rock_library(templ_gui
-    HEADERS
+set(GUI_HEADERS
         gui/TemplGui.hpp
         gui/Utils.hpp
         gui/SpatioTemporalRequirementItem.hpp
@@ -319,7 +318,9 @@ rock_library(templ_gui
         gui/widgets/SpatioTemporalRequirement.hpp
         gui/widgets/TemporalConstraintQualitative.hpp
         gui/widgets/TemporalConstraintQuantitative.hpp
-    SOURCES
+    )
+
+set(GUI_SOURCES
         gui/TemplGui.cpp
         gui/Utils.cpp
         gui/SpatioTemporalRequirementItem.cpp
@@ -346,7 +347,9 @@ rock_library(templ_gui
         gui/widgets/TemporalConstraintQualitative.cpp
         gui/widgets/TemporalConstraintQuantitative.cpp
         ../resources.qrc
-    MOC
+    )
+
+set(GUI_MOC
         gui/TemplGui.hpp
         gui/SpatioTemporalRequirementItem.hpp
         gui/MissionEditor/MissionEditor.hpp
@@ -370,14 +373,9 @@ rock_library(templ_gui
         gui/widgets/SpatioTemporalRequirement.hpp
         gui/widgets/TemporalConstraintQualitative.hpp
         gui/widgets/TemporalConstraintQuantitative.hpp
-    DEPS
-        templ
-        Qt5::Gui
-        Qt5::Widgets
-        Qt5::Xml
-        Qt5::PrintSupport
-        Qt5::Svg
-    UI
+    )
+
+set(GUI_UI
         gui/TemplGui.ui
         gui/dialogs/AddLocation.ui
         gui/dialogs/EmptyDialog.ui
@@ -392,7 +390,47 @@ rock_library(templ_gui
         gui/widgets/SpatioTemporalRequirement.ui
         gui/widgets/TemporalConstraintQualitative.ui
         gui/widgets/TemporalConstraintQuantitative.ui
-)
+    )
+
+if(ROCK_QT_VERSION_4)
+    rock_library(templ_gui
+        HEADERS
+            ${GUI_HEADERS}
+        SOURCES
+            ${GUI_SOURCES}
+        MOC
+            ${GUI_MOC}
+        UI
+            ${GUI_UI}
+        DEPS_PKGCONFIG
+            graph_analysis
+        DEPS
+            templ
+            Qt4::QtXml
+            Qt4::QtSvg
+    )
+endif(ROCK_QT_VERSION_4)
+
+if(ROCK_QT_VERSION_5)
+    rock_library(templ_gui-qt5
+        HEADERS
+            ${GUI_HEADERS}
+        SOURCES
+            ${GUI_SOURCES}
+        MOC5
+            ${GUI_MOC}
+        UI5
+            ${GUI_UI}
+        DEPS_PKGCONFIG
+            graph_analysis-qt5
+        DEPS
+            templ
+            Qt5::Widgets
+            Qt5::Xml
+            Qt5::PrintSupport
+            Qt5::Svg
+    )
+endif(ROCK_QT_VERSION_5)
 
 rock_executable(templ-gui gui/Main.cpp
     DEPS templ_gui)
