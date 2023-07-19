@@ -53,7 +53,8 @@ rock_library(templ_core
         utils/Logger.hpp
     LIBS ${Boost_LIBRARIES}
         proj
-    DEPS_PKGCONFIG graph_analysis
+    DEPS_PKGCONFIG
+        graph_analysis-core
         numeric
         owlapi
         moreorg
