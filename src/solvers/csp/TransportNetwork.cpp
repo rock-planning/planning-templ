@@ -1842,7 +1842,7 @@ void TransportNetwork::postRoleAssignments()
     // to draw system by supply demand
     //branchTimelines(*this, mTimelines, mSupplyDemand);
     Gecode::branch(*this,&TransportNetwork::doPostMinCostFlow);
-    Gecode::Gist::stopBranch(*this);
+    //Gecode::Gist::stopBranch(*this);
 }
 
 
