@@ -4,7 +4,6 @@
 #include <numeric/Stats.hpp>
 #include <gecode/minimodel.hh>
 #include <gecode/set.hh>
-#include <gecode/gist.hh>
 #include <gecode/search.hh>
 
 #include <iterator>
@@ -1467,7 +1466,6 @@ void TransportNetwork::postTemporalConstraints()
     double modelAfcDecay = mpContext->configuration().getValueAs<double>("TransportNetwork/search/options/model-usage/afc-decay",0.95);
     modelUsageAfc.decay(*this, modelAfcDecay);
     branch(*this, mModelUsage, Gecode::INT_VAR_AFC_MIN(modelUsageAfc), Gecode::INT_VAL_SPLIT_MIN());
-    //Gecode::Gist::stopBranch(*this);
 
     Gecode::Rnd modelUsageRnd;
     modelUsageRnd.hw();
@@ -1476,7 +1474,6 @@ void TransportNetwork::postTemporalConstraints()
     branch(*this, mModelUsage, Gecode::tiebreak(Gecode::INT_VAR_DEGREE_MAX(),
                                 Gecode::INT_VAR_SIZE_MIN()),
                                 Gecode::INT_VAL_SPLIT_MIN());
-    //Gecode::Gist::stopBranch(*this);
 
     // Regarding the use of INT_VALUES_MIN() and INT_VALUES_MAX(): "This is
     // typically a poor choice, as none of the alternatives can benefit from
@@ -1502,19 +1499,8 @@ void TransportNetwork::postTemporalConstraints()
                                 Gecode::INT_VAR_SIZE_MIN()),
                                 Gecode::INT_VAL_SPLIT_MIN());
 
-    //Gecode::Gist::stopBranch(*this);
     // see 8.14 Executing code between branchers
     Gecode::branch(*this, &TransportNetwork::doPostRoleAssignments);
-
-    //Gecode::Gist::Print<TransportNetwork> p("Print solution");
-    //Gecode::Gist::Options options;
-    //options.threads = 1;
-    //Gecode::Search::Cutoff * c = Gecode::Search::Cutoff::constant(2);
-    //options.cutoff = c;
-    //options.inspect.click(&p);
-    ////Gecode::Gist::bab(this, o);
-    //Gecode::Gist::dfs(this, options);
-
 
     // General resource constraints
     //  - identify overlapping fts, limit resources for these (TODO: better
@@ -1842,7 +1828,6 @@ void TransportNetwork::postRoleAssignments()
     // to draw system by supply demand
     //branchTimelines(*this, mTimelines, mSupplyDemand);
     Gecode::branch(*this,&TransportNetwork::doPostMinCostFlow);
-    //Gecode::Gist::stopBranch(*this);
 }
 
 
