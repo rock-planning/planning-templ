@@ -1,4 +1,6 @@
 find_package(Boost REQUIRED system filesystem serialization program_options)
+find_package(gecode REQUIRED)
+
 # For adding the qt4 resources
 set(CMAKE_AUTORCC ON)
 rock_library(templ_core
@@ -52,6 +54,16 @@ rock_library(templ_core
         utils/Logger.hpp
     LIBS ${Boost_LIBRARIES}
         proj
+        gecode::kernel
+        gecode::driver
+        gecode::set
+        gecode::support
+        gecode::search 
+        gecode::int 
+        gecode::float
+        gecode::minimodel
+        gecode::flatzinc
+        gecode::gist
     DEPS_PKGCONFIG graph_analysis
         numeric
         owlapi
