@@ -1,4 +1,6 @@
-find_package(Boost REQUIRED system filesystem serialization program_options)
+find_package(Boost REQUIRED system regex filesystem serialization program_options)
+find_package(gecode REQUIRED)
+
 # For adding the qt4 resources
 set(CMAKE_AUTORCC ON)
 rock_library(templ_core
@@ -52,6 +54,16 @@ rock_library(templ_core
         utils/Logger.hpp
     LIBS ${Boost_LIBRARIES}
         proj
+        gecode::kernel
+        gecode::driver
+        gecode::set
+        gecode::support
+        gecode::search 
+        gecode::int 
+        gecode::float
+        gecode::minimodel
+        gecode::flatzinc
+        gecode::gist
     DEPS_PKGCONFIG graph_analysis
         numeric
         owlapi
@@ -127,6 +139,7 @@ rock_library(templ_moft
         ${MOFT_EXTRA_HPP}
     DEPS
         templ_core
+    LIBS ${Boost_LIBRARIES}
 )
 if(WITH_GQR)
     target_link_libraries(templ_moft ${GQR_LIBRARIES})
@@ -234,6 +247,7 @@ rock_library(templ
         utils/PathConstructor.hpp
     DEPS
         templ_moft
+    LIBS ${Boost_LIBRARIES}
 )
 
 rock_library(templ_benchmark
@@ -247,6 +261,7 @@ rock_library(templ_benchmark
         benchmark/io/GoldenReader.hpp
     DEPS
         templ
+    LIBS ${Boost_LIBRARIES}
 )
 
 rock_executable(templ_bin Main.cpp
@@ -388,6 +403,7 @@ rock_library(templ_gui
         gui/widgets/SpatioTemporalRequirement.ui
         gui/widgets/TemporalConstraintQualitative.ui
         gui/widgets/TemporalConstraintQuantitative.ui
+    LIBS ${Boost_LIBRARIES}
 )
 
 rock_executable(templ-gui gui/Main.cpp
