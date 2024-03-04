@@ -31,4 +31,5 @@ rock_testsuite(templ-test suite.cpp
     DEPS
         templ
         templ_benchmark
+    LIBS ${Boost_LIBRARIES}
     )
