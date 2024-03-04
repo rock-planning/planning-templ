@@ -1,3 +1,4 @@
+find_package(Boost REQUIRED system regex filesystem serialization program_options)
 rock_testsuite(templ-test suite.cpp
     #test_Scheduling.cpp
     solvers/test_AgentRoutingProblem.cpp
@@ -31,4 +32,5 @@ rock_testsuite(templ-test suite.cpp
     DEPS
         templ
         templ_benchmark
+    LIBS ${Boost_LIBRARIES}
     )
