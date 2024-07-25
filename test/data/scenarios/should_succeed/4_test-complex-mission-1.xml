@@ -92,7 +92,7 @@
     </location>
 </constants>
 <requirements>
-    <requirement>
+    <requirement id="0">
         <spatial-requirement>
             <!-- where it is required -->
             <location>
@@ -135,7 +135,7 @@
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement>
+    <requirement id="1">
         <spatial-requirement>
             <!-- where it is required -->
             <location>
@@ -155,7 +155,7 @@
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement>
+    <requirement id="2">
         <spatial-requirement>
             <!-- where it is required -->
             <location>
@@ -181,7 +181,7 @@
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement>
+    <requirement id="3">
         <spatial-requirement>
             <!-- where it is required -->
             <location>
@@ -201,7 +201,7 @@
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement>
+    <requirement id="4">
         <spatial-requirement>
             <!-- where it is required -->
             <location>
@@ -229,7 +229,7 @@
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement>
+    <requirement id="5">
         <spatial-requirement>
             <location>
                 <id>b1</id>
@@ -250,7 +250,7 @@
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement>
+    <requirement id="6">
         <spatial-requirement>
             <!-- where it is required -->
             <location>
@@ -277,7 +277,7 @@
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement>
+    <requirement id="7">
         <spatial-requirement>
             <!-- where it is required -->
             <location>
@@ -300,7 +300,7 @@
             </resource>
         </resource-requirement>
     </requirement>
-    <requirement>
+    <requirement id="8">
         <spatial-requirement>
             <!-- where it is required -->
             <location>
@@ -324,7 +324,7 @@
         </resource-requirement>
     </requirement>
 
-    <requirement>
+    <requirement id="9">
         <spatial-requirement>
             <location>
                 <id>b6</id>
@@ -343,7 +343,7 @@
     </requirement>
 
 <!--
-    <requirement>
+    <requirement id="10">
         <spatial-requirement>
             <location>
                 <id>b7</id>
