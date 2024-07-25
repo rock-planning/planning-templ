@@ -6,7 +6,6 @@ project(templ
     DESCRIPTION "TemPl - Planning for Reconfigurable Multi-Robot Systems"
 )
 set(CMAKE_COMPILE_EXPORT_COMMANDS on)
-set(ROCK_TEST_ENABLED on)
 find_package(Rock)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -1,4 +1,5 @@
-find_package(Boost REQUIRED system filesystem serialization program_options)
+find_package(gecode REQUIRED)
+find_package(Boost REQUIRED system filesystem serialization program_options regex)
 
 # For adding the qt5 resources
 set(CMAKE_AUTORCC ON)
@@ -51,10 +52,18 @@ rock_library(templ_core
         utils/CSVLogger.hpp
         utils/CartographicMapping.hpp
         utils/Logger.hpp
-    LIBS ${Boost_LIBRARIES}
+    LIBS
+        ${Boost_LIBRARIES}
+        gecode::kernel
+        gecode::set
+        gecode::support
+        gecode::search
+        gecode::int
+        gecode::float
+        gecode::minimodel
         proj
     DEPS_PKGCONFIG
-        graph_analysis-core
+        graph_analysis
         numeric
         owlapi
         moreorg
