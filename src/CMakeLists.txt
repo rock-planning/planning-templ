@@ -398,7 +398,7 @@ set(GUI_UI
     )
 
 if(ROCK_QT_VERSION_4)
-    rock_library(templ_gui
+    rock_library(templ_gui-qt4
         HEADERS
             ${GUI_HEADERS}
         SOURCES
@@ -414,6 +414,10 @@ if(ROCK_QT_VERSION_4)
             Qt4::QtXml
             Qt4::QtSvg
     )
+    rock_executable(templ-gui-qt4 gui/Main.cpp
+        DEPS templ_gui-qt4)
+else()
+    message(WARNING "gui: not building for qt4")
 endif(ROCK_QT_VERSION_4)
 
 if(ROCK_QT_VERSION_5)
@@ -435,8 +439,11 @@ if(ROCK_QT_VERSION_5)
             Qt5::PrintSupport
             Qt5::Svg
     )
+    rock_executable(templ-gui-qt5 gui/Main.cpp
+        DEPS templ_gui-qt5
+    )
+else()
+    message(WARNING "gui: not building for qt5")
 endif(ROCK_QT_VERSION_5)
 
-rock_executable(templ-gui gui/Main.cpp
-    DEPS templ_gui)
 
