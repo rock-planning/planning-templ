@@ -271,7 +271,7 @@ rock_executable(templ-transport_network_planner
 
 rock_executable(templ-tcn_reader
     utils/TemporalConstraintNetworkMain.cpp
-    DEPS templ templ_core
+    DEPS templ
 )
 
 rock_executable(templ-solution_analysis
