@@ -64,7 +64,7 @@ void FlowNetwork::initialize(const std::map<Role, csp::RoleTimeline>& timelines,
     // Add capacity-weighted edges to the graph
     // -----------------------------------------
     // Per Role --> add capacities (in terms of capability of carrying an immobile system)
-    for(const std::pair<Role, csp::RoleTimeline>& p : timelines)
+    for(const std::pair<const Role, csp::RoleTimeline>& p : timelines)
     {
         // infer connections from timeline
         // sequentially ordered timeline

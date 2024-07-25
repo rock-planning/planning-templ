@@ -56,7 +56,7 @@ MinCostFlow::MinCostFlow(
         }
     }
 
-    for(const std::pair<Role, csp::RoleTimeline>& p : mMinRequiredTimelines)
+    for(const std::pair<const Role, csp::RoleTimeline>& p : mMinRequiredTimelines)
     {
         const Role& role = p.first;
         if(p.second.getTimeline().empty())
