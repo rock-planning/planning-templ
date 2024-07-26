@@ -1,3 +1,6 @@
+find_package(gecode REQUIRED)
+find_package(Boost REQUIRED system filesystem serialization program_options regex)
+
 rock_testsuite(templ-test suite.cpp
     #test_Scheduling.cpp
     solvers/test_AgentRoutingProblem.cpp
