@@ -64,7 +64,9 @@ struct SimulationFixture3
 };
 
 
-BOOST_FIXTURE_TEST_CASE(test_simulation1, SimulationFixture1)
+BOOST_AUTO_TEST_SUITE(solution_simulation)
+
+BOOST_FIXTURE_TEST_CASE(simulation_1, SimulationFixture1)
 {
     double n = 10000;
     std::vector<utils::ProbabilityType> metricsList;
@@ -89,7 +91,7 @@ BOOST_FIXTURE_TEST_CASE(test_simulation1, SimulationFixture1)
     BOOST_TEST_MESSAGE("From " << n << " simulation runs, " << count << " succeeded. Success rate was: " << success_rate << ".");
 }
 
-BOOST_FIXTURE_TEST_CASE(test_simulation2, SimulationFixture2)
+BOOST_FIXTURE_TEST_CASE(simulation_2, SimulationFixture2)
 {
     double n = 10000;
     std::vector<utils::ProbabilityType> metricsList;
@@ -115,7 +117,7 @@ BOOST_FIXTURE_TEST_CASE(test_simulation2, SimulationFixture2)
     BOOST_TEST_MESSAGE("From " << n << " simulation runs, " << count << " succeeded. Success rate was: " << success_rate << ".");
 }
 
-BOOST_FIXTURE_TEST_CASE(test_simulation3, SimulationFixture3)
+BOOST_FIXTURE_TEST_CASE(simulation_3, SimulationFixture3)
 {
     double n = 10000;
     std::vector<utils::ProbabilityType> metricsList;
@@ -140,3 +142,5 @@ BOOST_FIXTURE_TEST_CASE(test_simulation3, SimulationFixture3)
     double success_rate = count / n;
     BOOST_TEST_MESSAGE("From " << n << " simulation runs, " << count << " succeeded. Success rate was: " << success_rate << ". " << "Efficacy was: " << resultAnalysis.avgEfficacy);
 }
+
+BOOST_AUTO_TEST_SUITE_END()

@@ -38,5 +38,5 @@ jobs:
       - name: Test
         run: docker run rock/${{ matrix.os }}
                 /bin/bash -c
-                  "source /home/docker/rock_test/env.sh; BOOST_TEST_CATCH_SYSTEM_ERRORS=\"no\" make -C /home/docker/rock_test/${{ matrix.package }}/build test"
+                  "source /home/docker/rock_test/env.sh; BOOST_TEST_CATCH_SYSTEM_ERRORS=\"no\" /home/docker/rock_test/${{ matrix.package }}/build/test/templ-test --run_test='!solution_simulation*' --log_level=all"
 

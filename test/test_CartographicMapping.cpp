@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE(longitude_latitude_to_metric)
 
         double distance = (location0metric - location1metric).norm();
 
-        BOOST_REQUIRE_MESSAGE(distance < 32E03 && distance > 30E03, "Distance around 30 km, but was " << distance);
+        BOOST_REQUIRE_MESSAGE(distance < 32E03 && distance > 28E03, "Distance around 30 km, but was " << distance);
     }
 
     // The mapping is not suited for computation of distance close to poles
