@@ -1,0 +1,25 @@
+ff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Roehr
+    given-names: Thomas M.
+    orcid: https://orcid.org/0000-0002-7715-7052
+title: "Active Exploitation of Redundancies in Reconfigurable Multirobot Systems"
+version: 1.0.0
+doi: 10.1109/TRO.2021.3118284
+date-released: 2021-11-01
+preferred-citation:
+  type: article
+  authors:
+  - family-names: Roehr
+    given-names: Thomas M.
+    orcid: https://orcid.org/0000-0002-7715-7052
+  doi: 10.1109/TRO.2021.3118284
+  journal: "IEEE Transactions on Robotics"
+  month: 11
+  start: 180 # First page number
+  end: 196 # Last page number
+  title: "Active Exploitation of Redundancies in Reconfigurable Multirobot Systems"
+  issue: 1
+  volume: 38
+  year: 2022
