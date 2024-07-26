@@ -17,9 +17,9 @@ to deal with the XML format),
 and a mission generator to automatically generate simple as well as complex test missions.
 
 ## Installation
-Please use autoproj to bootstrap and include the package-set
-[rock](https://github.com/rock-planning/planning-templ) in your manifest.
-Afterwards you can install TemPl via:
+Please use autoproj to bootstrap clone and include this package as
+[planning/templ](https://github.com/rock-planning/planning-templ) in your manifest.
+Afterwards you can build and install TemPl via:
 ```
     amake planning/templ
 ```
@@ -96,7 +96,7 @@ TemPl:
 ```
 
 ### Templ GUI
-The graphical user interface templ-gui allows you to load solutions, so that you can
+The graphical user interface templ-gui-qt5 allows you to load solutions, so that you can
 inspect them and achieve a better understanding of the solutions.
 The graphical interface will also permit the creation of missions via the
 MissionEditor.
@@ -328,19 +328,21 @@ All new features need to be accompanied by a corresponding unit test.
 If you use TemPl for a scientific publication, please cite the following paper:
 
 ```bibtex
-@article{Roehr:2018:IBERAMIA,
+@article{Roehr_Active_Exploitation_of_2022,
 author = {Roehr, Thomas M.},
-doi = {10.4114/intartif.vol21iss62pp25-39},
-journal = {Inteligencia Artificial, Revista Iberoamericana de Inteligencia Artificial},
-mendeley-groups = {all},
-number = {62},
-pages = {25--39},
-title = {{A Constraint-based Mission Planning Approach for Reconfigurable Multi-Robot Systems}},
-volume = {21},
-year = {2018}
+doi = {10.1109/TRO.2021.3118284},
+journal = {IEEE Transactions on Robotics},
+month = nov,
+number = {1},
+pages = {180--196},
+title = {{Active Exploitation of Redundancies in Reconfigurable Multirobot Systems}},
+volume = {38},
+year = {2022}
 }
 ```
 
 # Copyright
+
+Copyright (c) 2022- Thomas M. Roehr and Contributors, Simula Research Laboratory
 
 Copyright (c) 2015-2021 Thomas M. Roehr, DFKI GmbH Robotics Innovation Center
