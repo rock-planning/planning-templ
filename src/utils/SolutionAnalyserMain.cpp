@@ -98,12 +98,12 @@ int main(int argc, char** argv)
     description.add_options()
         ("help","describe arguments")
         ("mission", po::value<std::string>(), "Path to the mission specification")
-        ("log-dir", po::value<std::string>(), "Path to the logdirectory containing the  solution files")
+        ("log-dir", po::value<std::string>(), "Path to the logdirectory containing the solution files (if no single solution is provided)")
         ("solution", po::value<std::string>(), "Path to the solution file")
         ("om", po::value<std::string>(), "IRI of the organization model (optional)")
         ("report", "show the report of the analysis")
         ("save", po::value<std::string>(), "Save final path to a given filename")
-        ("save-row", po::value<std::string>(), "Save generated row data to a given filename")
+        ("save-row", po::value<std::string>(), "Save generated analysis data as row to a given filename")
         ("save-modelpool", po::value<std::string>(), "Save generated modelpool to a given filename")
         ("session-id", po::value<size_t>(), "The session id to use for writing row data")
         ;
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
     {
         missionFilename = vm["mission"].as<std::string>();
     } else {
-        printf("Please provide at least a mission to start the planning process\n");
+        printf("Please provide a mission that should be analysed\n");
         exit(2);
     }
 

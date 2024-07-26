@@ -67,7 +67,7 @@ std::string RoleTimeline::toString(const std::map<Role, RoleTimeline>& timelines
 SpaceTime::Timelines RoleTimeline::collectTimelines(const std::map<Role, RoleTimeline>& timelines)
 {
     SpaceTime::Timelines spaceTimeTimelines;
-    for(const std::pair<Role, RoleTimeline>& p : timelines)
+    for(const std::pair<const Role, RoleTimeline>& p : timelines)
     {
         spaceTimeTimelines[p.first] = p.second.getTimeline();
     }

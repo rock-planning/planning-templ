@@ -19,40 +19,14 @@ namespace templ {
 namespace solvers {
 
 SolutionAnalysis::SolutionAnalysis()
-    : mAlpha(1.0)
-    , mBeta(1.0)
-    , mSigma(1.0)
-    , mCost(0.0)
-    , mTimeHorizonInS(0)
-    , mSafety(0.0)
-    , mEfficacy(0.0)
-    , mTraveledDistance(0)
-    , mReconfigurationCost(0)
-    , mTotalNumberOfAgents(0)
-    , mNumberOfMobileAgents(0)
-    , mAnalyser(moreorg::OrganizationModelAsk())
-{}
+    : mAlpha(1.0), mBeta(1.0), mSigma(1.0), mCost(0.0), mTimeHorizonInS(0), mSafety(0.0), mEfficacy(0.0), mTraveledDistance(0), mReconfigurationCost(0), mTotalNumberOfAgents(0), mNumberOfMobileAgents(0), mAnalyser(moreorg::OrganizationModelAsk())
+{
+}
 
-SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
-        const SpaceTime::Network& solution,
-        qxcfg::Configuration configuration)
-    : mpMission(mission)
-    , mSolutionNetwork(solution)
-    , mTimepointComparator(mission->getTemporalConstraintNetwork())
-    , mAlpha(1.0)
-    , mBeta(1.0)
-    , mSigma(1.0)
-    , mCost(0.0)
-    , mTimeHorizonInS(0)
-    , mSafety(0.0)
-    , mEfficacy(0.0)
-    , mTraveledDistance(0)
-    , mReconfigurationCost(0)
-    , mTotalNumberOfAgents(0)
-    , mNumberOfMobileAgents(0)
-    , mAsk(mpMission->getOrganizationModelAsk())
-    , mAnalyser(mAsk)
-    , mConfiguration(configuration)
+SolutionAnalysis::SolutionAnalysis(const Mission::Ptr &mission,
+                                   const SpaceTime::Network &solution,
+                                   qxcfg::Configuration configuration)
+    : mpMission(mission), mSolutionNetwork(solution), mTimepointComparator(mission->getTemporalConstraintNetwork()), mAlpha(1.0), mBeta(1.0), mSigma(1.0), mCost(0.0), mTimeHorizonInS(0), mSafety(0.0), mEfficacy(0.0), mTraveledDistance(0), mReconfigurationCost(0), mTotalNumberOfAgents(0), mNumberOfMobileAgents(0), mAsk(mpMission->getOrganizationModelAsk()), mAnalyser(mAsk), mConfiguration(configuration)
 {
     mResourceRequirements = Mission::getResourceRequirements(mpMission);
 
@@ -64,23 +38,10 @@ SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
         mConfiguration.getValueAs<double>("TransportNetwork/search/options/cost-function/safety/weight", 1.0);
 }
 
-SolutionAnalysis::SolutionAnalysis(const Mission::Ptr& mission,
-        const BaseGraph::Ptr& graph,
-        qxcfg::Configuration configuration)
-    : mpMission(mission)
-    , mTimepointComparator(mission->getTemporalConstraintNetwork())
-    , mAlpha(1.0)
-    , mBeta(1.0)
-    , mSigma(1.0)
-    , mCost(0.0)
-    , mTimeHorizonInS(0)
-    , mSafety(0.0)
-    , mEfficacy(0.0)
-    , mTraveledDistance(0)
-    , mReconfigurationCost(0)
-    , mAsk(mpMission->getOrganizationModelAsk())
-    , mAnalyser(mAsk)
-    , mConfiguration(configuration)
+SolutionAnalysis::SolutionAnalysis(const Mission::Ptr &mission,
+                                   const BaseGraph::Ptr &graph,
+                                   qxcfg::Configuration configuration)
+    : mpMission(mission), mTimepointComparator(mission->getTemporalConstraintNetwork()), mAlpha(1.0), mBeta(1.0), mSigma(1.0), mCost(0.0), mTimeHorizonInS(0), mSafety(0.0), mEfficacy(0.0), mTraveledDistance(0), mReconfigurationCost(0), mAsk(mpMission->getOrganizationModelAsk()), mAnalyser(mAsk), mConfiguration(configuration)
 
 {
     mSolutionNetwork = SpaceTime::Network::fromGraph(graph, mission->getLocations(), mission->getTimepoints());
@@ -99,18 +60,18 @@ void SolutionAnalysis::updateAnalyser()
 {
     // Adding requirements to analyser
     std::vector<solvers::FluentTimeResource>::const_iterator cit = mResourceRequirements.begin();
-    for(; cit != mResourceRequirements.end(); ++cit)
+    for (; cit != mResourceRequirements.end(); ++cit)
     {
-        const solvers::FluentTimeResource& ftr = *cit;
+        const solvers::FluentTimeResource &ftr = *cit;
         Resource::Set resources = ftr.getRequiredResources();
         ModelPool agentPool = mAsk.allowSubclasses(ftr.getMinCardinalities(), vocabulary::OM::Actor());
 
         RequirementSample sample(resources,
-                agentPool,
-                ftr.getLocation()->getPosition(),
-                ftr.getLocation()->getPosition(),
-                mTimeAssignment[ ftr.getInterval().getFrom() ],
-                mTimeAssignment[ ftr.getInterval().getTo() ]);
+                                 agentPool,
+                                 ftr.getLocation()->getPosition(),
+                                 ftr.getLocation()->getPosition(),
+                                 mTimeAssignment[ftr.getInterval().getFrom()],
+                                 mTimeAssignment[ftr.getInterval().getTo()]);
 
         mAnalyser.add(sample);
     }
@@ -118,13 +79,12 @@ void SolutionAnalysis::updateAnalyser()
     // Adding current solution information to analyser
     BaseGraph::Ptr graph = mSolutionNetwork.getGraph();
     EdgeIterator::Ptr edgeIt = graph->getEdgeIterator();
-    while(edgeIt->next())
+    while (edgeIt->next())
     {
         SpaceTime::Network::edge_t::Ptr edge = dynamic_pointer_cast<SpaceTime::Network::edge_t>(edgeIt->current());
-        if(!edge)
+        if (!edge)
         {
-            throw std::invalid_argument("SolutionAnalysis: encountered edge type: " + edgeIt->current()->getClassName()
-                    + " Are you loading final plan instead of the transport network solution?");
+            throw std::invalid_argument("SolutionAnalysis: encountered edge type: " + edgeIt->current()->getClassName() + " Are you loading final plan instead of the transport network solution?");
         }
 
         SpaceTime::Network::tuple_t::Ptr fromTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(edge->getSourceVertex());
@@ -134,24 +94,26 @@ void SolutionAnalysis::updateAnalyser()
         Agent agent;
         Agent fromAgent(fromTuple->getRoles(RoleInfo::ASSIGNED));
 
-        if(fromTuple->first()->getPosition() != toTuple->first()->getPosition())
+        if (fromTuple->first()->getPosition() != toTuple->first()->getPosition())
         {
             activityType = activity::TRANSPORT;
 
             // Identify the agent which performs the transition/or
             Agent toAgent(toTuple->getRoles(RoleInfo::ASSIGNED));
-            agent = Agent( fromAgent.getIntersection(toAgent) );
-        } else {
+            agent = Agent(fromAgent.getIntersection(toAgent));
+        }
+        else
+        {
             agent = fromAgent;
         }
 
         StatusSample status(agent,
-                fromTuple->first()->getPosition(),
-                toTuple->first()->getPosition(),
-                mTimeAssignment[ fromTuple->second() ],
-                mTimeAssignment[ toTuple->second() ],
-                Agent::OPERATIVE,
-                activityType);
+                            fromTuple->first()->getPosition(),
+                            toTuple->first()->getPosition(),
+                            mTimeAssignment[fromTuple->second()],
+                            mTimeAssignment[toTuple->second()],
+                            Agent::OPERATIVE,
+                            activityType);
         mAnalyser.add(status);
     }
 }
@@ -166,20 +128,20 @@ std::set<Role> SolutionAnalysis::getRequiredRoles(size_t minRequirement) const
     assert(mSolutionNetwork.getGraph());
 
     VertexIterator::Ptr vertexIt = mSolutionNetwork.getGraph()->getVertexIterator();
-    while(vertexIt->next())
+    while (vertexIt->next())
     {
         SpaceTime::Network::tuple_t::Ptr currentTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(vertexIt->current());
         assert(currentTuple);
         std::set<Role> involvedRoles = currentTuple->getAllRoles();
-        for(const Role& role : involvedRoles)
+        for (const Role &role : involvedRoles)
         {
             mRoleUsage[role] += 1;
         }
     }
 
-    for(std::pair<Role, size_t> pair : mRoleUsage)
+    for (std::pair<Role, size_t> pair : mRoleUsage)
     {
-        if(pair.second >= minRequirement)
+        if (pair.second >= minRequirement)
         {
             requiredRoles.insert(pair.first);
         }
@@ -187,115 +149,141 @@ std::set<Role> SolutionAnalysis::getRequiredRoles(size_t minRequirement) const
     return requiredRoles;
 }
 
-double SolutionAnalysis::getSafety(const FluentTimeResource& ftr, const SpaceTime::Network::tuple_t::Ptr& tuple) const
+double SolutionAnalysis::getSafety(
+    const FluentTimeResource& ftr,
+    const SpaceTime::Network::tuple_t::Ptr& tuple,
+    double start_time,
+    double end_time) const
 {
     using namespace moreorg;
     ModelPool minRequired = getMinResourceRequirements(ftr);
-    ModelPool minAvailable = getMinAvailableResources(tuple);
+    ResourceInstance::List minAvailable = getMinAvailableResources(tuple);
 
     double safety = 0.0;
-    try {
-        safety = getSafety(minRequired, minAvailable);
-    } catch(const std::exception& e)
+    try
     {
-        safety = getSafety(ModelPool(), minAvailable);
+        safety = getSafety(minRequired, minAvailable, start_time, end_time);
+    }
+    catch (const std::exception &e)
+    {
+        
+        safety = getSafety(ModelPool(), minAvailable, start_time, end_time); // is timeInterval here even available?
         LOG_WARN_S << "Failed to compute safety at: "
-            << tuple->toString(4)
-            << "Required: "
-            << minRequired.toString(4)
-            << "Available"
-            << minAvailable.toString(4)
-            << "Handling as no unfulfilled requirement with safety: "
-            << safety;
+                   << tuple->toString(4)
+                   << "Required: "
+                   << minRequired.toString(4)
+                   << "Available"
+                   //<< minAvailable.toString(4) TODO: change so it works to print
+                   << "Handling as no unfulfilled requirement with safety: "
+                   << safety;
     }
     return safety;
 }
 
-double SolutionAnalysis::getSafety(const FluentTimeResource& ftr) const
+double SolutionAnalysis::getSafety(const FluentTimeResource &ftr) const
 {
     using namespace moreorg;
     ModelPool minRequired = getMinResourceRequirements(ftr);
-    ModelPool minAvailable = getMinAvailableResources(ftr);
+    ResourceInstance::List minAvailable = getMinAvailableResources(ftr);
+    double start_time = mTimeAssignment.find(ftr.getInterval().getFrom())->second;
+    double end_time = mTimeAssignment.find(ftr.getInterval().getTo())->second;
 
-    try {
-        double safety = getSafety(minRequired, minAvailable);
+    try
+    {
+        double safety = getSafety(minRequired, minAvailable, start_time, end_time);
         return safety;
-    } catch(const std::exception& e)
+    }
+    catch (const std::exception &e)
     {
         LOG_WARN_S << "Failed to compute safety at: "
-            << ftr.toString(4)
-            << "Required: "
-            << minRequired.toString(4)
-            << "Available"
-            << minAvailable.toString(4);
+                   << ftr.toString(4)
+                   << "Required: "
+                   << minRequired.toString(4)
+                   << "Available";
+                   //<< minAvailable.toString(4);
 
         return -1.0;
     }
 }
 
-double SolutionAnalysis::getSafety(const ModelPool& minRequired, const ModelPool& minAvailable) const
+double SolutionAnalysis::getSafety(
+    const ModelPool& minRequired,
+    const ResourceInstance::List& minAvailable,
+    double start_time,
+    double end_time) const
 {
-    return mAnalyser.getMetric()->computeSharedUse(minRequired, minAvailable);
+    try
+    {
+        double value = mAnalyser.getMetric()->computeSharedUse(minRequired, minAvailable, start_time, end_time);
+        return value;
+    }
+    catch(const std::exception& e)
+    {                
+        LOG_WARN_S << "templ::solvers::SolutionAnalysis: could not compute metric. Maybe no requirements were found?";
+        return 1.;
+    }
+    
 }
 
-moreorg::ModelPool SolutionAnalysis::getMinAvailableResources(const FluentTimeResource& ftr) const
+moreorg::ResourceInstance::List SolutionAnalysis::getMinAvailableResources(const FluentTimeResource &ftr) const
 {
     symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(ftr.getFluent());
     assert(location);
 
-    std::vector<moreorg::ModelPool> availableResources = getAvailableResources(location, ftr.getInterval());
-
     using namespace moreorg;
-    // return the minimum available resources
-    // ( min(M_0), min(M_1), ...)
-    ModelPool minAvailableResources = moreorg::Algebra::min( availableResources);
 
-    // Infer functionality from this set of resources
-    ModelPool functionalities = mAsk.getSupportedFunctionalities(minAvailableResources);
-    ModelPool pool = moreorg::Algebra::max(minAvailableResources, functionalities);
-    return pool;
+    ResourceInstance::List availableResources = getAvailableResources(location, ftr.getInterval());
+
+    
+    // // return the minimum available resources
+    // // ( min(M_0), min(M_1), ...)
+    // ModelPool minAvailableResources = moreorg::Algebra::min(availableResources);
+
+    // // Infer functionality from this set of resources
+    // ModelPool functionalities = mAsk.getSupportedFunctionalities(minAvailableResources);
+    // ModelPool pool = moreorg::Algebra::max(minAvailableResources, functionalities);
+    return availableResources;
 }
 
-moreorg::ModelPool SolutionAnalysis::getMinAvailableResources(const SpaceTime::Network::tuple_t::Ptr& tuple) const
+moreorg::ResourceInstance::List SolutionAnalysis::getMinAvailableResources(const SpaceTime::Network::tuple_t::Ptr &tuple) const
 {
     using namespace moreorg;
-    ModelPool minAvailableResources = getAvailableResources(tuple->first(), tuple->second());
+    ResourceInstance::List minAvailableResources = getAvailableResources(tuple->first(), tuple->second());
 
-//    // Infer functionality from this set of resources
-//    OrganizationModelAsk ask(mpMission->getOrganizationModel(),
-//            minAvailableResources,
-//            true);
-//    // Creating model pool from available functionalities
-//    ModelPool functionalities = ask.getSupportedFunctionalities();
-//    return moreorg::Algebra::max(minAvailableResources, functionalities);
+    //    // Infer functionality from this set of resources
+    //    OrganizationModelAsk ask(mpMission->getOrganizationModel(),
+    //            minAvailableResources,
+    //            true);
+    //    // Creating model pool from available functionalities
+    //    ModelPool functionalities = ask.getSupportedFunctionalities();
+    //    return moreorg::Algebra::max(minAvailableResources, functionalities);
     return minAvailableResources;
 }
 
-moreorg::ModelPool SolutionAnalysis::getMaxAvailableResources(const FluentTimeResource& ftr) const
-{
-    symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(ftr.getFluent());
-    assert(location);
+// moreorg::ModelPool SolutionAnalysis::getMaxAvailableResources(const FluentTimeResource &ftr) const
+// {
+//     symbols::constants::Location::Ptr location = dynamic_pointer_cast<symbols::constants::Location>(ftr.getFluent());
+//     assert(location);
 
-    std::vector<moreorg::ModelPool> availableResources = getAvailableResources(location, ftr.getInterval());
+//     ResourceInstance::List availableResources = getAvailableResources(location, ftr.getInterval());
 
-    using namespace moreorg;
-    // return the minimum available resources of the
-    ModelPool maxAvailableResources = Algebra::max( availableResources );
+//     using namespace moreorg;
+//     // return the minimum available resources of the
+//     ModelPool maxAvailableResources = Algebra::max(availableResources);
 
-    // Infer functionality from this set of resources
-    OrganizationModelAsk ask(mpMission->getOrganizationModel(),
-            maxAvailableResources,
-            true);
-    // Creating model pool from available functionalities
-    ModelPool functionalities = ask.getSupportedFunctionalities();
-    return moreorg::Algebra::max(maxAvailableResources, functionalities);
-}
+//     // Infer functionality from this set of resources
+//     OrganizationModelAsk ask(mpMission->getOrganizationModel(),
+//                              maxAvailableResources,
+//                              true);
+//     // Creating model pool from available functionalities
+//     ModelPool functionalities = ask.getSupportedFunctionalities();
+//     return moreorg::Algebra::max(maxAvailableResources, functionalities);
+// }
 
-std::vector<moreorg::ModelPool> SolutionAnalysis::getAvailableResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::Interval& interval) const
+moreorg::ResourceInstance::List SolutionAnalysis::getAvailableResources(const symbols::constants::Location::Ptr &location, const solvers::temporal::Interval &interval) const
 {
     using namespace temporal::point_algebra;
 
-    std::vector<moreorg::ModelPool> modelPools;
 
     // Iterate over all known timepoints and check if the timepoint belongs to
     // the interval (the list of timepoints is sorted)
@@ -304,22 +292,22 @@ std::vector<moreorg::ModelPool> SolutionAnalysis::getAvailableResources(const sy
     assert(!timepoints.empty());
 
     Role::Set identifiedRoles;
+    moreorg::ResourceInstance::List availableResources;
 
-    for(TimePoint::Ptr timepoint : timepoints)
+    for (TimePoint::Ptr timepoint : timepoints)
     {
-        if( mTimepointComparator.inInterval(timepoint, interval.getFrom(), interval.getTo()) )
+        if (mTimepointComparator.inInterval(timepoint, interval.getFrom(), interval.getTo()))
         {
             // identified relevant tuple
-            try {
+            try
+            {
                 SpaceTime::Network::tuple_t::Ptr tuple = mSolutionNetwork.tupleByKeys(location, timepoint);
                 Role::Set foundRoles = tuple->getRoles(RoleInfo::ASSIGNED);
                 Role::List roles(foundRoles.begin(), foundRoles.end());
 
                 identifiedRoles.insert(foundRoles.begin(), foundRoles.end());
-
-                moreorg::ModelPool currentPool = Role::getModelPool(roles);
-                modelPools.push_back(currentPool);
-            } catch(const std::exception& e)
+            }
+            catch (const std::exception &e)
             {
                 LOG_WARN_S << e.what();
             }
@@ -329,84 +317,89 @@ std::vector<moreorg::ModelPool> SolutionAnalysis::getAvailableResources(const sy
     // An completely empty model pool does not
     // correctly reflect the minimums, so
     // we have to expand the existing set
-    for(ModelPool& pool : modelPools)
-    {
-        for(const Role& role : identifiedRoles)
-        {
-            if(pool.end() == pool.find(role.getModel()))
-            {
-                pool.insert(ModelPool::value_type(role.getModel(), 0));
-            }
-        }
-    }
 
-    return modelPools;
+    
+    for (const Role &role : identifiedRoles)
+    {
+        moreorg::ResourceInstance::List available = mAsk.getRelated(role);
+        availableResources.insert(std::end(availableResources), std::begin(available), std::end(available));
+    }
+    
+
+    return availableResources;
 }
 
-moreorg::ModelPool SolutionAnalysis::getAvailableResources(const symbols::constants::Location::Ptr& location,
-        const solvers::temporal::point_algebra::TimePoint::Ptr& timepoint) const
+moreorg::ResourceInstance::List SolutionAnalysis::getAvailableResources(const symbols::constants::Location::Ptr &location,
+                                                           const solvers::temporal::point_algebra::TimePoint::Ptr &timepoint) const
 {
-    ModelPool modelPool;
+    using namespace moreorg;
+    ResourceInstance::List availableResources;
     // identified relevant tuple
-    try {
+    try
+    {
         SpaceTime::Network::tuple_t::Ptr tuple = mSolutionNetwork.tupleByKeys(location, timepoint);
         Role::Set foundRoles = tuple->getRoles(RoleInfo::ASSIGNED);
         Role::List roles(foundRoles.begin(), foundRoles.end());
-        modelPool = Role::getModelPool(roles);
-    } catch(const std::exception& e)
+        for (const Role &role : roles)
+        {
+            ResourceInstance::List available = mAsk.getRelated(role);
+            availableResources.insert(std::end(availableResources), std::begin(available), std::end(available));
+        }
+    }
+    catch (const std::exception &e)
     {
         LOG_WARN_S << e.what();
     }
-    return modelPool;
+    return availableResources;
 }
 
-SolutionAnalysis::MinMaxModelPools SolutionAnalysis::getRequiredResources(const symbols::constants::Location::Ptr& location, const solvers::temporal::Interval& interval) const
+SolutionAnalysis::MinMaxModelPools SolutionAnalysis::getRequiredResources(const symbols::constants::Location::Ptr &location, const solvers::temporal::Interval &interval) const
 {
     using namespace temporal::point_algebra;
     MinMaxModelPools minMaxModelPools;
 
     std::vector<solvers::FluentTimeResource>::const_iterator cit = mResourceRequirements.begin();
-    for(; cit != mResourceRequirements.end(); ++cit)
+    for (; cit != mResourceRequirements.end(); ++cit)
     {
-        const solvers::FluentTimeResource& ftr = *cit;
+        const solvers::FluentTimeResource &ftr = *cit;
 
         symbols::constants::Location::Ptr ftrLocation = ftr.getLocation();
-        if(location != ftrLocation)
+        if (location != ftrLocation)
         {
             continue;
         }
 
-        if( mTimepointComparator.hasIntervalOverlap(ftr.getInterval().getFrom(),
-                    ftr.getInterval().getTo(),
-                    interval.getFrom(),
-                    interval.getTo()))
+        if (mTimepointComparator.hasIntervalOverlap(ftr.getInterval().getFrom(),
+                                                    ftr.getInterval().getTo(),
+                                                    interval.getFrom(),
+                                                    interval.getTo()))
         {
-            minMaxModelPools.first.push_back( ftr.getMinCardinalities() );
-            minMaxModelPools.second.push_back( ftr.getMaxCardinalities() );
+            minMaxModelPools.first.push_back(ftr.getMinCardinalities());
+            minMaxModelPools.second.push_back(ftr.getMaxCardinalities());
         }
     }
 
     return minMaxModelPools;
 }
 
-SolutionAnalysis::MinMaxModelPools SolutionAnalysis::getRequiredResources(const FluentTimeResource& ftr) const
+SolutionAnalysis::MinMaxModelPools SolutionAnalysis::getRequiredResources(const FluentTimeResource &ftr) const
 {
     using namespace temporal::point_algebra;
     MinMaxModelPools minMaxModelPools;
 
     std::vector<solvers::FluentTimeResource>::const_iterator cit = mResourceRequirements.begin();
-    for(; cit != mResourceRequirements.end(); ++cit)
+    for (; cit != mResourceRequirements.end(); ++cit)
     {
-        const solvers::FluentTimeResource& requirementFtr = *cit;
-        if(ftr.getLocation() == requirementFtr.getLocation() &&
-                ftr.getInterval() == requirementFtr.getInterval())
+        const solvers::FluentTimeResource &requirementFtr = *cit;
+        if (ftr.getLocation() == requirementFtr.getLocation() &&
+            ftr.getInterval() == requirementFtr.getInterval())
         {
             ModelPool minCardinalities = ftr.getMinCardinalities();
-            for(const moreorg::Resource& resource : ftr.getRequiredResources())
+            for (const moreorg::Resource &resource : ftr.getRequiredResources())
             {
                 // Assuming the functionalities have max
-                if(mAsk.ontology().isSubClassOf(resource.getModel(),
-                            vocabulary::OM::Functionality()))
+                if (mAsk.ontology().isSubClassOf(resource.getModel(),
+                                                 vocabulary::OM::Functionality()))
                 {
                     minCardinalities[resource.getModel()] = 1;
                 }
@@ -437,34 +430,34 @@ void SolutionAnalysis::analyse()
     //updateAnalyser();
     // a collect all requirements of the mission -- as translated from the
     // persistence conditions
-    if(mAlpha > 0)
+    if (mAlpha > 0)
     {
         computeEfficacy();
     }
-    if(mBeta > 0)
+    if (mBeta > 0)
     {
         computeEfficiency();
     }
-    if(mSigma > 0)
+    if (mSigma > 0)
     {
         computeSafety();
     }
     computeAgentCount();
 
-    mCost = mAlpha*mEfficacy + mBeta*mEfficiency + mSigma*mSafety;
+    mCost = mAlpha * mEfficacy + mBeta * mEfficiency + mSigma * mSafety;
 }
 
-void SolutionAnalysis::save(const std::string& _filename) const
+void SolutionAnalysis::save(const std::string &_filename) const
 {
     std::string planFilename = _filename;
-    if(planFilename.empty())
+    if (planFilename.empty())
     {
         planFilename = mpMission->getLogger()->filename("final_plan.gexf");
     }
     graph_analysis::io::GraphIO::write(planFilename, mPlan.getGraph());
 
     std::string solutionNetworkFilename = _filename;
-    if(solutionNetworkFilename.empty())
+    if (solutionNetworkFilename.empty())
     {
         solutionNetworkFilename = mpMission->getLogger()->filename("final_solution_network.gexf");
     }
@@ -472,39 +465,43 @@ void SolutionAnalysis::save(const std::string& _filename) const
 
     // stats to string
     std::string filename = mpMission->getLogger()->getBasePath() +
-        "solution_analysis.log";
+                           "solution_analysis.log";
     std::ofstream outfile;
-    if(!boost::filesystem::exists(filename))
+    if (!boost::filesystem::exists(filename))
     {
         outfile.open(filename);
         outfile << getRowDescriptor() << std::endl;
         outfile << toRow() << std::endl;
-    } else {
+    }
+    else
+    {
         outfile.open(filename, std::ios_base::app);
         outfile << toRow() << std::endl;
     }
 }
 
-void SolutionAnalysis::saveRow(const std::string& filename, size_t sessionId) const
+void SolutionAnalysis::saveRow(const std::string &filename, size_t sessionId) const
 {
     std::ofstream outfile;
-    if(!boost::filesystem::exists(filename))
+    if (!boost::filesystem::exists(filename))
     {
         outfile.open(filename);
         outfile << getRowDescriptor() << std::endl;
         outfile << toRow(sessionId) << std::endl;
-    } else {
+    }
+    else
+    {
         outfile.open(filename, std::ios_base::app);
         outfile << toRow(sessionId) << std::endl;
     }
 }
 
-void SolutionAnalysis::saveModelPool(const std::string& filename) const
+void SolutionAnalysis::saveModelPool(const std::string &filename) const
 {
     std::ofstream outfile;
     outfile.open(filename);
     ModelPool modelPool = Role::getModelPool(mRoles);
-    for(const ModelPool::value_type& value : modelPool)
+    for (const ModelPool::value_type &value : modelPool)
     {
         outfile << value.first.toString();
         outfile << " ";
@@ -529,10 +526,12 @@ std::string SolutionAnalysis::getRowDescriptor() const
 std::string SolutionAnalysis::toRow(size_t sessionId) const
 {
     std::stringstream ss;
-    if(sessionId != 0)
+    if (sessionId != 0)
     {
         ss << sessionId << " ";
-    } else {
+    }
+    else
+    {
         ss << mpMission->getLogger()->getSessionId() << " ";
     }
     ss << mAlpha << " ";
@@ -549,28 +548,27 @@ std::string SolutionAnalysis::toRow(size_t sessionId) const
     return ss.str();
 }
 
-
-bool SolutionAnalysis::isStartDepotRequirement(const FluentTimeResource& ftr) const
+bool SolutionAnalysis::isStartDepotRequirement(const FluentTimeResource &ftr) const
 {
     return ftr.getInterval().getFrom()->equals(mTimepoints.front());
 }
 
-double SolutionAnalysis::degreeOfFulfillment(const solvers::FluentTimeResource& ftr)
+double SolutionAnalysis::degreeOfFulfillment(const solvers::FluentTimeResource &ftr)
 {
     // Ignore start requirements
-    if(isStartDepotRequirement(ftr))
+    if (isStartDepotRequirement(ftr))
     {
         return 1.0;
     }
 
     SpaceTime::Network::tuple_t::PtrList tuples = getTuples(ftr);
-    for(const SpaceTime::Network::tuple_t::Ptr& roleInfo : tuples)
+    for (const SpaceTime::Network::tuple_t::Ptr &roleInfo : tuples)
     {
         std::set<Role> assigned = roleInfo->getRoles(RoleInfo::ASSIGNED);
         std::set<Role> required = roleInfo->getRoles(RoleInfo::REQUIRED);
 
-        if(!std::includes(assigned.begin(), assigned.end(), required.begin(),
-                required.end()))
+        if (!std::includes(assigned.begin(), assigned.end(), required.begin(),
+                           required.end()))
         {
             return 0.0;
         }
@@ -578,63 +576,62 @@ double SolutionAnalysis::degreeOfFulfillment(const solvers::FluentTimeResource& 
     return 1.0;
 }
 
-moreorg::ModelPool SolutionAnalysis::getMinResourceRequirements(const FluentTimeResource& ftr) const
+moreorg::ModelPool SolutionAnalysis::getMinResourceRequirements(const FluentTimeResource &ftr) const
 {
     using namespace moreorg;
     return getRequiredResources(ftr).first.front();
 }
 
-moreorg::ModelPool SolutionAnalysis::getMaxResourceRequirements(const FluentTimeResource& ftr) const
+moreorg::ModelPool SolutionAnalysis::getMaxResourceRequirements(const FluentTimeResource &ftr) const
 {
     using namespace moreorg;
     return getRequiredResources(ftr).second.front();
 }
 
-SpaceTime::Network::tuple_t::Ptr SolutionAnalysis::getFromTuple(const FluentTimeResource& ftr) const
+SpaceTime::Network::tuple_t::Ptr SolutionAnalysis::getFromTuple(const FluentTimeResource &ftr) const
 {
     return mSolutionNetwork.tupleByKeys(ftr.getLocation(), ftr.getInterval().getFrom());
 }
 
-SpaceTime::Network::tuple_t::Ptr SolutionAnalysis::getToTuple(const FluentTimeResource& ftr) const
+SpaceTime::Network::tuple_t::Ptr SolutionAnalysis::getToTuple(const FluentTimeResource &ftr) const
 {
     return mSolutionNetwork.tupleByKeys(ftr.getLocation(), ftr.getInterval().getTo());
 }
 
-SpaceTime::Network::tuple_t::PtrList SolutionAnalysis::getTuples(const
-        FluentTimeResource& ftr) const
+SpaceTime::Network::tuple_t::PtrList SolutionAnalysis::getTuples(const FluentTimeResource &ftr) const
 {
     return mSolutionNetwork.getTuples(ftr.getInterval().getFrom(),
-            ftr.getInterval().getTo(), ftr.getLocation());
+                                      ftr.getInterval().getTo(), ftr.getLocation());
 }
 
-moreorg::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequirements(const solvers::FluentTimeResource& ftr) const
-{
-    ModelPool requiredResources = getMinResourceRequirements(ftr);
-    ModelPool maxAvailableResources = getMinAvailableResources(ftr);
+// moreorg::ModelPoolDelta SolutionAnalysis::getMinMissingResourceRequirements(const solvers::FluentTimeResource &ftr) const
+// {
+//     ModelPool requiredResources = getMinResourceRequirements(ftr);
+//     ModelPool maxAvailableResources = getMinAvailableResources(ftr);
 
-    // Creating model pool from available functionalities
-    ModelPool functionalities = mAsk.getSupportedFunctionalities(maxAvailableResources);
-    ModelPool availableResources = moreorg::Algebra::max(maxAvailableResources, functionalities);
+//     // Creating model pool from available functionalities
+//     ModelPool functionalities = mAsk.getSupportedFunctionalities(maxAvailableResources);
+//     ModelPool availableResources = moreorg::Algebra::max(maxAvailableResources, functionalities);
 
-    return Algebra::delta(requiredResources, availableResources);
-}
+//     return Algebra::delta(requiredResources, availableResources);
+// }
 
-moreorg::ModelPoolDelta SolutionAnalysis::getMaxMissingResources(const solvers::FluentTimeResource& ftr) const
-{
-    using namespace moreorg;
-    ModelPool requiredResources = getMinResourceRequirements(ftr);
-    ModelPool minAvailableResources = getMinAvailableResources(ftr);
+// moreorg::ModelPoolDelta SolutionAnalysis::getMaxMissingResources(const solvers::FluentTimeResource &ftr) const
+// {
+//     using namespace moreorg;
+//     ModelPool requiredResources = getMinResourceRequirements(ftr);
+//     ModelPool minAvailableResources = getMinAvailableResources(ftr);
 
-    // Infer functionality from this set of resources
-    OrganizationModelAsk ask(mpMission->getOrganizationModel(),
-            minAvailableResources,
-            true);
-    // Creating model pool from available functionalities
-    ModelPool functionalities = ask.getSupportedFunctionalities();
-    ModelPool availableResources = moreorg::Algebra::min(minAvailableResources, functionalities);
+//     // Infer functionality from this set of resources
+//     OrganizationModelAsk ask(mpMission->getOrganizationModel(),
+//                              minAvailableResources,
+//                              true);
+//     // Creating model pool from available functionalities
+//     ModelPool functionalities = ask.getSupportedFunctionalities();
+//     ModelPool availableResources = moreorg::Algebra::min(minAvailableResources, functionalities);
 
-    return Algebra::delta(requiredResources, availableResources);
-}
+//     return Algebra::delta(requiredResources, availableResources);
+// }
 
 graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
 {
@@ -647,7 +644,7 @@ graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
     // Create set of vertices that represents
     // each role
     std::map<Role, RoleInfoVertex::Ptr> role2VertexMap;
-    for(const Role& role : roles)
+    for (const Role &role : roles)
     {
         RoleInfoVertex::Ptr roleInfo = make_shared<RoleInfoVertex>();
         roleInfo->addRole(role);
@@ -655,19 +652,18 @@ graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
         hyperGraph->addVertex(roleInfo);
     }
 
-
     // Iterate over the set of vertices in the solution and
     // create an edge to each RoleInfoVertex for a required role
     VertexIterator::Ptr vertexIt = mSolutionNetwork.getGraph()->getVertexIterator();
-    while(vertexIt->next())
+    while (vertexIt->next())
     {
         SpaceTime::Network::tuple_t::Ptr roleInfo = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(vertexIt->current());
         std::set<Role> roles = roleInfo->getRoles(RoleInfo::ASSIGNED);
-        if(roles.empty())
+        if (roles.empty())
         {
             continue;
         }
-        for(const Role& role : roles)
+        for (const Role &role : roles)
         {
             Edge::Ptr edge = make_shared<Edge>("requires");
             edge->setSourceVertex(roleInfo);
@@ -681,11 +677,11 @@ graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
     // Iterate over the set of edges in the solution and
     // create and edge to each RoleInfoVertex for a required role
     EdgeIterator::Ptr edgeIt = mSolutionNetwork.getGraph()->getEdgeIterator();
-    while(edgeIt->next())
+    while (edgeIt->next())
     {
         SpaceTime::Network::edge_t::Ptr roleInfo = dynamic_pointer_cast<SpaceTime::Network::edge_t>(edgeIt->current());
         std::set<Role> roles = roleInfo->getRoles(RoleInfo::ASSIGNED);
-        if(roles.empty())
+        if (roles.empty())
         {
             continue;
         }
@@ -696,15 +692,15 @@ graph_analysis::BaseGraph::Ptr SolutionAnalysis::toHyperGraph()
 
         std::stringstream edgeLabel;
         edgeLabel << "vertices: [";
-        edgeLabel << hyperGraph->getVertexId( roleInfo->getSourceVertex() );
+        edgeLabel << hyperGraph->getVertexId(roleInfo->getSourceVertex());
         edgeLabel << ", ";
-        edgeLabel << hyperGraph->getVertexId( roleInfo->getTargetVertex() );
+        edgeLabel << hyperGraph->getVertexId(roleInfo->getTargetVertex());
         edgeLabel << "]";
 
         HyperEdge::Ptr hyperEdge = make_shared<HyperEdge>(vertices, edgeLabel.str());
         hyperGraph->addHyperEdge(hyperEdge);
 
-        for(const Role& role : roles)
+        for (const Role &role : roles)
         {
             Edge::Ptr edge = make_shared<Edge>("requires");
             edge->setSourceVertex(hyperEdge);
@@ -723,32 +719,33 @@ void SolutionAnalysis::quantifyTime()
     Cost cost(mpMission->getOrganizationModelAsk());
 
     double travelDistanceInM = 0.0;
-    double minTaskTime = mConfiguration.getValueAs<double>("TransportNetwork/task-time/min", 1800.0);
 
-    for(const FluentTimeResource& ftr : mResourceRequirements)
+    // set min duration for requirements
+    for (const FluentTimeResource &ftr : mResourceRequirements)
     {
-        const Interval& i = ftr.getInterval();
-        IntervalConstraint::Ptr intervalConstraint =
-            make_shared<IntervalConstraint>(i.getFrom(), i.getTo());
-
-        Bounds bounds(minTaskTime, std::numeric_limits<double>::max());
+        IntervalConstraint::Ptr intervalConstraint = make_shared<IntervalConstraint>(ftr.getInterval().getFrom(), ftr.getInterval().getTo());
+        // TODO add reading these bounds from ontology (maybe)
+        Bounds bounds(1800, std::numeric_limits<double>::max());
         intervalConstraint->addInterval(bounds);
-
         tcn.addIntervalConstraint(intervalConstraint);
     }
-
     // Apply constraints from the current solution
     // TODO: space time network: iterator over all 'solution' edges
     using namespace graph_analysis;
-    graph_analysis::EdgeIterator::Ptr edgeIt = mSolutionNetwork.getGraph()->getEdgeIterator();
-    while(edgeIt->next())
+    graph_analysis::EdgeIterator::Ptr edgeIt = mSolutionNetwork.getGraph()->getEdgeIterator();        
+    while (edgeIt->next())
     {
 
-        SpaceTime::Network::edge_t::Ptr edge = dynamic_pointer_cast<SpaceTime::Network::edge_t>( edgeIt->current() );
-        if(!edge)
+        SpaceTime::Network::edge_t::Ptr edge = dynamic_pointer_cast<SpaceTime::Network::edge_t>(edgeIt->current());
+        if (!edge)
         {
-            throw std::invalid_argument("SolutionAnalysis: encountered edge type: " + edgeIt->current()->getClassName()
-                    + " Are you loading final plan instead of the transport network solution?");
+            throw std::invalid_argument("SolutionAnalysis: encountered edge type: " + edgeIt->current()->getClassName() + " Are you loading final plan instead of the transport network solution?");
+        }
+
+        Role::Set roles = edge->getRoles(RoleInfo::ASSIGNED);
+        if (roles.empty())
+        {
+            continue;
         }
 
         SpaceTime::Network::tuple_t::Ptr sourceTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(edge->getSourceVertex());
@@ -757,68 +754,66 @@ void SolutionAnalysis::quantifyTime()
         symbols::constants::Location::Ptr sourceLocation = sourceTuple->first();
         symbols::constants::Location::Ptr targetLocation = targetTuple->first();
 
+        double distanceInM = cost.getTravelDistance({sourceLocation, targetLocation});
+        double minTravelTime = cost.estimateTravelTime(sourceLocation, targetLocation, roles);
+        LOG_WARN_S << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
+                   << "    from: " << sourceLocation->toString() << "/" << sourceTuple->second()->toString() << std::endl
+                   << "    to: " << targetLocation->toString() << "/" << targetTuple->second()->toString() << std::endl
+                   << "    estimated travelDistance in m: " << distanceInM;
+
+        travelDistanceInM += distanceInM;
+
         point_algebra::TimePoint::Ptr sourceTimepoint = sourceTuple->second();
         point_algebra::TimePoint::Ptr targetTimepoint = targetTuple->second();
 
         IntervalConstraint::Ptr intervalConstraint =
             make_shared<IntervalConstraint>(sourceTimepoint, targetTimepoint);
 
-        Role::Set roles = edge->getRoles(RoleInfo::ASSIGNED);
-        if(roles.empty())
+        // Compute the required transition time
+        RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(sourceTuple);
+        double reconfigurationCost = 0;
+        try
         {
-            Bounds bounds(0, std::numeric_limits<double>::max());
+            reconfigurationCost = roleInfo->getAttribute(RoleInfo::RECONFIGURATION_COST);
+        }
+        catch (const std::exception &e)
+        {
+            LOG_WARN_S << "No reconfiguration cost for " << roleInfo->toString(4);
+        }
+
+        // Ensure that we have minimum timedelta set
+        double requiredTime = std::max(1.0E-03, minTravelTime + reconfigurationCost);
+        if (requiredTime > 0)
+        {
+            Bounds bounds(requiredTime, std::numeric_limits<double>::max());
             intervalConstraint->addInterval(bounds);
             tcn.addIntervalConstraint(intervalConstraint);
-            continue;
-        } else {
-            double distanceInM = cost.getTravelDistance({sourceLocation, targetLocation});
-            double minTravelTime = cost.estimateTravelTime(sourceLocation, targetLocation, roles);
-            LOG_INFO_S << "Estimated travelTime: " << minTravelTime << " for " << Role::toString(roles)
-                << "    from: " << sourceLocation->toString() << "/" << sourceTuple->second()->toString() << std::endl
-                << "    to: " << targetLocation->toString() << "/" << targetTuple->second()->toString() << std::endl
-                << "    estimated travelDistance in m: " << distanceInM;
 
-            travelDistanceInM += distanceInM;
-
-            // Compute the required transition time
-            RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(sourceTuple);
-            double reconfigurationCost = 0;
-            try {
-                reconfigurationCost = roleInfo->getAttribute(RoleInfo::RECONFIGURATION_COST);
-            } catch(const std::exception& e)
-            {
-                LOG_WARN_S << "No reconfiguration cost for " << roleInfo->toString(4);
-            }
-
-            double requiredTime = minTravelTime + reconfigurationCost;
-            if(requiredTime > 0)
-            {
-                Bounds bounds(requiredTime, std::numeric_limits<double>::max());
-                intervalConstraint->addInterval(bounds);
-                tcn.addIntervalConstraint(intervalConstraint);
-
-                LOG_INFO_S << "Interval constraint between: " << sourceTimepoint->toString() << " and " << targetTimepoint->toString() << " min travel time: "
-                    << minTravelTime << ", requiredTime (inkl. reconfiguration) " <<
-                    requiredTime;
-            }
+            LOG_INFO_S << "Interval constraint between: " << sourceTimepoint->toString() << " and " << targetTimepoint->toString() << " min travel time: "
+                       << minTravelTime << ", requiredTime (inkl. reconfiguration) " << requiredTime;
         }
     }
 
-    for(Constraint::Ptr c : mpMission->getConstraints())
+    for (Constraint::Ptr c : mpMission->getConstraints())
     {
         IntervalConstraint::Ptr ic = dynamic_pointer_cast<IntervalConstraint>(c);
-        if(ic)
+        if (ic)
         {
             Edge::PtrList edges = tcn.getDistanceGraph()->getEdges(ic->getSourceVertex(), ic->getTargetVertex());
-            if(edges.empty())
+            if (edges.empty())
             {
                 tcn.addIntervalConstraint(ic);
-            } else {
+            }
+            else
+            {
                 IntervalConstraint::Ptr existingIc = dynamic_pointer_cast<IntervalConstraint>(edges.front());
                 existingIc->appendBounds(*ic);
             }
         }
     }
+
+    //graph_analysis::io::GraphIO::write("/tmp/distanceGraph", tcn.getDistanceGraph(), graph_analysis::representation::GEXF);
+    //graph_analysis::io::GraphIO::write("/tmp/distanceGraph", tcn.getDistanceGraph(), graph_analysis::representation::GRAPHVIZ);
 
     tcn.stpWithConjunctiveIntervals();
     tcn.stp();
@@ -829,81 +824,123 @@ void SolutionAnalysis::quantifyTime()
     mTraveledDistance = travelDistanceInM;
 }
 
+ResourceInstance::List SolutionAnalysis::filterResourcesByBlacklist(ResourceInstance::List &resources, const ResourceInstance::List& blacklist)
+{
+    ResourceInstance::List returnList;
+    for (auto& r : resources)
+    {
+        auto it = std::find_if(blacklist.begin(), blacklist.end(), [&r](ResourceInstance assignment)
+                               { return ((assignment.getName() == r.getName()) && (assignment.getAtomicAgent() == r.getAtomicAgent())); });
+        if (it == blacklist.end())
+        {
+            returnList.push_back(r);
+        }
+    }
+    return returnList;
+}
+
+SolutionAnalysis::TupleResourceInstancesMap SolutionAnalysis::prepareSolutionAnalysis(const ResourceInstance::List& blacklist)
+{
+    using namespace solvers::temporal::point_algebra;
+    using namespace symbols::constants;
+    TupleResourceInstancesMap tupleResourceInstancesMap;
+    Location::PtrList locations = mpMission->getLocations();
+    int is_start = 0;
+
+    for (const TimePoint::Ptr& tp : mTimepoints)
+    {
+        if (is_start < 2)
+        {
+            // How to handle this properly?
+            ++is_start;
+            continue;
+        }
+        for (const Location::Ptr &location : locations)
+        {
+            SpaceTime::Network::tuple_t::Ptr vertexTuple = mSolutionNetwork.tupleByKeys(location, tp);
+            ResourceInstance::List availableUnfiltered = getMinAvailableResources(vertexTuple);
+            ResourceInstance::List available = filterResourcesByBlacklist(availableUnfiltered, blacklist);
+            tupleResourceInstancesMap.insert(std::make_pair(vertexTuple, available));
+        }
+    }
+    return tupleResourceInstancesMap;
+}
+
+void SolutionAnalysis::computeSafetyNew()
+{
+    std::map<SpaceTime::Network::tuple_t::Ptr, FluentTimeResource::List> tupleFtrMap;
+    for (const FluentTimeResource &ftr : mResourceRequirements)
+    {
+        SpaceTime::Network::tuple_t::PtrList tuples = mSolutionNetwork.getTuples(ftr.getInterval().getFrom(),
+                                                                                 ftr.getInterval().getTo(),
+                                                                                 ftr.getLocation());
+
+        for (const SpaceTime::Network::tuple_t::Ptr &tuple : tuples)
+        {
+            tupleFtrMap[tuple].push_back(ftr);
+        }
+        
+    }
+
+    // iterate 
+
+}
+
 void SolutionAnalysis::computeSafety(bool ignoreStartDepot)
 {
     mSafety = 1.0;
-    temporal::point_algebra::TimePoint::PtrList timepoints = mSolutionNetwork.getTimepoints();
-    for(const FluentTimeResource& ftr : mResourceRequirements)
+    std::map<SpaceTime::Network::tuple_t::Ptr, FluentTimeResource::List> tupleFtrMap;
+    for (const FluentTimeResource &ftr : mResourceRequirements)
     {
         SpaceTime::Network::tuple_t::PtrList tuples = mSolutionNetwork.getTuples(ftr.getInterval().getFrom(),
-                ftr.getInterval().getTo(),
-                ftr.getLocation());
+                                                                                 ftr.getInterval().getTo(),
+                                                                                 ftr.getLocation());
 
-        for(const SpaceTime::Network::tuple_t::Ptr& tuple : tuples)
+        for (const SpaceTime::Network::tuple_t::Ptr &tuple : tuples)
         {
-            double value = 1.0;
-            // Ignore redundancy at starting depot
-            if(!isStartDepotRequirement(ftr) && ignoreStartDepot)
-            {
-                try {
-                    value = getSafety(ftr, tuple);
-                    mSafety = std::min(value, mSafety);
-                    LOG_INFO_S << "Metric: " << value << std::endl
-                        << "    at: " << tuple->first()->toString() << std::endl;
-
-                } catch(const std::exception& e)
-                {
-                    if(isStartDepotRequirement(ftr))
-                    {
-                        LOG_INFO_S << "Metric: not all resources from start depot used:" << std::endl
-                            << "    at: " << ftr.getLocation()->toString() << std::endl
-                            << "    over: " <<  std::endl
-                            << ftr.getInterval().toString(8) << std::endl
-                            << e.what();
-
-                        ModelPool minAvailable = getMinAvailableResources(ftr);
-                        ModelPool agentPool = mpMission->getOrganizationModelAsk().allowSubclasses(minAvailable, vocabulary::OM::Actor());
-                        if(!minAvailable.empty())
-                        {
-                            value = getSafety(agentPool, agentPool);
-                        } else {
-                            value = 0;
-                        }
-
-                    } else {
-                        LOG_WARN_S << "Metric: requirements not fulfilled" << std::endl
-                            << "    at: " << ftr.getLocation()->toString() << std::endl
-                            << "    over: " <<  std::endl
-                            << ftr.getInterval().toString(8) << std::endl
-                            << ftr.toString(8) << std::endl
-                            << tuple->toString() << std::endl
-                            << e.what();
-                        value = 0.0;
-                    }
-                }
-            }
-
-            tuple->setAttribute(RoleInfo::SAFETY, value);
+            tupleFtrMap[tuple].push_back(ftr);
         }
+        
     }
 
     VertexIterator::Ptr vertexIt = mSolutionNetwork.getGraph()->getVertexIterator();
-    while(vertexIt->next())
+    while (vertexIt->next())
     {
-        RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(vertexIt->current());
-        if(!roleInfo->hasAttribute(RoleInfo::SAFETY))
+        SpaceTime::Network::tuple_t::Ptr vertexTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(vertexIt->current());
+        std::cout << "Processing Vertex with timepoint: " << vertexTuple->second()->getLabel() << std::endl;
+        std::vector<Edge::Ptr> inEdges= mSolutionNetwork.getGraph()->getInEdges(vertexIt->current());
+        if (inEdges.empty())
         {
-            ModelPool modelPool = Role::getModelPool( roleInfo->getAllRoles() );
-            if(!modelPool.empty())
-            {
-                double value = getSafety(modelPool, modelPool);
-                roleInfo->setAttribute(RoleInfo::SAFETY, value);
-            }
+            vertexTuple->setAttribute(RoleInfo::SAFETY, 1.);
+            std::cout << "no inEdges on timepoint: " << vertexTuple->second()->getLabel() << std::endl;
+            continue;
         }
+        SpaceTime::Network::tuple_t::Ptr fromTuple = dynamic_pointer_cast<SpaceTime::Network::tuple_t>(inEdges.front()->getSourceVertex()); // can I assume that all edges come from same timepoint?
+        double start_time = mTimeAssignment.find(fromTuple->second())->second;
+        double end_time = mTimeAssignment.find(vertexTuple->second())->second;
+        double value = 1.;
+        // auto tupleFtrMapIterator = std::find_if(tupleFtrMap.begin(), tupleFtrMap.end(), [&vertexTuple](const std::pair<SpaceTime::Network::tuple_t::Ptr, FluentTimeResource::List> &pair)
+        // {
+        //     return *vertexTuple == *pair.first;
+        // });
+        // if (tupleFtrMapIterator == tupleFtrMap.end())
+        // {
+        //     std::cout << "could not find vertex tuple as key in tupleFtrMap" << std::endl;
+        // } else
+        // {
+        //     std::cout << "found vertex tuple as key in tupleFtrMap" << std::endl;
+        // }
+        
+        for (const FluentTimeResource &ftr : tupleFtrMap[vertexTuple])
+        {
+            double currSafety = getSafety(ftr, vertexTuple, start_time, end_time);
+            std::cout << "Safety Value of: " << currSafety << std::endl;
+            value = std::min(currSafety, value);
+        }
+        vertexTuple->setAttribute(RoleInfo::SAFETY, value);
+        mSafety = std::min(value, mSafety); //placeholder
     }
 }
-
-
 
 Plan SolutionAnalysis::computePlan() const
 {
@@ -918,28 +955,30 @@ Plan SolutionAnalysis::computePlan() const
     point_algebra::TimePoint::Ptr startingTimepoint = timepoints.front();
 
     std::set<Role> requiredRoles = getRequiredRoles(2);
-    for(const Role& role : requiredRoles)
+    for (const Role &role : requiredRoles)
     {
         SpaceTime::Network::tuple_t::Ptr startTuple;
         // Find the start point of a role
-        for(const Location::Ptr& location : locations)
+        for (const Location::Ptr &location : locations)
         {
-            try {
+            try
+            {
                 SpaceTime::Network::tuple_t::Ptr tuple = mSolutionNetwork.tupleByKeys(location, startingTimepoint);
 
                 Role::Set assignedRoles = tuple->getRoles(RoleInfo::ASSIGNED);
-                if( assignedRoles.find(role) != assignedRoles.end())
+                if (assignedRoles.find(role) != assignedRoles.end())
                 {
                     startTuple = tuple;
                     break;
                 }
-            } catch(const std::exception& e)
+            }
+            catch (const std::exception &e)
             {
                 LOG_WARN_S << e.what() << " " << location->toString() << " " << startingTimepoint->toString();
             }
         }
 
-        if(!startTuple)
+        if (!startTuple)
         {
             LOG_WARN_S << "Could not find start tuple for role " << role.toString() << " solution seems to be incomplete";
             continue;
@@ -952,25 +991,27 @@ Plan SolutionAnalysis::computePlan() const
         // foreach role -- find starting point and follow path
         PathConstructor::Ptr pathConstructor =
             make_shared<PathConstructor>(role,
-                    RoleInfo::TagTxt[ RoleInfo::ASSIGNED ]);
-        Skipper skipper = boost::bind(&PathConstructor::isInvalidTransition, pathConstructor,_1);
+                                         RoleInfo::TagTxt[RoleInfo::ASSIGNED]);
+        Skipper skipper = boost::bind(&PathConstructor::isInvalidTransition, pathConstructor, _1);
         DFS dfs(mSolutionNetwork.getGraph(), pathConstructor, skipper);
         dfs.run(startTuple);
 
         std::vector<graph_analysis::Vertex::Ptr> path = pathConstructor->getPath();
         path.insert(path.begin(), startTuple);
-        plan.add(role,path);
+        plan.add(role, path);
     }
 
     graph_analysis::Vertex::PtrList openRequirements;
-    for(const FluentTimeResource& ftr : mResourceRequirements)
+    for (const FluentTimeResource &ftr : mResourceRequirements)
     {
-        const Interval& i = ftr.getInterval();
-        try {
+        const Interval &i = ftr.getInterval();
+        try
+        {
             SpaceTime::Network::tuple_t::Ptr tuple = mSolutionNetwork.tupleByKeys(ftr.getLocation(),
-                    i.getFrom());
+                                                                                  i.getFrom());
             openRequirements.push_back(tuple);
-        } catch(const std::invalid_argument& e)
+        }
+        catch (const std::invalid_argument &e)
         {
             LOG_WARN_S << "Failed to retrieve key for: " << ftr.getLocation()->toString() << " and " << i.getFrom()->toString();
         }
@@ -982,12 +1023,12 @@ Plan SolutionAnalysis::computePlan() const
 void SolutionAnalysis::computeAgentCount()
 {
     std::set<Role> roles;
-    for(const solvers::FluentTimeResource& ftr : mResourceRequirements)
+    for (const solvers::FluentTimeResource &ftr : mResourceRequirements)
     {
-        if(isStartDepotRequirement(ftr))
+        if (isStartDepotRequirement(ftr))
         {
             SpaceTime::Network::tuple_t::PtrList tuples = getTuples(ftr);
-            for(const SpaceTime::Network::tuple_t::Ptr& roleInfo : tuples)
+            for (const SpaceTime::Network::tuple_t::Ptr &roleInfo : tuples)
             {
                 std::set<Role> assigned = roleInfo->getRoles(RoleInfo::ASSIGNED);
                 roles.insert(assigned.begin(), assigned.end());
@@ -999,10 +1040,10 @@ void SolutionAnalysis::computeAgentCount()
     mRoles = roles;
     mTotalNumberOfAgents = 0;
     mNumberOfMobileAgents = 0;
-    for(const Role& role : roles)
+    for (const Role &role : roles)
     {
         facades::Robot robot = facades::Robot::getInstance(role.getModel(), mpMission->getOrganizationModelAsk());
-        if(robot.isMobile())
+        if (robot.isMobile())
         {
             ++mNumberOfMobileAgents;
         }
@@ -1010,32 +1051,140 @@ void SolutionAnalysis::computeAgentCount()
     }
 }
 
-void SolutionAnalysis::computeEfficacy()
+ModelPool SolutionAnalysis::checkAndRemoveRequirements(ModelPool &available, ModelPool &required)
 {
-    double fulfillment = 0.0;
-    for(const solvers::FluentTimeResource& ftr : mResourceRequirements)
+    ModelPool returnModelPool;
+    for (auto &r : required)
     {
-        fulfillment += degreeOfFulfillment(ftr);
+        ModelPool tempModelPool;
+        tempModelPool.setResourceCount(r.first, r.second);
+        std::vector<owlapi::model::OWLCardinalityRestriction::Ptr> r_required = mAsk.getRequiredCardinalities(tempModelPool, vocabulary::OM::has());
+        bool check = true;
+        for (auto &rr : r_required)
+        {
+            bool found = false;
+            owlapi::model::OWLObjectCardinalityRestriction::Ptr restriction = dynamic_pointer_cast<owlapi::model::OWLObjectCardinalityRestriction>(rr);
+            for (auto &a : available)
+            {
+                if ((a.first == restriction->getQualification()) || (mAsk.ontology().isSubClassOf(a.first, restriction->getQualification())))
+                {
+                    // TODO what about SuperClass Requirements and multiple Sublasses are available ? Make counter?
+                    if (a.second < restriction->getCardinality())
+                    {
+                        check = false;
+                        break;
+                    }
+                    else
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (!found)
+            {
+                check = false;
+                break;
+            }
+        }
+        if (check)
+        {
+            returnModelPool.setResourceCount(r.first, r.second);
+        }
     }
-    mEfficacy = fulfillment*1.0/mResourceRequirements.size();
+    return returnModelPool;
+}
+
+double SolutionAnalysis::getEfficacyWithFailedComponents(const ResourceInstance::List& blacklist)
+{
+    TupleResourceInstancesMap tupleResourceInstancesMap = prepareSolutionAnalysis(blacklist);
+    double efficacy = computeEfficacyWithFailedComponents(tupleResourceInstancesMap);
+    return efficacy;
+}
+
+void SolutionAnalysis::computeEfficacy(const ResourceInstance::List& blacklist)
+{
+    // double fulfillment = 0.0;
+    // for (const solvers::FluentTimeResource &ftr : mResourceRequirements)
+    // {
+    //     fulfillment += degreeOfFulfillment(ftr);
+    // }
+    // mEfficacy = fulfillment * 1.0 / mResourceRequirements.size();
+    TupleResourceInstancesMap tupleResourceInstancesMap = prepareSolutionAnalysis(blacklist);
+    mEfficacy = computeEfficacyWithFailedComponents(tupleResourceInstancesMap);
+}
+
+double SolutionAnalysis::computeEfficacyWithFailedComponents(TupleResourceInstancesMap &tupleResourceInstancesMap)
+{
+    using namespace solvers::temporal::point_algebra;
+    using namespace symbols::constants;
+    int requirement_count = 0;
+    int requirements_success = 0;
+    std::map<SpaceTime::Network::tuple_t::Ptr, solvers::FluentTimeResource::List> tupleFtrMap;
+    for (const solvers::FluentTimeResource &ftr : mResourceRequirements)
+    {
+        SpaceTime::Network::tuple_t::PtrList tuples = mSolutionNetwork.getTuples(ftr.getInterval().getFrom(),
+                                                                                 ftr.getInterval().getTo(),
+                                                                                 ftr.getLocation());
+
+        for (const SpaceTime::Network::tuple_t::Ptr &tuple : tuples)
+        {
+            tupleFtrMap[tuple].push_back(ftr);
+        }                
+    }
+
+    for (auto &a : tupleResourceInstancesMap)
+    {
+        ModelPool required;
+        // prepare required resources
+        for (const solvers::FluentTimeResource &ftr : tupleFtrMap[a.first])
+        {
+            if (required.empty())
+            {
+                required = getMinResourceRequirements(ftr);
+            }
+            else
+            {
+                ModelPool minRequired = getMinResourceRequirements(ftr);
+                Algebra::merge(minRequired, required);
+            }
+        }
+        // no requirements? Skip this tuple ...
+        if (required.empty())
+            continue;
+        requirement_count += (int)required.size();
+
+        ModelPool availableModelPool = ResourceInstance::toModelPool(a.second);
+        ModelPool finalRequired = checkAndRemoveRequirements(availableModelPool, required);
+        ModelPoolDelta delta = Algebra::delta(finalRequired, required);
+        for (auto &r : required)
+        {
+            if ((delta[r.first]) <= 0)
+            {
+                ++requirements_success;
+            }
+        }                                
+    }
+
+    double efficacy = (double) requirements_success / (double) requirement_count;
+    return efficacy;
 }
 
 void SolutionAnalysis::computeEfficiency()
 {
     mEfficiency = 0.0;
 
-
-    const Plan::RoleBasedPlan& plan = mPlan.getRoleBasedPlan();
-    for(const Plan::RoleBasedPlan::value_type& v : plan)
+    const Plan::RoleBasedPlan &plan = mPlan.getRoleBasedPlan();
+    for (const Plan::RoleBasedPlan::value_type &v : plan)
     {
-        const Role& role = v.first;
-        if(role == Role())
+        const Role &role = v.first;
+        if (role == Role())
         {
             continue;
         }
         //const Vertex::PtrList& plan = v.second;
         facades::Robot robot = facades::Robot::getInstance(role.getModel(), mpMission->getOrganizationModelAsk());
-        double efficiencyInkWh = robot.estimatedEnergyCostFromTime(mTimeHorizonInS)/(3600*1000.0);
+        double efficiencyInkWh = robot.estimatedEnergyCostFromTime(mTimeHorizonInS) / (3600 * 1000.0);
 
         mEfficiencyPerRole[role] = efficiencyInkWh;
         mEfficiency += efficiencyInkWh;
@@ -1047,21 +1196,25 @@ void SolutionAnalysis::computeReconfigurationCost()
     double totalReconfigurationCost = 0.0;
     // TODO: Adapt to mSolutionNetwork -- after annotating the network
     VertexIterator::Ptr vertexIt = mPlan.getGraph()->getVertexIterator();
-    while(vertexIt->next())
+    while (vertexIt->next())
     {
         Vertex::Ptr vertex = vertexIt->current();
         double reconfigurationCost = 0;
 
         RoleInfo::Ptr roleInfo = dynamic_pointer_cast<RoleInfo>(vertex);
-        if(!roleInfo)
+        if (!roleInfo)
         {
             throw std::runtime_error("templ::solvers::SolutionAnalysis::computeReconfigurationCost: failed to cast to RoleInfo."
-                    " Class of node is " + vertex->getClassName());
-        } else if(!roleInfo->getAllRoles().empty())
+                                     " Class of node is " +
+                                     vertex->getClassName());
+        }
+        else if (!roleInfo->getAllRoles().empty())
         {
-            try {
+            try
+            {
                 reconfigurationCost = computeReconfigurationCost(vertex, mPlan.getGraph());
-            } catch(const std::exception& e)
+            }
+            catch (const std::exception &e)
             {
                 // handle unfulfilled requirements
             }
@@ -1074,20 +1227,20 @@ void SolutionAnalysis::computeReconfigurationCost()
     mReconfigurationCost = totalReconfigurationCost;
 }
 
-double SolutionAnalysis::computeReconfigurationCost(const Vertex::Ptr& vertex, const BaseGraph::Ptr& graph)
+double SolutionAnalysis::computeReconfigurationCost(const Vertex::Ptr &vertex, const BaseGraph::Ptr &graph)
 {
     RoleInfo::Ptr tuple = dynamic_pointer_cast<RoleInfo>(vertex);
 
     Agent requirementAgent(tuple->getAllRoles());
-    Agent::Set actualRequirement = { requirementAgent };
+    Agent::Set actualRequirement = {requirementAgent};
 
     Agent::Set in;
     EdgeIterator::Ptr inEdgeIt = graph->getInEdgeIterator(vertex);
-    while(inEdgeIt->next())
+    while (inEdgeIt->next())
     {
         Edge::Ptr edge = inEdgeIt->current();
         CapacityLink::Ptr inAgents = dynamic_pointer_cast<CapacityLink>(edge);
-        if(inAgents)
+        if (inAgents)
         {
             Role::Set allRoles = inAgents->getAllRoles();
             Agent inAgent(allRoles);
@@ -1096,11 +1249,11 @@ double SolutionAnalysis::computeReconfigurationCost(const Vertex::Ptr& vertex, c
     }
     Agent::Set out;
     EdgeIterator::Ptr outEdgeIt = graph->getOutEdgeIterator(vertex);
-    while(outEdgeIt->next())
+    while (outEdgeIt->next())
     {
         Edge::Ptr edge = outEdgeIt->current();
         CapacityLink::Ptr outAgents = dynamic_pointer_cast<CapacityLink>(edge);
-        if(outAgents)
+        if (outAgents)
         {
             Role::Set allRoles = outAgents->getAllRoles();
             Agent outAgent(allRoles);
@@ -1110,33 +1263,33 @@ double SolutionAnalysis::computeReconfigurationCost(const Vertex::Ptr& vertex, c
 
     double cost = 0.0;
     LOG_INFO_S << "Compute reconfiguration cost at " << vertex->toString()
-        << "    from" << Agent::toString(in,4)
-        << "    to"  << Agent::toString(out,4)
-        << "    requirement"  << Agent::toString(actualRequirement,4);
-    try {
-        if(!in.empty())
+               << "    from" << Agent::toString(in, 4)
+               << "    to" << Agent::toString(out, 4)
+               << "    requirement" << Agent::toString(actualRequirement, 4);
+    try
+    {
+        if (!in.empty())
         {
             cost += mAnalyser.getHeuristics().getReconfigurationCost(in, actualRequirement);
-            LOG_INFO_S << "Reconfiguration: from: " << Agent::toString(in,4)
-                << "to: " << Agent::toString(actualRequirement, 4)
-                << "with cost: " << cost;
+            LOG_INFO_S << "Reconfiguration: from: " << Agent::toString(in, 4)
+                       << "to: " << Agent::toString(actualRequirement, 4)
+                       << "with cost: " << cost;
         }
-        if(!out.empty())
+        if (!out.empty())
         {
             cost += mAnalyser.getHeuristics().getReconfigurationCost(actualRequirement, out);
-            LOG_INFO_S << "Reconfiguration: from: " << Agent::toString(actualRequirement,4)
-                << "to: " << Agent::toString(out, 4)
-                << "with cost: " << cost;
+            LOG_INFO_S << "Reconfiguration: from: " << Agent::toString(actualRequirement, 4)
+                       << "to: " << Agent::toString(out, 4)
+                       << "with cost: " << cost;
         }
-    } catch(const std::invalid_argument& e)
+    }
+    catch (const std::invalid_argument &e)
     {
         LOG_WARN_S << "Failed to compute reconfiguration cost at: " << vertex->toString() << e.what();
         throw;
     }
     return cost;
 }
-
-
 
 std::string SolutionAnalysis::toString(size_t indent) const
 {
@@ -1146,7 +1299,7 @@ std::string SolutionAnalysis::toString(size_t indent) const
     ss << hspace << "    Resulting plan:" << std::endl;
     ss << mPlan.toString(indent + 8);
     ss << hspace << "        time horizon: " << mTimeHorizonInS << std::endl;
-    for(const temporal::point_algebra::TimePoint::Ptr& tp : mSolutionNetwork.getTimepoints())
+    for (const temporal::point_algebra::TimePoint::Ptr &tp : mSolutionNetwork.getTimepoints())
     {
 
         temporal::TemporalConstraintNetwork::Assignment::const_iterator cit = mTimeAssignment.find(tp);

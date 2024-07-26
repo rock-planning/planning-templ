@@ -267,7 +267,7 @@ Mission::Ptr MissionGenerator::convert(const VRPProblem& vrp)
     }
 
     // Limit to maximum 1 visit for each location
-    for(const std::pair<Coord2D, constants::Location::Ptr>& p : coordLocationMap)
+    for(const std::pair<const Coord2D, constants::Location::Ptr>& p : coordLocationMap)
     {
         SpaceTime::SpaceIntervalTuple sit(p.second, solvers::temporal::Interval(
                     SpaceTime::getHorizonStart(),
@@ -365,7 +365,7 @@ Mission::Ptr MissionGenerator::sampleFromNetwork(const SpaceTime::Network& netwo
             network.tupleByKeys(location, timepoints[0]);
 
         moreorg::ModelPool agentPool = tuple->getModelPool({ RoleInfo::ASSIGNED, RoleInfo::AVAILABLE, RoleInfo::REQUIRED });
-        for(const std::pair<owlapi::model::IRI, size_t>& v : agentPool)
+        for(const std::pair<const owlapi::model::IRI, size_t>& v : agentPool)
         {
             mission->addResourceLocationCardinalityConstraint(location,
                     timepoints[0],
@@ -457,7 +457,7 @@ Mission::Ptr MissionGenerator::sampleFromNetwork(const SpaceTime::Network& netwo
                 RoleInfo::ASSIGNED, RoleInfo::AVAILABLE, RoleInfo::REQUIRED });
 
         try {
-            for(const std::pair<owlapi::model::IRI, size_t>& v : agentPool)
+            for(const std::pair<const owlapi::model::IRI, size_t>& v : agentPool)
             {
                 mission->addResourceLocationCardinalityConstraint(fromTuple->first(),
                         fromTuple->second(),

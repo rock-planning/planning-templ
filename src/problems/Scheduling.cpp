@@ -1,5 +1,4 @@
 #include "Scheduling.hpp"
-#include <gecode/gist.hh>
 
 using namespace Gecode;
 

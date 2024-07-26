@@ -1,0 +1,45 @@
+TransportNetwork: #
+    Timepoints: {0, 1, 2, 3, 4, 6, 5}
+Payload                       : 2         0         2         0         0         
+Sherpa                        : 3         1         0         1         1         
+AtomicAgent: Payload_0 (Payload): 1         0         1         0         0         
+AtomicAgent: Payload_1 (Payload): 1         0         1         0         0         
+AtomicAgent: Sherpa_0 (Sherpa): 1         1         0         0         1         
+AtomicAgent: Sherpa_1 (Sherpa): 1         0         0         0         0         
+AtomicAgent: Sherpa_2 (Sherpa): 1         0         0         1         0         
+AtomicAgent: Payload_0 (Payload)
+                                  l1                     base                       l2
+          t0                      {}                     {4}                      {}
+          t1                      {}          {}..{6..8}#(1)                      {}
+          t2       {}..{9..11}#(0,1)       {}..{9..11}#(0,1)       {}..{9..11}#(0,1)
+          t3          {}..{14}#(0,1)          {}..{14}#(0,1)          {}..{14}#(0,1)
+          t4                      {}                      {}                    {17}
+          t5                      {}                      {}                    {20}
+          t6                      {}                      {}                      {}
+AtomicAgent: Payload_1 (Payload)
+                                  l1                     base                       l2
+          t0                      {}                     {4}                      {}
+          t1                      {}          {}..{6..8}#(1)                      {}
+          t2       {}..{9..11}#(0,1)       {}..{9..11}#(0,1)       {}..{9..11}#(0,1)
+          t3          {}..{14}#(0,1)          {}..{14}#(0,1)          {}..{14}#(0,1)
+          t4                      {}                      {}                    {17}
+          t5                      {}                      {}                    {20}
+          t6                      {}                      {}                      {}
+AtomicAgent: Sherpa_0 (Sherpa)
+                                  l1                     base                       l2
+          t0                      {}                     {4}                      {}
+          t1                      {}                     {6}                      {}
+          t2                     {9}                      {}                      {}
+          t3                    {12}                      {}                      {}
+          t4                    {15}                      {}                      {}
+          t5                    {19}                      {}                      {}
+          t6                      {}                      {}                      {}
+AtomicAgent: Sherpa_2 (Sherpa)
+                                  l1                     base                       l2
+          t0                      {}                     {4}                      {}
+          t1                      {}                     {8}                      {}
+          t2                      {}                      {}                    {11}
+          t3                      {}                      {}                    {14}
+          t4                      {}                      {}                    {17}
+          t5                      {}                      {}                    {18}
+          t6                      {}                      {}                      {}

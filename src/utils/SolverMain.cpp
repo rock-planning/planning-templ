@@ -62,7 +62,7 @@ int main(int argc, char** argv)
     solvers::Solver::SolverType solverType = solvers::Solver::UNKNOWN;
     if(vm.count("solver"))
     {
-        for(const std::pair<solvers::Solver::SolverType, std::string>& t : solvers::Solver::SolverTypeTxt)
+        for(const std::pair<const solvers::Solver::SolverType, std::string>& t : solvers::Solver::SolverTypeTxt)
         {
             if(t.second == vm["solver"].as<std::string>())
             {
@@ -72,7 +72,7 @@ int main(int argc, char** argv)
         }
     } else {
         std::cout << "Solver name required: one of" << std::endl;
-        for(const std::pair<solvers::Solver::SolverType, std::string>& t : solvers::Solver::SolverTypeTxt)
+        for(const std::pair<const solvers::Solver::SolverType, std::string>& t : solvers::Solver::SolverTypeTxt)
         {
             std::cout << t.second << "," << std::endl;
         }

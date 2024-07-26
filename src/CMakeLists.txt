@@ -1,7 +1,7 @@
 find_package(Boost REQUIRED system regex filesystem serialization program_options)
 find_package(gecode REQUIRED)
 
-# For adding the qt4 resources
+# For adding the qt5 resources
 set(CMAKE_AUTORCC ON)
 rock_library(templ_core
     SOURCES
@@ -52,19 +52,18 @@ rock_library(templ_core
         utils/CSVLogger.hpp
         utils/CartographicMapping.hpp
         utils/Logger.hpp
-    LIBS ${Boost_LIBRARIES}
-        proj
+    LIBS
+        ${Boost_LIBRARIES}
         gecode::kernel
-        gecode::driver
         gecode::set
         gecode::support
-        gecode::search 
-        gecode::int 
+        gecode::search
+        gecode::int
         gecode::float
         gecode::minimodel
-        gecode::flatzinc
-        gecode::gist
-    DEPS_PKGCONFIG graph_analysis
+        proj
+    DEPS_PKGCONFIG
+        graph_analysis
         numeric
         owlapi
         moreorg
@@ -139,7 +138,6 @@ rock_library(templ_moft
         ${MOFT_EXTRA_HPP}
     DEPS
         templ_core
-    LIBS ${Boost_LIBRARIES}
 )
 if(WITH_GQR)
     target_link_libraries(templ_moft ${GQR_LIBRARIES})
@@ -190,10 +188,12 @@ rock_library(templ
         solvers/csp/utils/Formatter.cpp
         solvers/Solution.cpp
         solvers/SolutionAnalysis.cpp
+        solvers/SolutionSimulation.cpp
         solvers/transshipment/Flaw.cpp
         solvers/transshipment/MinCostFlow.cpp
         solvers/transshipment/FlowNetwork.cpp
         utils/PathConstructor.cpp
+        utils/SolutionSimulationHelpers.cpp
     HEADERS
         CapacityLink.hpp
         DataPropertyAssignment.hpp
@@ -206,6 +206,7 @@ rock_library(templ
         io/MissionWriter.hpp
         io/MissionRequirements.hpp
         solvers/Solver.hpp
+        solvers/StoppingCriteria.hpp
         solvers/Session.hpp
         solvers/FluentTimeResource.hpp
         solvers/agent_routing/Agent.hpp
@@ -244,10 +245,11 @@ rock_library(templ
         solvers/transshipment/FlowNetwork.hpp
         solvers/Solution.hpp
         solvers/SolutionAnalysis.hpp
+        solvers/SolutionSimulation.hpp
         utils/PathConstructor.hpp
+        utils/SolutionSimulationHelpers.hpp
     DEPS
         templ_moft
-    LIBS ${Boost_LIBRARIES}
 )
 
 rock_library(templ_benchmark
@@ -261,7 +263,6 @@ rock_library(templ_benchmark
         benchmark/io/GoldenReader.hpp
     DEPS
         templ
-    LIBS ${Boost_LIBRARIES}
 )
 
 rock_executable(templ_bin Main.cpp
@@ -279,7 +280,7 @@ rock_executable(templ-transport_network_planner
 
 rock_executable(templ-tcn_reader
     utils/TemporalConstraintNetworkMain.cpp
-    DEPS templ templ_core
+    DEPS templ
 )
 
 rock_executable(templ-solution_analysis
@@ -305,8 +306,7 @@ rock_executable(templ-mission_generator
 rock_executable(templ-bm-tcn utils/TCNBenchmark.cpp
     DEPS templ)
 
-rock_library(templ_gui
-    HEADERS
+set(GUI_HEADERS
         gui/TemplGui.hpp
         gui/Utils.hpp
         gui/SpatioTemporalRequirementItem.hpp
@@ -332,7 +332,9 @@ rock_library(templ_gui
         gui/widgets/SpatioTemporalRequirement.hpp
         gui/widgets/TemporalConstraintQualitative.hpp
         gui/widgets/TemporalConstraintQuantitative.hpp
-    SOURCES
+)
+
+set(GUI_SOURCES
         gui/TemplGui.cpp
         gui/Utils.cpp
         gui/SpatioTemporalRequirementItem.cpp
@@ -359,7 +361,9 @@ rock_library(templ_gui
         gui/widgets/TemporalConstraintQualitative.cpp
         gui/widgets/TemporalConstraintQuantitative.cpp
         ../resources.qrc
-    MOC
+)
+
+set(GUI_MOC
         gui/TemplGui.hpp
         gui/SpatioTemporalRequirementItem.hpp
         gui/MissionEditor/MissionEditor.hpp
@@ -383,12 +387,9 @@ rock_library(templ_gui
         gui/widgets/SpatioTemporalRequirement.hpp
         gui/widgets/TemporalConstraintQualitative.hpp
         gui/widgets/TemporalConstraintQuantitative.hpp
-    DEPS
-        templ
-    DEPS_PKGCONFIG
-        QtGui
-        QtXml
-    UI
+)
+
+set(GUI_UI
         gui/TemplGui.ui
         gui/dialogs/AddLocation.ui
         gui/dialogs/EmptyDialog.ui
@@ -403,9 +404,55 @@ rock_library(templ_gui
         gui/widgets/SpatioTemporalRequirement.ui
         gui/widgets/TemporalConstraintQualitative.ui
         gui/widgets/TemporalConstraintQuantitative.ui
-    LIBS ${Boost_LIBRARIES}
 )
 
-rock_executable(templ-gui gui/Main.cpp
-    DEPS templ_gui)
+if(ROCK_QT_VERSION_4)
+    rock_library(templ_gui-qt4
+        HEADERS
+            ${GUI_HEADERS}
+        SOURCES
+            ${GUI_SOURCES}
+        MOC
+            ${GUI_MOC}
+        UI
+            ${GUI_UI}
+        DEPS_PKGCONFIG
+            graph_analysis
+        DEPS
+            templ
+            Qt4::QtXml
+            Qt4::QtSvg
+    )
+    rock_executable(templ-gui-qt4 gui/Main.cpp
+        DEPS templ_gui-qt4)
+else()
+    message(WARNING "gui: not building for qt4")
+endif(ROCK_QT_VERSION_4)
+
+if(ROCK_QT_VERSION_5)
+    rock_library(templ_gui-qt5
+        HEADERS
+            ${GUI_HEADERS}
+        SOURCES
+            ${GUI_SOURCES}
+        MOC5
+            ${GUI_MOC}
+        UI5
+            ${GUI_UI}
+        DEPS_PKGCONFIG
+            graph_analysis-qt5
+        DEPS
+            templ
+            Qt5::Widgets
+            Qt5::Xml
+            Qt5::PrintSupport
+            Qt5::Svg
+    )
+    rock_executable(templ-gui-qt5 gui/Main.cpp
+        DEPS templ_gui-qt5
+    )
+else()
+    message(WARNING "gui: not building for qt5")
+endif(ROCK_QT_VERSION_5)
+
 

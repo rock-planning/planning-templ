@@ -1,2 +1,6 @@
 build/
 *.sw?
+scripts/output/
+scripts/__pycache__
+scripts/analyse/__pycache__
+scripts/analyse/output

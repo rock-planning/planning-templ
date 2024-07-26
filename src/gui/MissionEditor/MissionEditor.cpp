@@ -232,7 +232,7 @@ void MissionEditor::updateVisualization()
     // Resources
     {
         moreorg::ModelPool availableResources = mpMission->getAvailableResources();
-        for(const moreorg::ModelPool::value_type pair : availableResources)
+        for(const moreorg::ModelPool::value_type& pair : availableResources)
         {
             io::ResourceRequirement r;
             r.model = pair.first;

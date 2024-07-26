@@ -397,7 +397,7 @@ bool TimelineBrancher::status(const Gecode::Space& home) const
     while(!mNextRoles.empty())
     {
         // Pick role randomly from the remaining set of roles
-        size_t nextRoleIdx = mRandom((unsigned long long)(mNextRoles.size() - 1));
+        size_t nextRoleIdx = mRandom(static_cast<unsigned long long>(mNextRoles.size() - 1));
         size_t role = mNextRoles[nextRoleIdx];
 
         LOG_DEBUG_S << "Brancher: " << id() << " trying role " << role;

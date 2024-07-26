@@ -2,6 +2,7 @@
 #define TEMPL_SHARED_PTR_HPP
 
 #include <vector>
+#include <stdexcept>
 
 #if __cplusplus <= 199711L
 #define USE_BOOST_SHARED_PTR

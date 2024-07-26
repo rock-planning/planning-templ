@@ -207,7 +207,7 @@ std::set<RoleInfo::Status> RoleInfo::getStati() const
 std::set<std::string> RoleInfo::getTags(const Role& role) const
 {
     std::set<std::string> tags;
-    for(const std::pair<std::string, Role::Set>& p : mTaggedRoles)
+    for(const std::pair<const std::string, Role::Set>& p : mTaggedRoles)
     {
         const std::string& tag = p.first;
         const Role::Set& roles = p.second;
@@ -222,7 +222,7 @@ std::set<std::string> RoleInfo::getTags(const Role& role) const
 bool RoleInfo::hasTag(const Role& role) const
 {
     std::set<std::string> tags;
-    for(const std::pair<std::string, Role::Set>& p : mTaggedRoles)
+    for(const std::pair<const std::string, Role::Set>& p : mTaggedRoles)
     {
         const Role::Set& roles = p.second;
         if(roles.end() != std::find(roles.begin(), roles.end(), role))

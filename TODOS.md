@@ -41,6 +41,10 @@
  0. optimizing a solution
  0. executing a solution
 
+## Modeling
+ - focus on edge-based constraint definition, e.g.,
+    from [F,A]@[t0,t1), [F,A]@[t1,t2) [F,A]@[t1]
+
 ## Search
  - general mechanism for additional constraints, e.g., meta constraints
     [ongoing]
@@ -115,14 +119,14 @@
 ## GUI 
  - embed pictograms as icons: QGraphicsPixmapItem
     https://stackoverflow.com/questions/5960074/qimage-in-a-qgraphics-scene
- - alternatively use color icons and allow customization
+ - alternatively use color icons and allow customization [Done]
 
 ## Organization model
    - functionality constraints, e.g., manipulation only available with maximum
      of n payloads or locomotion only available with mass maximum 
    - functional property requirement
-     - hasTransportCapacity max 10 Actor
-     - mass max 100kg -- locomotion
+     - hasTransportCapacity max 10 Actor [DONE]
+     - mass max 100kg -- locomotion [DONE]
      - swrl rule --> how to define in owl
      - https://www.w3.org/2007/OWL/wiki/Data_Range_Extension:_Linear_Equations +
        MathML

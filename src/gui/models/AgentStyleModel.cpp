@@ -23,7 +23,7 @@ AgentStyleModel::AgentStyleModel(const moreorg::ModelPool& modelPool)
     , mModelPool(modelPool)
 {
     int row = 0;
-    for(const ModelPool::value_type p : mModelPool)
+    for(const ModelPool::value_type& p : mModelPool)
     {
         for(size_t i = 0; i < p.second; ++i, ++row)
         {
