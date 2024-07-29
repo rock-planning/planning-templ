@@ -417,7 +417,7 @@ if(ROCK_QT_VERSION_4)
         UI
             ${GUI_UI}
         DEPS_PKGCONFIG
-            graph_analysis
+            graph_analysis-qt4
         DEPS
             templ
             Qt4::QtXml
