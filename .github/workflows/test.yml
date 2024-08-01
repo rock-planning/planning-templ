@@ -70,7 +70,8 @@ jobs:
         id: push
         run: |
             IMAGE_NAME=${{ env.REGISTRY }}/rock-planning/templ-${{ matrix.os }}
-            DIGEST=$(docker push $IMAGE_NAME | tail -n 1)
+            docker push $IMAGE_NAME | tee docker_push.log
+            DIGEST=$(grep "digest: sha256" docker_push.log | tail -n 1)
             # <tag>: digest: sha256:.... size: XXX
             echo "digest=$(echo $DIGEST | cut -d' ' -f 3)" >> "$GITHUB_OUTPUT"
 
