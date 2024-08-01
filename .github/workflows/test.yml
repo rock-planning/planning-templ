@@ -1,7 +1,22 @@
 name: test
-on: [push]
+on:
+  push:
+  schedule:
+    # 4am on Mondays
+    - cron: '0 4 * * 1'
+
+env:
+  REGISTRY: ghcr.io
+
 jobs:
   unittests:
+    # Sets permissions of the GITHUB_TOKEN to allow artifact attestation
+    # see https://docs.github.com/en/actions/security-guides/automatic-token-authentication#permissions-for-the-github_token
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
     strategy:
       matrix:
         os: ["ubuntu:20.04", "ubuntu:22.04"]
@@ -27,16 +42,45 @@ jobs:
           fi
 
       - name: Build
-        run: docker build -t rock/${{ matrix.os }} -f rock-github-workflow/docker/Dockerfile .
+        run: docker build -t ${{ env.REGISTRY }}/rock-planning/templ-${{ matrix.os }} -f rock-github-workflow/docker/Dockerfile .
                 --build-arg PKG_NAME=${{ matrix.package }}
                 --build-arg PKG_BRANCH=${{ github.ref_name }}
                 --build-arg BASE_IMAGE=${{ matrix.os }}
                 --build-arg SEED_CONFIG=${{ matrix.seed_config }}
                 --build-arg BUILDCONF_URL=https://github.com/2maz/templ-buildconf
                 --build-arg BUILDCONF_BRANCH=test
+                --label "org.opencontainers.image.source=${{ github.repositoryUrl }}"
+                --label "org.opencontainers.image.description=Container for TemPl"
 
       - name: Test
-        run: docker run rock/${{ matrix.os }}
+        run: docker run ${{ env.REGISTRY }}/rock-planning/templ-${{ matrix.os }}
                 /bin/bash -c
                   "source /home/docker/rock_test/env.sh; BOOST_TEST_CATCH_SYSTEM_ERRORS=\"no\" /home/docker/rock_test/${{ matrix.package }}/build/test/templ-test --run_test='!solution_simulation*' --log_level=all"
+
+      - name: Login to GitHub Container Registry
+        if: github.ref == 'refs/heads/test'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image
+        if: github.ref == 'refs/heads/test'
+        id: push
+        run: |
+            IMAGE_NAME=${{ env.REGISTRY }}/rock-planning/templ-${{ matrix.os }}
+            DIGEST=$(docker push $IMAGE_NAME | tail -n 1)
+            # <tag>: digest: sha256:.... size: XXX
+            echo "digest=$(echo $DIGEST | cut -d' ' -f 3)" >> "$GITHUB_OUTPUT"
+
+      - name: Generate artifact attestation
+        if: github.ref == 'refs/heads/test'
+        uses: actions/attest-build-provenance@v1
+        with:
+          # see https://github.com/marketplace/actions/generate-generic-attestations
+          # Do NOT include a tag as part of the image name -- the specific image being attested is identified by the supplied digest.
+          subject-name: ${{ env.REGISTRY }}/rock-planning/templ-ubuntu
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
 
