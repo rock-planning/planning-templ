@@ -406,53 +406,45 @@ set(GUI_UI
         gui/widgets/TemporalConstraintQuantitative.ui
 )
 
-if(ROCK_QT_VERSION_4)
-    rock_library(templ_gui-qt4
-        HEADERS
-            ${GUI_HEADERS}
-        SOURCES
-            ${GUI_SOURCES}
-        MOC
-            ${GUI_MOC}
-        UI
-            ${GUI_UI}
-        DEPS_PKGCONFIG
-            graph_analysis-qt4
-        DEPS
-            templ
-            Qt4::QtXml
-            Qt4::QtSvg
-    )
-    rock_executable(templ-gui-qt4 gui/Main.cpp
-        DEPS templ_gui-qt4)
-else()
-    message(WARNING "gui: not building for qt4")
-endif(ROCK_QT_VERSION_4)
+include(RockQt)
 
-if(ROCK_QT_VERSION_5)
-    rock_library(templ_gui-qt5
-        HEADERS
-            ${GUI_HEADERS}
-        SOURCES
-            ${GUI_SOURCES}
-        MOC5
-            ${GUI_MOC}
-        UI5
-            ${GUI_UI}
-        DEPS_PKGCONFIG
-            graph_analysis-qt5
-        DEPS
-            templ
-            Qt5::Widgets
-            Qt5::Xml
-            Qt5::PrintSupport
-            Qt5::Svg
+rock_qt_library(
+    TARGETPREFIX templ_gui
+    MISSINGQTDEPS_NOBUILD
+    HEADERS
+        ${GUI_HEADERS}
+    SOURCES
+        ${GUI_SOURCES}
+    MOC
+        ${GUI_MOC}
+    UI
+        ${GUI_UI}
+    DEPS_PKGCONFIG_QT4
+        graph_analysis-qt4
+    DEPS_PKGCONFIG_QT5
+        graph_analysis-qt5
+    DEPS
+        templ
+    DEPS_QT4
+        Qt4::QtXml
+        Qt4::QtSvg
+    DEPS_QT5
+        Qt5::Widgets
+        Qt5::Xml
+        Qt5::PrintSupport
+        Qt5::Svg
+)
+rock_qt_executable(
+    TARGETPREFIX templ-gui
+    MISSINGQTDEPS_NOBUILD
+    SOURCES gui/Main.cpp
+    DEPS_QT templ_gui
     )
-    rock_executable(templ-gui-qt5 gui/Main.cpp
-        DEPS templ_gui-qt5
-    )
-else()
+if(NOT TARGET templ_gui-qt4)
+    message(WARNING "gui: not building for qt4")
+endif()
+if(NOT TARGET templ_gui-qt5)
     message(WARNING "gui: not building for qt5")
-endif(ROCK_QT_VERSION_5)
+endif()
 
 
