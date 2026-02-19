@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <cstdint>
 
 namespace templ {
 namespace benchmark {
